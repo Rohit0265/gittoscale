@@ -1,0 +1,184 @@
+{
+  "description": "Synthetic e-commerce microservices architecture fixture. Values are illustrative synthetic models for capacity planning simulation, not real-world benchmarks.",
+  "nodes": [
+    {
+      "id": "client",
+      "name": "Client / Load Generator",
+      "type": "load_generator",
+      "position": { "x": 60, "y": 220 },
+      "capacityPerSecond": 10000,
+      "workerCount": 1,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 0,
+        "maxQueueSize": 10000,
+        "overflowPolicy": "drop",
+        "isSource": true,
+        "defaultTrafficRate": 1000
+      }
+    },
+    {
+      "id": "api-gateway",
+      "name": "API Gateway",
+      "type": "gateway",
+      "position": { "x": 320, "y": 220 },
+      "capacityPerSecond": 1500,
+      "workerCount": 2,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 5,
+        "maxQueueSize": 3000,
+        "overflowPolicy": "reject"
+      }
+    },
+    {
+      "id": "auth-service",
+      "name": "Auth Service",
+      "type": "service",
+      "position": { "x": 600, "y": 60 },
+      "capacityPerSecond": 1000,
+      "workerCount": 2,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 15,
+        "maxQueueSize": 2000,
+        "overflowPolicy": "reject"
+      }
+    },
+    {
+      "id": "product-service",
+      "name": "Product Service",
+      "type": "service",
+      "position": { "x": 600, "y": 220 },
+      "capacityPerSecond": 800,
+      "workerCount": 2,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 20,
+        "maxQueueSize": 2000,
+        "overflowPolicy": "reject"
+      }
+    },
+    {
+      "id": "order-service",
+      "name": "Order Service",
+      "type": "service",
+      "position": { "x": 600, "y": 400 },
+      "capacityPerSecond": 500,
+      "workerCount": 2,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 35,
+        "maxQueueSize": 1500,
+        "overflowPolicy": "reject"
+      }
+    },
+    {
+      "id": "redis-cache",
+      "name": "Redis Cache",
+      "type": "cache",
+      "position": { "x": 880, "y": 140 },
+      "capacityPerSecond": 2500,
+      "workerCount": 2,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 2,
+        "maxQueueSize": 5000,
+        "overflowPolicy": "drop"
+      }
+    },
+    {
+      "id": "payment-service",
+      "name": "Payment Service",
+      "type": "service",
+      "position": { "x": 880, "y": 440 },
+      "capacityPerSecond": 400,
+      "workerCount": 2,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 50,
+        "maxQueueSize": 1000,
+        "overflowPolicy": "reject"
+      }
+    },
+    {
+      "id": "postgres-db",
+      "name": "PostgreSQL Database",
+      "type": "database",
+      "position": { "x": 1160, "y": 290 },
+      "capacityPerSecond": 600,
+      "workerCount": 2,
+      "enabled": true,
+      "config": {
+        "baselineLatencyMs": 30,
+        "maxQueueSize": 2000,
+        "overflowPolicy": "reject"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-client-gateway",
+      "source": "client",
+      "target": "api-gateway",
+      "requestsPerInput": 1.0,
+      "enabled": true
+    },
+    {
+      "id": "edge-gateway-auth",
+      "source": "api-gateway",
+      "target": "auth-service",
+      "requestsPerInput": 0.8,
+      "enabled": true
+    },
+    {
+      "id": "edge-gateway-product",
+      "source": "api-gateway",
+      "target": "product-service",
+      "requestsPerInput": 0.7,
+      "enabled": true
+    },
+    {
+      "id": "edge-gateway-order",
+      "source": "api-gateway",
+      "target": "order-service",
+      "requestsPerInput": 0.3,
+      "enabled": true
+    },
+    {
+      "id": "edge-product-cache",
+      "source": "product-service",
+      "target": "redis-cache",
+      "requestsPerInput": 1.0,
+      "enabled": true
+    },
+    {
+      "id": "edge-product-db",
+      "source": "product-service",
+      "target": "postgres-db",
+      "requestsPerInput": 0.2,
+      "enabled": true
+    },
+    {
+      "id": "edge-order-payment",
+      "source": "order-service",
+      "target": "payment-service",
+      "requestsPerInput": 1.0,
+      "enabled": true
+    },
+    {
+      "id": "edge-order-db",
+      "source": "order-service",
+      "target": "postgres-db",
+      "requestsPerInput": 1.5,
+      "enabled": true
+    },
+    {
+      "id": "edge-payment-db",
+      "source": "payment-service",
+      "target": "postgres-db",
+      "requestsPerInput": 1.0,
+      "enabled": true
+    }
+  ]
+}
