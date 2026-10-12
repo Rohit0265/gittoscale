@@ -3,7 +3,7 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   EdgeProps,
-  getBezierPath,
+  getSmoothStepPath,
 } from '@xyflow/react';
 
 export interface CustomEdgeData {
@@ -37,13 +37,14 @@ export const CustomEdge: React.FC<EdgeProps> = ({
   const label = edgeData.label;
   const flowDesc = edgeData.dataFlowDescription;
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
     targetX,
     targetY,
     targetPosition,
+    borderRadius: 14,
   });
 
   return (
