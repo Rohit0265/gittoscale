@@ -105,25 +105,8 @@ export const Fotter: React.FC = () => {
           {/* Brand Info Column */}
           <div className="gts-brand-col">
             <div className="gts-brand-header">
-              <div className="gts-brand-logo" aria-hidden="true">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {/* Modern scale/git node icon */}
-                  <line x1="6" y1="3" x2="6" y2="15"></line>
-                  <circle cx="18" cy="6" r="3"></circle>
-                  <circle cx="6" cy="18" r="3"></circle>
-                  <path d="M18 9a9 9 0 0 1-9 9"></path>
-                </svg>
-              </div>
-              <span className="gts-brand-name">GitToScale</span>
+              <div className="gts-brand-logo" aria-hidden="true" />
+              <span className="gts-brand-name">Compos</span>
             </div>
 
             <p className="gts-brand-desc">
@@ -193,12 +176,12 @@ export const Fotter: React.FC = () => {
 
         {/* Copyright */}
         <p className="gts-copyright">
-          &copy; 2026 GitToScale. All rights reserved.
+          &copy; 2026 Compos. All rights reserved.
         </p>
 
         {/* Giant Watermark Background Text */}
         <div className="gts-watermark-wrapper" aria-hidden="true">
-          <span className="gts-watermark-text">GitToScale</span>
+          <span className="gts-watermark-text">Compos</span>
         </div>
       </div>
     </footer>
