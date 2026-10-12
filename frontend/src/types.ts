@@ -136,3 +136,4 @@ export interface BaselineSnapshot {
   metrics: SimulationSummaryMetrics;
   nodeResults: Record<string, NodeSimulationResult>;
 }
+

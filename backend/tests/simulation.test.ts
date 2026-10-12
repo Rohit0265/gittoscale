@@ -260,3 +260,4 @@ describe('Traffic Simulation Engine Unit Tests', () => {
     expect(fixture2.nodes[0].capacityPerSecond).toBe(10000);
   });
 });
+

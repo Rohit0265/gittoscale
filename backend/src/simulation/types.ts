@@ -139,3 +139,4 @@ export interface SimulationResult {
   durationSeconds: number;
   assumptions: string[];
 }
+

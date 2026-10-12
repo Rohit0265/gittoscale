@@ -133,3 +133,4 @@ export const MetricsStrip: React.FC<MetricsStripProps> = ({ metrics, loading }) 
     </div>
   );
 };
+

@@ -192,3 +192,4 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
 });
 
 ArchitectureCustomNode.displayName = 'ArchitectureCustomNode';
+

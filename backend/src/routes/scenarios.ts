@@ -13,3 +13,4 @@ router.get('/', (_req: Request, res: Response, next: NextFunction) => {
 });
 
 export default router;
+

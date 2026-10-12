@@ -46,3 +46,4 @@ export function getScenariosFixture(fresh = false): ScenarioFixture[] {
   cachedScenarios = data;
   return JSON.parse(JSON.stringify(data));
 }
+
