@@ -368,3 +368,4 @@ function buildArchitectureFromServices(discovered: DiscoveredService[]): {
     detectedServices: discovered.map(d => d.name),
   };
 }
+
