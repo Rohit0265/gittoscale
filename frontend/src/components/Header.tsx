@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, GitCompare, Activity, Sparkles, FolderGit2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, GitCompare, Activity, Sparkles, FolderGit2, Layers, Network } from 'lucide-react';
 import { ScenarioFixture } from '../types';
 
 interface HeaderProps {
@@ -13,6 +13,8 @@ interface HeaderProps {
   onOpenImportRepo: () => void;
   hasBaseline: boolean;
   onGoHome?: () => void;
+  viewMode?: 'basic' | 'detailed';
+  onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +28,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenImportRepo,
   hasBaseline,
   onGoHome,
+  viewMode = 'basic',
+  onToggleViewMode,
 }) => {
   const currentScenario = scenarios.find((s) => s.id === currentScenarioId);
 
@@ -59,6 +63,34 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Scenario Selector & Controls */}
       <div className="flex items-center gap-3">
+        {/* Two-Mode Architecture View Toggle */}
+        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+          <button
+            onClick={() => onToggleViewMode?.('basic')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'basic'
+                ? 'bg-white text-indigo-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+            title="Basic View: High-level overview"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Basic</span>
+          </button>
+          <button
+            onClick={() => onToggleViewMode?.('detailed')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'detailed'
+                ? 'bg-white text-indigo-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+            title="Detailed View: Submodules, routes, middleware & data flows"
+          >
+            <Network className="w-3.5 h-3.5" />
+            <span>Detailed</span>
+          </button>
+        </div>
+
         {/* Scenario dropdown */}
         <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs">
           <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />

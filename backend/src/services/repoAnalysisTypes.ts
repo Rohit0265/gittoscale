@@ -100,6 +100,10 @@ export const llmAnalysisResultSchema = z.object({
       reason: z.string().default('Discovered component in system architecture.'),
       estimatedCapacity: z.number().optional(),
       defaultWorkers: z.number().optional(),
+      parentId: z.string().optional(),
+      submoduleType: z.string().optional(),
+      isGroup: z.boolean().optional(),
+      collapsed: z.boolean().optional(),
     })
   ),
   connections: z.array(

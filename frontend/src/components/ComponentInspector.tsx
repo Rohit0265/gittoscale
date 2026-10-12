@@ -21,6 +21,9 @@ interface ComponentInspectorProps {
   onUpdateEdgeMultiplier: (edgeId: string, multiplier: number) => void;
   onChangeIncomingTrafficRate?: (rate: number) => void;
   incomingTrafficRate?: number;
+  onNavigateToParent?: (parentId: string) => void;
+  viewMode?: 'basic' | 'detailed';
+  allNodes?: ArchitectureNode[];
 }
 
 export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
@@ -32,9 +35,13 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
   onUpdateEdgeMultiplier,
   onChangeIncomingTrafficRate,
   incomingTrafficRate,
+  onNavigateToParent,
+  viewMode,
+  allNodes = [],
 }) => {
   const isSource = node.type === 'load_generator';
   const outgoingEdges = edges.filter((e) => e.source === node.id);
+  const incomingEdges = edges.filter((e) => e.target === node.id);
 
   const handleCapacityChange = (val: number) => {
     onUpdateNode({
@@ -87,19 +94,22 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
     });
   };
 
+  const parentNode = node.parentId ? allNodes.find((n) => n.id === node.parentId) : undefined;
+  const parentDisplayName = parentNode?.name || node.parentId;
+
   return (
     <div className="flex flex-col h-full text-xs bg-white">
       {/* Header */}
       <div className="p-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <div>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-            Inspector
+            Inspector {viewMode ? `• ${viewMode === 'detailed' ? 'Detailed View' : 'Basic View'}` : ''}
           </span>
           <h3 className="font-bold text-sm text-slate-800">{node.name}</h3>
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+          className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -148,6 +158,42 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
             <option value="load_generator">Client Load Generator</option>
           </select>
         </div>
+
+        {/* Parent Service & Hierarchy Link */}
+        {Boolean(node.parentId) && (
+          <div className="p-3 rounded-lg border border-indigo-200 bg-indigo-50/70 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-indigo-900 text-[10px] uppercase tracking-wider">
+                Parent Runtime Service
+              </span>
+              <span
+                className="text-[10px] font-semibold text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200 truncate max-w-[140px]"
+                title={parentDisplayName}
+              >
+                {parentDisplayName}
+              </span>
+            </div>
+            {onNavigateToParent && (
+              <button
+                onClick={() => onNavigateToParent(node.parentId!)}
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[11px] font-semibold transition-all shadow-xs cursor-pointer"
+              >
+                <span>View Parent in Basic View</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Submodule Role Badge */}
+        {Boolean(node.submoduleType) && (
+          <div className="flex items-center justify-between p-2 rounded-lg border border-slate-200 bg-slate-50 text-[11px]">
+            <span className="font-semibold text-slate-600">Submodule Role:</span>
+            <span className="font-bold text-indigo-700 uppercase tracking-wider text-[10px] bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
+              {node.submoduleType?.replace('_', ' ')}
+            </span>
+          </div>
+        )}
 
         {/* SECTION: REPOSITORY EVIDENCE & EXPLANATION */}
         {Boolean(node.config.reason || node.config.entryPoint || node.config.sourceFiles) && (
@@ -345,6 +391,39 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Inbound Request Flow */}
+        {incomingEdges.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <span className="font-bold text-slate-700 text-[11px] uppercase tracking-wider block">
+              Inbound Callers ({incomingEdges.length})
+            </span>
+            <div className="space-y-1.5">
+              {incomingEdges.map((edge) => (
+                <div
+                  key={edge.id}
+                  className="p-2 rounded border border-slate-200 bg-slate-50 text-[11px] space-y-1"
+                >
+                  <div className="flex items-center justify-between text-slate-700 font-medium">
+                    <span className="text-slate-600">
+                      From: <strong className="text-slate-800">{edge.source}</strong>
+                    </span>
+                    {edge.label && (
+                      <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-medium">
+                        {edge.label}
+                      </span>
+                    )}
+                  </div>
+                  {edge.dataFlowDescription && (
+                    <p className="text-[10px] text-slate-500 font-mono italic">
+                      {edge.dataFlowDescription}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Outgoing Request Multipliers */}
         {outgoingEdges.length > 0 && (

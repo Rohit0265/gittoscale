@@ -102,6 +102,28 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
     return 'bg-emerald-500';
   };
 
+  const getSubmoduleBadge = () => {
+    const subType = node.submoduleType || (node.config?.submoduleType as string | undefined);
+    if (!subType) return null;
+    const colors: Record<string, string> = {
+      entrypoint: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      middleware: 'bg-amber-50 text-amber-700 border-amber-200',
+      controller: 'bg-sky-50 text-sky-700 border-sky-200',
+      service_logic: 'bg-purple-50 text-purple-700 border-purple-200',
+      model: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      cache_client: 'bg-orange-50 text-orange-700 border-orange-200',
+      worker: 'bg-teal-50 text-teal-700 border-teal-200',
+      external_api: 'bg-rose-50 text-rose-700 border-rose-200',
+      component: 'bg-blue-50 text-blue-700 border-blue-200',
+    };
+    const style = colors[subType] || 'bg-slate-50 text-slate-700 border-slate-200';
+    return (
+      <span className={`text-[8.5px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${style}`}>
+        {subType.replace('_', ' ')}
+      </span>
+    );
+  };
+
   const isSource = node.type === 'load_generator';
 
   return (
@@ -127,11 +149,14 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
             <span className="text-xs font-bold text-slate-800 truncate block" title={node.name}>
               {node.name}
             </span>
-            {Boolean(node.config?.category) && (
-              <span className="text-[9px] font-medium text-slate-400 block truncate">
-                {String(node.config.category)}
-              </span>
-            )}
+            <div className="flex items-center gap-1 mt-0.5">
+              {getSubmoduleBadge()}
+              {Boolean(node.config?.category) && (
+                <span className="text-[9px] font-medium text-slate-400 truncate">
+                  {String(node.config.category)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         {getStatusBadge()}

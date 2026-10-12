@@ -14,22 +14,7 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
 } {
   const { components, connections } = analysis;
 
-  // 1. Separate components into logical architectural tiers
-  // Tier 1: User / Clients
-  const colUser = components.filter((c) => c.type === 'load_generator');
-  // Tier 2: Frontend & API Gateways
-  const colGateway = components.filter((c) => c.type === 'gateway' || c.category === 'Chat interface');
-  // Tier 3: Core backend microservices & workflows
-  const colServices = components.filter(
-    (c) =>
-      c.type === 'service' &&
-      c.category !== 'Chat interface' &&
-      c.category !== 'External Services'
-  );
-  // Tier 4: Databases, Caches & Queues
-  const colData = components.filter((c) => c.type === 'cache' || c.type === 'database');
-  // Tier 5: External Providers (Firebase, Razorpay, LLMs)
-  const colExternal = components.filter((c) => c.category === 'External Services');
+  const isDetailed = components.some((c) => Boolean(c.parentId) || Boolean(c.submoduleType)) || components.length > 8;
 
   const nodes: ArchitectureNode[] = [];
 
@@ -51,6 +36,12 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
         capacityPerSecond: comp.estimatedCapacity || (comp.type === 'database' ? 3000 : 1500),
         workerCount: comp.defaultWorkers || (comp.type === 'gateway' ? 4 : 2),
         enabled: true,
+        parentId: comp.parentId,
+        submoduleType: comp.submoduleType,
+        category: comp.category,
+        isGroup: comp.isGroup,
+        collapsed: comp.collapsed,
+        sourceFiles: comp.sourceFiles,
         config: {
           baselineLatencyMs: comp.type === 'database' ? 15 : comp.type === 'cache' ? 2 : 10,
           maxQueueSize: comp.type === 'database' ? 4000 : 2000,
@@ -60,6 +51,8 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
           // Evidence attributes for inspector panel
           category: comp.category,
           group: comp.group,
+          parentId: comp.parentId,
+          submoduleType: comp.submoduleType,
           entryPoint: comp.entryPoint,
           startupCommand: comp.startupCommand,
           sourceFiles: comp.sourceFiles,
@@ -70,11 +63,81 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
     });
   };
 
-  layoutColumn(colUser, 40, 180, 160);
-  layoutColumn(colGateway, 320, 100, 160);
-  layoutColumn(colServices, 620, 60, 160);
-  layoutColumn(colData, 920, 100, 160);
-  layoutColumn(colExternal, 1220, 120, 160);
+  if (isDetailed) {
+    // 6-Lane Horizontal Layout for Detailed View
+    const colUser = components.filter((c) => c.type === 'load_generator');
+    const colFrontend = components.filter(
+      (c) =>
+        c.category === 'Chat interface' ||
+        c.id.includes('home') ||
+        c.id.includes('chatui') ||
+        c.id.includes('sidebar') ||
+        c.id.includes('artifacts') ||
+        c.id.includes('clientstate')
+    );
+    const colGateway = components.filter(
+      (c) =>
+        !colFrontend.includes(c) &&
+        (c.type === 'gateway' ||
+          c.category === 'API gateway' ||
+          c.id.includes('gateway') ||
+          c.id.includes('sessionguard'))
+    );
+    const colServices = components.filter(
+      (c) =>
+        c.type === 'service' &&
+        !colFrontend.includes(c) &&
+        !colGateway.includes(c) &&
+        c.category !== 'External Services' &&
+        c.submoduleType !== 'model' &&
+        c.submoduleType !== 'service_logic'
+    );
+    const colDataAndLogic = components.filter(
+      (c) =>
+        !colFrontend.includes(c) &&
+        !colGateway.includes(c) &&
+        (c.type === 'database' ||
+          c.type === 'cache' ||
+          c.submoduleType === 'model' ||
+          c.submoduleType === 'service_logic' ||
+          c.submoduleType === 'worker' ||
+          c.category === 'Storage')
+    );
+    const colExternal = components.filter(
+      (c) =>
+        c.category === 'External Services' ||
+        c.id.startsWith('ext-') ||
+        c.id.startsWith('node-firebase') ||
+        c.id.startsWith('node-razorpay') ||
+        c.id.startsWith('node-llms') ||
+        c.submoduleType === 'external_api'
+    );
+
+    layoutColumn(colUser, 40, 220, 160);
+    layoutColumn(colFrontend, 280, 50, 130);
+    layoutColumn(colGateway, 580, 60, 130);
+    layoutColumn(colServices, 880, 50, 130);
+    layoutColumn(colDataAndLogic, 1200, 40, 130);
+    layoutColumn(colExternal, 1540, 80, 150);
+  } else {
+    // 5-Lane Layout for Basic View
+    const colUser = components.filter((c) => c.type === 'load_generator');
+    const colGateway = components.filter((c) => c.type === 'gateway' || c.category === 'Chat interface');
+    const colServices = components.filter(
+      (c) =>
+        c.type === 'service' &&
+        c.category !== 'Chat interface' &&
+        c.category !== 'External Services'
+    );
+    const colData = components.filter((c) => c.type === 'cache' || c.type === 'database');
+    const colExternal = components.filter((c) => c.category === 'External Services');
+
+    layoutColumn(colUser, 40, 180, 160);
+    layoutColumn(colGateway, 320, 100, 160);
+    layoutColumn(colServices, 620, 60, 160);
+    layoutColumn(colData, 920, 100, 160);
+    layoutColumn(colExternal, 1220, 120, 160);
+  }
 
   // 2. Generate initial edges from analysis connections
   const validNodeIds = new Set(nodes.map((n) => n.id));
@@ -89,6 +152,7 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
       isBidirectional: conn.isBidirectional ?? (conn.communicationType === 'http' || conn.communicationType === 'db' || conn.communicationType === 'cache'),
       label: conn.reference,
       dataFlowDescription: conn.dataFlowDescription || `${conn.communicationType.toUpperCase()} flow between ${conn.source} and ${conn.target}`,
+      communicationType: conn.communicationType,
     }));
 
   // 3. Auto-heal any orphaned or unlinked nodes to guarantee a cohesive, complete flow

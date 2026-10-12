@@ -1,0 +1,402 @@
+{
+  "description": "Detailed breakdown of the synthetic e-commerce microservices architecture showing internal controllers, middlewares, cache clients, database connections, and third-party integrations.",
+  "nodes": [
+    {
+      "id": "client",
+      "name": "Client / Load Generator",
+      "type": "load_generator",
+      "position": { "x": 40, "y": 240 },
+      "capacityPerSecond": 10000,
+      "workerCount": 1,
+      "enabled": true,
+      "category": "Client",
+      "config": {
+        "baselineLatencyMs": 0,
+        "maxQueueSize": 10000,
+        "overflowPolicy": "drop",
+        "isSource": true,
+        "defaultTrafficRate": 1000
+      }
+    },
+    {
+      "id": "api-gateway.router",
+      "name": "API Gateway Router",
+      "type": "gateway",
+      "position": { "x": 300, "y": 140 },
+      "capacityPerSecond": 3000,
+      "workerCount": 4,
+      "enabled": true,
+      "parentId": "api-gateway",
+      "submoduleType": "entrypoint",
+      "category": "API Gateway",
+      "sourceFiles": ["src/gateway/index.ts", "src/gateway/routes.ts"],
+      "config": {
+        "baselineLatencyMs": 3,
+        "maxQueueSize": 3000,
+        "overflowPolicy": "reject",
+        "entryPoint": "src/gateway/index.ts",
+        "reason": "HTTP request ingress, path dispatching, and TLS termination."
+      }
+    },
+    {
+      "id": "api-gateway.rate-limiter",
+      "name": "Rate Limiter & Session Guard",
+      "type": "gateway",
+      "position": { "x": 300, "y": 340 },
+      "capacityPerSecond": 2500,
+      "workerCount": 4,
+      "enabled": true,
+      "parentId": "api-gateway",
+      "submoduleType": "middleware",
+      "category": "API Gateway",
+      "sourceFiles": ["src/gateway/middleware/rateLimiter.ts", "src/gateway/middleware/auth.ts"],
+      "config": {
+        "baselineLatencyMs": 4,
+        "maxQueueSize": 2500,
+        "overflowPolicy": "reject",
+        "reason": "Token bucket rate limiting and session verification middleware."
+      }
+    },
+    {
+      "id": "auth-service.controller",
+      "name": "Auth Controller",
+      "type": "service",
+      "position": { "x": 580, "y": 40 },
+      "capacityPerSecond": 1200,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "auth-service",
+      "submoduleType": "controller",
+      "category": "Auth Service",
+      "sourceFiles": ["src/auth/controllers/auth.controller.ts"],
+      "config": {
+        "baselineLatencyMs": 12,
+        "maxQueueSize": 2000,
+        "overflowPolicy": "reject",
+        "reason": "Handles login, sign up, and credential verification."
+      }
+    },
+    {
+      "id": "auth-service.token-validator",
+      "name": "JWT Token Engine",
+      "type": "service",
+      "position": { "x": 580, "y": 180 },
+      "capacityPerSecond": 1500,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "auth-service",
+      "submoduleType": "service_logic",
+      "category": "Auth Service",
+      "sourceFiles": ["src/auth/services/jwt.service.ts"],
+      "config": {
+        "baselineLatencyMs": 8,
+        "maxQueueSize": 2000,
+        "overflowPolicy": "reject",
+        "reason": "Cryptographic signing and claims decoding."
+      }
+    },
+    {
+      "id": "product-service.controller",
+      "name": "Product Catalog Controller",
+      "type": "service",
+      "position": { "x": 580, "y": 320 },
+      "capacityPerSecond": 1000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "product-service",
+      "submoduleType": "controller",
+      "category": "Product Service",
+      "sourceFiles": ["src/products/controllers/catalog.controller.ts"],
+      "config": {
+        "baselineLatencyMs": 15,
+        "maxQueueSize": 2000,
+        "overflowPolicy": "reject",
+        "reason": "Serves inventory listings, product metadata, and search."
+      }
+    },
+    {
+      "id": "product-service.cache-client",
+      "name": "Product Cache Manager",
+      "type": "cache",
+      "position": { "x": 580, "y": 460 },
+      "capacityPerSecond": 3000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "product-service",
+      "submoduleType": "cache_client",
+      "category": "Product Service",
+      "sourceFiles": ["src/products/clients/cache.client.ts"],
+      "config": {
+        "baselineLatencyMs": 2,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "drop",
+        "reason": "In-memory cache abstraction with read-through fallback."
+      }
+    },
+    {
+      "id": "order-service.controller",
+      "name": "Order API Controller",
+      "type": "service",
+      "position": { "x": 580, "y": 600 },
+      "capacityPerSecond": 600,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "order-service",
+      "submoduleType": "controller",
+      "category": "Order Service",
+      "sourceFiles": ["src/orders/controllers/order.controller.ts"],
+      "config": {
+        "baselineLatencyMs": 25,
+        "maxQueueSize": 1500,
+        "overflowPolicy": "reject",
+        "reason": "Handles order placement, cancellation, and status checks."
+      }
+    },
+    {
+      "id": "order-service.order-logic",
+      "name": "Order Checkout Pipeline",
+      "type": "service",
+      "position": { "x": 880, "y": 480 },
+      "capacityPerSecond": 500,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "order-service",
+      "submoduleType": "service_logic",
+      "category": "Order Service",
+      "sourceFiles": ["src/orders/services/checkout.service.ts"],
+      "config": {
+        "baselineLatencyMs": 30,
+        "maxQueueSize": 1500,
+        "overflowPolicy": "reject",
+        "reason": "Business logic coordinator for inventory reservation and transactions."
+      }
+    },
+    {
+      "id": "payment-service.controller",
+      "name": "Payment Controller",
+      "type": "service",
+      "position": { "x": 880, "y": 640 },
+      "capacityPerSecond": 450,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "payment-service",
+      "submoduleType": "controller",
+      "category": "Payment Service",
+      "sourceFiles": ["src/payments/controllers/payment.controller.ts"],
+      "config": {
+        "baselineLatencyMs": 40,
+        "maxQueueSize": 1200,
+        "overflowPolicy": "reject",
+        "reason": "Receives charge requests and handles 3D Secure webhooks."
+      }
+    },
+    {
+      "id": "redis-cache",
+      "name": "Redis Cache Cluster",
+      "type": "cache",
+      "position": { "x": 880, "y": 240 },
+      "capacityPerSecond": 4000,
+      "workerCount": 2,
+      "enabled": true,
+      "category": "Storage",
+      "submoduleType": "cache_client",
+      "sourceFiles": ["config/redis.conf"],
+      "config": {
+        "baselineLatencyMs": 2,
+        "maxQueueSize": 6000,
+        "overflowPolicy": "drop",
+        "reason": "High-throughput shared session and catalog cache."
+      }
+    },
+    {
+      "id": "database",
+      "name": "PostgreSQL Primary DB",
+      "type": "database",
+      "position": { "x": 1200, "y": 360 },
+      "capacityPerSecond": 800,
+      "workerCount": 2,
+      "enabled": true,
+      "category": "Storage",
+      "submoduleType": "model",
+      "sourceFiles": ["db/migrations/001_init.sql"],
+      "config": {
+        "baselineLatencyMs": 25,
+        "maxQueueSize": 2500,
+        "overflowPolicy": "reject",
+        "reason": "ACID relational persistence for user profiles and completed orders."
+      }
+    },
+    {
+      "id": "payment-service.gateway-client",
+      "name": "PSP Gateway Integration",
+      "type": "service",
+      "position": { "x": 1200, "y": 640 },
+      "capacityPerSecond": 350,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "payment-service",
+      "submoduleType": "external_api",
+      "category": "External Services",
+      "sourceFiles": ["src/payments/clients/stripe.client.ts"],
+      "config": {
+        "baselineLatencyMs": 90,
+        "maxQueueSize": 800,
+        "overflowPolicy": "reject",
+        "reason": "Outbound HTTPS connection to external payment gateway."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-client-router",
+      "source": "client",
+      "target": "api-gateway.router",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "HTTP Ingress",
+      "dataFlowDescription": "Client HTTPS requests ⇄ Rendered responses"
+    },
+    {
+      "id": "edge-router-ratelimiter",
+      "source": "api-gateway.router",
+      "target": "api-gateway.rate-limiter",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Token Guard",
+      "dataFlowDescription": "Incoming request headers ⇄ Quota verification"
+    },
+    {
+      "id": "edge-ratelimiter-redis",
+      "source": "api-gateway.rate-limiter",
+      "target": "redis-cache",
+      "requestsPerInput": 0.8,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Rate Check",
+      "dataFlowDescription": "IP bucket lookup ⇄ Counter decrement"
+    },
+    {
+      "id": "edge-router-authctrl",
+      "source": "api-gateway.router",
+      "target": "auth-service.controller",
+      "requestsPerInput": 0.3,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Auth API",
+      "dataFlowDescription": "Login/Register payload ⇄ JWT session"
+    },
+    {
+      "id": "edge-authctrl-jwt",
+      "source": "auth-service.controller",
+      "target": "auth-service.token-validator",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Sign / Verify",
+      "dataFlowDescription": "User claims ⇄ Signed JWT token"
+    },
+    {
+      "id": "edge-authctrl-db",
+      "source": "auth-service.controller",
+      "target": "database",
+      "requestsPerInput": 0.4,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "User Query",
+      "dataFlowDescription": "SELECT / INSERT users ⇄ User credentials"
+    },
+    {
+      "id": "edge-router-productctrl",
+      "source": "api-gateway.router",
+      "target": "product-service.controller",
+      "requestsPerInput": 1.2,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Catalog API",
+      "dataFlowDescription": "Product query ⇄ Catalog JSON payload"
+    },
+    {
+      "id": "edge-productctrl-cachemgr",
+      "source": "product-service.controller",
+      "target": "product-service.cache-client",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Cache Lookup",
+      "dataFlowDescription": "Item key lookup ⇄ Cached product entry"
+    },
+    {
+      "id": "edge-cachemgr-redis",
+      "source": "product-service.cache-client",
+      "target": "redis-cache",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Cache Hit/Miss",
+      "dataFlowDescription": "GET product:{id} ⇄ Cache entry or null"
+    },
+    {
+      "id": "edge-productctrl-db",
+      "source": "product-service.controller",
+      "target": "database",
+      "requestsPerInput": 0.15,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "DB Fallback",
+      "dataFlowDescription": "Cache-miss SQL query ⇄ Product row"
+    },
+    {
+      "id": "edge-router-orderctrl",
+      "source": "api-gateway.router",
+      "target": "order-service.controller",
+      "requestsPerInput": 0.25,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Order API",
+      "dataFlowDescription": "POST /orders ⇄ Order creation response"
+    },
+    {
+      "id": "edge-orderctrl-logic",
+      "source": "order-service.controller",
+      "target": "order-service.order-logic",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Checkout Flow",
+      "dataFlowDescription": "Order draft ⇄ Validated checkout transaction"
+    },
+    {
+      "id": "edge-orderlogic-payment",
+      "source": "order-service.order-logic",
+      "target": "payment-service.controller",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Process Payment",
+      "dataFlowDescription": "Charge request ⇄ Payment status authorization"
+    },
+    {
+      "id": "edge-payment-psp",
+      "source": "payment-service.controller",
+      "target": "payment-service.gateway-client",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "External Gateway",
+      "dataFlowDescription": "Outbound PSP transaction ⇄ Settled receipt"
+    },
+    {
+      "id": "edge-orderlogic-db",
+      "source": "order-service.order-logic",
+      "target": "database",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "isBidirectional": true,
+      "label": "Persist Order",
+      "dataFlowDescription": "INSERT orders, order_items ⇄ Transaction commit"
+    }
+  ]
+}
+

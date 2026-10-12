@@ -17,6 +17,7 @@ import {
 import { ArchitectureCustomNode } from './CustomNodes';
 import { CustomEdge } from './CustomEdge';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, EdgeSimulationResult } from '../../types';
+import { Layers, Network } from 'lucide-react';
 
 interface ArchitectureCanvasProps {
   nodes: ArchitectureNode[];
@@ -29,6 +30,8 @@ interface ArchitectureCanvasProps {
   onAddEdge: (newEdge: ArchitectureEdge) => void;
   onToggleEdge: (edgeId: string) => void;
   onDeleteEdge?: (edgeId: string) => void;
+  viewMode?: 'basic' | 'detailed';
+  onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
 }
 
 const NodeFocusController: React.FC<{
@@ -71,6 +74,8 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   onAddEdge,
   onToggleEdge,
   onDeleteEdge,
+  viewMode = 'basic',
+  onToggleViewMode,
 }) => {
   // Convert domain nodes to React Flow nodes
   const flowNodes: Node[] = useMemo(() => {
@@ -177,6 +182,40 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
 
   return (
     <div className="w-full h-full relative excel-grid">
+      {/* Floating Two-Mode Toggle Above Canvas */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 bg-white/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200">
+        <button
+          onClick={() => onToggleViewMode?.('basic')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            viewMode === 'basic'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+          title="Basic View: High-level overview of services, gateways, datastores, and external services"
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Basic View</span>
+        </button>
+        <button
+          onClick={() => onToggleViewMode?.('detailed')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            viewMode === 'detailed'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+          title="Detailed View: Repository-derived architecture flow exposing controllers, middleware, models & external flow"
+        >
+          <Network className="w-3.5 h-3.5" />
+          <span>Detailed View</span>
+        </button>
+
+        {viewMode === 'detailed' && (
+          <span className="ml-2 pl-2 border-l border-slate-200 text-[10px] text-slate-500 font-medium hidden sm:inline-block">
+            {nodes.length} components • {edges.length} flow paths
+          </span>
+        )}
+      </div>
+
       <ReactFlow
         nodes={rfNodes}
         edges={rfEdges}

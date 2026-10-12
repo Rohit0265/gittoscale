@@ -25,6 +25,7 @@ function findFixtureFile(filename: string): string {
 }
 
 let cachedArchitecture: ArchitectureFixture | null = null;
+let cachedDetailedArchitecture: ArchitectureFixture | null = null;
 let cachedScenarios: ScenarioFixture[] | null = null;
 
 export function getArchitectureFixture(fresh = false): ArchitectureFixture {
@@ -35,6 +36,21 @@ export function getArchitectureFixture(fresh = false): ArchitectureFixture {
   const data = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as ArchitectureFixture;
   cachedArchitecture = data;
   return JSON.parse(JSON.stringify(data));
+}
+
+export function getDetailedArchitectureFixture(fresh = false): ArchitectureFixture {
+  if (cachedDetailedArchitecture && !fresh) {
+    return JSON.parse(JSON.stringify(cachedDetailedArchitecture));
+  }
+  try {
+    const filePath = findFixtureFile('detailed-architecture.json');
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as ArchitectureFixture;
+    cachedDetailedArchitecture = data;
+    return JSON.parse(JSON.stringify(data));
+  } catch (err) {
+    // Fallback to basic architecture if detailed fixture is not found
+    return getArchitectureFixture(fresh);
+  }
 }
 
 export function getScenariosFixture(fresh = false): ScenarioFixture[] {
