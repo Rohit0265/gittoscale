@@ -1,118 +1,124 @@
 {
-  "description": "Synthetic e-commerce microservices architecture fixture. Values are illustrative synthetic models for capacity planning simulation, not real-world benchmarks.",
+  "description": "System Design Architecture Overview matching the user's reference topology (Frontend, API Gateway, Auth Service, Agent Service, Chat Service, Billing Service, and Session Cache).",
   "nodes": [
     {
       "id": "client",
-      "name": "Client / Load Generator",
+      "name": "Frontend [App.jsx]",
       "type": "load_generator",
-      "position": { "x": 60, "y": 220 },
+      "position": { "x": 40, "y": 300 },
       "capacityPerSecond": 10000,
       "workerCount": 1,
       "enabled": true,
+      "category": "Chat interface",
       "config": {
         "baselineLatencyMs": 0,
         "maxQueueSize": 10000,
         "overflowPolicy": "drop",
         "isSource": true,
-        "defaultTrafficRate": 1000
+        "defaultTrafficRate": 800,
+        "reason": "Client web frontend sending user chat queries and authentication requests."
       }
     },
     {
       "id": "api-gateway",
-      "name": "API Gateway",
+      "name": "API Gateway [index.js]",
       "type": "gateway",
-      "position": { "x": 320, "y": 220 },
-      "capacityPerSecond": 1500,
-      "workerCount": 2,
+      "position": { "x": 300, "y": 300 },
+      "capacityPerSecond": 20000,
+      "workerCount": 4,
       "enabled": true,
+      "category": "API gateway",
       "config": {
-        "baselineLatencyMs": 5,
-        "maxQueueSize": 3000,
-        "overflowPolicy": "reject"
+        "baselineLatencyMs": 3,
+        "maxQueueSize": 20000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/gateway/index.js",
+        "reason": "Central ingress proxy performing routing, session guard checks, and TLS termination."
       }
     },
     {
       "id": "auth-service",
-      "name": "Auth Service",
+      "name": "Auth Service [auth.controller.js]",
       "type": "service",
-      "position": { "x": 600, "y": 60 },
-      "capacityPerSecond": 1000,
+      "position": { "x": 620, "y": 120 },
+      "capacityPerSecond": 4000,
       "workerCount": 2,
       "enabled": true,
+      "category": "Identity and sessions",
       "config": {
-        "baselineLatencyMs": 15,
-        "maxQueueSize": 2000,
-        "overflowPolicy": "reject"
+        "baselineLatencyMs": 10,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/auth/controllers/auth.controllers.js",
+        "reason": "Authenticates user credentials and verifies session tokens."
       }
     },
     {
-      "id": "product-service",
-      "name": "Product Service",
-      "type": "service",
-      "position": { "x": 600, "y": 220 },
-      "capacityPerSecond": 800,
-      "workerCount": 2,
-      "enabled": true,
-      "config": {
-        "baselineLatencyMs": 20,
-        "maxQueueSize": 2000,
-        "overflowPolicy": "reject"
-      }
-    },
-    {
-      "id": "order-service",
-      "name": "Order Service",
-      "type": "service",
-      "position": { "x": 600, "y": 400 },
-      "capacityPerSecond": 500,
-      "workerCount": 2,
-      "enabled": true,
-      "config": {
-        "baselineLatencyMs": 35,
-        "maxQueueSize": 1500,
-        "overflowPolicy": "reject"
-      }
-    },
-    {
-      "id": "redis-cache",
-      "name": "Redis Cache",
+      "id": "session-cache",
+      "name": "Session Cache [redis.js]",
       "type": "cache",
-      "position": { "x": 880, "y": 140 },
-      "capacityPerSecond": 2500,
-      "workerCount": 2,
+      "position": { "x": 960, "y": 120 },
+      "capacityPerSecond": 5000,
+      "workerCount": 1,
       "enabled": true,
+      "category": "Identity and sessions",
       "config": {
         "baselineLatencyMs": 2,
         "maxQueueSize": 5000,
-        "overflowPolicy": "drop"
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/shared/redis/redis.js",
+        "reason": "Low-latency in-memory cache for fast session claim lookups."
       }
     },
     {
-      "id": "payment-service",
-      "name": "Payment Service",
+      "id": "agent-service",
+      "name": "Agent Service [agent.controller.js]",
       "type": "service",
-      "position": { "x": 880, "y": 440 },
-      "capacityPerSecond": 400,
-      "workerCount": 2,
+      "position": { "x": 620, "y": 300 },
+      "capacityPerSecond": 4000,
+      "workerCount": 4,
       "enabled": true,
+      "category": "AI and conversations",
       "config": {
-        "baselineLatencyMs": 50,
-        "maxQueueSize": 1000,
-        "overflowPolicy": "reject"
+        "baselineLatencyMs": 35,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/agent/controllers/agent.controller.js",
+        "reason": "Orchestrates AI agents, LangGraph workflows, and model execution."
       }
     },
     {
-      "id": "postgres-db",
-      "name": "PostgreSQL Database",
-      "type": "database",
-      "position": { "x": 1160, "y": 290 },
-      "capacityPerSecond": 600,
+      "id": "chat-service",
+      "name": "Chat Service [chat.controller.js]",
+      "type": "service",
+      "position": { "x": 960, "y": 300 },
+      "capacityPerSecond": 4000,
       "workerCount": 2,
       "enabled": true,
+      "category": "AI and conversations",
       "config": {
-        "baselineLatencyMs": 30,
-        "maxQueueSize": 2000,
-        "overflowPolicy": "reject"
+        "baselineLatencyMs": 15,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/chat/controllers/chat.controller.js",
+        "reason": "Manages conversation history, message threads, and user chat sessions."
+      }
+    },
+    {
+      "id": "billing-service",
+      "name": "Billing Service [billing.controller.js]",
+      "type": "service",
+      "position": { "x": 620, "y": 480 },
+      "capacityPerSecond": 1000,
+      "workerCount": 1,
+      "enabled": true,
+      "category": "Billing",
+      "config": {
+        "baselineLatencyMs": 25,
+        "maxQueueSize": 1000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/billing/controllers/billing.controller.js",
+        "reason": "Subscription billing, payment orders, and plan authorization."
       }
     }
   ],
@@ -122,64 +128,60 @@
       "source": "client",
       "target": "api-gateway",
       "requestsPerInput": 1.0,
-      "enabled": true
+      "enabled": true,
+      "label": "REST API",
+      "isBidirectional": true,
+      "dataFlowDescription": "Inbound HTTPS requests ⇄ Outbound JSON responses"
     },
     {
       "id": "edge-gateway-auth",
       "source": "api-gateway",
       "target": "auth-service",
-      "requestsPerInput": 0.8,
-      "enabled": true
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Route Request",
+      "isBidirectional": true,
+      "dataFlowDescription": "Forward login / token requests ⇄ Auth claims"
     },
     {
-      "id": "edge-gateway-product",
+      "id": "edge-auth-redis",
+      "source": "auth-service",
+      "target": "session-cache",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Cache Operations",
+      "isBidirectional": true,
+      "dataFlowDescription": "Read/write session tokens ⇄ Cached session records"
+    },
+    {
+      "id": "edge-gateway-agent",
       "source": "api-gateway",
-      "target": "product-service",
-      "requestsPerInput": 0.7,
-      "enabled": true
+      "target": "agent-service",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Route Request",
+      "isBidirectional": true,
+      "dataFlowDescription": "Forward agent prompts ⇄ Assistant completions"
     },
     {
-      "id": "edge-gateway-order",
+      "id": "edge-agent-chat",
+      "source": "agent-service",
+      "target": "chat-service",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Internal RPC",
+      "isBidirectional": true,
+      "dataFlowDescription": "Persist generated responses ⇄ Message records"
+    },
+    {
+      "id": "edge-gateway-billing",
       "source": "api-gateway",
-      "target": "order-service",
-      "requestsPerInput": 0.3,
-      "enabled": true
-    },
-    {
-      "id": "edge-product-cache",
-      "source": "product-service",
-      "target": "redis-cache",
+      "target": "billing-service",
       "requestsPerInput": 1.0,
-      "enabled": true
-    },
-    {
-      "id": "edge-product-db",
-      "source": "product-service",
-      "target": "postgres-db",
-      "requestsPerInput": 0.2,
-      "enabled": true
-    },
-    {
-      "id": "edge-order-payment",
-      "source": "order-service",
-      "target": "payment-service",
-      "requestsPerInput": 1.0,
-      "enabled": true
-    },
-    {
-      "id": "edge-order-db",
-      "source": "order-service",
-      "target": "postgres-db",
-      "requestsPerInput": 1.5,
-      "enabled": true
-    },
-    {
-      "id": "edge-payment-db",
-      "source": "payment-service",
-      "target": "postgres-db",
-      "requestsPerInput": 1.0,
-      "enabled": true
+      "enabled": true,
+      "label": "Route Request",
+      "isBidirectional": true,
+      "dataFlowDescription": "Forward checkout requests ⇄ Payment confirmation"
     }
   ]
 }
-

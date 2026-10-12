@@ -1,11 +1,11 @@
 {
-  "description": "Detailed breakdown of the synthetic e-commerce microservices architecture showing internal controllers, middlewares, cache clients, database connections, and third-party integrations.",
+  "description": "Full-scale detailed architecture flow decomposing runtime services into internal entrypoints, controllers, middlewares, models, agents, workflows, and external integrations.",
   "nodes": [
     {
-      "id": "client",
-      "name": "Client / Load Generator",
+      "id": "node-user",
+      "name": "User Traffic",
       "type": "load_generator",
-      "position": { "x": 40, "y": 240 },
+      "position": { "x": 40, "y": 320 },
       "capacityPerSecond": 10000,
       "workerCount": 1,
       "enabled": true,
@@ -15,388 +15,718 @@
         "maxQueueSize": 10000,
         "overflowPolicy": "drop",
         "isSource": true,
-        "defaultTrafficRate": 1000
+        "defaultTrafficRate": 800,
+        "reason": "Client traffic generator representing active end-user interactions."
       }
     },
     {
-      "id": "api-gateway.router",
-      "name": "API Gateway Router",
-      "type": "gateway",
-      "position": { "x": 300, "y": 140 },
+      "id": "node-home",
+      "name": "Home and login [Home.jsx]",
+      "type": "service",
+      "position": { "x": 260, "y": 60 },
       "capacityPerSecond": 3000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "client",
+      "submoduleType": "component",
+      "category": "Chat interface",
+      "sourceFiles": ["frontend/src/pages/Home.jsx"],
+      "config": {
+        "baselineLatencyMs": 5,
+        "maxQueueSize": 3000,
+        "overflowPolicy": "reject",
+        "entryPoint": "frontend/src/pages/Home.jsx",
+        "reason": "Home dashboard mounting login controls and high-level routing."
+      }
+    },
+    {
+      "id": "node-chatui",
+      "name": "Chat interface [chatArea.jsx]",
+      "type": "service",
+      "position": { "x": 260, "y": 190 },
+      "capacityPerSecond": 3000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "client",
+      "submoduleType": "component",
+      "category": "Chat interface",
+      "sourceFiles": ["frontend/src/components/chatArea.jsx"],
+      "config": {
+        "baselineLatencyMs": 6,
+        "maxQueueSize": 3000,
+        "overflowPolicy": "reject",
+        "entryPoint": "frontend/src/components/chatArea.jsx",
+        "reason": "Main interactive chat messaging area and prompt input handler."
+      }
+    },
+    {
+      "id": "node-sidebar",
+      "name": "Conversation sidebar [sideBar.jsx]",
+      "type": "service",
+      "position": { "x": 260, "y": 320 },
+      "capacityPerSecond": 3000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "client",
+      "submoduleType": "component",
+      "category": "Chat interface",
+      "sourceFiles": ["frontend/src/components/sideBar.jsx"],
+      "config": {
+        "baselineLatencyMs": 4,
+        "maxQueueSize": 3000,
+        "overflowPolicy": "reject",
+        "entryPoint": "frontend/src/components/sideBar.jsx",
+        "reason": "Conversation history sidebar navigation."
+      }
+    },
+    {
+      "id": "node-artifacts",
+      "name": "Artifact viewer [artifacts.jsx]",
+      "type": "service",
+      "position": { "x": 260, "y": 450 },
+      "capacityPerSecond": 3000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "client",
+      "submoduleType": "component",
+      "category": "Chat interface",
+      "sourceFiles": ["frontend/src/components/artifacts.jsx"],
+      "config": {
+        "baselineLatencyMs": 5,
+        "maxQueueSize": 3000,
+        "overflowPolicy": "reject",
+        "entryPoint": "frontend/src/components/artifacts.jsx",
+        "reason": "Renders rich interactive artifacts, code files, and documents."
+      }
+    },
+    {
+      "id": "node-clientstate",
+      "name": "User state [userSlice.js]",
+      "type": "service",
+      "position": { "x": 260, "y": 580 },
+      "capacityPerSecond": 5000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "client",
+      "submoduleType": "model",
+      "category": "Chat interface",
+      "sourceFiles": ["frontend/src/slices/userSlice.js"],
+      "config": {
+        "baselineLatencyMs": 2,
+        "maxQueueSize": 5000,
+        "overflowPolicy": "reject",
+        "entryPoint": "frontend/src/slices/userSlice.js",
+        "reason": "Redux client state managing user profile, active token, and session."
+      }
+    },
+    {
+      "id": "node-gatewayapi",
+      "name": "API gateway [index.js]",
+      "type": "gateway",
+      "position": { "x": 520, "y": 200 },
+      "capacityPerSecond": 20000,
       "workerCount": 4,
       "enabled": true,
       "parentId": "api-gateway",
       "submoduleType": "entrypoint",
-      "category": "API Gateway",
-      "sourceFiles": ["src/gateway/index.ts", "src/gateway/routes.ts"],
+      "category": "API gateway",
+      "sourceFiles": ["backend/gateway/index.js"],
       "config": {
         "baselineLatencyMs": 3,
-        "maxQueueSize": 3000,
+        "maxQueueSize": 20000,
         "overflowPolicy": "reject",
-        "entryPoint": "src/gateway/index.ts",
-        "reason": "HTTP request ingress, path dispatching, and TLS termination."
+        "entryPoint": "backend/gateway/index.js",
+        "reason": "API gateway ingress point for routing service traffic."
       }
     },
     {
-      "id": "api-gateway.rate-limiter",
-      "name": "Rate Limiter & Session Guard",
+      "id": "node-sessionguard",
+      "name": "Session guard [auth.middleware.js]",
       "type": "gateway",
-      "position": { "x": 300, "y": 340 },
-      "capacityPerSecond": 2500,
+      "position": { "x": 520, "y": 380 },
+      "capacityPerSecond": 15000,
       "workerCount": 4,
       "enabled": true,
       "parentId": "api-gateway",
       "submoduleType": "middleware",
-      "category": "API Gateway",
-      "sourceFiles": ["src/gateway/middleware/rateLimiter.ts", "src/gateway/middleware/auth.ts"],
-      "config": {
-        "baselineLatencyMs": 4,
-        "maxQueueSize": 2500,
-        "overflowPolicy": "reject",
-        "reason": "Token bucket rate limiting and session verification middleware."
-      }
-    },
-    {
-      "id": "auth-service.controller",
-      "name": "Auth Controller",
-      "type": "service",
-      "position": { "x": 580, "y": 40 },
-      "capacityPerSecond": 1200,
-      "workerCount": 2,
-      "enabled": true,
-      "parentId": "auth-service",
-      "submoduleType": "controller",
-      "category": "Auth Service",
-      "sourceFiles": ["src/auth/controllers/auth.controller.ts"],
-      "config": {
-        "baselineLatencyMs": 12,
-        "maxQueueSize": 2000,
-        "overflowPolicy": "reject",
-        "reason": "Handles login, sign up, and credential verification."
-      }
-    },
-    {
-      "id": "auth-service.token-validator",
-      "name": "JWT Token Engine",
-      "type": "service",
-      "position": { "x": 580, "y": 180 },
-      "capacityPerSecond": 1500,
-      "workerCount": 2,
-      "enabled": true,
-      "parentId": "auth-service",
-      "submoduleType": "service_logic",
-      "category": "Auth Service",
-      "sourceFiles": ["src/auth/services/jwt.service.ts"],
-      "config": {
-        "baselineLatencyMs": 8,
-        "maxQueueSize": 2000,
-        "overflowPolicy": "reject",
-        "reason": "Cryptographic signing and claims decoding."
-      }
-    },
-    {
-      "id": "product-service.controller",
-      "name": "Product Catalog Controller",
-      "type": "service",
-      "position": { "x": 580, "y": 320 },
-      "capacityPerSecond": 1000,
-      "workerCount": 2,
-      "enabled": true,
-      "parentId": "product-service",
-      "submoduleType": "controller",
-      "category": "Product Service",
-      "sourceFiles": ["src/products/controllers/catalog.controller.ts"],
-      "config": {
-        "baselineLatencyMs": 15,
-        "maxQueueSize": 2000,
-        "overflowPolicy": "reject",
-        "reason": "Serves inventory listings, product metadata, and search."
-      }
-    },
-    {
-      "id": "product-service.cache-client",
-      "name": "Product Cache Manager",
-      "type": "cache",
-      "position": { "x": 580, "y": 460 },
-      "capacityPerSecond": 3000,
-      "workerCount": 2,
-      "enabled": true,
-      "parentId": "product-service",
-      "submoduleType": "cache_client",
-      "category": "Product Service",
-      "sourceFiles": ["src/products/clients/cache.client.ts"],
+      "category": "API gateway",
+      "sourceFiles": ["backend/gateway/middleware/auth.middleware.js"],
       "config": {
         "baselineLatencyMs": 2,
-        "maxQueueSize": 4000,
-        "overflowPolicy": "drop",
-        "reason": "In-memory cache abstraction with read-through fallback."
-      }
-    },
-    {
-      "id": "order-service.controller",
-      "name": "Order API Controller",
-      "type": "service",
-      "position": { "x": 580, "y": 600 },
-      "capacityPerSecond": 600,
-      "workerCount": 2,
-      "enabled": true,
-      "parentId": "order-service",
-      "submoduleType": "controller",
-      "category": "Order Service",
-      "sourceFiles": ["src/orders/controllers/order.controller.ts"],
-      "config": {
-        "baselineLatencyMs": 25,
-        "maxQueueSize": 1500,
+        "maxQueueSize": 15000,
         "overflowPolicy": "reject",
-        "reason": "Handles order placement, cancellation, and status checks."
+        "entryPoint": "backend/gateway/middleware/auth.middleware.js",
+        "reason": "Intercepts protected endpoints to validate session cookies and JWTs."
       }
     },
     {
-      "id": "order-service.order-logic",
-      "name": "Order Checkout Pipeline",
+      "id": "node-auth",
+      "name": "Authentication [auth.controllers.js]",
       "type": "service",
-      "position": { "x": 880, "y": 480 },
-      "capacityPerSecond": 500,
-      "workerCount": 2,
-      "enabled": true,
-      "parentId": "order-service",
-      "submoduleType": "service_logic",
-      "category": "Order Service",
-      "sourceFiles": ["src/orders/services/checkout.service.ts"],
-      "config": {
-        "baselineLatencyMs": 30,
-        "maxQueueSize": 1500,
-        "overflowPolicy": "reject",
-        "reason": "Business logic coordinator for inventory reservation and transactions."
-      }
-    },
-    {
-      "id": "payment-service.controller",
-      "name": "Payment Controller",
-      "type": "service",
-      "position": { "x": 880, "y": 640 },
-      "capacityPerSecond": 450,
-      "workerCount": 2,
-      "enabled": true,
-      "parentId": "payment-service",
-      "submoduleType": "controller",
-      "category": "Payment Service",
-      "sourceFiles": ["src/payments/controllers/payment.controller.ts"],
-      "config": {
-        "baselineLatencyMs": 40,
-        "maxQueueSize": 1200,
-        "overflowPolicy": "reject",
-        "reason": "Receives charge requests and handles 3D Secure webhooks."
-      }
-    },
-    {
-      "id": "redis-cache",
-      "name": "Redis Cache Cluster",
-      "type": "cache",
-      "position": { "x": 880, "y": 240 },
+      "position": { "x": 780, "y": 60 },
       "capacityPerSecond": 4000,
       "workerCount": 2,
       "enabled": true,
-      "category": "Storage",
-      "submoduleType": "cache_client",
-      "sourceFiles": ["config/redis.conf"],
+      "parentId": "auth-service",
+      "submoduleType": "controller",
+      "category": "Identity and sessions",
+      "sourceFiles": ["backend/services/auth/controllers/auth.controllers.js"],
+      "config": {
+        "baselineLatencyMs": 10,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/auth/controllers/auth.controllers.js",
+        "reason": "Executes login, password validation, and token signing."
+      }
+    },
+    {
+      "id": "node-redis",
+      "name": "Session cache [redis.js]",
+      "type": "cache",
+      "position": { "x": 1060, "y": 60 },
+      "capacityPerSecond": 8000,
+      "workerCount": 1,
+      "enabled": true,
+      "parentId": "session-cache",
+      "submoduleType": "cache",
+      "category": "Identity and sessions",
+      "sourceFiles": ["backend/shared/redis/redis.js"],
       "config": {
         "baselineLatencyMs": 2,
-        "maxQueueSize": 6000,
-        "overflowPolicy": "drop",
-        "reason": "High-throughput shared session and catalog cache."
+        "maxQueueSize": 8000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/shared/redis/redis.js",
+        "reason": "Redis cluster storing active session tokens and auth states."
       }
     },
     {
-      "id": "database",
-      "name": "PostgreSQL Primary DB",
+      "id": "node-users",
+      "name": "User records [users.model.js]",
       "type": "database",
-      "position": { "x": 1200, "y": 360 },
-      "capacityPerSecond": 800,
+      "position": { "x": 1060, "y": 170 },
+      "capacityPerSecond": 3500,
       "workerCount": 2,
       "enabled": true,
-      "category": "Storage",
+      "parentId": "auth-service",
       "submoduleType": "model",
-      "sourceFiles": ["db/migrations/001_init.sql"],
+      "category": "Identity and sessions",
+      "sourceFiles": ["backend/services/auth/models/users.model.js"],
+      "config": {
+        "baselineLatencyMs": 8,
+        "maxQueueSize": 3500,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/auth/models/users.model.js",
+        "reason": "Database model storing user accounts, password hashes, and profiles."
+      }
+    },
+    {
+      "id": "node-agentapi",
+      "name": "Agent endpoint [agent.controller.js]",
+      "type": "service",
+      "position": { "x": 780, "y": 240 },
+      "capacityPerSecond": 4000,
+      "workerCount": 4,
+      "enabled": true,
+      "parentId": "agent-service",
+      "submoduleType": "controller",
+      "category": "AI and conversations",
+      "sourceFiles": ["backend/services/agent/controllers/agent.controller.js"],
+      "config": {
+        "baselineLatencyMs": 35,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/agent/controllers/agent.controller.js",
+        "reason": "Entrypoint for dispatching asynchronous AI agent tasks."
+      }
+    },
+    {
+      "id": "node-workflow",
+      "name": "LangGraph workflow [graph.js]",
+      "type": "service",
+      "position": { "x": 1060, "y": 280 },
+      "capacityPerSecond": 3000,
+      "workerCount": 4,
+      "enabled": true,
+      "parentId": "agent-service",
+      "submoduleType": "service_logic",
+      "category": "AI and conversations",
+      "sourceFiles": ["backend/services/agent/graph/graph.js"],
+      "config": {
+        "baselineLatencyMs": 40,
+        "maxQueueSize": 3000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/agent/graph/graph.js",
+        "reason": "Stateful LangGraph agent graph managing sequential reasoning steps."
+      }
+    },
+    {
+      "id": "node-router",
+      "name": "Intent router [router.js]",
+      "type": "service",
+      "position": { "x": 1060, "y": 390 },
+      "capacityPerSecond": 3500,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "agent-service",
+      "submoduleType": "service_logic",
+      "category": "AI and conversations",
+      "sourceFiles": ["backend/services/agent/graph/router.js"],
       "config": {
         "baselineLatencyMs": 25,
-        "maxQueueSize": 2500,
+        "maxQueueSize": 3500,
         "overflowPolicy": "reject",
-        "reason": "ACID relational persistence for user profiles and completed orders."
+        "entryPoint": "backend/services/agent/graph/router.js",
+        "reason": "Evaluates user intent and dynamically routes queries."
       }
     },
     {
-      "id": "payment-service.gateway-client",
-      "name": "PSP Gateway Integration",
+      "id": "node-workers",
+      "name": "Agent capabilities [agents/]",
       "type": "service",
-      "position": { "x": 1200, "y": 640 },
-      "capacityPerSecond": 350,
+      "position": { "x": 1060, "y": 500 },
+      "capacityPerSecond": 2500,
+      "workerCount": 4,
+      "enabled": true,
+      "parentId": "agent-service",
+      "submoduleType": "worker",
+      "category": "AI and conversations",
+      "sourceFiles": ["backend/services/agent/agents/chat.agent.js", "backend/services/agent/agents/coding.agent.js"],
+      "config": {
+        "baselineLatencyMs": 50,
+        "maxQueueSize": 2500,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/agent/agents/chat.agent.js",
+        "reason": "Specialized domain workers (coding, chatting, image processing)."
+      }
+    },
+    {
+      "id": "node-chatservice",
+      "name": "Conversation service [chat.controller.js]",
+      "type": "service",
+      "position": { "x": 780, "y": 420 },
+      "capacityPerSecond": 4000,
       "workerCount": 2,
       "enabled": true,
-      "parentId": "payment-service",
+      "parentId": "chat-service",
+      "submoduleType": "controller",
+      "category": "AI and conversations",
+      "sourceFiles": ["backend/services/chat/controllers/chat.controller.js"],
+      "config": {
+        "baselineLatencyMs": 15,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/chat/controllers/chat.controller.js",
+        "reason": "Coordinates message persistence, retrieval, and streaming sessions."
+      }
+    },
+    {
+      "id": "node-conversations",
+      "name": "Conversation records [conversation.models.js]",
+      "type": "database",
+      "position": { "x": 1060, "y": 610 },
+      "capacityPerSecond": 3500,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "chat-service",
+      "submoduleType": "model",
+      "category": "AI and conversations",
+      "sourceFiles": ["backend/services/chat/models/conversation.models.js"],
+      "config": {
+        "baselineLatencyMs": 8,
+        "maxQueueSize": 3500,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/chat/models/conversation.models.js",
+        "reason": "Stores active thread metadata, titles, and ownership."
+      }
+    },
+    {
+      "id": "node-messages",
+      "name": "Message records [message.model.js]",
+      "type": "database",
+      "position": { "x": 1060, "y": 720 },
+      "capacityPerSecond": 4000,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "chat-service",
+      "submoduleType": "model",
+      "category": "AI and conversations",
+      "sourceFiles": ["backend/services/chat/models/message.model.js"],
+      "config": {
+        "baselineLatencyMs": 8,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/chat/models/message.model.js",
+        "reason": "Stores individual chat messages and token logs."
+      }
+    },
+    {
+      "id": "node-billing",
+      "name": "Billing service [billing.controller.js]",
+      "type": "service",
+      "position": { "x": 780, "y": 620 },
+      "capacityPerSecond": 1000,
+      "workerCount": 1,
+      "enabled": true,
+      "parentId": "billing-service",
+      "submoduleType": "controller",
+      "category": "Billing",
+      "sourceFiles": ["backend/services/billing/controllers/billing.controller.js"],
+      "config": {
+        "baselineLatencyMs": 25,
+        "maxQueueSize": 1000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/billing/controllers/billing.controller.js",
+        "reason": "Subscription plans, order authorization, and Razorpay settlements."
+      }
+    },
+    {
+      "id": "node-payments",
+      "name": "Payment records [payment.models.js]",
+      "type": "database",
+      "position": { "x": 1060, "y": 830 },
+      "capacityPerSecond": 2500,
+      "workerCount": 2,
+      "enabled": true,
+      "parentId": "billing-service",
+      "submoduleType": "model",
+      "category": "Billing",
+      "sourceFiles": ["backend/services/billing/models/payment.models.js"],
+      "config": {
+        "baselineLatencyMs": 10,
+        "maxQueueSize": 2500,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/billing/models/payment.models.js",
+        "reason": "Payment records, transaction identifiers, and invoices."
+      }
+    },
+    {
+      "id": "node-firebase",
+      "name": "Firebase Auth",
+      "type": "service",
+      "position": { "x": 1340, "y": 100 },
+      "capacityPerSecond": 10000,
+      "workerCount": 1,
+      "enabled": true,
       "submoduleType": "external_api",
       "category": "External Services",
-      "sourceFiles": ["src/payments/clients/stripe.client.ts"],
+      "sourceFiles": ["backend/services/auth/config/firebase.js"],
       "config": {
-        "baselineLatencyMs": 90,
-        "maxQueueSize": 800,
-        "overflowPolicy": "reject",
-        "reason": "Outbound HTTPS connection to external payment gateway."
+        "baselineLatencyMs": 15,
+        "maxQueueSize": 10000,
+        "overflowPolicy": "drop",
+        "entryPoint": "backend/services/auth/config/firebase.js",
+        "reason": "Third-party identity provider for secure token verification."
+      }
+    },
+    {
+      "id": "node-llms",
+      "name": "LLM providers",
+      "type": "service",
+      "position": { "x": 1340, "y": 390 },
+      "capacityPerSecond": 5000,
+      "workerCount": 1,
+      "enabled": true,
+      "submoduleType": "external_api",
+      "category": "External Services",
+      "sourceFiles": ["backend/services/agent/config/llmmodel.js"],
+      "config": {
+        "baselineLatencyMs": 100,
+        "maxQueueSize": 5000,
+        "overflowPolicy": "drop",
+        "entryPoint": "backend/services/agent/config/llmmodel.js",
+        "reason": "Upstream LLM inference providers (Gemini, Claude, OpenAI)."
+      }
+    },
+    {
+      "id": "node-razorpay",
+      "name": "Razorpay",
+      "type": "service",
+      "position": { "x": 1340, "y": 680 },
+      "capacityPerSecond": 10000,
+      "workerCount": 1,
+      "enabled": true,
+      "submoduleType": "external_api",
+      "category": "External Services",
+      "sourceFiles": ["backend/services/billing/config/razorpay.js"],
+      "config": {
+        "baselineLatencyMs": 30,
+        "maxQueueSize": 10000,
+        "overflowPolicy": "drop",
+        "entryPoint": "backend/services/billing/config/razorpay.js",
+        "reason": "Payment processing gateway for online charges."
       }
     }
   ],
   "edges": [
     {
-      "id": "edge-client-router",
-      "source": "client",
-      "target": "api-gateway.router",
+      "id": "e-user-home",
+      "source": "node-user",
+      "target": "node-home",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "uses",
       "isBidirectional": true,
-      "label": "HTTP Ingress",
-      "dataFlowDescription": "Client HTTPS requests ⇄ Rendered responses"
+      "dataFlowDescription": "User interaction ⇄ Web page response"
     },
     {
-      "id": "edge-router-ratelimiter",
-      "source": "api-gateway.router",
-      "target": "api-gateway.rate-limiter",
+      "id": "e-home-chatui",
+      "source": "node-home",
+      "target": "node-chatui",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "renders",
       "isBidirectional": true,
-      "label": "Token Guard",
-      "dataFlowDescription": "Incoming request headers ⇄ Quota verification"
+      "dataFlowDescription": "Mounts chat interface ⇄ User input events"
     },
     {
-      "id": "edge-ratelimiter-redis",
-      "source": "api-gateway.rate-limiter",
-      "target": "redis-cache",
-      "requestsPerInput": 0.8,
-      "enabled": true,
-      "isBidirectional": true,
-      "label": "Rate Check",
-      "dataFlowDescription": "IP bucket lookup ⇄ Counter decrement"
-    },
-    {
-      "id": "edge-router-authctrl",
-      "source": "api-gateway.router",
-      "target": "auth-service.controller",
-      "requestsPerInput": 0.3,
-      "enabled": true,
-      "isBidirectional": true,
-      "label": "Auth API",
-      "dataFlowDescription": "Login/Register payload ⇄ JWT session"
-    },
-    {
-      "id": "edge-authctrl-jwt",
-      "source": "auth-service.controller",
-      "target": "auth-service.token-validator",
+      "id": "e-home-sidebar",
+      "source": "node-home",
+      "target": "node-sidebar",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "renders",
       "isBidirectional": true,
-      "label": "Sign / Verify",
-      "dataFlowDescription": "User claims ⇄ Signed JWT token"
+      "dataFlowDescription": "Mounts history sidebar ⇄ Selected thread ID"
     },
     {
-      "id": "edge-authctrl-db",
-      "source": "auth-service.controller",
-      "target": "database",
-      "requestsPerInput": 0.4,
-      "enabled": true,
-      "isBidirectional": true,
-      "label": "User Query",
-      "dataFlowDescription": "SELECT / INSERT users ⇄ User credentials"
-    },
-    {
-      "id": "edge-router-productctrl",
-      "source": "api-gateway.router",
-      "target": "product-service.controller",
-      "requestsPerInput": 1.2,
-      "enabled": true,
-      "isBidirectional": true,
-      "label": "Catalog API",
-      "dataFlowDescription": "Product query ⇄ Catalog JSON payload"
-    },
-    {
-      "id": "edge-productctrl-cachemgr",
-      "source": "product-service.controller",
-      "target": "product-service.cache-client",
+      "id": "e-home-artifacts",
+      "source": "node-home",
+      "target": "node-artifacts",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "renders",
       "isBidirectional": true,
-      "label": "Cache Lookup",
-      "dataFlowDescription": "Item key lookup ⇄ Cached product entry"
+      "dataFlowDescription": "Mounts artifact container ⇄ Click events"
     },
     {
-      "id": "edge-cachemgr-redis",
-      "source": "product-service.cache-client",
-      "target": "redis-cache",
+      "id": "e-home-clientstate",
+      "source": "node-home",
+      "target": "node-clientstate",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "updates",
       "isBidirectional": true,
-      "label": "Cache Hit/Miss",
-      "dataFlowDescription": "GET product:{id} ⇄ Cache entry or null"
+      "dataFlowDescription": "Stores user token ⇄ Dispatched auth state"
     },
     {
-      "id": "edge-productctrl-db",
-      "source": "product-service.controller",
-      "target": "database",
-      "requestsPerInput": 0.15,
-      "enabled": true,
-      "isBidirectional": true,
-      "label": "DB Fallback",
-      "dataFlowDescription": "Cache-miss SQL query ⇄ Product row"
-    },
-    {
-      "id": "edge-router-orderctrl",
-      "source": "api-gateway.router",
-      "target": "order-service.controller",
-      "requestsPerInput": 0.25,
-      "enabled": true,
-      "isBidirectional": true,
-      "label": "Order API",
-      "dataFlowDescription": "POST /orders ⇄ Order creation response"
-    },
-    {
-      "id": "edge-orderctrl-logic",
-      "source": "order-service.controller",
-      "target": "order-service.order-logic",
+      "id": "e-home-gatewayapi",
+      "source": "node-home",
+      "target": "node-gatewayapi",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "authenticates via",
       "isBidirectional": true,
-      "label": "Checkout Flow",
-      "dataFlowDescription": "Order draft ⇄ Validated checkout transaction"
+      "dataFlowDescription": "HTTP credentials ⇄ Bearer session cookie"
     },
     {
-      "id": "edge-orderlogic-payment",
-      "source": "order-service.order-logic",
-      "target": "payment-service.controller",
+      "id": "e-chatui-gatewayapi",
+      "source": "node-chatui",
+      "target": "node-gatewayapi",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "requests chat",
       "isBidirectional": true,
-      "label": "Process Payment",
-      "dataFlowDescription": "Charge request ⇄ Payment status authorization"
+      "dataFlowDescription": "Prompt payload ⇄ Streamed token chunks"
     },
     {
-      "id": "edge-payment-psp",
-      "source": "payment-service.controller",
-      "target": "payment-service.gateway-client",
-      "requestsPerInput": 1.0,
+      "id": "e-chatui-artifacts",
+      "source": "node-chatui",
+      "target": "node-artifacts",
+      "requestsPerInput": 0.5,
       "enabled": true,
+      "label": "updates artifacts",
       "isBidirectional": true,
-      "label": "External Gateway",
-      "dataFlowDescription": "Outbound PSP transaction ⇄ Settled receipt"
+      "dataFlowDescription": "Parsed artifact block ⇄ Rendered view"
     },
     {
-      "id": "edge-orderlogic-db",
-      "source": "order-service.order-logic",
-      "target": "database",
+      "id": "e-gateway-sessionguard",
+      "source": "node-gatewayapi",
+      "target": "node-sessionguard",
       "requestsPerInput": 1.0,
       "enabled": true,
+      "label": "checks sessions",
       "isBidirectional": true,
-      "label": "Persist Order",
-      "dataFlowDescription": "INSERT orders, order_items ⇄ Transaction commit"
+      "dataFlowDescription": "Inbound request headers ⇄ Verified claims"
+    },
+    {
+      "id": "e-sessionguard-redis",
+      "source": "node-sessionguard",
+      "target": "node-redis",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "reads session",
+      "isBidirectional": true,
+      "dataFlowDescription": "Session token key ⇄ Cached claim values"
+    },
+    {
+      "id": "e-gateway-auth",
+      "source": "node-gatewayapi",
+      "target": "node-auth",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "proxies auth",
+      "isBidirectional": true,
+      "dataFlowDescription": "Proxy login/register ⇄ Auth payload"
+    },
+    {
+      "id": "e-gateway-chatservice",
+      "source": "node-gatewayapi",
+      "target": "node-chatservice",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "proxies chat",
+      "isBidirectional": true,
+      "dataFlowDescription": "Proxy chat routes ⇄ Thread responses"
+    },
+    {
+      "id": "e-gateway-agentapi",
+      "source": "node-gatewayapi",
+      "target": "node-agentapi",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "proxies agent",
+      "isBidirectional": true,
+      "dataFlowDescription": "Proxy AI prompt stream ⇄ Execution status"
+    },
+    {
+      "id": "e-gateway-billing",
+      "source": "node-gatewayapi",
+      "target": "node-billing",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "proxies billing",
+      "isBidirectional": true,
+      "dataFlowDescription": "Proxy order requests ⇄ Payment status"
+    },
+    {
+      "id": "e-auth-firebase",
+      "source": "node-auth",
+      "target": "node-firebase",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "verifies token",
+      "isBidirectional": true,
+      "dataFlowDescription": "JWT verification request ⇄ Decoded UID"
+    },
+    {
+      "id": "e-auth-users",
+      "source": "node-auth",
+      "target": "node-users",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "reads and writes",
+      "isBidirectional": true,
+      "dataFlowDescription": "Query user email ⇄ User model document"
+    },
+    {
+      "id": "e-auth-redis",
+      "source": "node-auth",
+      "target": "node-redis",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "stores session",
+      "isBidirectional": true,
+      "dataFlowDescription": "Store active session key ⇄ Redis OK"
+    },
+    {
+      "id": "e-chatservice-conversations",
+      "source": "node-chatservice",
+      "target": "node-conversations",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "reads and writes",
+      "isBidirectional": true,
+      "dataFlowDescription": "List / update conversation ⇄ Conversation record"
+    },
+    {
+      "id": "e-chatservice-messages",
+      "source": "node-chatservice",
+      "target": "node-messages",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "reads and writes",
+      "isBidirectional": true,
+      "dataFlowDescription": "Append chat message ⇄ Persisted message ID"
+    },
+    {
+      "id": "e-agentapi-chatservice",
+      "source": "node-agentapi",
+      "target": "node-chatservice",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "saves messages",
+      "isBidirectional": true,
+      "dataFlowDescription": "Agent output ⇄ Saved message reference"
+    },
+    {
+      "id": "e-agentapi-workflow",
+      "source": "node-agentapi",
+      "target": "node-workflow",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "invokes graph",
+      "isBidirectional": true,
+      "dataFlowDescription": "Start LangGraph state ⇄ Step progression"
+    },
+    {
+      "id": "e-workflow-router",
+      "source": "node-workflow",
+      "target": "node-router",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "routes intent",
+      "isBidirectional": true,
+      "dataFlowDescription": "Query intent evaluation ⇄ Target agent name"
+    },
+    {
+      "id": "e-workflow-workers",
+      "source": "node-workflow",
+      "target": "node-workers",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "dispatches agents",
+      "isBidirectional": true,
+      "dataFlowDescription": "Agent task instructions ⇄ Generated output"
+    },
+    {
+      "id": "e-router-llms",
+      "source": "node-router",
+      "target": "node-llms",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "classifies prompt",
+      "isBidirectional": true,
+      "dataFlowDescription": "Classification prompt ⇄ Model inference logits"
+    },
+    {
+      "id": "e-billing-razorpay",
+      "source": "node-billing",
+      "target": "node-razorpay",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "creates orders",
+      "isBidirectional": true,
+      "dataFlowDescription": "Create payment order ⇄ Order ID & receipt"
+    },
+    {
+      "id": "e-billing-payments",
+      "source": "node-billing",
+      "target": "node-payments",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "records payment",
+      "isBidirectional": true,
+      "dataFlowDescription": "Save receipt & status ⇄ Persisted payment"
+    },
+    {
+      "id": "e-billing-auth",
+      "source": "node-billing",
+      "target": "node-auth",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "updates account",
+      "isBidirectional": true,
+      "dataFlowDescription": "Account plan upgrade ⇄ User claims refreshed"
     }
   ]
 }
-

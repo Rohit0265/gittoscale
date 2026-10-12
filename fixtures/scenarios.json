@@ -11,7 +11,7 @@
   {
     "id": "traffic-spike",
     "name": "Traffic Spike",
-    "description": "Sudden surge to 2,500 req/s. Offered load pushes the API Gateway and downstream services near and beyond their operational thresholds.",
+    "description": "Sudden surge to 2,500 req/s. Offered load pushes the API Gateway, Agent Service, and Billing Service near and beyond their operational thresholds.",
     "incomingTrafficRate": 2500,
     "durationSeconds": 60,
     "nodeOverrides": {},
@@ -19,26 +19,26 @@
   },
   {
     "id": "database-pressure",
-    "name": "Database Pressure",
-    "description": "Heightened query multipliers per order and downscaled PostgreSQL capacity (1 worker @ 400 req/s), creating a primary storage bottleneck.",
+    "name": "Session Cache Pressure",
+    "description": "Downscaled Redis capacity (1 worker @ 600 req/s), creating a primary cache bottleneck during session validation.",
     "incomingTrafficRate": 1500,
     "durationSeconds": 60,
     "nodeOverrides": {
-      "postgres-db": {
-        "capacityPerSecond": 400,
+      "session-cache": {
+        "capacityPerSecond": 600,
         "workerCount": 1
       }
     },
     "edgeOverrides": {
-      "edge-order-db": {
-        "requestsPerInput": 2.5
+      "edge-auth-redis": {
+        "requestsPerInput": 2.0
       }
     }
   },
   {
     "id": "flash-sale",
     "name": "Flash Sale",
-    "description": "Massive promotional event with 4,000 req/s. Multiple tiers (Gateway, Order, Payment, Database) become heavily overloaded with growing queues and rejected requests.",
+    "description": "Massive promotional event with 4,000 req/s. Multiple tiers (Gateway, Agent, Chat, Billing) become heavily overloaded with growing queues and rejected requests.",
     "incomingTrafficRate": 4000,
     "durationSeconds": 60,
     "nodeOverrides": {},
@@ -47,30 +47,29 @@
   {
     "id": "scale-out",
     "name": "Scale-Out Fleet",
-    "description": "Same 4,000 req/s flash sale load, but with scaled-out horizontal worker pools across Gateway, Services, and Database to demonstrate bottleneck resolution.",
+    "description": "Same 4,000 req/s flash sale load, but with scaled-out horizontal worker pools across Gateway, Services, and Session Cache to demonstrate bottleneck resolution.",
     "incomingTrafficRate": 4000,
     "durationSeconds": 60,
     "nodeOverrides": {
       "api-gateway": {
-        "workerCount": 4
+        "workerCount": 6
       },
       "auth-service": {
         "workerCount": 4
       },
-      "product-service": {
+      "agent-service": {
+        "workerCount": 6
+      },
+      "chat-service": {
         "workerCount": 4
       },
-      "order-service": {
+      "billing-service": {
         "workerCount": 4
       },
-      "payment-service": {
-        "workerCount": 4
-      },
-      "postgres-db": {
-        "workerCount": 5
+      "session-cache": {
+        "workerCount": 3
       }
     },
     "edgeOverrides": {}
   }
 ]
-

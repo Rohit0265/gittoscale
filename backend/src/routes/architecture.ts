@@ -6,8 +6,8 @@ const router = Router();
 router.get('/', (req: Request, res: Response, next: NextFunction) => {
   try {
     const mode = req.query.mode === 'detailed' ? 'detailed' : 'basic';
-    const basicArch = getArchitectureFixture();
-    const detailedArch = getDetailedArchitectureFixture();
+    const basicArch = getArchitectureFixture(true);
+    const detailedArch = getDetailedArchitectureFixture(true);
 
     if (mode === 'detailed') {
       res.json({

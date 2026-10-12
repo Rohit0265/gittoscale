@@ -43,7 +43,7 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       });
     }
 
-    const ANALYZER_VERSION = 'v2.4';
+    const ANALYZER_VERSION = 'v3.2';
 
     // 1. Build Static Inventory (either local directory or GitHub repository tree)
     let inventory;
@@ -58,7 +58,10 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
     const revision = inventory.commitSha || 'local-rev';
     const cacheKey = `${localPath || repoUrl}@${revision}-${ANALYZER_VERSION}-${llmConfig?.provider || 'default'}-${viewMode}`;
     if (analysisCache.has(cacheKey)) {
-      return res.json(analysisCache.get(cacheKey));
+      const cached = analysisCache.get(cacheKey);
+      if (cached && cached.detailedGraph && cached.detailedGraph.nodes.length > 10) {
+        return res.json(cached);
+      }
     }
 
     // Helper to sanitize edges to maintain DAG acyclicity

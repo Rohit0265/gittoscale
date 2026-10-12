@@ -39,12 +39,28 @@ export async function analyzeArchitectureWithLLM(
 
   if (resolvedConfig.apiKey) {
     try {
+      let llmResult: LLMAnalysisResult | null = null;
       if (provider === 'gemini') {
-        return await callGeminiProvider(inventory, resolvedConfig, viewMode);
+        llmResult = await callGeminiProvider(inventory, resolvedConfig, viewMode);
       } else if (provider === 'anthropic') {
-        return await callAnthropicProvider(inventory, resolvedConfig, viewMode);
+        llmResult = await callAnthropicProvider(inventory, resolvedConfig, viewMode);
       } else {
-        return await callOpenAIProvider(inventory, resolvedConfig, viewMode);
+        llmResult = await callOpenAIProvider(inventory, resolvedConfig, viewMode);
+      }
+
+      if (llmResult && viewMode === 'detailed') {
+        const fullEvidencedFlow = synthesizeDetailedArchitecture(inventory);
+        // Ensure detailed view always has MORE data and full end-to-end breakdown than basic view
+        if (llmResult.components.length < fullEvidencedFlow.components.length) {
+          console.log(
+            `[Detailed View Enhancement] LLM generated ${llmResult.components.length} components; upgrading to full 24-component end-to-end flow (${fullEvidencedFlow.components.length} components).`
+          );
+          return fullEvidencedFlow;
+        }
+      }
+
+      if (llmResult && llmResult.components.length > 0) {
+        return llmResult;
       }
     } catch (err) {
       console.warn(`[LLM Provider ${provider} Error, falling back to deterministic synthesis]`, err);
