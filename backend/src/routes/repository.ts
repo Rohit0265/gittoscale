@@ -66,10 +66,16 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
     // 3. Generate React Flow Diagram
     const { nodes, edges } = convertAnalysisToArchitecture(analysis);
 
-    // 4. Validate graph acyclic property
-    const cycleCheck = validateGraphAcyclic(nodes, edges);
-    if (cycleCheck.hasCycle) {
-      console.warn('[Repository Analysis] Detected cycle in generated edges. Disabling cycle edges.');
+    // 4. Validate graph acyclic property and ensure all nodes stay connected without cycles
+    const safeEdges: typeof edges = [];
+    for (const edge of edges) {
+      safeEdges.push(edge);
+      const cycleCheck = validateGraphAcyclic(nodes, safeEdges);
+      if (cycleCheck.hasCycle) {
+        // Remove this edge to eliminate the cycle
+        safeEdges.pop();
+        console.warn(`[Repository Analysis] Discarded cyclic edge ${edge.source} -> ${edge.target} to maintain DAG acyclicity.`);
+      }
     }
 
     const result = {
@@ -77,7 +83,7 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       inventory,
       analysis,
       nodes,
-      edges,
+      edges: safeEdges,
       detectedServices: nodes.filter((n) => n.type !== 'load_generator').map((n) => n.name),
       analyzedFilesCount: inventory.analyzedFiles.length,
       skippedFilesCount: inventory.skippedFiles.length,
