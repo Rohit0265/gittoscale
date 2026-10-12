@@ -18,11 +18,11 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
 
   const nodes: ArchitectureNode[] = [];
 
-  const layoutColumn = (
+  const layoutRow = (
     list: typeof components,
-    baseX: number,
     baseY: number,
-    spacingY: number
+    baseX: number,
+    spacingX: number
   ) => {
     list.forEach((comp, idx) => {
       nodes.push({
@@ -30,8 +30,8 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
         name: comp.name,
         type: comp.type,
         position: {
-          x: baseX,
-          y: baseY + idx * spacingY,
+          x: baseX + idx * spacingX,
+          y: baseY,
         },
         capacityPerSecond: comp.estimatedCapacity || (comp.type === 'database' ? 3000 : 1500),
         workerCount: comp.defaultWorkers || (comp.type === 'gateway' ? 4 : 2),
@@ -64,9 +64,9 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
   };
 
   if (isDetailed) {
-    // 6-Lane Horizontal Layout for Detailed View
-    const colUser = components.filter((c) => c.type === 'load_generator');
-    const colFrontend = components.filter(
+    // 6-Tier Vertical Layout for Detailed View (Top-to-Bottom)
+    const rowUser = components.filter((c) => c.type === 'load_generator');
+    const rowFrontend = components.filter(
       (c) =>
         c.category === 'Chat interface' ||
         c.id.includes('home') ||
@@ -75,27 +75,27 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
         c.id.includes('artifacts') ||
         c.id.includes('clientstate')
     );
-    const colGateway = components.filter(
+    const rowGateway = components.filter(
       (c) =>
-        !colFrontend.includes(c) &&
+        !rowFrontend.includes(c) &&
         (c.type === 'gateway' ||
           c.category === 'API gateway' ||
           c.id.includes('gateway') ||
           c.id.includes('sessionguard'))
     );
-    const colServices = components.filter(
+    const rowServices = components.filter(
       (c) =>
         c.type === 'service' &&
-        !colFrontend.includes(c) &&
-        !colGateway.includes(c) &&
+        !rowFrontend.includes(c) &&
+        !rowGateway.includes(c) &&
         c.category !== 'External Services' &&
         c.submoduleType !== 'model' &&
         c.submoduleType !== 'service_logic'
     );
-    const colDataAndLogic = components.filter(
+    const rowDataAndLogic = components.filter(
       (c) =>
-        !colFrontend.includes(c) &&
-        !colGateway.includes(c) &&
+        !rowFrontend.includes(c) &&
+        !rowGateway.includes(c) &&
         (c.type === 'database' ||
           c.type === 'cache' ||
           c.submoduleType === 'model' ||
@@ -103,7 +103,7 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
           c.submoduleType === 'worker' ||
           c.category === 'Storage')
     );
-    const colExternal = components.filter(
+    const rowExternal = components.filter(
       (c) =>
         c.category === 'External Services' ||
         c.id.startsWith('ext-') ||
@@ -113,30 +113,30 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
         c.submoduleType === 'external_api'
     );
 
-    layoutColumn(colUser, 40, 220, 160);
-    layoutColumn(colFrontend, 280, 50, 130);
-    layoutColumn(colGateway, 580, 60, 130);
-    layoutColumn(colServices, 880, 50, 130);
-    layoutColumn(colDataAndLogic, 1200, 40, 130);
-    layoutColumn(colExternal, 1540, 80, 150);
+    layoutRow(rowUser, 40, 500, 300);
+    layoutRow(rowFrontend, 220, 50, 300);
+    layoutRow(rowGateway, 440, 380, 400);
+    layoutRow(rowServices, 660, 50, 370);
+    layoutRow(rowDataAndLogic, 900, 50, 220);
+    layoutRow(rowExternal, 1140, 150, 500);
   } else {
-    // 5-Lane Layout for Basic View
-    const colUser = components.filter((c) => c.type === 'load_generator');
-    const colGateway = components.filter((c) => c.type === 'gateway' || c.category === 'Chat interface');
-    const colServices = components.filter(
+    // 5-Tier Vertical Layout for Basic View (Top-to-Bottom)
+    const rowUser = components.filter((c) => c.type === 'load_generator');
+    const rowGateway = components.filter((c) => c.type === 'gateway' || c.category === 'Chat interface');
+    const rowServices = components.filter(
       (c) =>
         c.type === 'service' &&
         c.category !== 'Chat interface' &&
         c.category !== 'External Services'
     );
-    const colData = components.filter((c) => c.type === 'cache' || c.type === 'database');
-    const colExternal = components.filter((c) => c.category === 'External Services');
+    const rowData = components.filter((c) => c.type === 'cache' || c.type === 'database');
+    const rowExternal = components.filter((c) => c.category === 'External Services');
 
-    layoutColumn(colUser, 40, 180, 160);
-    layoutColumn(colGateway, 320, 100, 160);
-    layoutColumn(colServices, 620, 60, 160);
-    layoutColumn(colData, 920, 100, 160);
-    layoutColumn(colExternal, 1220, 120, 160);
+    layoutRow(rowUser, 40, 420, 320);
+    layoutRow(rowGateway, 220, 420, 320);
+    layoutRow(rowServices, 420, 100, 320);
+    layoutRow(rowData, 640, 100, 320);
+    layoutRow(rowExternal, 860, 420, 320);
   }
 
   // 2. Generate initial edges from analysis connections

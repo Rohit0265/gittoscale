@@ -1,11 +1,11 @@
 {
-  "description": "System Design Architecture Overview matching the user's reference topology (Frontend, API Gateway, Auth Service, Agent Service, Chat Service, Billing Service, and Session Cache).",
+  "description": "System Design Architecture Overview matching the reference topology in a vertical top-to-bottom layout.",
   "nodes": [
     {
       "id": "client",
       "name": "Frontend [App.jsx]",
       "type": "load_generator",
-      "position": { "x": 40, "y": 300 },
+      "position": { "x": 420, "y": 40 },
       "capacityPerSecond": 10000,
       "workerCount": 1,
       "enabled": true,
@@ -23,7 +23,7 @@
       "id": "api-gateway",
       "name": "API Gateway [index.js]",
       "type": "gateway",
-      "position": { "x": 300, "y": 300 },
+      "position": { "x": 420, "y": 220 },
       "capacityPerSecond": 20000,
       "workerCount": 4,
       "enabled": true,
@@ -40,7 +40,7 @@
       "id": "auth-service",
       "name": "Auth Service [auth.controller.js]",
       "type": "service",
-      "position": { "x": 620, "y": 120 },
+      "position": { "x": 100, "y": 420 },
       "capacityPerSecond": 4000,
       "workerCount": 2,
       "enabled": true,
@@ -54,27 +54,10 @@
       }
     },
     {
-      "id": "session-cache",
-      "name": "Session Cache [redis.js]",
-      "type": "cache",
-      "position": { "x": 960, "y": 120 },
-      "capacityPerSecond": 5000,
-      "workerCount": 1,
-      "enabled": true,
-      "category": "Identity and sessions",
-      "config": {
-        "baselineLatencyMs": 2,
-        "maxQueueSize": 5000,
-        "overflowPolicy": "reject",
-        "entryPoint": "backend/shared/redis/redis.js",
-        "reason": "Low-latency in-memory cache for fast session claim lookups."
-      }
-    },
-    {
       "id": "agent-service",
       "name": "Agent Service [agent.controller.js]",
       "type": "service",
-      "position": { "x": 620, "y": 300 },
+      "position": { "x": 420, "y": 420 },
       "capacityPerSecond": 4000,
       "workerCount": 4,
       "enabled": true,
@@ -88,27 +71,10 @@
       }
     },
     {
-      "id": "chat-service",
-      "name": "Chat Service [chat.controller.js]",
-      "type": "service",
-      "position": { "x": 960, "y": 300 },
-      "capacityPerSecond": 4000,
-      "workerCount": 2,
-      "enabled": true,
-      "category": "AI and conversations",
-      "config": {
-        "baselineLatencyMs": 15,
-        "maxQueueSize": 4000,
-        "overflowPolicy": "reject",
-        "entryPoint": "backend/services/chat/controllers/chat.controller.js",
-        "reason": "Manages conversation history, message threads, and user chat sessions."
-      }
-    },
-    {
       "id": "billing-service",
       "name": "Billing Service [billing.controller.js]",
       "type": "service",
-      "position": { "x": 620, "y": 480 },
+      "position": { "x": 740, "y": 420 },
       "capacityPerSecond": 1000,
       "workerCount": 1,
       "enabled": true,
@@ -119,6 +85,40 @@
         "overflowPolicy": "reject",
         "entryPoint": "backend/services/billing/controllers/billing.controller.js",
         "reason": "Subscription billing, payment orders, and plan authorization."
+      }
+    },
+    {
+      "id": "session-cache",
+      "name": "Session Cache [redis.js]",
+      "type": "cache",
+      "position": { "x": 100, "y": 640 },
+      "capacityPerSecond": 5000,
+      "workerCount": 1,
+      "enabled": true,
+      "category": "Identity and sessions",
+      "config": {
+        "baselineLatencyMs": 2,
+        "maxQueueSize": 5000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/shared/redis/redis.js",
+        "reason": "Low-latency in-memory cache for fast session claim lookups."
+      }
+    },
+    {
+      "id": "chat-service",
+      "name": "Chat Service [chat.controller.js]",
+      "type": "service",
+      "position": { "x": 420, "y": 640 },
+      "capacityPerSecond": 4000,
+      "workerCount": 2,
+      "enabled": true,
+      "category": "AI and conversations",
+      "config": {
+        "baselineLatencyMs": 15,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/chat/controllers/chat.controller.js",
+        "reason": "Manages conversation history, message threads, and user chat sessions."
       }
     }
   ],
