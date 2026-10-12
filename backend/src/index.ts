@@ -1,6 +1,6 @@
 import { createApp } from './app.js';
 
-const initialPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
+const initialPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3005;
 const app = createApp();
 
 function startServer(port: number) {
