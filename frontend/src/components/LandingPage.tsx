@@ -1,5 +1,6 @@
 import React from 'react';
 import { Activity, Play, FolderGit2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Fotter } from './Fotter';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
@@ -136,10 +137,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="h-12 border-t border-slate-200 bg-white/70 px-6 flex items-center justify-center text-xs text-slate-400">
-        System Design Playground &bull; Deterministic DAG Traffic Simulator & Architecture Visualizer
-      </footer>
+      {/* Global Footer */}
+      <Fotter />
     </div>
   );
 };
