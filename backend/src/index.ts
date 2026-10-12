@@ -4,8 +4,8 @@ const initialPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 const app = createApp();
 
 function startServer(port: number) {
-  const server = app.listen(port, () => {
-    console.log(`[Backend] System Design Playground API listening on http://localhost:${port}`);
+  const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`[Backend] System Design Playground API listening on http://0.0.0.0:${port}`);
   });
 
   server.on('error', (err: any) => {
