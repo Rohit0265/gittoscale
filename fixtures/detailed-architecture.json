@@ -465,6 +465,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "uses",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "User interaction ⇄ Web page response"
     },
@@ -475,6 +476,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "renders",
+      "communicationType": "inferred",
       "isBidirectional": true,
       "dataFlowDescription": "Mounts chat interface ⇄ User input events"
     },
@@ -485,6 +487,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "renders",
+      "communicationType": "inferred",
       "isBidirectional": true,
       "dataFlowDescription": "Mounts history sidebar ⇄ Selected thread ID"
     },
@@ -495,6 +498,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "renders",
+      "communicationType": "inferred",
       "isBidirectional": true,
       "dataFlowDescription": "Mounts artifact container ⇄ Click events"
     },
@@ -505,6 +509,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "updates",
+      "communicationType": "inferred",
       "isBidirectional": true,
       "dataFlowDescription": "Stores user token ⇄ Dispatched auth state"
     },
@@ -515,6 +520,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "authenticates via",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "HTTP credentials ⇄ Bearer session cookie"
     },
@@ -525,6 +531,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "requests chat",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Prompt payload ⇄ Streamed token chunks"
     },
@@ -535,6 +542,7 @@
       "requestsPerInput": 0.5,
       "enabled": true,
       "label": "updates artifacts",
+      "communicationType": "inferred",
       "isBidirectional": true,
       "dataFlowDescription": "Parsed artifact block ⇄ Rendered view"
     },
@@ -545,6 +553,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "checks sessions",
+      "communicationType": "inferred",
       "isBidirectional": true,
       "dataFlowDescription": "Inbound request headers ⇄ Verified claims"
     },
@@ -555,6 +564,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "reads session",
+      "communicationType": "cache",
       "isBidirectional": true,
       "dataFlowDescription": "Session token key ⇄ Cached claim values"
     },
@@ -565,6 +575,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "proxies auth",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Proxy login/register ⇄ Auth payload"
     },
@@ -575,6 +586,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "proxies chat",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Proxy chat routes ⇄ Thread responses"
     },
@@ -585,6 +597,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "proxies agent",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Proxy AI prompt stream ⇄ Execution status"
     },
@@ -595,6 +608,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "proxies billing",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Proxy order requests ⇄ Payment status"
     },
@@ -605,6 +619,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "verifies token",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "JWT verification request ⇄ Decoded UID"
     },
@@ -615,6 +630,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "reads and writes",
+      "communicationType": "db",
       "isBidirectional": true,
       "dataFlowDescription": "Query user email ⇄ User model document"
     },
@@ -625,6 +641,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "stores session",
+      "communicationType": "cache",
       "isBidirectional": true,
       "dataFlowDescription": "Store active session key ⇄ Redis OK"
     },
@@ -635,6 +652,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "reads and writes",
+      "communicationType": "db",
       "isBidirectional": true,
       "dataFlowDescription": "List / update conversation ⇄ Conversation record"
     },
@@ -645,6 +663,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "reads and writes",
+      "communicationType": "db",
       "isBidirectional": true,
       "dataFlowDescription": "Append chat message ⇄ Persisted message ID"
     },
@@ -655,6 +674,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "saves messages",
+      "communicationType": "grpc",
       "isBidirectional": true,
       "dataFlowDescription": "Agent output ⇄ Saved message reference"
     },
@@ -665,6 +685,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "invokes graph",
+      "communicationType": "queue",
       "isBidirectional": true,
       "dataFlowDescription": "Start LangGraph state ⇄ Step progression"
     },
@@ -675,6 +696,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "routes intent",
+      "communicationType": "queue",
       "isBidirectional": true,
       "dataFlowDescription": "Query intent evaluation ⇄ Target agent name"
     },
@@ -685,6 +707,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "dispatches agents",
+      "communicationType": "queue",
       "isBidirectional": true,
       "dataFlowDescription": "Agent task instructions ⇄ Generated output"
     },
@@ -695,6 +718,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "classifies prompt",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Classification prompt ⇄ Model inference logits"
     },
@@ -705,6 +729,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "creates orders",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Create payment order ⇄ Order ID & receipt"
     },
@@ -715,6 +740,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "records payment",
+      "communicationType": "db",
       "isBidirectional": true,
       "dataFlowDescription": "Save receipt & status ⇄ Persisted payment"
     },
@@ -725,6 +751,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "updates account",
+      "communicationType": "grpc",
       "isBidirectional": true,
       "dataFlowDescription": "Account plan upgrade ⇄ User claims refreshed"
     }

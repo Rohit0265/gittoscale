@@ -130,6 +130,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "REST API",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Inbound HTTPS requests ⇄ Outbound JSON responses"
     },
@@ -140,6 +141,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "Route Request",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Forward login / token requests ⇄ Auth claims"
     },
@@ -150,6 +152,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "Cache Operations",
+      "communicationType": "cache",
       "isBidirectional": true,
       "dataFlowDescription": "Read/write session tokens ⇄ Cached session records"
     },
@@ -160,6 +163,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "Route Request",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Forward agent prompts ⇄ Assistant completions"
     },
@@ -170,6 +174,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "Internal RPC",
+      "communicationType": "grpc",
       "isBidirectional": true,
       "dataFlowDescription": "Persist generated responses ⇄ Message records"
     },
@@ -180,6 +185,7 @@
       "requestsPerInput": 1.0,
       "enabled": true,
       "label": "Route Request",
+      "communicationType": "http",
       "isBidirectional": true,
       "dataFlowDescription": "Forward checkout requests ⇄ Payment confirmation"
     }
