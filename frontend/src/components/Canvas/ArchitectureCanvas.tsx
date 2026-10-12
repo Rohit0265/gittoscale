@@ -93,13 +93,58 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
 
   // Convert domain edges to React Flow edges
   const flowEdges: Edge[] = useMemo(() => {
+    const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+
     return edges.map((edge) => {
       const edgeRes = edgeResults[edge.id];
       const isEnabled = edge.enabled;
+      const sNode = nodeMap.get(edge.source);
+      const tNode = nodeMap.get(edge.target);
+
+      let sourceHandle: string | undefined = undefined;
+      let targetHandle: string | undefined = undefined;
+
+      if (sNode && tNode) {
+        const dy = tNode.position.y - sNode.position.y;
+        const dx = tNode.position.x - sNode.position.x;
+
+        if (dy > 80) {
+          // Downward tree flow
+          if (dx < -60) {
+            sourceHandle = 'source-bottom-left';
+          } else if (dx > 60) {
+            sourceHandle = 'source-bottom-right';
+          } else {
+            sourceHandle = 'source-bottom';
+          }
+          targetHandle = 'target-top';
+        } else if (Math.abs(dy) <= 80) {
+          // Peer horizontal connection in same row/tier
+          if (dx >= 0) {
+            sourceHandle = 'source-right';
+            targetHandle = 'target-left';
+          } else {
+            sourceHandle = 'source-left';
+            targetHandle = 'target-right';
+          }
+        } else {
+          // Upward flow
+          if (dx >= 0) {
+            sourceHandle = 'source-right';
+            targetHandle = 'target-left';
+          } else {
+            sourceHandle = 'source-left';
+            targetHandle = 'target-right';
+          }
+        }
+      }
+
       return {
         id: edge.id,
         source: edge.source,
         target: edge.target,
+        sourceHandle,
+        targetHandle,
         type: 'customEdge',
         data: {
           requestsPerInput: edge.requestsPerInput,

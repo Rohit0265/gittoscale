@@ -130,13 +130,28 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
     <div
       className={`relative rounded-xl border bg-white p-3.5 w-64 transition-all duration-200 cursor-pointer ${getCardBorder()}`}
     >
-      {/* Target Handle (Top for vertical layout) */}
+      {/* Target Handles (Top center, Left, and Right for tree routing) */}
       {!isSource && (
-        <Handle
-          type="target"
-          position={Position.Top}
-          className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
-        />
+        <>
+          <Handle
+            type="target"
+            id="target-top"
+            position={Position.Top}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
+          />
+          <Handle
+            type="target"
+            id="target-left"
+            position={Position.Left}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
+          />
+          <Handle
+            type="target"
+            id="target-right"
+            position={Position.Right}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
+          />
+        </>
       )}
 
       {/* Header */}
@@ -213,10 +228,37 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
         )}
       </div>
 
-      {/* Source Handle (Bottom for vertical layout) */}
+      {/* Source Handles (Bottom Left 25%, Center 50%, Right 75%, and Sides for clean tree branching) */}
       <Handle
         type="source"
+        id="source-bottom"
         position={Position.Bottom}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-bottom-left"
+        position={Position.Bottom}
+        style={{ left: '25%' }}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-bottom-right"
+        position={Position.Bottom}
+        style={{ left: '75%' }}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-right"
+        position={Position.Right}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-left"
+        position={Position.Left}
         className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
       />
     </div>
