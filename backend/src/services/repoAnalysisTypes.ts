@@ -67,6 +67,9 @@ export interface InventoryItem {
 
 export interface RepositoryInventory {
   repoName: string;
+  defaultBranch?: string;
+  commitSha?: string;
+  readmeSummary?: string;
   frameworks: string[];
   analyzedFiles: string[];
   skippedFiles: string[];

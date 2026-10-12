@@ -4,6 +4,7 @@ import path from 'node:path';
 /**
  * Builds a structured inventory from a GitHub repository tree by inspecting
  * directory paths, manifests, and package setups.
+ * Captures repository metadata (defaultBranch, commitSha, README summary).
  */
 export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<RepositoryInventory> {
   const cleanUrl = repoUrl.trim().replace(/\.git$/, '').replace(/\/$/, '');
@@ -14,11 +15,33 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
 
   const [, owner, repo] = match;
   let treeData: any = null;
+  let resolvedBranch = 'main';
+  let commitSha: string | undefined;
 
-  for (const branch of ['main', 'master', 'develop']) {
+  // 1. Fetch repo metadata (default branch)
+  try {
+    const metaResp = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        'User-Agent': 'System-Design-Playground',
+        Accept: 'application/vnd.github.v3+json',
+      },
+    });
+    if (metaResp.ok) {
+      const meta: any = await metaResp.json();
+      if (meta.default_branch) {
+        resolvedBranch = meta.default_branch;
+      }
+    }
+  } catch {
+    // fallback to main
+  }
+
+  // 2. Fetch recursive tree
+  const branchCandidates = [resolvedBranch, 'main', 'master', 'develop'];
+  for (const b of branchCandidates) {
     try {
       const resp = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,
+        `https://api.github.com/repos/${owner}/${repo}/git/trees/${b}?recursive=1`,
         {
           headers: {
             'User-Agent': 'System-Design-Playground',
@@ -28,6 +51,8 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
       );
       if (resp.ok) {
         treeData = await resp.json();
+        commitSha = treeData.sha;
+        resolvedBranch = b;
         break;
       }
     } catch {
@@ -40,9 +65,9 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
   const items: InventoryItem[] = [];
 
   if (!treeData || !Array.isArray(treeData.tree)) {
-    // Return empty inventory if cannot access github API
     return {
       repoName: repo,
+      defaultBranch: resolvedBranch,
       frameworks: [],
       analyzedFiles: [],
       skippedFiles: [],
@@ -53,7 +78,25 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
 
   const allPaths: string[] = treeData.tree.map((t: any) => t.path);
 
-  // Group paths into candidate directories
+  // 3. Fetch README summary if present
+  let readmeSummary: string | undefined;
+  const readmePath = allPaths.find((p) => /readme\.md$/i.test(p));
+  if (readmePath) {
+    try {
+      const readmeResp = await fetch(
+        `https://raw.githubusercontent.com/${owner}/${repo}/${resolvedBranch}/${readmePath}`
+      );
+      if (readmeResp.ok) {
+        const text = await readmeResp.text();
+        readmeSummary = text.slice(0, 800);
+        analyzedFiles.push(readmePath);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // 4. Group paths into candidate directories
   const discoveredFolders = new Set<string>();
 
   for (const p of allPaths) {
@@ -162,6 +205,9 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
 
   return {
     repoName: repo,
+    defaultBranch: resolvedBranch,
+    commitSha,
+    readmeSummary,
     frameworks: [],
     analyzedFiles,
     skippedFiles,
@@ -169,4 +215,3 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
     connections: [],
   };
 }
-

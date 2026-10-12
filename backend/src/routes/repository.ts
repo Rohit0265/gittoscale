@@ -42,10 +42,7 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       });
     }
 
-    const cacheKey = `${localPath || repoUrl}-${llmConfig?.provider || 'default'}`;
-    if (analysisCache.has(cacheKey)) {
-      return res.json(analysisCache.get(cacheKey));
-    }
+    const ANALYZER_VERSION = 'v2.1';
 
     // 1. Build Static Inventory (either local directory or GitHub repository tree)
     let inventory;
@@ -55,6 +52,12 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
     } else {
       const targetPath = localPath || process.cwd();
       inventory = buildStaticRepositoryInventory(targetPath);
+    }
+
+    const revision = inventory.commitSha || 'local-rev';
+    const cacheKey = `${localPath || repoUrl}@${revision}-${ANALYZER_VERSION}-${llmConfig?.provider || 'default'}`;
+    if (analysisCache.has(cacheKey)) {
+      return res.json(analysisCache.get(cacheKey));
     }
 
     // 2. Perform Architecture Analysis (LLM / Hybrid)
