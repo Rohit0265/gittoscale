@@ -10,6 +10,7 @@ import {
   Layers,
   Trash2,
   Power,
+  FolderGit2,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, ComponentType } from '../types';
 
@@ -27,6 +28,7 @@ interface LeftSidebarProps {
   onDeleteNode: (nodeId: string) => void;
   onToggleNode: (nodeId: string) => void;
   onRestoreOriginal: () => void;
+  onOpenImportRepo?: () => void;
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -43,6 +45,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onDeleteNode,
   onToggleNode,
   onRestoreOriginal,
+  onOpenImportRepo,
 }) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
 
@@ -189,6 +192,17 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               </div>
             )}
           </div>
+
+          {/* Import Repo Button */}
+          {onOpenImportRepo && (
+            <button
+              onClick={onOpenImportRepo}
+              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all"
+              title="Import architecture from repository"
+            >
+              <FolderGit2 className="w-3.5 h-3.5" />
+            </button>
+          )}
 
           {/* Restore Architecture Button */}
           <button

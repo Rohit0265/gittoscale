@@ -29,5 +29,17 @@ export const api = {
     const res = await axios.post(`${API_BASE}/simulate`, params);
     return res.data;
   },
+
+  async analyzeRepository(params: {
+    repoUrl?: string;
+    localPath?: string;
+  }): Promise<{
+    nodes: ArchitectureNode[];
+    edges: ArchitectureEdge[];
+    detectedServices: string[];
+  }> {
+    const res = await axios.post(`${API_BASE}/repository/analyze`, params);
+    return res.data;
+  },
 };
 

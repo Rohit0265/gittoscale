@@ -7,6 +7,7 @@ import healthRoute from './routes/health.js';
 import architectureRoute from './routes/architecture.js';
 import scenariosRoute from './routes/scenarios.js';
 import simulateRoute from './routes/simulate.js';
+import repositoryRoute from './routes/repository.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +23,7 @@ export function createApp() {
   app.use('/api/architecture', architectureRoute);
   app.use('/api/scenarios', scenariosRoute);
   app.use('/api/simulate', simulateRoute);
+  app.use('/api/repository', repositoryRoute);
 
   // Serve static frontend in production if built
   const frontendDistCandidates = [

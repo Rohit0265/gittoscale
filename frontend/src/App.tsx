@@ -16,6 +16,7 @@ import { ArchitectureCanvas } from './components/Canvas/ArchitectureCanvas';
 import { ComponentInspector } from './components/ComponentInspector';
 import { BottleneckList } from './components/BottleneckList';
 import { BaselineComparisonModal } from './components/BaselineComparisonModal';
+import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -40,6 +41,7 @@ export const App: React.FC = () => {
   // Baseline comparison
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
   const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
+  const [isImportRepoOpen, setIsImportRepoOpen] = useState<boolean>(false);
 
   // Debounce ref for sliders
   const simulateDebounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -284,6 +286,18 @@ export const App: React.FC = () => {
     }
   };
 
+  // 8. Repository Import handler
+  const handleImportArchitecture = (
+    newNodes: ArchitectureNode[],
+    newEdges: ArchitectureEdge[],
+    _repoName: string
+  ) => {
+    setNodes(newNodes);
+    setEdges(newEdges);
+    setSelectedNodeId(null);
+    triggerSimulation(newNodes, newEdges, incomingTrafficRate, durationSeconds);
+  };
+
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   const selectedNodeResult = selectedNodeId ? simulationResult?.nodeResults[selectedNodeId] : undefined;
 
@@ -304,6 +318,7 @@ export const App: React.FC = () => {
         }}
         onReset={handleReset}
         onOpenCompare={() => setIsCompareOpen(true)}
+        onOpenImportRepo={() => setIsImportRepoOpen(true)}
         hasBaseline={baseline !== null}
       />
 
@@ -343,6 +358,7 @@ export const App: React.FC = () => {
           onDeleteNode={handleDeleteNode}
           onToggleNode={handleToggleNode}
           onRestoreOriginal={handleRestoreOriginal}
+          onOpenImportRepo={() => setIsImportRepoOpen(true)}
         />
 
         {/* Center Canvas: Interactive Architecture Diagram */}
@@ -397,6 +413,13 @@ export const App: React.FC = () => {
           scenarios.find((s) => s.id === currentScenarioId)?.name || 'Current Configuration'
         }
         onSaveAsBaseline={handleSaveBaseline}
+      />
+
+      {/* Repository Import Modal */}
+      <RepositoryImportModal
+        isOpen={isImportRepoOpen}
+        onClose={() => setIsImportRepoOpen(false)}
+        onImportArchitecture={handleImportArchitecture}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, GitCompare, Activity, Sparkles } from 'lucide-react';
+import { Play, Pause, RotateCcw, GitCompare, Activity, Sparkles, FolderGit2 } from 'lucide-react';
 import { ScenarioFixture } from '../types';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
   onToggleRun: () => void;
   onReset: () => void;
   onOpenCompare: () => void;
+  onOpenImportRepo: () => void;
   hasBaseline: boolean;
 }
 
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleRun,
   onReset,
   onOpenCompare,
+  onOpenImportRepo,
   hasBaseline,
 }) => {
   const currentScenario = scenarios.find((s) => s.id === currentScenarioId);
@@ -106,6 +108,16 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
           Reset
+        </button>
+
+        {/* Import Repo button */}
+        <button
+          onClick={onOpenImportRepo}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition-all shadow-sm"
+          title="Import architecture from GitHub or local repository"
+        >
+          <FolderGit2 className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Import Repo</span>
         </button>
 
         {/* Compare / Baseline button */}
