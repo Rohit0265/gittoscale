@@ -33,12 +33,23 @@ export const api = {
   async analyzeRepository(params: {
     repoUrl?: string;
     localPath?: string;
+    llmConfig?: {
+      provider?: string;
+      apiKey?: string;
+      model?: string;
+    };
   }): Promise<{
     nodes: ArchitectureNode[];
     edges: ArchitectureEdge[];
     detectedServices: string[];
+    repoName?: string;
   }> {
     const res = await axios.post(`${API_BASE}/repository/analyze`, params);
+    return res.data;
+  },
+
+  async testLLM(params: { provider: string; apiKey: string }): Promise<{ success: boolean; message: string }> {
+    const res = await axios.post(`${API_BASE}/repository/test-llm`, params);
     return res.data;
   },
 };

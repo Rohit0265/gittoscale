@@ -126,6 +126,78 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           </button>
         </div>
 
+        {/* Component Type Selector */}
+        <div className="space-y-1">
+          <label className="text-[11px] font-bold text-slate-700 block">
+            Component Role / Type
+          </label>
+          <select
+            value={node.type}
+            onChange={(e) =>
+              onUpdateNode({
+                ...node,
+                type: e.target.value as any,
+              })
+            }
+            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+          >
+            <option value="gateway">API Gateway / Frontend Entry</option>
+            <option value="service">Backend Microservice / Worker</option>
+            <option value="database">Database (SQL / NoSQL)</option>
+            <option value="cache">In-Memory Cache (Redis / Memcached)</option>
+            <option value="load_generator">Client Load Generator</option>
+          </select>
+        </div>
+
+        {/* SECTION: REPOSITORY EVIDENCE & EXPLANATION */}
+        {Boolean(node.config.reason || node.config.entryPoint || node.config.sourceFiles) && (
+          <div className="space-y-2 p-3 rounded-lg border border-indigo-100 bg-indigo-50/50">
+            <div className="flex items-center justify-between border-b border-indigo-100/60 pb-1">
+              <span className="font-bold text-indigo-900 text-[10px] uppercase tracking-wider">
+                Repository Evidence
+              </span>
+              {typeof node.config.confidence === 'number' && (
+                <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">
+                  {(Number(node.config.confidence) * 100).toFixed(0)}% confidence
+                </span>
+              )}
+            </div>
+
+            {Boolean(node.config.reason) && (
+              <p className="text-[11px] text-indigo-900 leading-relaxed">
+                {String(node.config.reason)}
+              </p>
+            )}
+
+            {Boolean(node.config.entryPoint) && (
+              <div className="text-[10px] text-slate-600">
+                <span className="font-semibold text-slate-700">Entrypoint: </span>
+                <code className="bg-white px-1 py-0.5 rounded border border-indigo-100 font-mono text-[10px]">
+                  {String(node.config.entryPoint)}
+                </code>
+              </div>
+            )}
+
+            {Boolean(node.config.startupCommand) && (
+              <div className="text-[10px] text-slate-600">
+                <span className="font-semibold text-slate-700">Startup: </span>
+                <code className="bg-white px-1 py-0.5 rounded border border-indigo-100 font-mono text-[10px]">
+                  {String(node.config.startupCommand)}
+                </code>
+              </div>
+            )}
+
+            {Array.isArray(node.config.sourceFiles) && node.config.sourceFiles.length > 0 && (
+              <div className="text-[10px] text-slate-600">
+                <span className="font-semibold text-slate-700">Source Evidence: </span>
+                <span className="font-mono text-slate-600">
+                  {node.config.sourceFiles.join(', ')}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* SECTION 1: CONFIGURED SETTINGS */}
         <div className="space-y-3">
           <div className="flex items-center justify-between border-b border-slate-100 pb-1">
