@@ -242,7 +242,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   );
 
   return (
-    <div className="w-full h-full relative excel-grid">
+    <div className="w-full h-full relative">
       {/* Floating Two-Mode Toggle & Flow Modes Legend Above Canvas */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
         <div className="flex items-center gap-1 bg-white/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200">
