@@ -617,5 +617,5 @@ async function callAnthropicProvider(
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Could not parse JSON from Anthropic response');
   const parsed = JSON.parse(jsonMatch[0]);
-  return llmAnalysisResultSchema.parse(parsed);
+  return llmAnalysisResultSchema.parse(normalizeLLMResponse(parsed));
 }
