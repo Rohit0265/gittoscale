@@ -395,7 +395,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'landing') {
     return (
-      <>
+      <div className="min-h-screen w-full flex flex-col overflow-y-auto">
         <LandingPage
           onSelectTestSite={() => {
             setCurrentView('simulator');
@@ -415,7 +415,7 @@ export const App: React.FC = () => {
             setCurrentView('simulator');
           }}
         />
-      </>
+      </div>
     );
   }
 

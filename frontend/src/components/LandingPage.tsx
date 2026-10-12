@@ -138,7 +138,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </main>
 
       {/* Global Footer */}
-      <Fotter />
+      <Fotter brandName="GitToScale" />
     </div>
   );
 };
