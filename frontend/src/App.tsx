@@ -29,6 +29,13 @@ export const App: React.FC = () => {
   const [scenarios, setScenarios] = useState<ScenarioFixture[]>([]);
   const [currentScenarioId, setCurrentScenarioId] = useState<string>('normal-traffic');
 
+  // Architecture view mode: 'basic' (default) | 'detailed'
+  const [viewMode, setViewMode] = useState<'basic' | 'detailed'>('basic');
+
+  // Caches for instant switching between Basic and Detailed views
+  const basicGraphCacheRef = useRef<{ nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null>(null);
+  const detailedGraphCacheRef = useRef<{ nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null>(null);
+
   // Architecture & simulation state
   const [nodes, setNodes] = useState<ArchitectureNode[]>([]);
   const [edges, setEdges] = useState<ArchitectureEdge[]>([]);
@@ -61,6 +68,15 @@ export const App: React.FC = () => {
         ]);
         setDefaultArchitecture(arch);
         setScenarios(scens);
+
+        // Populate basic & detailed cache
+        basicGraphCacheRef.current = { nodes: arch.nodes, edges: arch.edges };
+        if (arch.detailedGraph) {
+          detailedGraphCacheRef.current = {
+            nodes: arch.detailedGraph.nodes,
+            edges: arch.detailedGraph.edges,
+          };
+        }
 
         // Apply normal traffic scenario by default
         applyScenario('normal-traffic', arch, scens);
@@ -254,6 +270,11 @@ export const App: React.FC = () => {
   const handleDeleteEdge = (edgeId: string) => {
     const updated = edges.filter((e) => e.id !== edgeId);
     setEdges(updated);
+    if (viewMode === 'detailed' && detailedGraphCacheRef.current) {
+      detailedGraphCacheRef.current.edges = updated;
+    } else if (viewMode === 'basic' && basicGraphCacheRef.current) {
+      basicGraphCacheRef.current.edges = updated;
+    }
     queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
   };
 
@@ -290,16 +311,83 @@ export const App: React.FC = () => {
     }
   };
 
-  // 8. Repository Import handler
+  // 8. View Mode Toggle (Basic <-> Detailed)
+  const handleToggleViewMode = async (targetMode: 'basic' | 'detailed') => {
+    if (targetMode === viewMode) return;
+    setViewMode(targetMode);
+
+    if (targetMode === 'detailed') {
+      // Save current basic graph into cache
+      basicGraphCacheRef.current = { nodes, edges };
+
+      if (detailedGraphCacheRef.current && detailedGraphCacheRef.current.nodes.length > 0) {
+        const nextNodes = detailedGraphCacheRef.current.nodes;
+        const nextEdges = detailedGraphCacheRef.current.edges;
+        setNodes(nextNodes);
+        setEdges(nextEdges);
+        setSelectedNodeId(null);
+        triggerSimulation(nextNodes, nextEdges, incomingTrafficRate, durationSeconds);
+      } else {
+        try {
+          setLoading(true);
+          const detailed = await api.getArchitecture('detailed');
+          detailedGraphCacheRef.current = { nodes: detailed.nodes, edges: detailed.edges };
+          setNodes(detailed.nodes);
+          setEdges(detailed.edges);
+          setSelectedNodeId(null);
+          triggerSimulation(detailed.nodes, detailed.edges, incomingTrafficRate, durationSeconds);
+        } catch (err: any) {
+          console.error('Failed to load detailed architecture:', err);
+          setError('Failed to load detailed architecture.');
+        } finally {
+          setLoading(false);
+        }
+      }
+    } else {
+      // Switching to Basic View
+      detailedGraphCacheRef.current = { nodes, edges };
+
+      if (basicGraphCacheRef.current && basicGraphCacheRef.current.nodes.length > 0) {
+        const nextNodes = basicGraphCacheRef.current.nodes;
+        const nextEdges = basicGraphCacheRef.current.edges;
+        setNodes(nextNodes);
+        setEdges(nextEdges);
+        setSelectedNodeId(null);
+        triggerSimulation(nextNodes, nextEdges, incomingTrafficRate, durationSeconds);
+      } else if (defaultArchitecture) {
+        setNodes(defaultArchitecture.nodes);
+        setEdges(defaultArchitecture.edges);
+        setSelectedNodeId(null);
+        triggerSimulation(defaultArchitecture.nodes, defaultArchitecture.edges, incomingTrafficRate, durationSeconds);
+      }
+    }
+  };
+
+  const handleNavigateToParent = (parentId: string) => {
+    handleToggleViewMode('basic');
+    setTimeout(() => {
+      setSelectedNodeId(parentId);
+    }, 150);
+  };
+
+  // 9. Repository Import handler
   const handleImportArchitecture = (
     newNodes: ArchitectureNode[],
     newEdges: ArchitectureEdge[],
-    _repoName: string
+    _repoName: string,
+    basicGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
+    detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] }
   ) => {
-    setNodes(newNodes);
-    setEdges(newEdges);
+    if (basicGraph) basicGraphCacheRef.current = basicGraph;
+    if (detailedGraph) detailedGraphCacheRef.current = detailedGraph;
+
+    setViewMode('basic');
+    const nodesToRender = basicGraph ? basicGraph.nodes : newNodes;
+    const edgesToRender = basicGraph ? basicGraph.edges : newEdges;
+    setNodes(nodesToRender);
+    setEdges(edgesToRender);
     setSelectedNodeId(null);
-    triggerSimulation(newNodes, newEdges, incomingTrafficRate, durationSeconds);
+    triggerSimulation(nodesToRender, edgesToRender, incomingTrafficRate, durationSeconds);
   };
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
@@ -322,8 +410,8 @@ export const App: React.FC = () => {
         <RepositoryImportModal
           isOpen={isImportRepoOpen}
           onClose={() => setIsImportRepoOpen(false)}
-          onImportArchitecture={(newNodes, newEdges, repoName) => {
-            handleImportArchitecture(newNodes, newEdges, repoName);
+          onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph) => {
+            handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph);
             setCurrentView('simulator');
           }}
         />
@@ -351,6 +439,8 @@ export const App: React.FC = () => {
         onOpenImportRepo={() => setIsImportRepoOpen(true)}
         hasBaseline={baseline !== null}
         onGoHome={() => setCurrentView('landing')}
+        viewMode={viewMode}
+        onToggleViewMode={handleToggleViewMode}
       />
 
       {/* 2. Top Metrics Strip */}
@@ -365,7 +455,7 @@ export const App: React.FC = () => {
           </div>
           <button
             onClick={() => triggerSimulation(nodes, edges, incomingTrafficRate, durationSeconds)}
-            className="flex items-center gap-1 font-semibold text-red-800 hover:underline"
+            className="flex items-center gap-1 font-semibold text-red-800 hover:underline cursor-pointer"
           >
             <RefreshCw className="w-3 h-3" /> Retry
           </button>
@@ -405,6 +495,8 @@ export const App: React.FC = () => {
             onAddEdge={handleAddEdge}
             onToggleEdge={handleToggleEdge}
             onDeleteEdge={handleDeleteEdge}
+            viewMode={viewMode}
+            onToggleViewMode={handleToggleViewMode}
           />
         </main>
 
@@ -418,10 +510,14 @@ export const App: React.FC = () => {
               onClose={() => setSelectedNodeId(null)}
               onUpdateNode={handleUpdateNode}
               onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+              onDeleteEdge={handleDeleteEdge}
               onChangeIncomingTrafficRate={
                 selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
               }
               incomingTrafficRate={incomingTrafficRate}
+              onNavigateToParent={handleNavigateToParent}
+              viewMode={viewMode}
+              allNodes={nodes}
             />
           ) : (
             <BottleneckList

@@ -159,15 +159,16 @@ export function buildStaticRepositoryInventory(rootDir: string): RepositoryInven
     }
   }
 
-  // Next, inspect top-level directories in the repository
+  // Next, inspect top-level and nested directories in the repository
   try {
     const rootEntries = fs.readdirSync(resolvedRoot);
     for (const entry of rootEntries) {
       if (entry.startsWith('.') || IGNORED_DIRS.has(entry)) continue;
       const fullPath = path.join(resolvedRoot, entry);
       if (fs.statSync(fullPath).isDirectory()) {
+        const lower = entry.toLowerCase();
         // If it's a known container of services (apps, services, packages, microservices), check its children
-        if (['apps', 'services', 'packages', 'microservices'].includes(entry.toLowerCase())) {
+        if (['apps', 'services', 'packages', 'microservices'].includes(lower)) {
           try {
             const subEntries = fs.readdirSync(fullPath);
             for (const sub of subEntries) {
@@ -178,8 +179,39 @@ export function buildStaticRepositoryInventory(rootDir: string): RepositoryInven
               }
             }
           } catch {}
+        } else if (['backend', 'server'].includes(lower)) {
+          // Drill into backend/gateway, backend/services, backend/shared
+          let foundNested = false;
+          try {
+            const bEntries = fs.readdirSync(fullPath);
+            for (const bSub of bEntries) {
+              const bSubFull = path.join(fullPath, bSub);
+              if (fs.statSync(bSubFull).isDirectory() && !bSub.startsWith('.') && !IGNORED_DIRS.has(bSub)) {
+                if (['services', 'apps', 'packages', 'shared'].includes(bSub.toLowerCase())) {
+                  try {
+                    const deepEntries = fs.readdirSync(bSubFull);
+                    for (const deep of deepEntries) {
+                      const deepFull = path.join(bSubFull, deep);
+                      if (fs.statSync(deepFull).isDirectory() && !deep.startsWith('.') && !IGNORED_DIRS.has(deep)) {
+                        const rel = path.join(entry, bSub, deep);
+                        if (!candidateDirs.includes(rel)) candidateDirs.push(rel);
+                        foundNested = true;
+                      }
+                    }
+                  } catch {}
+                } else if (['gateway', 'api', 'proxy'].includes(bSub.toLowerCase()) || fs.existsSync(path.join(bSubFull, 'package.json'))) {
+                  const rel = path.join(entry, bSub);
+                  if (!candidateDirs.includes(rel)) candidateDirs.push(rel);
+                  foundNested = true;
+                }
+              }
+            }
+          } catch {}
+          if (!foundNested) {
+            if (!candidateDirs.includes(entry)) candidateDirs.push(entry);
+          }
         } else {
-          // Add this top-level directory as a candidate (e.g. backend, frontend, api, server, client, auth, etc.)
+          // Add this top-level directory as a candidate (e.g. frontend, client, auth, etc.)
           if (!candidateDirs.includes(entry)) {
             candidateDirs.push(entry);
           }
@@ -187,6 +219,15 @@ export function buildStaticRepositoryInventory(rootDir: string): RepositoryInven
       }
     }
   } catch {}
+
+  // If subfolders under backend/ exist, remove backend itself to prevent collapsing
+  const hasSubServices = candidateDirs.some(
+    (d) => d.startsWith('backend/') || d.startsWith('server/')
+  );
+  if (hasSubServices) {
+    const idx = candidateDirs.indexOf('backend');
+    if (idx !== -1) candidateDirs.splice(idx, 1);
+  }
 
   // If still completely empty, inspect root itself
   if (candidateDirs.length === 0) {

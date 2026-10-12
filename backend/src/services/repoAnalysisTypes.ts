@@ -28,7 +28,7 @@ export interface ComponentEvidence {
 export interface ConnectionEvidence {
   source: string;
   target: string;
-  communicationType: 'http' | 'graphql' | 'grpc' | 'db' | 'queue' | 'inferred';
+  communicationType: 'http' | 'graphql' | 'grpc' | 'db' | 'queue' | 'cache' | 'inferred';
   evidenceFiles: string[];
   reference?: string;
   confidence: number;
@@ -67,6 +67,9 @@ export interface InventoryItem {
 
 export interface RepositoryInventory {
   repoName: string;
+  defaultBranch?: string;
+  commitSha?: string;
+  readmeSummary?: string;
   frameworks: string[];
   analyzedFiles: string[];
   skippedFiles: string[];
@@ -75,10 +78,13 @@ export interface RepositoryInventory {
 }
 
 export const llmAnalysisResultSchema = z.object({
+  mermaidCode: z.string().optional(),
   components: z.array(
     z.object({
       id: z.string().min(1),
       name: z.string().min(1),
+      category: z.string().optional(),
+      group: z.string().optional(),
       type: z.enum([
         'load_generator',
         'gateway',
@@ -86,26 +92,40 @@ export const llmAnalysisResultSchema = z.object({
         'cache',
         'database',
       ]),
-      isRuntimeService: z.boolean(),
+      isRuntimeService: z.boolean().default(true),
       entryPoint: z.string().optional(),
       startupCommand: z.string().optional(),
-      sourceFiles: z.array(z.string()),
-      confidence: z.number().min(0).max(1),
-      reason: z.string(),
+      sourceFiles: z.array(z.string()).default([]),
+      confidence: z.number().min(0).max(1).default(0.9),
+      reason: z.string().default('Discovered component in system architecture.'),
       estimatedCapacity: z.number().optional(),
       defaultWorkers: z.number().optional(),
+      parentId: z.string().optional(),
+      submoduleType: z.string().optional(),
+      isGroup: z.boolean().optional(),
+      collapsed: z.boolean().optional(),
     })
   ),
   connections: z.array(
     z.object({
       source: z.string().min(1),
       target: z.string().min(1),
-      communicationType: z.enum(['http', 'graphql', 'grpc', 'db', 'queue', 'inferred']),
-      evidenceFiles: z.array(z.string()),
+      communicationType: z.enum([
+        'http',
+        'graphql',
+        'grpc',
+        'db',
+        'queue',
+        'cache',
+        'inferred',
+      ]).default('http'),
+      evidenceFiles: z.array(z.string()).default([]),
       reference: z.string().optional(),
-      confidence: z.number().min(0).max(1),
-      reason: z.string(),
-      requestsPerInput: z.number().optional(),
+      confidence: z.number().min(0).max(1).default(0.9),
+      reason: z.string().default('Communication link between components.'),
+      requestsPerInput: z.number().optional().default(1.0),
+      isBidirectional: z.boolean().default(false),
+      dataFlowDescription: z.string().optional(),
     })
   ),
 });

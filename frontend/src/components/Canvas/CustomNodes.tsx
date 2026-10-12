@@ -102,30 +102,77 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
     return 'bg-emerald-500';
   };
 
+  const getSubmoduleBadge = () => {
+    const subType = node.submoduleType || (node.config?.submoduleType as string | undefined);
+    if (!subType) return null;
+    const colors: Record<string, string> = {
+      entrypoint: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      middleware: 'bg-amber-50 text-amber-700 border-amber-200',
+      controller: 'bg-sky-50 text-sky-700 border-sky-200',
+      service_logic: 'bg-purple-50 text-purple-700 border-purple-200',
+      model: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      cache_client: 'bg-orange-50 text-orange-700 border-orange-200',
+      worker: 'bg-teal-50 text-teal-700 border-teal-200',
+      external_api: 'bg-rose-50 text-rose-700 border-rose-200',
+      component: 'bg-blue-50 text-blue-700 border-blue-200',
+    };
+    const style = colors[subType] || 'bg-slate-50 text-slate-700 border-slate-200';
+    return (
+      <span className={`text-[8.5px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${style}`}>
+        {subType.replace('_', ' ')}
+      </span>
+    );
+  };
+
   const isSource = node.type === 'load_generator';
 
   return (
     <div
       className={`relative rounded-xl border bg-white p-3.5 w-64 transition-all duration-200 cursor-pointer ${getCardBorder()}`}
     >
-      {/* Target Handle */}
+      {/* Target Handles (Top center, Left, and Right for tree routing) */}
       {!isSource && (
-        <Handle
-          type="target"
-          position={Position.Left}
-          className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
-        />
+        <>
+          <Handle
+            type="target"
+            id="target-top"
+            position={Position.Top}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
+          />
+          <Handle
+            type="target"
+            id="target-left"
+            position={Position.Left}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
+          />
+          <Handle
+            type="target"
+            id="target-right"
+            position={Position.Right}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white hover:!bg-indigo-600"
+          />
+        </>
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-2">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-1.5 rounded-lg bg-slate-100 shrink-0">
             {getTypeIcon()}
           </div>
-          <span className="text-xs font-bold text-slate-800 truncate" title={node.name}>
-            {node.name}
-          </span>
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-slate-800 truncate block" title={node.name}>
+              {node.name}
+            </span>
+            <div className="flex items-center gap-1 mt-0.5">
+              {getSubmoduleBadge()}
+              {Boolean(node.config?.category) && (
+                <span className="text-[9px] font-medium text-slate-400 truncate">
+                  {String(node.config.category)}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         {getStatusBadge()}
       </div>
@@ -181,10 +228,37 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
         )}
       </div>
 
-      {/* Source Handle */}
+      {/* Source Handles (Bottom Left 25%, Center 50%, Right 75%, and Sides for clean tree branching) */}
       <Handle
         type="source"
+        id="source-bottom"
+        position={Position.Bottom}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-bottom-left"
+        position={Position.Bottom}
+        style={{ left: '25%' }}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-bottom-right"
+        position={Position.Bottom}
+        style={{ left: '75%' }}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-right"
         position={Position.Right}
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
+      />
+      <Handle
+        type="source"
+        id="source-left"
+        position={Position.Left}
         className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white hover:!bg-indigo-700"
       />
     </div>

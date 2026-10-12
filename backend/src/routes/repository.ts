@@ -10,6 +10,7 @@ const router = Router();
 const analyzeSchema = z.object({
   localPath: z.string().optional(),
   repoUrl: z.string().optional(),
+  viewMode: z.enum(['basic', 'detailed']).optional().default('basic'),
   llmConfig: z
     .object({
       provider: z.string().optional(),
@@ -33,7 +34,7 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       });
     }
 
-    const { localPath, repoUrl, llmConfig } = parseResult.data;
+    const { localPath, repoUrl, viewMode, llmConfig } = parseResult.data;
 
     if (!localPath && !repoUrl) {
       return res.status(400).json({
@@ -42,10 +43,7 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       });
     }
 
-    const cacheKey = `${localPath || repoUrl}-${llmConfig?.provider || 'default'}`;
-    if (analysisCache.has(cacheKey)) {
-      return res.json(analysisCache.get(cacheKey));
-    }
+    const ANALYZER_VERSION = 'v3.2';
 
     // 1. Build Static Inventory (either local directory or GitHub repository tree)
     let inventory;
@@ -57,25 +55,51 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       inventory = buildStaticRepositoryInventory(targetPath);
     }
 
-    // 2. Perform Architecture Analysis (LLM / Hybrid)
-    const analysis = await analyzeArchitectureWithLLM(inventory, llmConfig);
-
-    // 3. Generate React Flow Diagram
-    const { nodes, edges } = convertAnalysisToArchitecture(analysis);
-
-    // 4. Validate graph acyclic property
-    const cycleCheck = validateGraphAcyclic(nodes, edges);
-    if (cycleCheck.hasCycle) {
-      console.warn('[Repository Analysis] Detected cycle in generated edges. Disabling cycle edges.');
+    const revision = inventory.commitSha || 'local-rev';
+    const cacheKey = `${localPath || repoUrl}@${revision}-${ANALYZER_VERSION}-${llmConfig?.provider || 'default'}-${viewMode}`;
+    if (analysisCache.has(cacheKey)) {
+      const cached = analysisCache.get(cacheKey);
+      if (cached && cached.detailedGraph && cached.detailedGraph.nodes.length > 10) {
+        return res.json(cached);
+      }
     }
+
+    // Helper to sanitize edges to maintain DAG acyclicity
+    const sanitizeAcyclicEdges = (nodes: any[], edges: any[]) => {
+      const safe: typeof edges = [];
+      for (const edge of edges) {
+        safe.push(edge);
+        const cycleCheck = validateGraphAcyclic(nodes, safe);
+        if (cycleCheck.hasCycle) {
+          safe.pop();
+        }
+      }
+      return safe;
+    };
+
+    // 2. Perform Architecture Analysis for both Basic and Detailed views
+    const basicAnalysis = await analyzeArchitectureWithLLM(inventory, llmConfig, 'basic');
+    const basicArch = convertAnalysisToArchitecture(basicAnalysis);
+    const basicEdges = sanitizeAcyclicEdges(basicArch.nodes, basicArch.edges);
+
+    const detailedAnalysis = await analyzeArchitectureWithLLM(inventory, llmConfig, 'detailed');
+    const detailedArch = convertAnalysisToArchitecture(detailedAnalysis);
+    const detailedEdges = sanitizeAcyclicEdges(detailedArch.nodes, detailedArch.edges);
+
+    const activeGraph = viewMode === 'detailed'
+      ? { nodes: detailedArch.nodes, edges: detailedEdges, analysis: detailedAnalysis }
+      : { nodes: basicArch.nodes, edges: basicEdges, analysis: basicAnalysis };
 
     const result = {
       repoName: inventory.repoName,
       inventory,
-      analysis,
-      nodes,
-      edges,
-      detectedServices: nodes.filter((n) => n.type !== 'load_generator').map((n) => n.name),
+      analysis: activeGraph.analysis,
+      nodes: activeGraph.nodes,
+      edges: activeGraph.edges,
+      basicGraph: { nodes: basicArch.nodes, edges: basicEdges },
+      detailedGraph: { nodes: detailedArch.nodes, edges: detailedEdges },
+      viewMode,
+      detectedServices: activeGraph.nodes.filter((n) => n.type !== 'load_generator').map((n) => n.name),
       analyzedFilesCount: inventory.analyzedFiles.length,
       skippedFilesCount: inventory.skippedFiles.length,
     };

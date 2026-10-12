@@ -1,12 +1,27 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { getArchitectureFixture } from '../fixtures/loader.js';
+import { getArchitectureFixture, getDetailedArchitectureFixture } from '../fixtures/loader.js';
 
 const router = Router();
 
-router.get('/', (_req: Request, res: Response, next: NextFunction) => {
+router.get('/', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const arch = getArchitectureFixture();
-    res.json(arch);
+    const mode = req.query.mode === 'detailed' ? 'detailed' : 'basic';
+    const basicArch = getArchitectureFixture(true);
+    const detailedArch = getDetailedArchitectureFixture(true);
+
+    if (mode === 'detailed') {
+      res.json({
+        ...detailedArch,
+        basicGraph: basicArch,
+        detailedGraph: detailedArch,
+      });
+    } else {
+      res.json({
+        ...basicArch,
+        basicGraph: basicArch,
+        detailedGraph: detailedArch,
+      });
+    }
   } catch (err) {
     next(err);
   }

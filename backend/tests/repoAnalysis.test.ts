@@ -3,7 +3,10 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import { buildStaticRepositoryInventory } from '../src/services/staticScanner.js';
-import { synthesizeDeterministicArchitecture } from '../src/services/architectureAnalyzer.js';
+import {
+  synthesizeDeterministicArchitecture,
+  synthesizeDetailedArchitecture,
+} from '../src/services/architectureAnalyzer.js';
 import { convertAnalysisToArchitecture } from '../src/services/diagramGenerator.js';
 import { runSimulation } from '../src/simulation/engine.js';
 import { llmAnalysisResultSchema } from '../src/services/repoAnalysisTypes.js';
@@ -291,6 +294,56 @@ services:
       expect(simResult).toBeDefined();
       expect(simResult.metrics.completedThroughput).toBeGreaterThanOrEqual(0);
       expect(simResult.bottlenecks).toBeDefined();
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  // Test 13: Detailed View produces internal submodules with parentId and submoduleType
+  it('13. Detailed View produces internal submodules with parentId and submoduleType', () => {
+    const tmp = createMockRepo();
+    try {
+      const inv = buildStaticRepositoryInventory(tmp);
+      const detailedAnalysis = synthesizeDetailedArchitecture(inv);
+      expect(detailedAnalysis.components.length).toBeGreaterThan(0);
+
+      const parsed = llmAnalysisResultSchema.safeParse(detailedAnalysis);
+      expect(parsed.success).toBe(true);
+
+      const hasSubmodule = detailedAnalysis.components.some(
+        (c) => Boolean(c.parentId) || Boolean(c.submoduleType)
+      );
+      expect(hasSubmodule).toBe(true);
+
+      // Verify connections have bidirectional support and flow descriptions
+      const hasBidirectional = detailedAnalysis.connections.some((conn) => conn.isBidirectional === true);
+      expect(hasBidirectional).toBe(true);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  // Test 14: Detailed architecture graph simulates successfully without cycles
+  it('14. Detailed architecture graph simulates successfully without cycles', () => {
+    const tmp = createMockRepo();
+    try {
+      const inv = buildStaticRepositoryInventory(tmp);
+      const detailedAnalysis = synthesizeDetailedArchitecture(inv);
+      const { nodes, edges } = convertAnalysisToArchitecture(detailedAnalysis);
+
+      expect(nodes.length).toBeGreaterThan(0);
+      expect(edges.length).toBeGreaterThan(0);
+
+      const simResult = runSimulation({
+        nodes,
+        edges,
+        incomingTrafficRate: 1500,
+        durationSeconds: 30,
+      });
+
+      expect(simResult).toBeDefined();
+      expect(simResult.metrics.totalOfferedTraffic).toBe(1500);
+      expect(simResult.metrics.completedThroughput).toBeGreaterThanOrEqual(0);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }

@@ -9,8 +9,11 @@ export const api = {
     return res.data;
   },
 
-  async getArchitecture(): Promise<ArchitectureFixture> {
-    const res = await axios.get(`${API_BASE}/architecture`);
+  async getArchitecture(mode?: 'basic' | 'detailed'): Promise<ArchitectureFixture & {
+    basicGraph?: ArchitectureFixture;
+    detailedGraph?: ArchitectureFixture;
+  }> {
+    const res = await axios.get(`${API_BASE}/architecture${mode ? `?mode=${mode}` : ''}`);
     return res.data;
   },
 
@@ -33,6 +36,7 @@ export const api = {
   async analyzeRepository(params: {
     repoUrl?: string;
     localPath?: string;
+    viewMode?: 'basic' | 'detailed';
     llmConfig?: {
       provider?: string;
       apiKey?: string;
@@ -41,8 +45,11 @@ export const api = {
   }): Promise<{
     nodes: ArchitectureNode[];
     edges: ArchitectureEdge[];
+    basicGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] };
+    detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] };
     detectedServices: string[];
     repoName?: string;
+    viewMode?: string;
   }> {
     const res = await axios.post(`${API_BASE}/repository/analyze`, params);
     return res.data;

@@ -29,6 +29,12 @@ export interface ArchitectureNode {
   workerCount: number;
   enabled: boolean;
   config: NodeConfig;
+  parentId?: string;
+  submoduleType?: string;
+  category?: string;
+  isGroup?: boolean;
+  collapsed?: boolean;
+  sourceFiles?: string[];
 }
 
 export interface ArchitectureEdge {
@@ -37,6 +43,10 @@ export interface ArchitectureEdge {
   target: string;
   requestsPerInput: number;
   enabled: boolean;
+  isBidirectional?: boolean;
+  label?: string;
+  dataFlowDescription?: string;
+  communicationType?: string;
 }
 
 export interface ArchitectureFixture {

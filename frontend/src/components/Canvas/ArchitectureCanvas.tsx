@@ -15,8 +15,9 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import { ArchitectureCustomNode } from './CustomNodes';
-import { CustomEdge } from './CustomEdge';
+import { CustomEdge, resolveEdgeMode, getEdgeStyleConfig } from './CustomEdge';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, EdgeSimulationResult } from '../../types';
+import { Layers, Network } from 'lucide-react';
 
 interface ArchitectureCanvasProps {
   nodes: ArchitectureNode[];
@@ -29,6 +30,8 @@ interface ArchitectureCanvasProps {
   onAddEdge: (newEdge: ArchitectureEdge) => void;
   onToggleEdge: (edgeId: string) => void;
   onDeleteEdge?: (edgeId: string) => void;
+  viewMode?: 'basic' | 'detailed';
+  onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
 }
 
 const NodeFocusController: React.FC<{
@@ -71,6 +74,8 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   onAddEdge,
   onToggleEdge,
   onDeleteEdge,
+  viewMode = 'basic',
+  onToggleViewMode,
 }) => {
   // Convert domain nodes to React Flow nodes
   const flowNodes: Node[] = useMemo(() => {
@@ -88,30 +93,104 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
 
   // Convert domain edges to React Flow edges
   const flowEdges: Edge[] = useMemo(() => {
+    const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+
     return edges.map((edge) => {
       const edgeRes = edgeResults[edge.id];
       const isEnabled = edge.enabled;
+      const sNode = nodeMap.get(edge.source);
+      const tNode = nodeMap.get(edge.target);
+
+      let sourceHandle: string | undefined = undefined;
+      let targetHandle: string | undefined = undefined;
+
+      if (sNode && tNode) {
+        const dy = tNode.position.y - sNode.position.y;
+        const dx = tNode.position.x - sNode.position.x;
+
+        if (dy > 80) {
+          // Downward tree flow
+          if (dx < -60) {
+            sourceHandle = 'source-bottom-left';
+          } else if (dx > 60) {
+            sourceHandle = 'source-bottom-right';
+          } else {
+            sourceHandle = 'source-bottom';
+          }
+          targetHandle = 'target-top';
+        } else if (Math.abs(dy) <= 80) {
+          // Peer horizontal connection in same row/tier
+          if (dx >= 0) {
+            sourceHandle = 'source-right';
+            targetHandle = 'target-left';
+          } else {
+            sourceHandle = 'source-left';
+            targetHandle = 'target-right';
+          }
+        } else {
+          // Upward flow
+          if (dx >= 0) {
+            sourceHandle = 'source-right';
+            targetHandle = 'target-left';
+          } else {
+            sourceHandle = 'source-left';
+            targetHandle = 'target-right';
+          }
+        }
+      }
+
+      const isExternal =
+        tNode?.category === 'External Services' ||
+        tNode?.id.startsWith('ext-') ||
+        tNode?.id === 'node-firebase' ||
+        tNode?.id === 'node-razorpay' ||
+        tNode?.id === 'node-llms';
+
+      const mode = resolveEdgeMode(edge.communicationType, isExternal, isEnabled);
+      const hasTraffic = isEnabled && (edgeRes?.flowRate ?? 0) > 0;
+      const styleConfig = getEdgeStyleConfig(mode, hasTraffic);
+
       return {
         id: edge.id,
         source: edge.source,
         target: edge.target,
+        sourceHandle,
+        targetHandle,
         type: 'customEdge',
         data: {
           requestsPerInput: edge.requestsPerInput,
           flowRate: edgeRes?.flowRate ?? 0,
           enabled: isEnabled,
+          isBidirectional: edge.isBidirectional,
+          label: edge.label,
+          dataFlowDescription: edge.dataFlowDescription,
+          communicationType: edge.communicationType,
+          isExternal,
           onToggle: () => onToggleEdge(edge.id),
+          onDelete: () => onDeleteEdge?.(edge.id),
         },
-        animated: isEnabled && (edgeRes?.flowRate ?? 0) > 0,
+        selectable: true,
+        interactionWidth: 24,
+        // Only asynchronous message queues have animated marching dashes!
+        // Synchronous HTTP, Database persistence, Cache, and RPC remain solid!
+        animated: mode === 'queue' && hasTraffic,
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: isEnabled && (edgeRes?.flowRate ?? 0) > 0 ? '#6366f1' : '#94a3b8',
+          color: styleConfig.markerColor,
           width: 14,
           height: 14,
         },
+        markerStart: edge.isBidirectional
+          ? {
+              type: MarkerType.ArrowClosed,
+              color: styleConfig.markerColor,
+              width: 14,
+              height: 14,
+            }
+          : undefined,
       };
     });
-  }, [edges, edgeResults, onToggleEdge]);
+  }, [edges, edgeResults, onToggleEdge, onDeleteEdge]);
 
   const [rfNodes, setRfNodes, onRfNodesChange] = useNodesState(flowNodes);
   const [rfEdges, setRfEdges, onRfEdgesChange] = useEdgesState(flowEdges);
@@ -163,7 +242,74 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   );
 
   return (
-    <div className="w-full h-full relative excel-grid">
+    <div className="w-full h-full relative">
+      {/* Floating Two-Mode Toggle & Flow Modes Legend Above Canvas */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
+        <div className="flex items-center gap-1 bg-white/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200">
+          <button
+            onClick={() => onToggleViewMode?.('basic')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'basic'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            title="Basic View: High-level overview of services, gateways, datastores, and external services"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Basic View</span>
+          </button>
+          <button
+            onClick={() => onToggleViewMode?.('detailed')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'detailed'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            title="Detailed View: Repository-derived architecture flow exposing controllers, middleware, models & external flow"
+          >
+            <Network className="w-3.5 h-3.5" />
+            <span>Detailed View</span>
+          </button>
+
+          {viewMode === 'detailed' && (
+            <span className="ml-2 pl-2 border-l border-slate-200 text-[10px] text-slate-500 font-medium hidden sm:inline-block">
+              {nodes.length} components • {edges.length} flow paths
+            </span>
+          )}
+        </div>
+
+        {/* Edge Modes Legend Bar */}
+        <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-slate-200 shadow-xs text-[10px] text-slate-600">
+          <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-400">
+            Edge Modes:
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-0.5 bg-indigo-600 rounded"></span>
+            <span className="font-sans font-medium text-slate-700">HTTP / REST</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-0.5 bg-emerald-600 rounded"></span>
+            <span className="font-sans font-medium text-slate-700">Database</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-0.5 bg-amber-500 rounded"></span>
+            <span className="font-sans font-medium text-slate-700">Cache</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-0.5 bg-purple-600 rounded"></span>
+            <span className="font-sans font-medium text-slate-700">RPC / Internal</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-orange-500"></span>
+            <span className="font-sans font-medium text-slate-700">Async Queue</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-rose-500"></span>
+            <span className="font-sans font-medium text-slate-700">Cloud API</span>
+          </span>
+        </div>
+      </div>
+
       <ReactFlow
         nodes={rfNodes}
         edges={rfEdges}
@@ -182,6 +328,8 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             }
           }
         }}
+        deleteKeyCode={['Backspace', 'Delete']}
+        edgesFocusable={true}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.2}

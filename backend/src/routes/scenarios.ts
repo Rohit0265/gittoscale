@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/', (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const scenarios = getScenariosFixture();
+    const scenarios = getScenariosFixture(true);
     res.json(scenarios);
   } catch (err) {
     next(err);
