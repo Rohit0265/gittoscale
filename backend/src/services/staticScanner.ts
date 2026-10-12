@@ -55,16 +55,16 @@ const FRONTEND_BOOTSTRAP_INDICATORS = [
 ];
 
 const DB_CLIENT_INDICATORS = [
-  { name: 'PostgreSQL', keys: ['pg', 'typeorm', 'prisma', 'knex', 'sequelize', 'postgres'] },
-  { name: 'MySQL', keys: ['mysql', 'mysql2', 'sequelize'] },
-  { name: 'MongoDB', keys: ['mongoose', 'mongodb'] },
-  { name: 'Redis', keys: ['ioredis', 'redis'] },
+  { name: 'PostgreSQL', keys: ["from 'pg'", 'require("pg")', 'new pool(', 'new client(', 'createconnection(', 'postgres://'] },
+  { name: 'MySQL', keys: ["from 'mysql2'", 'require("mysql2")', 'createpool(', 'mysql://'] },
+  { name: 'MongoDB', keys: ["from 'mongoose'", 'mongoose.connect', 'mongoclient', 'mongodb://'] },
+  { name: 'Redis', keys: ["from 'ioredis'", "from 'redis'", 'new redis(', 'createredisclient', 'redis://'] },
 ];
 
 const QUEUE_CLIENT_INDICATORS = [
-  { name: 'Kafka', keys: ['kafkajs', 'kafka'] },
-  { name: 'RabbitMQ', keys: ['amqplib', 'rabbitmq'] },
-  { name: 'SQS', keys: ['@aws-sdk/client-sqs', 'sqs'] },
+  { name: 'Kafka', keys: ["from 'kafkajs'", 'new kafka(', 'kafka.producer', 'kafka.consumer'] },
+  { name: 'RabbitMQ', keys: ["from 'amqplib'", 'amqp.connect', 'rabbitmq://'] },
+  { name: 'SQS', keys: ['@aws-sdk/client-sqs', 'new sqsclient('] },
 ];
 
 /**
@@ -134,28 +134,61 @@ export function buildStaticRepositoryInventory(rootDir: string): RepositoryInven
     }
   }
 
-  // Identify sub-projects or monorepo packages
+  // Identify sub-projects or monorepo packages by inspecting workspaces and directory tree
   const candidateDirs: string[] = [];
 
-  const checkDirs = ['apps', 'services', 'packages', 'src'];
-  for (const dir of checkDirs) {
-    const fullDir = path.join(resolvedRoot, dir);
-    if (fs.existsSync(fullDir) && fs.statSync(fullDir).isDirectory()) {
-      try {
-        const entries = fs.readdirSync(fullDir);
-        for (const entry of entries) {
-          const subPath = path.join(fullDir, entry);
-          if (fs.statSync(subPath).isDirectory() && !entry.startsWith('.')) {
-            candidateDirs.push(path.join(dir, entry));
+  // Check package workspaces if specified in package.json
+  if (rootPkg?.workspaces) {
+    const wsPatterns = Array.isArray(rootPkg.workspaces)
+      ? rootPkg.workspaces
+      : rootPkg.workspaces.packages || [];
+    for (const ws of wsPatterns) {
+      const cleanPattern = ws.replace(/\/\*$/, '').replace(/\*$/, '');
+      const wsDir = path.join(resolvedRoot, cleanPattern);
+      if (fs.existsSync(wsDir) && fs.statSync(wsDir).isDirectory()) {
+        try {
+          const list = fs.readdirSync(wsDir);
+          for (const item of list) {
+            const sub = path.join(wsDir, item);
+            if (fs.statSync(sub).isDirectory() && !item.startsWith('.') && !IGNORED_DIRS.has(item)) {
+              candidateDirs.push(path.relative(resolvedRoot, sub));
+            }
           }
-        }
-      } catch {
-        // ignore
+        } catch {}
       }
     }
   }
 
-  // Also if no sub-folders in apps/services, inspect root itself as single application
+  // Next, inspect top-level directories in the repository
+  try {
+    const rootEntries = fs.readdirSync(resolvedRoot);
+    for (const entry of rootEntries) {
+      if (entry.startsWith('.') || IGNORED_DIRS.has(entry)) continue;
+      const fullPath = path.join(resolvedRoot, entry);
+      if (fs.statSync(fullPath).isDirectory()) {
+        // If it's a known container of services (apps, services, packages, microservices), check its children
+        if (['apps', 'services', 'packages', 'microservices'].includes(entry.toLowerCase())) {
+          try {
+            const subEntries = fs.readdirSync(fullPath);
+            for (const sub of subEntries) {
+              const subFull = path.join(fullPath, sub);
+              if (fs.statSync(subFull).isDirectory() && !sub.startsWith('.') && !IGNORED_DIRS.has(sub)) {
+                const rel = path.join(entry, sub);
+                if (!candidateDirs.includes(rel)) candidateDirs.push(rel);
+              }
+            }
+          } catch {}
+        } else {
+          // Add this top-level directory as a candidate (e.g. backend, frontend, api, server, client, auth, etc.)
+          if (!candidateDirs.includes(entry)) {
+            candidateDirs.push(entry);
+          }
+        }
+      }
+    }
+  } catch {}
+
+  // If still completely empty, inspect root itself
   if (candidateDirs.length === 0) {
     candidateDirs.push('.');
   }
@@ -195,7 +228,6 @@ export function buildStaticRepositoryInventory(rootDir: string): RepositoryInven
     let reason = 'Insufficient runtime indicators found in directory.';
     let isRuntimeService = false;
 
-    // RULE 1: Specific shared/library directory names are NOT servers
     const lowerName = itemName.toLowerCase();
     const isSharedLibName =
       lowerName.includes('shared') ||
@@ -208,7 +240,22 @@ export function buildStaticRepositoryInventory(rootDir: string): RepositoryInven
       lowerName.includes('logger') ||
       relDir.startsWith('packages/');
 
-    if (isSharedLibName && !hasServer && !hasWorker) {
+    // RULE 1: Internal subdirectories like src, tests, test, fixtures, docs, config
+    const isInternalSubFolder =
+      lowerName === 'src' ||
+      lowerName === 'tests' ||
+      lowerName === 'test' ||
+      lowerName === 'fixtures' ||
+      lowerName === 'docs' ||
+      lowerName === 'config' ||
+      lowerName === 'scripts';
+
+    if (isInternalSubFolder) {
+      classification = lowerName.includes('test') ? 'test' : lowerName === 'fixtures' ? 'config' : 'shared_library';
+      reason = `Folder "${relDir}" is an internal project directory (${lowerName}) rather than an independent standalone server.`;
+      confidence = 0.95;
+      isRuntimeService = false;
+    } else if (isSharedLibName && !hasServer && !hasWorker) {
       if (lowerName.includes('ui') || lowerName.includes('component')) {
         classification = 'ui_package';
         reason = `Folder "${itemName}" contains UI components/reusable elements without an independent server bootstrap.`;

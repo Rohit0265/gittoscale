@@ -47,9 +47,15 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       return res.json(analysisCache.get(cacheKey));
     }
 
-    // 1. Build Static Inventory
-    const targetPath = localPath || process.cwd();
-    const inventory = buildStaticRepositoryInventory(targetPath);
+    // 1. Build Static Inventory (either local directory or GitHub repository tree)
+    let inventory;
+    if (repoUrl) {
+      const { buildGitHubRepositoryInventory } = await import('../services/githubScanner.js');
+      inventory = await buildGitHubRepositoryInventory(repoUrl);
+    } else {
+      const targetPath = localPath || process.cwd();
+      inventory = buildStaticRepositoryInventory(targetPath);
+    }
 
     // 2. Perform Architecture Analysis (LLM / Hybrid)
     const analysis = await analyzeArchitectureWithLLM(inventory, llmConfig);
