@@ -17,9 +17,13 @@ import { ComponentInspector } from './components/ComponentInspector';
 import { BottleneckList } from './components/BottleneckList';
 import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
+import { LandingPage } from './components/LandingPage';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
+  // Navigation mode: 'landing' | 'simulator'
+  const [currentView, setCurrentView] = useState<'landing' | 'simulator'>('landing');
+
   // Fixture states
   const [defaultArchitecture, setDefaultArchitecture] = useState<ArchitectureFixture | null>(null);
   const [scenarios, setScenarios] = useState<ScenarioFixture[]>([]);
@@ -301,6 +305,32 @@ export const App: React.FC = () => {
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   const selectedNodeResult = selectedNodeId ? simulationResult?.nodeResults[selectedNodeId] : undefined;
 
+  if (currentView === 'landing') {
+    return (
+      <>
+        <LandingPage
+          onSelectTestSite={() => {
+            setCurrentView('simulator');
+            if (defaultArchitecture && nodes.length === 0) {
+              applyScenario('normal-traffic', defaultArchitecture, scenarios);
+            }
+          }}
+          onSelectUseRepository={() => {
+            setIsImportRepoOpen(true);
+          }}
+        />
+        <RepositoryImportModal
+          isOpen={isImportRepoOpen}
+          onClose={() => setIsImportRepoOpen(false)}
+          onImportArchitecture={(newNodes, newEdges, repoName) => {
+            handleImportArchitecture(newNodes, newEdges, repoName);
+            setCurrentView('simulator');
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 font-sans">
       {/* 1. Header */}
@@ -320,6 +350,7 @@ export const App: React.FC = () => {
         onOpenCompare={() => setIsCompareOpen(true)}
         onOpenImportRepo={() => setIsImportRepoOpen(true)}
         hasBaseline={baseline !== null}
+        onGoHome={() => setCurrentView('landing')}
       />
 
       {/* 2. Top Metrics Strip */}

@@ -12,6 +12,7 @@ interface HeaderProps {
   onOpenCompare: () => void;
   onOpenImportRepo: () => void;
   hasBaseline: boolean;
+  onGoHome?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCompare,
   onOpenImportRepo,
   hasBaseline,
+  onGoHome,
 }) => {
   const currentScenario = scenarios.find((s) => s.id === currentScenarioId);
 
@@ -31,22 +33,28 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between z-20 shrink-0">
       {/* Brand & Title */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200">
-          <Activity className="w-5 h-5" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-bold text-sm tracking-tight text-slate-900">
-              System Design Playground
-            </h1>
-            <span className="text-[10px] uppercase font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
-              Traffic Simulator
-            </span>
+        <button
+          onClick={onGoHome}
+          className="flex items-center gap-2.5 text-left group hover:opacity-85 transition-opacity"
+          title="Return to Landing Page"
+        >
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200 group-hover:scale-105 transition-transform">
+            <Activity className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-500">
-            Interactive microservices capacity planner & bottleneck visualizer
-          </p>
-        </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-bold text-sm tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+                System Design Playground
+              </h1>
+              <span className="text-[10px] uppercase font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
+                Traffic Simulator
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Interactive microservices capacity planner & bottleneck visualizer
+            </p>
+          </div>
+        </button>
       </div>
 
       {/* Scenario Selector & Controls */}
