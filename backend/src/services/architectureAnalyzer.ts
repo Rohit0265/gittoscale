@@ -5,26 +5,47 @@ import {
 } from './repoAnalysisTypes.js';
 
 export interface LLMConfig {
-  provider?: string; // 'gemini' | 'openai' | 'anthropic' | 'mock'
+  provider?: string; // 'openai' | 'gemini' | 'anthropic'
   apiKey?: string;
   model?: string;
 }
 
 /**
- * Executes LLM-assisted architecture analysis.
- * If no API key is provided or configured, falls back to high-confidence deterministic synthesis
- * based on the static repository inventory without fabricating imaginary services.
+ * Executes LLM-assisted architecture analysis using configured or environment API keys.
+ * Accurately determines which folder/package is an actual runtime server vs normal folder/shared package.
  */
 export async function analyzeArchitectureWithLLM(
   inventory: RepositoryInventory,
   llmConfig?: LLMConfig
 ): Promise<LLMAnalysisResult> {
-  // If an external LLM key is configured, perform external call
-  if (llmConfig?.apiKey && llmConfig.provider === 'openai') {
+  // Resolve API key from passed config OR environment variables in .env
+  const provider = llmConfig?.provider || process.env.LLM_PROVIDER || (process.env.OPENAI_API_KEY ? 'openai' : process.env.GEMINI_API_KEY ? 'gemini' : process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'openai');
+  const apiKey =
+    llmConfig?.apiKey ||
+    process.env.LLM_API_KEY ||
+    (provider === 'openai' ? process.env.OPENAI_API_KEY : provider === 'gemini' ? process.env.GEMINI_API_KEY : process.env.ANTHROPIC_API_KEY);
+  const model =
+    llmConfig?.model ||
+    process.env.LLM_MODEL ||
+    (provider === 'gemini' ? 'gemini-1.5-flash' : provider === 'anthropic' ? 'claude-3-5-sonnet-20241022' : 'gpt-4o-mini');
+
+  const resolvedConfig: LLMConfig = {
+    provider,
+    apiKey,
+    model,
+  };
+
+  if (resolvedConfig.apiKey) {
     try {
-      return await callOpenAIProvider(inventory, llmConfig);
+      if (provider === 'gemini') {
+        return await callGeminiProvider(inventory, resolvedConfig);
+      } else if (provider === 'anthropic') {
+        return await callAnthropicProvider(inventory, resolvedConfig);
+      } else {
+        return await callOpenAIProvider(inventory, resolvedConfig);
+      }
     } catch (err) {
-      console.warn('[LLM Provider Error, falling back to deterministic synthesis]', err);
+      console.warn(`[LLM Provider ${provider} Error, falling back to deterministic synthesis]`, err);
     }
   }
 
@@ -217,16 +238,53 @@ export function synthesizeDeterministicArchitecture(
   return llmAnalysisResultSchema.parse(result);
 }
 
+function buildPrompt(inventory: RepositoryInventory): string {
+  return `You are a principal software architect inspecting a repository inventory.
+Your task is to identify ACTUAL RUNTIME SERVICES (e.g. independently executed backend API servers, microservices, workers, databases, caches, and API gateways).
+CRITICAL RULES:
+1. Do NOT create server nodes for ordinary folders, shared packages, types libraries (e.g. packages/shared-types), or UI component libraries (e.g. packages/ui). A folder name alone is never proof that something is a server.
+2. Only classify an item as a runtime service if there is evidence of an actual server bootstrap (listen, createServer, Fastify, Express, NestJS), independent process startup script, worker queue runner, or container service.
+3. Determine communication relationships (HTTP, DB, Queue) based on evidenced clients.
+4. Response MUST be valid JSON adhering strictly to this schema:
+{
+  "components": [
+    {
+      "id": "string",
+      "name": "string",
+      "type": "load_generator" | "gateway" | "service" | "cache" | "database",
+      "isRuntimeService": true,
+      "entryPoint": "string (optional)",
+      "startupCommand": "string (optional)",
+      "sourceFiles": ["string"],
+      "confidence": number (between 0.0 and 1.0),
+      "reason": "explanation of classification",
+      "estimatedCapacity": number (e.g. 1500),
+      "defaultWorkers": number (e.g. 2)
+    }
+  ],
+  "connections": [
+    {
+      "source": "string",
+      "target": "string",
+      "communicationType": "http" | "graphql" | "grpc" | "db" | "queue" | "inferred",
+      "evidenceFiles": ["string"],
+      "reference": "string (optional)",
+      "confidence": number,
+      "reason": "string",
+      "requestsPerInput": number (optional, e.g. 1.0)
+    }
+  ]
+}
+
+Repository inventory data:
+${JSON.stringify(inventory.items, null, 2)}`;
+}
+
 async function callOpenAIProvider(
   inventory: RepositoryInventory,
   config: LLMConfig
 ): Promise<LLMAnalysisResult> {
-  const prompt = `You are a software architect inspecting a repository inventory.
-Analyze the provided items and produce a valid JSON response strictly conforming to the schema.
-Only return runtime servers, databases, or caches. Do NOT create servers for shared libraries, utility folders, or UI component packages.
-
-Inventory:
-${JSON.stringify(inventory.items, null, 2)}`;
+  const prompt = buildPrompt(inventory);
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -242,7 +300,7 @@ ${JSON.stringify(inventory.items, null, 2)}`;
   });
 
   if (!res.ok) {
-    throw new Error(`OpenAI API failed with status ${res.status}`);
+    throw new Error(`OpenAI API failed with status ${res.status}: ${await res.text()}`);
   }
 
   const data: any = await res.json();
@@ -251,3 +309,64 @@ ${JSON.stringify(inventory.items, null, 2)}`;
   return llmAnalysisResultSchema.parse(parsed);
 }
 
+async function callGeminiProvider(
+  inventory: RepositoryInventory,
+  config: LLMConfig
+): Promise<LLMAnalysisResult> {
+  const prompt = buildPrompt(inventory);
+  const model = config.model || 'gemini-1.5-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Gemini API failed with status ${res.status}: ${await res.text()}`);
+  }
+
+  const data: any = await res.json();
+  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!rawText) throw new Error('Empty response from Gemini API');
+  const parsed = JSON.parse(rawText);
+  return llmAnalysisResultSchema.parse(parsed);
+}
+
+async function callAnthropicProvider(
+  inventory: RepositoryInventory,
+  config: LLMConfig
+): Promise<LLMAnalysisResult> {
+  const prompt = buildPrompt(inventory);
+  const model = config.model || 'claude-3-5-sonnet-20241022';
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.apiKey || '',
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Anthropic API failed with status ${res.status}: ${await res.text()}`);
+  }
+
+  const data: any = await res.json();
+  const text = data.content?.[0]?.text;
+  if (!text) throw new Error('Empty response from Anthropic API');
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('Could not parse JSON from Anthropic response');
+  const parsed = JSON.parse(jsonMatch[0]);
+  return llmAnalysisResultSchema.parse(parsed);
+}

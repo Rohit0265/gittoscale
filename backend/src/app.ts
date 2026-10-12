@@ -9,10 +9,13 @@ import scenariosRoute from './routes/scenarios.js';
 import simulateRoute from './routes/simulate.js';
 import repositoryRoute from './routes/repository.js';
 
+import { loadEnvFiles } from './utils/env.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function createApp() {
+  loadEnvFiles();
   const app = express();
 
   app.use(cors());

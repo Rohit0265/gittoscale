@@ -85,16 +85,71 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
   }
 });
 
+// Endpoint to check if server has an LLM key configured in .env
+router.get('/llm-status', (_req: Request, res: Response) => {
+  const hasKey = Boolean(
+    process.env.LLM_API_KEY ||
+      process.env.OPENAI_API_KEY ||
+      process.env.GEMINI_API_KEY ||
+      process.env.ANTHROPIC_API_KEY
+  );
+  const provider =
+    process.env.LLM_PROVIDER ||
+    (process.env.OPENAI_API_KEY
+      ? 'openai'
+      : process.env.GEMINI_API_KEY
+      ? 'gemini'
+      : process.env.ANTHROPIC_API_KEY
+      ? 'anthropic'
+      : 'none');
+
+  res.json({
+    hasKey,
+    provider,
+    model: process.env.LLM_MODEL || undefined,
+  });
+});
+
 // Endpoint to test LLM Connection
 router.post('/test-llm', async (req: Request, res: Response) => {
-  const { provider, apiKey } = req.body;
+  const provider = req.body.provider || 'openai';
+  const apiKey =
+    req.body.apiKey ||
+    process.env.LLM_API_KEY ||
+    (provider === 'openai'
+      ? process.env.OPENAI_API_KEY
+      : provider === 'gemini'
+      ? process.env.GEMINI_API_KEY
+      : process.env.ANTHROPIC_API_KEY);
+
   if (!apiKey) {
     return res.status(400).json({ success: false, message: 'API key is required.' });
   }
 
   // Verify connection
   try {
-    if (provider === 'openai') {
+    if (provider === 'gemini') {
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+      );
+      if (resp.ok) {
+        return res.json({ success: true, message: 'Successfully connected to Google Gemini API!' });
+      } else {
+        return res.status(400).json({ success: false, message: `Gemini returned status ${resp.status}` });
+      }
+    } else if (provider === 'anthropic') {
+      const resp = await fetch('https://api.anthropic.com/v1/models', {
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+      });
+      if (resp.ok || resp.status === 200) {
+        return res.json({ success: true, message: 'Successfully connected to Anthropic API!' });
+      } else {
+        return res.status(400).json({ success: false, message: `Anthropic returned status ${resp.status}` });
+      }
+    } else {
       const resp = await fetch('https://api.openai.com/v1/models', {
         headers: { Authorization: `Bearer ${apiKey}` },
       });
@@ -104,8 +159,6 @@ router.post('/test-llm', async (req: Request, res: Response) => {
         return res.status(400).json({ success: false, message: `OpenAI returned status ${resp.status}` });
       }
     }
-
-    return res.json({ success: true, message: `Configuration verified for ${provider || 'provider'}.` });
   } catch (e: any) {
     return res.status(400).json({ success: false, message: e.message || 'Connection test failed.' });
   }

@@ -41,9 +41,26 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
   const [llmProvider, setLlmProvider] = useState('openai');
   const [llmApiKey, setLlmApiKey] = useState('');
   const [llmModel, setLlmModel] = useState('gpt-4o-mini');
+  const [envKeyConfigured, setEnvKeyConfigured] = useState(false);
   const [testStatus, setTestStatus] = useState<{ testing: boolean; message?: string; success?: boolean }>({
     testing: false,
   });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      api.getLLMStatus().then((status) => {
+        if (status.hasKey) {
+          setEnvKeyConfigured(true);
+          if (status.provider && status.provider !== 'none') {
+            setLlmProvider(status.provider);
+          }
+          if (status.model) {
+            setLlmModel(status.model);
+          }
+        }
+      }).catch(() => {});
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -215,11 +232,16 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
               <div className="flex items-center gap-2">
                 <Cpu className="w-3.5 h-3.5 text-indigo-600" />
                 <span className="font-semibold text-slate-800">
-                  LLM Provider Configuration (Optional)
+                  LLM Provider Configuration
                 </span>
+                {envKeyConfigured && (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    .env Key Active
+                  </span>
+                )}
               </div>
               <span className="text-[10px] font-medium text-indigo-600">
-                {showLLMSettings ? 'Hide' : 'Configure'}
+                {showLLMSettings ? 'Hide' : envKeyConfigured ? 'Edit Settings' : 'Configure'}
               </span>
             </button>
 
