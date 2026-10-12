@@ -205,12 +205,8 @@ export const CustomEdge: React.FC<EdgeProps> = ({
   selected,
 }) => {
   const edgeData = (data || {}) as CustomEdgeData;
-  const requestsPerInput = edgeData.requestsPerInput ?? 1.0;
   const flowRate = edgeData.flowRate ?? 0;
   const enabled = edgeData.enabled ?? true;
-  const isBidirectional = edgeData.isBidirectional ?? false;
-  const label = edgeData.label;
-  const flowDesc = edgeData.dataFlowDescription;
   const commType = edgeData.communicationType;
   const isExternal = edgeData.isExternal;
 
@@ -242,83 +238,31 @@ export const CustomEdge: React.FC<EdgeProps> = ({
           opacity: enabled ? 1 : 0.45,
           filter: selected ? 'drop-shadow(0 0 5px rgba(239, 68, 68, 0.7))' : undefined,
           transition: 'stroke 0.2s ease, stroke-width 0.2s ease',
+          cursor: 'pointer',
         }}
       />
-      <EdgeLabelRenderer>
-        <div
-          style={{
-            position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            pointerEvents: 'all',
-          }}
-          className={`px-2 py-0.5 rounded-full text-[10px] font-mono border shadow-sm flex items-center gap-1.5 cursor-pointer select-none transition-all ${
-            styleConfig.badgeBg
-          } ${styleConfig.badgeBorder} ${styleConfig.badgeText} ${
-            selected ? 'ring-2 ring-red-500 shadow-md ring-offset-1 border-red-300' : ''
-          }`}
-          title={`${styleConfig.description}. ${
-            flowDesc ? `${flowDesc}. ` : ''
-          }${
-            isBidirectional ? 'Bidirectional Data Flow (Request ⇄ Response). ' : ''
-          }Multiplier: ×${requestsPerInput}. Flow: ${Math.round(
-            flowRate
-          ).toLocaleString()} req/s. Click to toggle path, or click ✕ to delete.`}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (edgeData.onToggle) edgeData.onToggle();
-          }}
-        >
-          {/* Mode Pill Tag */}
-          <span
-            className={`px-1 py-0.2 rounded text-[8px] font-bold tracking-wider ${styleConfig.badgeTagBg}`}
+      {/* If edge is explicitly selected, render a minimal floating delete button */}
+      {selected && edgeData.onDelete && (
+        <EdgeLabelRenderer>
+          <button
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              pointerEvents: 'all',
+            }}
+            type="button"
+            className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-semibold shadow-md flex items-center gap-1 hover:bg-red-700 transition-all cursor-pointer z-30"
+            title="Delete this connection (or press Delete/Backspace)"
+            onClick={(e) => {
+              e.stopPropagation();
+              edgeData.onDelete?.();
+            }}
           >
-            {styleConfig.badgeTag}
-          </span>
-
-          {isBidirectional ? (
-            <span className="font-bold flex items-center gap-0.5">
-              <span>⇄</span>
-              {label ? (
-                <span className="font-sans font-medium text-[9px] max-w-[90px] truncate">
-                  {label}
-                </span>
-              ) : null}
-            </span>
-          ) : (
-            <span className="font-bold flex items-center gap-0.5">
-              <span>{styleConfig.icon}</span>
-              {label ? (
-                <span className="font-sans font-medium text-[9px] max-w-[90px] truncate">
-                  {label}
-                </span>
-              ) : null}
-            </span>
-          )}
-
-          <span className="font-semibold">×{requestsPerInput}</span>
-
-          {enabled && flowRate > 0 && (
-            <span className="text-[9px] font-sans font-medium opacity-90">
-              ({Math.round(flowRate).toLocaleString()} r/s)
-            </span>
-          )}
-
-          {/* Delete Action Button */}
-          {edgeData.onDelete && (
-            <button
-              type="button"
-              className="ml-0.5 p-0.5 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
-              title="Delete this connection"
-              onClick={(e) => {
-                e.stopPropagation();
-                edgeData.onDelete?.();
-              }}
-            >
-              <X className="w-2.5 h-2.5" />
-            </button>
-          )}
-        </div>
-      </EdgeLabelRenderer>
+            <X className="w-3 h-3" />
+            <span>Delete</span>
+          </button>
+        </EdgeLabelRenderer>
+      )}
     </>
   );
 };
