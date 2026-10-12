@@ -14,14 +14,22 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
 } {
   const { components, connections } = analysis;
 
-  // 1. Separate components into columns
-  const colLeft = components.filter(
-    (c) => c.type === 'load_generator' || c.type === 'gateway'
+  // 1. Separate components into logical architectural tiers
+  // Tier 1: User / Clients
+  const colUser = components.filter((c) => c.type === 'load_generator');
+  // Tier 2: Frontend & API Gateways
+  const colGateway = components.filter((c) => c.type === 'gateway' || c.category === 'Chat interface');
+  // Tier 3: Core backend microservices & workflows
+  const colServices = components.filter(
+    (c) =>
+      c.type === 'service' &&
+      c.category !== 'Chat interface' &&
+      c.category !== 'External Services'
   );
-  const colCenter = components.filter((c) => c.type === 'service');
-  const colRight = components.filter(
-    (c) => c.type === 'cache' || c.type === 'database'
-  );
+  // Tier 4: Databases, Caches & Queues
+  const colData = components.filter((c) => c.type === 'cache' || c.type === 'database');
+  // Tier 5: External Providers (Firebase, Razorpay, LLMs)
+  const colExternal = components.filter((c) => c.category === 'External Services');
 
   const nodes: ArchitectureNode[] = [];
 
@@ -50,6 +58,8 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
           isSource: comp.type === 'load_generator',
           defaultTrafficRate: comp.type === 'load_generator' ? 1000 : undefined,
           // Evidence attributes for inspector panel
+          category: comp.category,
+          group: comp.group,
           entryPoint: comp.entryPoint,
           startupCommand: comp.startupCommand,
           sourceFiles: comp.sourceFiles,
@@ -60,9 +70,11 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
     });
   };
 
-  layoutColumn(colLeft, 50, 100, 160);
-  layoutColumn(colCenter, 420, 80, 160);
-  layoutColumn(colRight, 800, 100, 160);
+  layoutColumn(colUser, 40, 180, 160);
+  layoutColumn(colGateway, 320, 100, 160);
+  layoutColumn(colServices, 620, 60, 160);
+  layoutColumn(colData, 920, 100, 160);
+  layoutColumn(colExternal, 1220, 120, 160);
 
   // 2. Generate directed edges
   const edges: ArchitectureEdge[] = connections.map((conn, idx) => ({

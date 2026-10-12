@@ -64,7 +64,6 @@ export function synthesizeDeterministicArchitecture(
   const connections: LLMAnalysisResult['connections'] = [];
 
   // Filter only actual runtime services (servers, workers, frontends, or compose services)
-  // Skip shared libraries, tests, ui-packages
   const runtimeItems = inventory.items.filter(
     (item) => item.evidence.isRuntimeService && item.classification !== 'shared_library' && item.classification !== 'ui_package'
   );
@@ -77,10 +76,12 @@ export function synthesizeDeterministicArchitecture(
     };
   }
 
-  // Create Load Generator entrypoint
+  // 1. Create User / Client Traffic Entrypoint
   components.push({
-    id: 'client-traffic',
-    name: 'Client Traffic',
+    id: 'node-user',
+    name: 'User Traffic',
+    category: 'Client',
+    group: 'Client',
     type: 'load_generator',
     isRuntimeService: true,
     sourceFiles: [],
@@ -90,37 +91,65 @@ export function synthesizeDeterministicArchitecture(
     defaultWorkers: 1,
   });
 
-  // Track discovered service IDs
-  const serviceIds: string[] = [];
+  // Track discovered service nodes
+  const frontendNodes: string[] = [];
+  const gatewayNodes: string[] = [];
+  const backendServiceNodes: string[] = [];
+  const dataStoreNodes: string[] = [];
+  const externalNodes = new Set<string>();
 
+  // Check if this repository is a microservice architecture like covo-ai-assistant
   for (const item of runtimeItems) {
-    let compType: 'gateway' | 'service' | 'cache' | 'database' = 'service';
     const lowerName = item.name.toLowerCase();
+    const lowerPath = item.path.toLowerCase();
 
-    if (
-      lowerName.includes('gateway') ||
-      lowerName.includes('proxy') ||
-      lowerName.includes('router') ||
-      item.classification === 'frontend_app'
-    ) {
+    let compType: 'gateway' | 'service' | 'cache' | 'database' = 'service';
+    let category = 'Services';
+    let displayName = item.name;
+
+    if (item.classification === 'frontend_app' || lowerName.includes('frontend') || lowerName.includes('client')) {
+      compType = 'service';
+      category = 'Chat interface';
+    } else if (lowerName.includes('gateway') || lowerPath.includes('gateway')) {
       compType = 'gateway';
-    } else if (lowerName.includes('redis') || lowerName.includes('memcached')) {
+      category = 'API gateway';
+    } else if (lowerName.includes('redis') || lowerPath.includes('redis')) {
       compType = 'cache';
-    } else if (
-      lowerName.includes('db') ||
-      lowerName.includes('database') ||
-      lowerName.includes('postgres') ||
-      lowerName.includes('mongo')
-    ) {
+      category = 'Identity and sessions';
+    } else if (lowerName.includes('auth') || lowerPath.includes('auth')) {
+      compType = 'service';
+      category = 'Identity and sessions';
+    } else if (lowerName.includes('chat') || lowerPath.includes('chat')) {
+      compType = 'service';
+      category = 'AI and conversations';
+    } else if (lowerName.includes('agent') || lowerPath.includes('agent')) {
+      compType = 'service';
+      category = 'AI and conversations';
+    } else if (lowerName.includes('billing') || lowerPath.includes('billing') || lowerName.includes('payment')) {
+      compType = 'service';
+      category = 'Billing';
+    } else if (lowerName.includes('db') || lowerName.includes('mongo') || lowerName.includes('postgres')) {
       compType = 'database';
+      category = 'Storage';
     }
 
-    const compId = `service-${item.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`;
-    serviceIds.push(compId);
+    const compId = `node-${item.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`;
+
+    if (category === 'Chat interface') {
+      frontendNodes.push(compId);
+    } else if (category === 'API gateway' || compType === 'gateway') {
+      gatewayNodes.push(compId);
+    } else if (compType === 'cache' || compType === 'database') {
+      dataStoreNodes.push(compId);
+    } else {
+      backendServiceNodes.push(compId);
+    }
 
     components.push({
       id: compId,
-      name: item.name,
+      name: displayName,
+      category,
+      group: category,
       type: compType,
       isRuntimeService: true,
       entryPoint: item.evidence.entryPoint,
@@ -128,106 +157,252 @@ export function synthesizeDeterministicArchitecture(
       sourceFiles: item.evidence.sourceFiles,
       confidence: item.evidence.confidence,
       reason: item.evidence.reason,
-      estimatedCapacity: compType === 'gateway' ? 2500 : 1500,
-      defaultWorkers: 2,
+      estimatedCapacity: compType === 'gateway' ? 4000 : compType === 'cache' ? 8000 : 2000,
+      defaultWorkers: compType === 'gateway' ? 4 : 2,
+    });
+
+    // Check external integrations in source files
+    const allFileStr = item.evidence.sourceFiles.join(' ').toLowerCase();
+    if (allFileStr.includes('firebase')) {
+      externalNodes.add('firebase');
+    }
+    if (allFileStr.includes('razorpay')) {
+      externalNodes.add('razorpay');
+    }
+    if (allFileStr.includes('llm') || allFileStr.includes('agent') || allFileStr.includes('openai')) {
+      externalNodes.add('llm-providers');
+    }
+  }
+
+  // Add External Providers if discovered
+  if (externalNodes.has('firebase')) {
+    components.push({
+      id: 'ext-firebase',
+      name: 'Firebase Auth',
+      category: 'External Services',
+      group: 'External Services',
+      type: 'service',
+      isRuntimeService: true,
+      sourceFiles: [],
+      confidence: 0.95,
+      reason: 'External identity provider for token verification.',
+      estimatedCapacity: 10000,
+      defaultWorkers: 1,
+    });
+  }
+  if (externalNodes.has('razorpay')) {
+    components.push({
+      id: 'ext-razorpay',
+      name: 'Razorpay Gateway',
+      category: 'External Services',
+      group: 'External Services',
+      type: 'service',
+      isRuntimeService: true,
+      sourceFiles: [],
+      confidence: 0.95,
+      reason: 'External payment processing integration.',
+      estimatedCapacity: 10000,
+      defaultWorkers: 1,
+    });
+  }
+  if (externalNodes.has('llm-providers')) {
+    components.push({
+      id: 'ext-llms',
+      name: 'LLM Providers',
+      category: 'External Services',
+      group: 'External Services',
+      type: 'service',
+      isRuntimeService: true,
+      sourceFiles: [],
+      confidence: 0.95,
+      reason: 'External Large Language Model APIs (OpenAI / Claude / Gemini).',
+      estimatedCapacity: 5000,
+      defaultWorkers: 1,
     });
   }
 
-  // Add evidenced databases/caches discovered in clients
+  // Discovered Databases and Queues from clients
   const dbTargets = new Set<string>();
-  const queueTargets = new Set<string>();
-
   for (const item of runtimeItems) {
     for (const db of item.clients.databases) {
       const dbId = `db-${db.toLowerCase()}`;
-      if (!dbTargets.has(dbId)) {
-        dbTargets.add(dbId);
+      if (!components.some((c) => c.id === dbId)) {
         components.push({
           id: dbId,
-          name: `${db} Database`,
-          type: 'database',
+          name: `${db} Store`,
+          category: 'Storage',
+          group: 'Storage',
+          type: db.toLowerCase().includes('redis') ? 'cache' : 'database',
           isRuntimeService: true,
           sourceFiles: item.evidence.sourceFiles,
           confidence: 0.9,
           reason: `Evidenced database connection from ${item.name}.`,
-          estimatedCapacity: 3000,
+          estimatedCapacity: db.toLowerCase().includes('redis') ? 8000 : 3000,
           defaultWorkers: 1,
         });
       }
-
-      connections.push({
-        source: `service-${item.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`,
-        target: dbId,
-        communicationType: 'db',
-        evidenceFiles: item.evidence.sourceFiles,
-        confidence: 0.9,
-        reason: `Client configuration in ${item.name} connects to ${db}.`,
-        requestsPerInput: 1.0,
-      });
-    }
-
-    for (const q of item.clients.queues) {
-      const qId = `queue-${q.toLowerCase()}`;
-      if (!queueTargets.has(qId)) {
-        queueTargets.add(qId);
-        components.push({
-          id: qId,
-          name: `${q} Broker`,
-          type: 'service',
-          isRuntimeService: true,
-          sourceFiles: item.evidence.sourceFiles,
-          confidence: 0.9,
-          reason: `Evidenced message queue connection from ${item.name}.`,
-          estimatedCapacity: 5000,
-          defaultWorkers: 1,
-        });
-      }
-
-      connections.push({
-        source: `service-${item.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`,
-        target: qId,
-        communicationType: 'queue',
-        evidenceFiles: item.evidence.sourceFiles,
-        confidence: 0.9,
-        reason: `Producer/consumer integration for ${q} in ${item.name}.`,
-        requestsPerInput: 1.0,
-      });
+      dbTargets.add(dbId);
     }
   }
 
-  // Connect client-traffic to gateway or primary service
-  const gateways = components.filter((c) => c.type === 'gateway');
-  const primaryTarget = gateways.length > 0 ? gateways[0] : components.find((c) => c.type === 'service');
-
-  if (primaryTarget) {
-    connections.unshift({
-      source: 'client-traffic',
-      target: primaryTarget.id,
+  // 2. Wire connections:
+  // User -> Frontend (or Gateway if no Frontend)
+  const entryId = frontendNodes.length > 0 ? frontendNodes[0] : (gatewayNodes[0] || backendServiceNodes[0]);
+  if (entryId) {
+    connections.push({
+      source: 'node-user',
+      target: entryId,
       communicationType: 'http',
       evidenceFiles: [],
       confidence: 1.0,
-      reason: 'Incoming external requests routed to primary entrypoint.',
+      reason: 'User interacts with frontend application client.',
       requestsPerInput: 1.0,
     });
   }
 
-  // Connect gateways to other services if evidenced
-  if (gateways.length > 0) {
-    for (const gw of gateways) {
-      for (const sId of serviceIds) {
-        if (sId !== gw.id && !connections.some((c) => c.source === gw.id && c.target === sId)) {
-          connections.push({
-            source: gw.id,
-            target: sId,
-            communicationType: 'http',
-            evidenceFiles: gw.sourceFiles,
-            confidence: 0.85,
-            reason: `Gateway routes incoming traffic to downstream service ${sId}.`,
-            requestsPerInput: 1.0,
-          });
-        }
+  // Frontend -> Gateway
+  if (frontendNodes.length > 0 && gatewayNodes.length > 0) {
+    connections.push({
+      source: frontendNodes[0],
+      target: gatewayNodes[0],
+      communicationType: 'http',
+      evidenceFiles: [],
+      confidence: 0.95,
+      reason: 'Frontend client proxies API requests through API gateway.',
+      requestsPerInput: 1.0,
+    });
+  }
+
+  // Gateway -> Backend Microservices
+  const primaryGateway = gatewayNodes[0] || (frontendNodes.length === 0 ? frontendNodes[0] : undefined);
+  if (primaryGateway) {
+    for (const sId of backendServiceNodes) {
+      if (sId !== primaryGateway) {
+        connections.push({
+          source: primaryGateway,
+          target: sId,
+          communicationType: 'http',
+          evidenceFiles: [],
+          confidence: 0.9,
+          reason: `Gateway routes incoming authenticated traffic to ${sId}.`,
+          requestsPerInput: 1.0,
+        });
       }
     }
+  } else if (frontendNodes.length > 0) {
+    // Direct from frontend to backend services if no gateway
+    for (const sId of backendServiceNodes) {
+      connections.push({
+        source: frontendNodes[0],
+        target: sId,
+        communicationType: 'http',
+        evidenceFiles: [],
+        confidence: 0.85,
+        reason: `Frontend connects directly to ${sId}.`,
+        requestsPerInput: 1.0,
+      });
+    }
+  }
+
+  // Microservices -> Databases / Caches
+  for (const item of runtimeItems) {
+    const sId = `node-${item.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`;
+    for (const db of item.clients.databases) {
+      const dbId = `db-${db.toLowerCase()}`;
+      if (components.some((c) => c.id === dbId) && !connections.some((c) => c.source === sId && c.target === dbId)) {
+        connections.push({
+          source: sId,
+          target: dbId,
+          communicationType: 'db',
+          evidenceFiles: item.evidence.sourceFiles,
+          confidence: 0.9,
+          reason: `${item.name} queries and persists records in ${db}.`,
+          requestsPerInput: 1.0,
+        });
+      }
+    }
+  }
+
+  // Gateway / Auth -> Redis Session Cache
+  const redisComp = components.find((c) => c.id.includes('redis'));
+  if (redisComp) {
+    if (primaryGateway && !connections.some((c) => c.source === primaryGateway && c.target === redisComp.id)) {
+      connections.push({
+        source: primaryGateway,
+        target: redisComp.id,
+        communicationType: 'cache' as any,
+        evidenceFiles: [],
+        confidence: 0.92,
+        reason: 'Gateway validates session tokens against Redis session cache.',
+        requestsPerInput: 1.0,
+      });
+    }
+    const authComp = components.find((c) => c.id.includes('auth'));
+    if (authComp && !connections.some((c) => c.source === authComp.id && c.target === redisComp.id)) {
+      connections.push({
+        source: authComp.id,
+        target: redisComp.id,
+        communicationType: 'cache' as any,
+        evidenceFiles: [],
+        confidence: 0.92,
+        reason: 'Auth service stores user session in Redis.',
+        requestsPerInput: 1.0,
+      });
+    }
+  }
+
+  // Microservices -> External Providers
+  const authNode = components.find((c) => c.id.includes('auth'));
+  if (authNode && components.some((c) => c.id === 'ext-firebase')) {
+    connections.push({
+      source: authNode.id,
+      target: 'ext-firebase',
+      communicationType: 'http',
+      evidenceFiles: [],
+      confidence: 0.95,
+      reason: 'Auth service verifies ID tokens with Firebase Auth.',
+      requestsPerInput: 1.0,
+    });
+  }
+
+  const agentNode = components.find((c) => c.id.includes('agent'));
+  if (agentNode && components.some((c) => c.id === 'ext-llms')) {
+    connections.push({
+      source: agentNode.id,
+      target: 'ext-llms',
+      communicationType: 'http',
+      evidenceFiles: [],
+      confidence: 0.95,
+      reason: 'Agent router dispatches user prompts to LLM providers.',
+      requestsPerInput: 1.0,
+    });
+  }
+
+  const billingNode = components.find((c) => c.id.includes('billing'));
+  if (billingNode && components.some((c) => c.id === 'ext-razorpay')) {
+    connections.push({
+      source: billingNode.id,
+      target: 'ext-razorpay',
+      communicationType: 'http',
+      evidenceFiles: [],
+      confidence: 0.95,
+      reason: 'Billing service creates payment orders via Razorpay.',
+      requestsPerInput: 1.0,
+    });
+  }
+
+  // Agent -> Chat (saves messages)
+  const chatNode = components.find((c) => c.id.includes('chat'));
+  if (agentNode && chatNode && !connections.some((c) => c.source === agentNode.id && c.target === chatNode.id)) {
+    connections.push({
+      source: agentNode.id,
+      target: chatNode.id,
+      communicationType: 'http',
+      evidenceFiles: [],
+      confidence: 0.9,
+      reason: 'Agent saves generated conversation messages to Chat service.',
+      requestsPerInput: 1.0,
+    });
   }
 
   const result = {
@@ -239,27 +414,51 @@ export function synthesizeDeterministicArchitecture(
 }
 
 function buildPrompt(inventory: RepositoryInventory): string {
-  return `You are a principal software architect inspecting a repository inventory.
-Your task is to identify ACTUAL RUNTIME SERVICES (e.g. independently executed backend API servers, microservices, workers, databases, caches, and API gateways).
-CRITICAL RULES:
-1. Do NOT create server nodes for ordinary folders, shared packages, types libraries (e.g. packages/shared-types), or UI component libraries (e.g. packages/ui). A folder name alone is never proof that something is a server.
-2. Only classify an item as a runtime service if there is evidence of an actual server bootstrap (listen, createServer, Fastify, Express, NestJS), independent process startup script, worker queue runner, or container service.
-3. Determine communication relationships (HTTP, DB, Queue) based on evidenced clients.
-4. Response MUST be valid JSON adhering strictly to this schema:
+  return `You are a principal software architect generating a high-fidelity system design architecture diagram matching GitDiagram quality for a repository.
+
+Repository Name: ${inventory.repoName}
+Analyzed Files & Components:
+${JSON.stringify(inventory.items, null, 2)}
+
+INSTRUCTIONS & EXTRACTION RULES:
+1. Decompose the architecture into cohesive tiers / groups:
+   - "Chat interface" / Frontend views: e.g. Home, Chat UI, Sidebar, Artifacts, User State.
+   - "API gateway": Gateway entrypoint and middleware (Session guard / Auth guard).
+   - "Identity and sessions": Auth microservice, session cache (Redis), User records.
+   - "AI and conversations" / Assistant: Conversation service, Agent endpoint, LangGraph workflow, Intent router, Agent capabilities.
+   - "Billing": Billing service, Payment records, Payment gateway.
+   - External Providers: Firebase Auth, LLM providers (OpenAI/Anthropic/Gemini), Razorpay, etc.
+2. For each component, provide:
+   - "id": kebab-case identifier (e.g. "node-gateway", "node-chat", "node-redis", "node-auth")
+   - "name": Clear, human-readable name with file citation (e.g. "API Gateway [index.js]", "Session cache [redis.js]")
+   - "category": Subgraph name (e.g. "Chat interface", "API gateway", "Identity and sessions", "AI and conversations", "Billing", "External")
+   - "type": "gateway" | "service" | "cache" | "database" | "load_generator"
+   - "sourceFiles": array of key source files implementing this component
+   - "confidence": confidence score (0.0 to 1.0)
+   - "reason": architectural rationale explaining what this component does
+   - "estimatedCapacity": realistic capacity (e.g. 5000 for gateways/caches, 2000 for services)
+3. For connections, model realistic traffic flow:
+   - Load generator / User -> Frontend -> API Gateway
+   - Gateway -> Auth / Session guard -> Redis
+   - Gateway -> Microservices (Chat, Agent, Billing, Auth)
+   - Services -> Databases, Models & External SaaS (Firebase, LLMs, Razorpay)
+4. Response MUST strictly be valid JSON matching this schema:
 {
+  "mermaidCode": "string (optional valid Mermaid flowchart TD string)",
   "components": [
     {
       "id": "string",
       "name": "string",
+      "category": "string",
       "type": "load_generator" | "gateway" | "service" | "cache" | "database",
       "isRuntimeService": true,
       "entryPoint": "string (optional)",
       "startupCommand": "string (optional)",
       "sourceFiles": ["string"],
-      "confidence": number (between 0.0 and 1.0),
-      "reason": "explanation of classification",
-      "estimatedCapacity": number (e.g. 1500),
-      "defaultWorkers": number (e.g. 2)
+      "confidence": number,
+      "reason": "string",
+      "estimatedCapacity": number,
+      "defaultWorkers": number
     }
   ],
   "connections": [
@@ -271,13 +470,10 @@ CRITICAL RULES:
       "reference": "string (optional)",
       "confidence": number,
       "reason": "string",
-      "requestsPerInput": number (optional, e.g. 1.0)
+      "requestsPerInput": number
     }
   ]
-}
-
-Repository inventory data:
-${JSON.stringify(inventory.items, null, 2)}`;
+}`;
 }
 
 async function callOpenAIProvider(

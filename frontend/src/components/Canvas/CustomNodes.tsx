@@ -118,14 +118,21 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-2">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-1.5 rounded-lg bg-slate-100 shrink-0">
             {getTypeIcon()}
           </div>
-          <span className="text-xs font-bold text-slate-800 truncate" title={node.name}>
-            {node.name}
-          </span>
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-slate-800 truncate block" title={node.name}>
+              {node.name}
+            </span>
+            {Boolean(node.config?.category) && (
+              <span className="text-[9px] font-medium text-slate-400 block truncate">
+                {String(node.config.category)}
+              </span>
+            )}
+          </div>
         </div>
         {getStatusBadge()}
       </div>
