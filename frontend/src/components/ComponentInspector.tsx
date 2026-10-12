@@ -9,6 +9,7 @@ import {
   Layers,
   AlertOctagon,
   AlertTriangle,
+  Trash2,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult } from '../types';
 
@@ -19,6 +20,7 @@ interface ComponentInspectorProps {
   onClose: () => void;
   onUpdateNode: (updatedNode: ArchitectureNode) => void;
   onUpdateEdgeMultiplier: (edgeId: string, multiplier: number) => void;
+  onDeleteEdge?: (edgeId: string) => void;
   onChangeIncomingTrafficRate?: (rate: number) => void;
   incomingTrafficRate?: number;
   onNavigateToParent?: (parentId: string) => void;
@@ -33,6 +35,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
   onClose,
   onUpdateNode,
   onUpdateEdgeMultiplier,
+  onDeleteEdge,
   onChangeIncomingTrafficRate,
   incomingTrafficRate,
   onNavigateToParent,
@@ -408,11 +411,23 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
                     <span className="text-slate-600">
                       From: <strong className="text-slate-800">{edge.source}</strong>
                     </span>
-                    {edge.label && (
-                      <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-medium">
-                        {edge.label}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {edge.label && (
+                        <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-medium">
+                          {edge.label}
+                        </span>
+                      )}
+                      {onDeleteEdge && (
+                        <button
+                          type="button"
+                          onClick={() => onDeleteEdge(edge.id)}
+                          className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title={`Delete connection from ${edge.source}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {edge.dataFlowDescription && (
                     <p className="text-[10px] text-slate-500 font-mono italic">
@@ -454,6 +469,16 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
                       }
                       className="w-16 px-1.5 py-0.5 rounded border border-slate-200 bg-white font-mono text-right text-xs"
                     />
+                    {onDeleteEdge && (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteEdge(edge.id)}
+                        className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors ml-0.5"
+                        title={`Delete connection to ${edge.target}`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

@@ -167,7 +167,10 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           communicationType: edge.communicationType,
           isExternal,
           onToggle: () => onToggleEdge(edge.id),
+          onDelete: () => onDeleteEdge?.(edge.id),
         },
+        selectable: true,
+        interactionWidth: 24,
         // Only asynchronous message queues have animated marching dashes!
         // Synchronous HTTP, Database persistence, Cache, and RPC remain solid!
         animated: mode === 'queue' && hasTraffic,
@@ -187,7 +190,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           : undefined,
       };
     });
-  }, [edges, edgeResults, onToggleEdge]);
+  }, [edges, edgeResults, onToggleEdge, onDeleteEdge]);
 
   const [rfNodes, setRfNodes, onRfNodesChange] = useNodesState(flowNodes);
   const [rfEdges, setRfEdges, onRfEdgesChange] = useEdgesState(flowEdges);
@@ -325,6 +328,8 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             }
           }
         }}
+        deleteKeyCode={['Backspace', 'Delete']}
+        edgesFocusable={true}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.2}

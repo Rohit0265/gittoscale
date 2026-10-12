@@ -5,6 +5,7 @@ import {
   EdgeProps,
   getSmoothStepPath,
 } from '@xyflow/react';
+import { X } from 'lucide-react';
 
 export type EdgeMode =
   | 'http'
@@ -26,6 +27,7 @@ export interface CustomEdgeData {
   communicationType?: string;
   isExternal?: boolean;
   onToggle?: () => void;
+  onDelete?: () => void;
   [key: string]: unknown;
 }
 
@@ -200,6 +202,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
   data,
   markerEnd,
   markerStart,
+  selected,
 }) => {
   const edgeData = (data || {}) as CustomEdgeData;
   const requestsPerInput = edgeData.requestsPerInput ?? 1.0;
@@ -233,10 +236,11 @@ export const CustomEdge: React.FC<EdgeProps> = ({
         markerEnd={markerEnd}
         markerStart={markerStart}
         style={{
-          stroke: styleConfig.stroke,
-          strokeWidth: styleConfig.strokeWidth,
+          stroke: selected ? '#ef4444' : styleConfig.stroke,
+          strokeWidth: selected ? styleConfig.strokeWidth + 1.2 : styleConfig.strokeWidth,
           strokeDasharray: styleConfig.strokeDasharray,
           opacity: enabled ? 1 : 0.45,
+          filter: selected ? 'drop-shadow(0 0 5px rgba(239, 68, 68, 0.7))' : undefined,
           transition: 'stroke 0.2s ease, stroke-width 0.2s ease',
         }}
       />
@@ -249,14 +253,16 @@ export const CustomEdge: React.FC<EdgeProps> = ({
           }}
           className={`px-2 py-0.5 rounded-full text-[10px] font-mono border shadow-sm flex items-center gap-1.5 cursor-pointer select-none transition-all ${
             styleConfig.badgeBg
-          } ${styleConfig.badgeBorder} ${styleConfig.badgeText}`}
+          } ${styleConfig.badgeBorder} ${styleConfig.badgeText} ${
+            selected ? 'ring-2 ring-red-500 shadow-md ring-offset-1 border-red-300' : ''
+          }`}
           title={`${styleConfig.description}. ${
             flowDesc ? `${flowDesc}. ` : ''
           }${
             isBidirectional ? 'Bidirectional Data Flow (Request ⇄ Response). ' : ''
           }Multiplier: ×${requestsPerInput}. Flow: ${Math.round(
             flowRate
-          ).toLocaleString()} req/s. Click to toggle path.`}
+          ).toLocaleString()} req/s. Click to toggle path, or click ✕ to delete.`}
           onClick={(e) => {
             e.stopPropagation();
             if (edgeData.onToggle) edgeData.onToggle();
@@ -295,6 +301,21 @@ export const CustomEdge: React.FC<EdgeProps> = ({
             <span className="text-[9px] font-sans font-medium opacity-90">
               ({Math.round(flowRate).toLocaleString()} r/s)
             </span>
+          )}
+
+          {/* Delete Action Button */}
+          {edgeData.onDelete && (
+            <button
+              type="button"
+              className="ml-0.5 p-0.5 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
+              title="Delete this connection"
+              onClick={(e) => {
+                e.stopPropagation();
+                edgeData.onDelete?.();
+              }}
+            >
+              <X className="w-2.5 h-2.5" />
+            </button>
           )}
         </div>
       </EdgeLabelRenderer>

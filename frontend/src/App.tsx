@@ -270,6 +270,11 @@ export const App: React.FC = () => {
   const handleDeleteEdge = (edgeId: string) => {
     const updated = edges.filter((e) => e.id !== edgeId);
     setEdges(updated);
+    if (viewMode === 'detailed' && detailedGraphCacheRef.current) {
+      detailedGraphCacheRef.current.edges = updated;
+    } else if (viewMode === 'basic' && basicGraphCacheRef.current) {
+      basicGraphCacheRef.current.edges = updated;
+    }
     queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
   };
 
@@ -505,6 +510,7 @@ export const App: React.FC = () => {
               onClose={() => setSelectedNodeId(null)}
               onUpdateNode={handleUpdateNode}
               onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+              onDeleteEdge={handleDeleteEdge}
               onChangeIncomingTrafficRate={
                 selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
               }
