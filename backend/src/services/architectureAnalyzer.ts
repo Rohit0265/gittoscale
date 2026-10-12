@@ -476,6 +476,59 @@ INSTRUCTIONS & EXTRACTION RULES:
 }`;
 }
 
+function normalizeLLMResponse(data: any): any {
+  if (!data || typeof data !== 'object') return { components: [], connections: [] };
+
+  const components = Array.isArray(data.components)
+    ? data.components.map((c: any) => ({
+        ...c,
+        id: String(c.id || `node-${Math.random().toString(36).substring(2, 7)}`),
+        name: String(c.name || 'Unnamed Service'),
+        category: c.category ? String(c.category) : undefined,
+        group: c.group ? String(c.group) : c.category ? String(c.category) : undefined,
+        type: ['load_generator', 'gateway', 'service', 'cache', 'database'].includes(c.type)
+          ? c.type
+          : 'service',
+        isRuntimeService: c.isRuntimeService !== false,
+        sourceFiles: Array.isArray(c.sourceFiles) ? c.sourceFiles.map(String) : [],
+        confidence: typeof c.confidence === 'number' ? Math.max(0, Math.min(1, c.confidence)) : 0.9,
+        reason: String(c.reason || 'Identified component in system architecture.'),
+        estimatedCapacity: typeof c.estimatedCapacity === 'number' ? c.estimatedCapacity : undefined,
+        defaultWorkers: typeof c.defaultWorkers === 'number' ? c.defaultWorkers : undefined,
+      }))
+    : [];
+
+  const connections = Array.isArray(data.connections)
+    ? data.connections.map((conn: any) => ({
+        ...conn,
+        source: String(conn.source),
+        target: String(conn.target),
+        communicationType: [
+          'http',
+          'graphql',
+          'grpc',
+          'db',
+          'queue',
+          'cache',
+          'inferred',
+        ].includes(conn.communicationType)
+          ? conn.communicationType
+          : 'http',
+        evidenceFiles: Array.isArray(conn.evidenceFiles) ? conn.evidenceFiles.map(String) : [],
+        reference: conn.reference ? String(conn.reference) : undefined,
+        confidence: typeof conn.confidence === 'number' ? Math.max(0, Math.min(1, conn.confidence)) : 0.9,
+        reason: String(conn.reason || 'Inter-service communication.'),
+        requestsPerInput: typeof conn.requestsPerInput === 'number' ? conn.requestsPerInput : 1.0,
+      }))
+    : [];
+
+  return {
+    mermaidCode: data.mermaidCode ? String(data.mermaidCode) : undefined,
+    components,
+    connections,
+  };
+}
+
 async function callOpenAIProvider(
   inventory: RepositoryInventory,
   config: LLMConfig
@@ -502,7 +555,7 @@ async function callOpenAIProvider(
   const data: any = await res.json();
   const rawText = data.choices[0].message.content;
   const parsed = JSON.parse(rawText);
-  return llmAnalysisResultSchema.parse(parsed);
+  return llmAnalysisResultSchema.parse(normalizeLLMResponse(parsed));
 }
 
 async function callGeminiProvider(
@@ -530,7 +583,7 @@ async function callGeminiProvider(
   const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!rawText) throw new Error('Empty response from Gemini API');
   const parsed = JSON.parse(rawText);
-  return llmAnalysisResultSchema.parse(parsed);
+  return llmAnalysisResultSchema.parse(normalizeLLMResponse(parsed));
 }
 
 async function callAnthropicProvider(
