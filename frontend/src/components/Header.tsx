@@ -23,6 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCompare,
   hasBaseline,
 }) => {
+  const currentScenario = scenarios.find((s) => s.id === currentScenarioId);
+
   return (
     <header className="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between z-20 shrink-0">
       {/* Brand & Title */}
@@ -63,6 +65,15 @@ export const Header: React.FC<HeaderProps> = ({
             ))}
           </select>
         </div>
+
+        {currentScenario && (
+          <span
+            className="hidden xl:inline-block max-w-sm truncate text-[11px] text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg"
+            title={currentScenario.description}
+          >
+            {currentScenario.description}
+          </span>
+        )}
 
         {/* Play/Pause Button */}
         <button

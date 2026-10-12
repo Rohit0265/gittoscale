@@ -12,6 +12,7 @@ import {
   useNodesState,
   useEdgesState,
   MarkerType,
+  useReactFlow,
 } from '@xyflow/react';
 import { ArchitectureCustomNode } from './CustomNodes';
 import { CustomEdge } from './CustomEdge';
@@ -27,7 +28,29 @@ interface ArchitectureCanvasProps {
   onNodesChangePosition: (updatedNodes: ArchitectureNode[]) => void;
   onAddEdge: (newEdge: ArchitectureEdge) => void;
   onToggleEdge: (edgeId: string) => void;
+  onDeleteEdge?: (edgeId: string) => void;
 }
+
+const NodeFocusController: React.FC<{
+  selectedNodeId: string | null;
+  nodes: ArchitectureNode[];
+}> = ({ selectedNodeId, nodes }) => {
+  const { setCenter } = useReactFlow();
+
+  React.useEffect(() => {
+    if (selectedNodeId) {
+      const target = nodes.find((n) => n.id === selectedNodeId);
+      if (target) {
+        setCenter(target.position.x + 128, target.position.y + 60, {
+          duration: 600,
+          zoom: 1.15,
+        });
+      }
+    }
+  }, [selectedNodeId, nodes, setCenter]);
+
+  return null;
+};
 
 const nodeTypes = {
   architectureNode: ArchitectureCustomNode,
@@ -47,6 +70,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   onNodesChangePosition,
   onAddEdge,
   onToggleEdge,
+  onDeleteEdge,
 }) => {
   // Convert domain nodes to React Flow nodes
   const flowNodes: Node[] = useMemo(() => {
@@ -151,12 +175,20 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         onNodeClick={(_, node) => onSelectNode(node.id)}
         onPaneClick={() => onSelectNode(null)}
         onConnect={handleConnect}
+        onEdgesDelete={(deletedEdges) => {
+          if (onDeleteEdge) {
+            for (const e of deletedEdges) {
+              onDeleteEdge(e.id);
+            }
+          }
+        }}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.2}
         maxZoom={2.0}
         proOptions={{ hideAttribution: true }}
       >
+        <NodeFocusController selectedNodeId={selectedNodeId} nodes={nodes} />
         <Background
           variant={BackgroundVariant.Lines}
           gap={24}

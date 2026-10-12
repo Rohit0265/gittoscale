@@ -245,6 +245,12 @@ export const App: React.FC = () => {
     queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
   };
 
+  const handleDeleteEdge = (edgeId: string) => {
+    const updated = edges.filter((e) => e.id !== edgeId);
+    setEdges(updated);
+    queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
+  };
+
   const handleUpdateEdgeMultiplier = (edgeId: string, multiplier: number) => {
     const updated = edges.map((e) =>
       e.id === edgeId ? { ...e, requestsPerInput: multiplier } : e
@@ -351,6 +357,7 @@ export const App: React.FC = () => {
             onNodesChangePosition={handleNodesPositionChange}
             onAddEdge={handleAddEdge}
             onToggleEdge={handleToggleEdge}
+            onDeleteEdge={handleDeleteEdge}
           />
         </main>
 
