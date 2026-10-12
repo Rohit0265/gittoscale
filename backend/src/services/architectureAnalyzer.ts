@@ -245,7 +245,7 @@ export function synthesizeDeterministicArchitecture(
     }
   }
 
-  // 2. Wire connections:
+  // 2. Wire connections with bidirectional data flows:
   // User -> Frontend (or Gateway if no Frontend)
   const entryId = frontendNodes.length > 0 ? frontendNodes[0] : (gatewayNodes[0] || backendServiceNodes[0]);
   if (entryId) {
@@ -257,6 +257,9 @@ export function synthesizeDeterministicArchitecture(
       confidence: 1.0,
       reason: 'User interacts with frontend application client.',
       requestsPerInput: 1.0,
+      isBidirectional: true,
+      reference: 'User Interaction',
+      dataFlowDescription: 'User inputs actions & receives rendered UI state',
     });
   }
 
@@ -270,6 +273,9 @@ export function synthesizeDeterministicArchitecture(
       confidence: 0.95,
       reason: 'Frontend client proxies API requests through API gateway.',
       requestsPerInput: 1.0,
+      isBidirectional: true,
+      reference: 'REST / Streaming API',
+      dataFlowDescription: 'HTTP API requests & JSON / stream data responses',
     });
   }
 
@@ -286,6 +292,9 @@ export function synthesizeDeterministicArchitecture(
           confidence: 0.9,
           reason: `Gateway routes incoming authenticated traffic to ${sId}.`,
           requestsPerInput: 1.0,
+          isBidirectional: true,
+          reference: 'Proxied RPC / HTTP',
+          dataFlowDescription: `Proxied requests ⇄ ${sId} response payloads`,
         });
       }
     }
@@ -300,6 +309,9 @@ export function synthesizeDeterministicArchitecture(
         confidence: 0.85,
         reason: `Frontend connects directly to ${sId}.`,
         requestsPerInput: 1.0,
+        isBidirectional: true,
+        reference: 'HTTP API',
+        dataFlowDescription: `Client query ⇄ Service response data`,
       });
     }
   }
@@ -313,11 +325,14 @@ export function synthesizeDeterministicArchitecture(
         connections.push({
           source: sId,
           target: dbId,
-          communicationType: 'db',
+          communicationType: db.toLowerCase().includes('redis') ? 'cache' : 'db',
           evidenceFiles: item.evidence.sourceFiles,
           confidence: 0.9,
           reason: `${item.name} queries and persists records in ${db}.`,
           requestsPerInput: 1.0,
+          isBidirectional: true,
+          reference: 'Query & Result',
+          dataFlowDescription: `SQL / NoSQL queries in ⇄ Record sets returned`,
         });
       }
     }
@@ -330,11 +345,14 @@ export function synthesizeDeterministicArchitecture(
       connections.push({
         source: primaryGateway,
         target: redisComp.id,
-        communicationType: 'cache' as any,
+        communicationType: 'cache',
         evidenceFiles: [],
         confidence: 0.92,
         reason: 'Gateway validates session tokens against Redis session cache.',
         requestsPerInput: 1.0,
+        isBidirectional: true,
+        reference: 'Session Lookup',
+        dataFlowDescription: 'Token validation query ⇄ Session profile hit',
       });
     }
     const authComp = components.find((c) => c.id.includes('auth'));
@@ -342,11 +360,14 @@ export function synthesizeDeterministicArchitecture(
       connections.push({
         source: authComp.id,
         target: redisComp.id,
-        communicationType: 'cache' as any,
+        communicationType: 'cache',
         evidenceFiles: [],
         confidence: 0.92,
         reason: 'Auth service stores user session in Redis.',
         requestsPerInput: 1.0,
+        isBidirectional: true,
+        reference: 'Cache Set & Get',
+        dataFlowDescription: 'Store/read session key ⇄ Acknowledgement / session data',
       });
     }
   }
@@ -362,6 +383,9 @@ export function synthesizeDeterministicArchitecture(
       confidence: 0.95,
       reason: 'Auth service verifies ID tokens with Firebase Auth.',
       requestsPerInput: 1.0,
+      isBidirectional: true,
+      reference: 'Token Verification',
+      dataFlowDescription: 'Outbound JWT token ⇄ Verification claims response',
     });
   }
 
@@ -375,6 +399,9 @@ export function synthesizeDeterministicArchitecture(
       confidence: 0.95,
       reason: 'Agent router dispatches user prompts to LLM providers.',
       requestsPerInput: 1.0,
+      isBidirectional: true,
+      reference: 'Inference ⇄ Stream',
+      dataFlowDescription: 'Prompt payload ⇄ Streamed token completions',
     });
   }
 
@@ -388,6 +415,9 @@ export function synthesizeDeterministicArchitecture(
       confidence: 0.95,
       reason: 'Billing service creates payment orders via Razorpay.',
       requestsPerInput: 1.0,
+      isBidirectional: true,
+      reference: 'Payment Order',
+      dataFlowDescription: 'Order creation ⇄ Payment receipt confirmation',
     });
   }
 
@@ -402,6 +432,9 @@ export function synthesizeDeterministicArchitecture(
       confidence: 0.9,
       reason: 'Agent saves generated conversation messages to Chat service.',
       requestsPerInput: 1.0,
+      isBidirectional: true,
+      reference: 'Message Sync',
+      dataFlowDescription: 'Save assistant message ⇄ Persisted message ID',
     });
   }
 
@@ -437,11 +470,11 @@ INSTRUCTIONS & EXTRACTION RULES:
    - "confidence": confidence score (0.0 to 1.0)
    - "reason": architectural rationale explaining what this component does
    - "estimatedCapacity": realistic capacity (e.g. 5000 for gateways/caches, 2000 for services)
-3. For connections, model realistic traffic flow:
-   - Load generator / User -> Frontend -> API Gateway
-   - Gateway -> Auth / Session guard -> Redis
-   - Gateway -> Microservices (Chat, Agent, Billing, Auth)
-   - Services -> Databases, Models & External SaaS (Firebase, LLMs, Razorpay)
+3. For connections, model realistic traffic and data flow:
+   - Identify both inbound requests and outgoing data responses.
+   - Set "isBidirectional": true when data is dispatched and results/responses return (e.g. Frontend ⇄ Gateway, Gateway ⇄ Auth/Services, Services ⇄ Database/Cache, Agent ⇄ LLM).
+   - Provide "dataFlowDescription": clear description of inbound request data and outgoing response data (e.g. "User sends prompt payload ⇄ receives streamed tokens").
+   - Set "reference": short label for the edge (e.g. "REST API", "Queries & Writes", "Token Verification", "Stream & Completion").
 4. Response MUST strictly be valid JSON matching this schema:
 {
   "mermaidCode": "string (optional valid Mermaid flowchart TD string)",
@@ -465,7 +498,9 @@ INSTRUCTIONS & EXTRACTION RULES:
     {
       "source": "string",
       "target": "string",
-      "communicationType": "http" | "graphql" | "grpc" | "db" | "queue" | "inferred",
+      "communicationType": "http" | "graphql" | "grpc" | "db" | "queue" | "cache" | "inferred",
+      "isBidirectional": true,
+      "dataFlowDescription": "string (e.g. 'Inbound user message ⇄ Outbound assistant response')",
       "evidenceFiles": ["string"],
       "reference": "string (optional)",
       "confidence": number,

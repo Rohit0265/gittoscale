@@ -37,6 +37,9 @@ export interface ArchitectureEdge {
   target: string;
   requestsPerInput: number;
   enabled: boolean;
+  isBidirectional?: boolean;
+  label?: string;
+  dataFlowDescription?: string;
 }
 
 export interface ArchitectureFixture {

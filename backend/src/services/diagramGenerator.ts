@@ -76,13 +76,16 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
   layoutColumn(colData, 920, 100, 160);
   layoutColumn(colExternal, 1220, 120, 160);
 
-  // 2. Generate directed edges
+  // 2. Generate directed edges with bidirectional data flow annotations
   const edges: ArchitectureEdge[] = connections.map((conn, idx) => ({
     id: `edge-${idx + 1}-${conn.source}-${conn.target}`,
     source: conn.source,
     target: conn.target,
     requestsPerInput: conn.requestsPerInput ?? 1.0,
     enabled: true,
+    isBidirectional: conn.isBidirectional ?? (conn.communicationType === 'http' || conn.communicationType === 'db' || conn.communicationType === 'cache'),
+    label: conn.reference,
+    dataFlowDescription: conn.dataFlowDescription || `${conn.communicationType.toUpperCase()} request/response flow between ${conn.source} and ${conn.target}`,
   }));
 
   return { nodes, edges };

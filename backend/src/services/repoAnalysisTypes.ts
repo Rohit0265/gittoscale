@@ -120,6 +120,8 @@ export const llmAnalysisResultSchema = z.object({
       confidence: z.number().min(0).max(1).default(0.9),
       reason: z.string().default('Communication link between components.'),
       requestsPerInput: z.number().optional().default(1.0),
+      isBidirectional: z.boolean().default(false),
+      dataFlowDescription: z.string().optional(),
     })
   ),
 });

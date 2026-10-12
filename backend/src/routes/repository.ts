@@ -42,7 +42,7 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       });
     }
 
-    const ANALYZER_VERSION = 'v2.2';
+    const ANALYZER_VERSION = 'v2.3';
 
     // 1. Build Static Inventory (either local directory or GitHub repository tree)
     let inventory;

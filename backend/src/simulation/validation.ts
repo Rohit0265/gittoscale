@@ -28,6 +28,9 @@ export const architectureEdgeSchema = z.object({
   target: z.string().min(1),
   requestsPerInput: z.number().min(0).max(100),
   enabled: z.boolean().default(true),
+  isBidirectional: z.boolean().optional(),
+  label: z.string().optional(),
+  dataFlowDescription: z.string().optional(),
 });
 
 export const simulationInputSchema = z.object({

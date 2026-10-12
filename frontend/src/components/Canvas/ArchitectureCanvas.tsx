@@ -100,15 +100,28 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           requestsPerInput: edge.requestsPerInput,
           flowRate: edgeRes?.flowRate ?? 0,
           enabled: isEnabled,
+          isBidirectional: edge.isBidirectional,
+          label: edge.label,
+          dataFlowDescription: edge.dataFlowDescription,
           onToggle: () => onToggleEdge(edge.id),
         },
         animated: isEnabled && (edgeRes?.flowRate ?? 0) > 0,
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: isEnabled && (edgeRes?.flowRate ?? 0) > 0 ? '#6366f1' : '#94a3b8',
+          color: isEnabled && (edgeRes?.flowRate ?? 0) > 0
+            ? edge.isBidirectional ? '#8b5cf6' : '#6366f1'
+            : '#94a3b8',
           width: 14,
           height: 14,
         },
+        markerStart: edge.isBidirectional
+          ? {
+              type: MarkerType.ArrowClosed,
+              color: isEnabled && (edgeRes?.flowRate ?? 0) > 0 ? '#8b5cf6' : '#94a3b8',
+              width: 14,
+              height: 14,
+            }
+          : undefined,
       };
     });
   }, [edges, edgeResults, onToggleEdge]);
