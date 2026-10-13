@@ -18,6 +18,7 @@ import { BottleneckList } from './components/BottleneckList';
 import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
+import { ScrollTimeline } from './components/lightswind/scroll-timeline';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -395,7 +396,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'landing') {
     return (
-      <div className="min-h-screen w-full flex flex-col overflow-y-auto">
+      <div className="min-h-screen w-full flex flex-col">
         <LandingPage
           onSelectTestSite={() => {
             setCurrentView('simulator');
@@ -406,7 +407,17 @@ export const App: React.FC = () => {
           onSelectUseRepository={() => {
             setIsImportRepoOpen(true);
           }}
-        />
+        >
+          {/* Scroll Timeline Component */}
+          <section className="w-full py-8 border-t border-slate-200/80 bg-slate-50/50">
+            <ScrollTimeline
+              title="Simulation & Scaling Journey"
+              subtitle="Scroll down to explore how GitToScale maps architectures, injects traffic, and pinpoints system bottlenecks"
+              cardEffect="shadow"
+              cardVariant="elevated"
+            />
+          </section>
+        </LandingPage>
         <RepositoryImportModal
           isOpen={isImportRepoOpen}
           onClose={() => setIsImportRepoOpen(false)}

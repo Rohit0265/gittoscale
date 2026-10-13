@@ -5,11 +5,13 @@ import { Fotter } from './Fotter';
 interface LandingPageProps {
   onSelectTestSite: () => void;
   onSelectUseRepository: () => void;
+  children?: React.ReactNode;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectTestSite,
   onSelectUseRepository,
+  children,
 }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col text-slate-800">
@@ -136,6 +138,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </main>
+
+      {/* Optional Injected Content (ScrollTimeline, etc.) */}
+      {children}
 
       {/* Global Footer */}
       <Fotter brandName="GitToScale" />
