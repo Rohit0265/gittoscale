@@ -80,27 +80,28 @@
   margin: 8px 0 20px 0;
 }
 
-/* Bottom Bar: Copyright on Left, Social Icons on Right */
+/* Bottom Bar: Copyright above, Social Icons below — both centered */
 .gts-minimal-bottom {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 100%;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding-bottom: 8px;
+  gap: 14px;
+  padding-bottom: 10px;
 }
 
 .gts-minimal-copyright {
-  font-size: 13px;
+  font-size: 15px;
   color: #64748b;
   margin: 0;
+  text-align: center;
 }
 
 .gts-minimal-socials {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 22px;
 }
 
 .gts-minimal-social-icon {

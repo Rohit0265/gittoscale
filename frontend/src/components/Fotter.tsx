@@ -65,6 +65,9 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
         <div className="gts-dotted-divider" />
 
         {/* Bottom Bar: Copyright on Left, Social Icons on Right */}
+        <div className="justify-between items-center gap-4">
+            
+
         <div className="gts-minimal-bottom">
           <p className="gts-minimal-copyright">
             &copy; 2026 {brandName} LLC. All rights reserved.
@@ -78,7 +81,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
               className="gts-minimal-social-icon"
               aria-label="Twitter"
             >
-              <Twitter className="w-4 h-4" />
+              <Twitter className="w-5 h-5" />
             </a>
             <a
               href="https://linkedin.com"
@@ -87,7 +90,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
               className="gts-minimal-social-icon"
               aria-label="LinkedIn"
             >
-              <Linkedin className="w-4 h-4" />
+              <Linkedin className="w-5 h-5" />
             </a>
             <a
               href="https://github.com"
@@ -96,7 +99,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
               className="gts-minimal-social-icon"
               aria-label="GitHub"
             >
-              <Github className="w-4 h-4" />
+              <Github className="w-5 h-5" />
             </a>
             <a
               href="https://facebook.com"
@@ -105,7 +108,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
               className="gts-minimal-social-icon"
               aria-label="Facebook"
             >
-              <Facebook className="w-4 h-4" />
+              <Facebook className="w-5 h-5" />
             </a>
             <a
               href="https://instagram.com"
@@ -114,9 +117,11 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
               className="gts-minimal-social-icon"
               aria-label="Instagram"
             >
-              <Instagram className="w-4 h-4" />
+              <Instagram className="w-5 h-5" />
             </a>
           </div>
+        </div>
+
         </div>
 
         {/* Giant Watermark Background Text (Preserved at bottom) */}
@@ -158,7 +163,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
               x="50%"
               y="105%"              textAnchor="middle"
               className="gts-watermark-text"
-              textLength={viewBoxWidth * 0.96}
+              textLength={viewBoxWidth * 0.98}
               lengthAdjust="spacingAndGlyphs"
             >
               {brandName}
