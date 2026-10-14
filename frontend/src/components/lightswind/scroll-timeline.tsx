@@ -416,7 +416,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
         viewport={{ once: false, margin: "-100px" }}
         style={parallaxIntensity > 0 ? { y: yOffset } : undefined}
       >
-        <Card className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             {dateFormat === "badge" ? (
               <div className="flex items-center mb-2">

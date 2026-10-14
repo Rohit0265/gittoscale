@@ -133,10 +133,10 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl overflow-hidden text-xs max-h-[90vh] flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
+      <div className="bg-white dark:bg-[#0A0A0A] rounded-xl shadow-2xl border border-slate-200 dark:border-neutral-800 w-full max-w-xl overflow-hidden text-xs max-h-[90vh] flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between shrink-0">
+        <div className="p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-indigo-600 text-white shadow-xs">
               <FolderGit2 className="w-4 h-4" />

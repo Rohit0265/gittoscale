@@ -30,8 +30,12 @@ interface ArchitectureCanvasProps {
   onAddEdge: (newEdge: ArchitectureEdge) => void;
   onToggleEdge: (edgeId: string) => void;
   onDeleteEdge?: (edgeId: string) => void;
+  onUpdateEdge?: (edgeId: string, updates: Partial<ArchitectureEdge>) => void;
+  selectedEdgeId?: string | null;
+  onSelectEdge?: (edgeId: string | null) => void;
   viewMode?: 'basic' | 'detailed';
   onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
+  isDark?: boolean;
 }
 
 const NodeFocusController: React.FC<{
@@ -74,22 +78,38 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   onAddEdge,
   onToggleEdge,
   onDeleteEdge,
+  onUpdateEdge,
+  selectedEdgeId,
+  onSelectEdge,
   viewMode = 'basic',
   onToggleViewMode,
+  isDark: propIsDark,
 }) => {
-  const [isDark, setIsDark] = useState(() =>
+  const [internalSelectedEdgeId, setInternalSelectedEdgeId] = useState<string | null>(null);
+  const activeSelectedEdgeId = selectedEdgeId !== undefined ? selectedEdgeId : internalSelectedEdgeId;
+  const handleSelectEdge = useCallback((id: string | null) => {
+    if (onSelectEdge) {
+      onSelectEdge(id);
+    } else {
+      setInternalSelectedEdgeId(id);
+    }
+  }, [onSelectEdge]);
+
+  const [domIsDark, setDomIsDark] = useState(() =>
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
   );
 
   useEffect(() => {
     const checkDark = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
+      setDomIsDark(document.documentElement.classList.contains('dark'));
     };
     checkDark();
     const observer = new MutationObserver(checkDark);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
+
+  const isDark = propIsDark !== undefined ? propIsDark : domIsDark;
 
   // Convert domain nodes to React Flow nodes
   const flowNodes: Node[] = useMemo(() => {
@@ -160,9 +180,10 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         tNode?.id === 'node-razorpay' ||
         tNode?.id === 'node-llms';
 
+      const isSelected = edge.id === activeSelectedEdgeId;
       const mode = resolveEdgeMode(edge.communicationType, isExternal, isEnabled);
       const hasTraffic = isEnabled && (edgeRes?.flowRate ?? 0) > 0;
-      const styleConfig = getEdgeStyleConfig(mode, hasTraffic);
+      const styleConfig = getEdgeStyleConfig(mode, hasTraffic, edge.customColor);
 
       return {
         id: edge.id,
@@ -172,6 +193,11 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         targetHandle,
         type: 'customEdge',
         data: {
+          edgeId: edge.id,
+          source: edge.source,
+          target: edge.target,
+          sourceName: sNode?.name || edge.source,
+          targetName: tNode?.name || edge.target,
           requestsPerInput: edge.requestsPerInput,
           flowRate: edgeRes?.flowRate ?? 0,
           enabled: isEnabled,
@@ -179,12 +205,17 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           label: edge.label,
           dataFlowDescription: edge.dataFlowDescription,
           communicationType: edge.communicationType,
+          customColor: edge.customColor,
           isExternal,
           onToggle: () => onToggleEdge(edge.id),
           onDelete: () => onDeleteEdge?.(edge.id),
+          onUpdateEdge,
+          onSelectEdge: handleSelectEdge,
+          isSelected,
         },
+        selected: isSelected,
         selectable: true,
-        interactionWidth: 24,
+        interactionWidth: 28,
         // Only asynchronous message queues have animated marching dashes!
         // Synchronous HTTP, Database persistence, Cache, and RPC remain solid!
         animated: mode === 'queue' && hasTraffic,
@@ -204,7 +235,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           : undefined,
       };
     });
-  }, [edges, edgeResults, onToggleEdge, onDeleteEdge]);
+  }, [edges, edgeResults, onToggleEdge, onDeleteEdge, onUpdateEdge, handleSelectEdge, activeSelectedEdgeId, nodes]);
 
   const [rfNodes, setRfNodes, onRfNodesChange] = useNodesState(flowNodes);
   const [rfEdges, setRfEdges, onRfEdgesChange] = useEdgesState(flowEdges);
@@ -311,11 +342,19 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-0.5 bg-purple-600 rounded"></span>
-            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">RPC / Internal</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">RPC</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-orange-500"></span>
-            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">Async Queue</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">Queue</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-cyan-500"></span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">WebSocket</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-0.5 bg-pink-500 rounded"></span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">GraphQL</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-rose-500"></span>
@@ -332,8 +371,18 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         onNodesChange={onRfNodesChange}
         onEdgesChange={onRfEdgesChange}
         onNodeDragStop={handleNodeDragStop}
-        onNodeClick={(_, node) => onSelectNode(node.id)}
-        onPaneClick={() => onSelectNode(null)}
+        onNodeClick={(_, node) => {
+          onSelectNode(node.id);
+          handleSelectEdge(null);
+        }}
+        onEdgeClick={(_, edge) => {
+          handleSelectEdge(edge.id);
+          onSelectNode(null);
+        }}
+        onPaneClick={() => {
+          onSelectNode(null);
+          handleSelectEdge(null);
+        }}
         onConnect={handleConnect}
         onEdgesDelete={(deletedEdges) => {
           if (onDeleteEdge) {
@@ -351,13 +400,15 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         proOptions={{ hideAttribution: true }}
       >
         <NodeFocusController selectedNodeId={selectedNodeId} nodes={nodes} />
-        <Background
-          variant={BackgroundVariant.Lines}
-          gap={24}
-          size={1}
-          className="[&>line]:stroke-slate-200 dark:[&>line]:stroke-slate-800"
-          color={isDark ? '#1e293b' : '#cbd5e1'}
-        />
+        {!isDark && (
+          <Background
+            variant={BackgroundVariant.Lines}
+            gap={24}
+            size={1}
+            className="[&>line]:stroke-slate-200"
+            color="#cbd5e1"
+          />
+        )}
         <Controls
           showInteractive={false}
           className="!bg-white dark:!bg-slate-900 !border !border-slate-200 dark:!border-slate-800 !shadow-md !rounded-lg [&>button]:dark:!bg-slate-900 [&>button]:dark:!border-slate-800 [&>button]:dark:!fill-slate-200 [&>button]:dark:hover:!bg-slate-800"

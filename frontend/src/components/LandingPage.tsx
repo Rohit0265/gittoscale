@@ -18,9 +18,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onToggleTheme,
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
       {/* Top Header */}
-      <header className="h-16 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-6 flex items-center justify-between shadow-xs transition-colors">
+      <header className="h-16 border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-6 flex items-center justify-between shadow-xs transition-colors">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 dark:shadow-none">
             <Activity className="w-5 h-5" />
@@ -30,7 +30,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="font-bold text-base tracking-tight text-slate-900 dark:text-slate-100">
                 System Design Playground
               </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-indigo-50 dark:bg-[#141414] text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded border border-indigo-200 dark:border-neutral-800">
                 Simulator
               </span>
             </div>
@@ -48,7 +48,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={onToggleTheme}
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center"
+              className="p-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center"
             >
               {isDark ? (
                 <Sun className="w-4 h-4 text-amber-400" />
@@ -74,9 +74,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Two large selectable cards side-by-side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card A: Continue with Test Site */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 p-7 shadow-sm hover:shadow-lg dark:hover:shadow-indigo-950/30 transition-all flex flex-col justify-between group">
+          <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl border-2 border-slate-200/80 dark:border-neutral-800 hover:border-indigo-400 dark:hover:border-indigo-500/80 p-7 shadow-sm hover:shadow-lg dark:hover:shadow-black/60 transition-all flex flex-col justify-between group">
             <div>
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-[#141414] text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform border border-transparent dark:border-neutral-800">
                 <Play className="w-6 h-6 fill-current" />
               </div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
@@ -116,9 +116,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Card B: Use Repository */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200/80 dark:border-slate-800 hover:border-slate-800 dark:hover:border-slate-700 p-7 shadow-sm hover:shadow-lg dark:hover:shadow-slate-950/30 transition-all flex flex-col justify-between group">
+          <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl border-2 border-slate-200/80 dark:border-neutral-800 hover:border-slate-800 dark:hover:border-neutral-700 p-7 shadow-sm hover:shadow-lg dark:hover:shadow-black/60 transition-all flex flex-col justify-between group">
             <div>
-              <div className="w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center mb-5 group-hover:scale-105 transition-transform border border-transparent dark:border-slate-700">
+              <div className="w-12 h-12 rounded-xl bg-slate-900 dark:bg-[#141414] text-white flex items-center justify-center mb-5 group-hover:scale-105 transition-transform border border-transparent dark:border-neutral-800">
                 <FolderGit2 className="w-6 h-6 text-indigo-400" />
               </div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
@@ -150,7 +150,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <button
               onClick={onSelectUseRepository}
-              className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white shadow-md shadow-slate-300 dark:shadow-none transition-all flex items-center justify-center gap-2 group-hover:gap-3 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-slate-900 hover:bg-black dark:bg-[#141414] dark:hover:bg-[#1a1a1a] dark:border dark:border-neutral-800 text-white shadow-md shadow-slate-300 dark:shadow-none transition-all flex items-center justify-center gap-2 group-hover:gap-3 cursor-pointer"
             >
               <span>Analyze Repository</span>
               <ArrowRight className="w-4 h-4" />

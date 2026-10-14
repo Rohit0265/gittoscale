@@ -332,12 +332,22 @@ export const App: React.FC = () => {
     queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
   };
 
+  const handleUpdateEdge = useCallback(
+    (edgeId: string, updates: Partial<ArchitectureEdge>) => {
+      const updated = edges.map((e) => (e.id === edgeId ? { ...e, ...updates } : e));
+      setEdges(updated);
+      if (viewMode === 'detailed' && detailedGraphCacheRef.current) {
+        detailedGraphCacheRef.current.edges = updated;
+      } else if (viewMode === 'basic' && basicGraphCacheRef.current) {
+        basicGraphCacheRef.current.edges = updated;
+      }
+      queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
+    },
+    [edges, nodes, incomingTrafficRate, durationSeconds, viewMode, queueSimulation]
+  );
+
   const handleUpdateEdgeMultiplier = (edgeId: string, multiplier: number) => {
-    const updated = edges.map((e) =>
-      e.id === edgeId ? { ...e, requestsPerInput: multiplier } : e
-    );
-    setEdges(updated);
-    queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
+    handleUpdateEdge(edgeId, { requestsPerInput: multiplier });
   };
 
   // 5. Reset to current scenario fixture
@@ -449,7 +459,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'landing') {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#0A0A0A]">
         <LandingPage
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
@@ -464,7 +474,7 @@ export const App: React.FC = () => {
           }}
         >
           {/* Scroll Timeline Component */}
-          <section className="w-full py-8 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <section className="w-full py-8 border-t border-slate-200/80 dark:border-neutral-800 bg-slate-50/50 dark:bg-[#0A0A0A]">
             <ScrollTimeline
               title="Simulation & Scaling Journey"
               subtitle="Scroll down to explore how GitToScale maps architectures, injects traffic, and pinpoints system bottlenecks"
@@ -596,8 +606,10 @@ export const App: React.FC = () => {
             onAddEdge={handleAddEdge}
             onToggleEdge={handleToggleEdge}
             onDeleteEdge={handleDeleteEdge}
+            onUpdateEdge={handleUpdateEdge}
             viewMode={viewMode}
             onToggleViewMode={handleToggleViewMode}
+            isDark={isDark}
           />
         </main>
 
