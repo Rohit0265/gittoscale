@@ -512,6 +512,7 @@ export const App: React.FC = () => {
               onRestoreOriginal={handleRestoreOriginal}
               onOpenImportRepo={() => setIsImportRepoOpen(true)}
               onToggleCollapse={() => setIsLeftCollapsed(true)}
+              onUpdateNode={handleUpdateNode}
             />
           </div>
         </div>

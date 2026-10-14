@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sliders,
   Plus,
-  RotateCcw,
   Clock,
   Server,
   Globe,
@@ -10,8 +9,9 @@ import {
   Layers,
   Trash2,
   Power,
-  FolderGit2,
   PanelLeftClose,
+  MoreVertical,
+  Pencil,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, ComponentType } from '../types';
 
@@ -28,9 +28,10 @@ interface LeftSidebarProps {
   onAddNode: (type: ComponentType, name: string) => void;
   onDeleteNode: (nodeId: string) => void;
   onToggleNode: (nodeId: string) => void;
-  onRestoreOriginal: () => void;
+  onRestoreOriginal?: () => void;
   onOpenImportRepo?: () => void;
   onToggleCollapse?: () => void;
+  onUpdateNode?: (node: ArchitectureNode) => void;
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -46,11 +47,34 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onAddNode,
   onDeleteNode,
   onToggleNode,
-  onRestoreOriginal,
-  onOpenImportRepo,
   onToggleCollapse,
+  onUpdateNode,
 }) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [openMenuNodeId, setOpenMenuNodeId] = useState<string | null>(null);
+  const [renamingNodeId, setRenamingNodeId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState<string>('');
+
+  useEffect(() => {
+    const handleDocumentClick = () => {
+      setOpenMenuNodeId(null);
+    };
+    if (openMenuNodeId) {
+      document.addEventListener('click', handleDocumentClick);
+      return () => document.removeEventListener('click', handleDocumentClick);
+    }
+  }, [openMenuNodeId]);
+
+  const handleSaveRename = (nodeId: string) => {
+    const trimmed = renameValue.trim();
+    if (trimmed && onUpdateNode) {
+      const target = nodes.find((n) => n.id === nodeId);
+      if (target && target.name !== trimmed) {
+        onUpdateNode({ ...target, name: trimmed });
+      }
+    }
+    setRenamingNodeId(null);
+  };
 
   const getStatusColor = (nodeId: string, enabled: boolean) => {
     if (!enabled) return 'bg-slate-300';
@@ -64,7 +88,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     <aside className="w-full bg-white border-r border-slate-200 flex flex-col h-full shrink-0 select-none z-10 text-xs overflow-hidden">
       {/* Simulation Controls Section */}
       <div className="p-3.5 border-b border-slate-200 space-y-4 bg-slate-50/50">
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
             <Sliders className="w-3.5 h-3.5 text-indigo-600" />
             Traffic Generator
@@ -83,7 +107,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               </button>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Traffic Rate Slider & Input */}
         <div className="space-y-1.5">
@@ -235,28 +259,46 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           const isSelected = selectedNodeId === node.id;
           const res = nodeResults[node.id];
           const isSource = node.type === 'load_generator';
+          const isMenuOpen = openMenuNodeId === node.id;
+          const isRenaming = renamingNodeId === node.id;
 
           return (
             <div
               key={node.id}
               onClick={() => onSelectNode(node.id)}
-              className={`p-2.5 flex items-center justify-between cursor-pointer transition-colors ${
+              className={`p-2.5 flex items-center justify-between cursor-pointer transition-colors relative ${
                 isSelected
                   ? 'bg-indigo-50/70 border-l-2 border-indigo-600'
                   : 'hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
                 <span
                   className={`w-2 h-2 rounded-full shrink-0 ${getStatusColor(
                     node.id,
                     node.enabled
                   )}`}
                 />
-                <div className="truncate">
-                  <span className="font-semibold text-slate-800 text-xs block truncate">
-                    {node.name}
-                  </span>
+                <div className="truncate flex-1">
+                  {isRenaming ? (
+                    <input
+                      type="text"
+                      value={renameValue}
+                      autoFocus
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveRename(node.id);
+                        if (e.key === 'Escape') setRenamingNodeId(null);
+                      }}
+                      onBlur={() => handleSaveRename(node.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full font-semibold text-slate-800 text-xs px-1.5 py-0.5 rounded border border-indigo-500 bg-white shadow-2xs focus:outline-none"
+                    />
+                  ) : (
+                    <span className="font-semibold text-slate-800 text-xs block truncate">
+                      {node.name}
+                    </span>
+                  )}
                   <span className="text-[10px] text-slate-400 flex items-center gap-1 font-mono">
                     {node.workerCount}w · {node.capacityPerSecond} r/s
                   </span>
@@ -265,39 +307,83 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
               {/* Quick Action Buttons */}
               <div className="flex items-center gap-1 shrink-0">
-                {res && (
+                {/* {res && (
                   <span className="font-mono text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
                     {res.offeredUtilization.toFixed(0)}%
                   </span>
-                )}
-                {!isSource && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleNode(node.id);
-                      }}
-                      className={`p-1 rounded transition-colors ${
-                        node.enabled
-                          ? 'text-slate-400 hover:text-slate-600'
-                          : 'text-red-500 hover:text-red-700'
-                      }`}
-                      title={node.enabled ? 'Disable component' : 'Enable component'}
+                )} */}
+                {/* Three-dots menu */}
+                <div
+                  className="relative"
+                  onMouseEnter={() => setOpenMenuNodeId(node.id)}
+                  onMouseLeave={() => setOpenMenuNodeId(null)}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuNodeId(isMenuOpen ? null : node.id);
+                    }}
+                    className={`p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer ${
+                      isMenuOpen ? 'bg-slate-200/80 text-slate-800' : ''
+                    }`}
+                    title="Component options"
+                  >
+                    <MoreVertical className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Dropdown Menu (hover or tap) */}
+                  {isMenuOpen && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30 text-left"
                     >
-                      <Power className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteNode(node.id);
-                      }}
-                      className="p-1 rounded text-slate-300 hover:text-red-600 transition-colors"
-                      title="Delete component"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </>
-                )}
+                      {/* Rename Option */}
+                      <button
+                        onClick={() => {
+                          setRenamingNodeId(node.id);
+                          setRenameValue(node.name);
+                          setOpenMenuNodeId(null);
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition-colors text-left cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Rename</span>
+                      </button>
+
+                      {/* Power Off / Power On Option */}
+                      {!isSource && (
+                        <button
+                          onClick={() => {
+                            onToggleNode(node.id);
+                            setOpenMenuNodeId(null);
+                          }}
+                          className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-xs transition-colors text-left cursor-pointer ${
+                            node.enabled
+                              ? 'text-amber-700 hover:bg-amber-50'
+                              : 'text-emerald-700 hover:bg-emerald-50'
+                          }`}
+                        >
+                          <Power className="w-3.5 h-3.5" />
+                          <span>{node.enabled ? 'Power Off' : 'Power On'}</span>
+                        </button>
+                      )}
+
+                      {/* Delete Option */}
+                      {!isSource && (
+                        <button
+                          onClick={() => {
+                            onDeleteNode(node.id);
+                            setOpenMenuNodeId(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors text-left cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
