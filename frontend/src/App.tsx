@@ -18,11 +18,55 @@ import { BottleneckList } from './components/BottleneckList';
 import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { ScrollTimeline } from './components/lightswind/scroll-timeline';
+import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Navigation mode: 'landing' | 'simulator'
   const [currentView, setCurrentView] = useState<'landing' | 'simulator'>('landing');
+
+  // Theme state: light | dark with persistence & system preference detection
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('gitoscale-theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      const saved = localStorage.getItem('gitoscale-theme');
+      if (!saved) {
+        setIsDark(e.matches);
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const handleToggleTheme = useCallback(() => {
+    setIsDark((prev) => {
+      const next = !prev;
+      localStorage.setItem('gitoscale-theme', next ? 'dark' : 'light');
+      return next;
+    });
+  }, []);
+
+  // Sidebar collapse states
+  const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(false);
+  const [isRightCollapsed, setIsRightCollapsed] = useState<boolean>(false);
 
   // Fixture states
   const [defaultArchitecture, setDefaultArchitecture] = useState<ArchitectureFixture | null>(null);
@@ -48,6 +92,16 @@ export const App: React.FC = () => {
   const [isRunning, setIsRunning] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSelectNode = useCallback(
+    (id: string | null) => {
+      setSelectedNodeId(id);
+      if (id && isRightCollapsed) {
+        setIsRightCollapsed(false);
+      }
+    },
+    [isRightCollapsed]
+  );
 
   // Baseline comparison
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
@@ -278,12 +332,22 @@ export const App: React.FC = () => {
     queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
   };
 
+  const handleUpdateEdge = useCallback(
+    (edgeId: string, updates: Partial<ArchitectureEdge>) => {
+      const updated = edges.map((e) => (e.id === edgeId ? { ...e, ...updates } : e));
+      setEdges(updated);
+      if (viewMode === 'detailed' && detailedGraphCacheRef.current) {
+        detailedGraphCacheRef.current.edges = updated;
+      } else if (viewMode === 'basic' && basicGraphCacheRef.current) {
+        basicGraphCacheRef.current.edges = updated;
+      }
+      queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
+    },
+    [edges, nodes, incomingTrafficRate, durationSeconds, viewMode, queueSimulation]
+  );
+
   const handleUpdateEdgeMultiplier = (edgeId: string, multiplier: number) => {
-    const updated = edges.map((e) =>
-      e.id === edgeId ? { ...e, requestsPerInput: multiplier } : e
-    );
-    setEdges(updated);
-    queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
+    handleUpdateEdge(edgeId, { requestsPerInput: multiplier });
   };
 
   // 5. Reset to current scenario fixture
@@ -395,8 +459,10 @@ export const App: React.FC = () => {
 
   if (currentView === 'landing') {
     return (
-      <>
+      <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#0A0A0A]">
         <LandingPage
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
           onSelectTestSite={() => {
             setCurrentView('simulator');
             if (defaultArchitecture && nodes.length === 0) {
@@ -406,7 +472,18 @@ export const App: React.FC = () => {
           onSelectUseRepository={() => {
             setIsImportRepoOpen(true);
           }}
-        />
+        >
+          {/* Scroll Timeline Component */}
+          <section className="w-full py-8 border-t border-slate-200/80 dark:border-neutral-800 bg-slate-50/50 dark:bg-[#0A0A0A]">
+            <ScrollTimeline
+              title="Simulation & Scaling Journey"
+              subtitle="Scroll down to explore how GitToScale maps architectures, injects traffic, and pinpoints system bottlenecks"
+              cardEffect="shadow"
+              cardVariant="elevated"
+              darkMode={isDark}
+            />
+          </section>
+        </LandingPage>
         <RepositoryImportModal
           isOpen={isImportRepoOpen}
           onClose={() => setIsImportRepoOpen(false)}
@@ -415,12 +492,12 @@ export const App: React.FC = () => {
             setCurrentView('simulator');
           }}
         />
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 font-sans">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 dark:bg-slate-950 font-sans">
       {/* 1. Header */}
       <Header
         scenarios={scenarios}
@@ -441,6 +518,8 @@ export const App: React.FC = () => {
         onGoHome={() => setCurrentView('landing')}
         viewMode={viewMode}
         onToggleViewMode={handleToggleViewMode}
+        isDark={isDark}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* 2. Top Metrics Strip */}
@@ -448,14 +527,14 @@ export const App: React.FC = () => {
 
       {/* Error Banner */}
       {error && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-2 flex items-center justify-between text-xs text-red-700 z-20">
+        <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/50 px-4 py-2 flex items-center justify-between text-xs text-red-700 dark:text-red-300 z-20">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={() => triggerSimulation(nodes, edges, incomingTrafficRate, durationSeconds)}
-            className="flex items-center gap-1 font-semibold text-red-800 hover:underline cursor-pointer"
+            className="flex items-center gap-1 font-semibold text-red-800 dark:text-red-300 hover:underline cursor-pointer"
           >
             <RefreshCw className="w-3 h-3" /> Retry
           </button>
@@ -465,69 +544,111 @@ export const App: React.FC = () => {
       {/* 3. Three-Section Workspace */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left Panel: Component List & Traffic Controls */}
-        <LeftSidebar
-          incomingTrafficRate={incomingTrafficRate}
-          onChangeTrafficRate={handleTrafficChange}
-          durationSeconds={durationSeconds}
-          onChangeDuration={handleDurationChange}
-          nodes={nodes}
-          edges={edges}
-          nodeResults={simulationResult?.nodeResults || {}}
-          selectedNodeId={selectedNodeId}
-          onSelectNode={(id) => setSelectedNodeId(id)}
-          onAddNode={handleAddNode}
-          onDeleteNode={handleDeleteNode}
-          onToggleNode={handleToggleNode}
-          onRestoreOriginal={handleRestoreOriginal}
-          onOpenImportRepo={() => setIsImportRepoOpen(true)}
-        />
+        <div
+          className={`transition-all duration-300 ease-in-out flex shrink-0 z-10 overflow-hidden ${
+            isLeftCollapsed ? 'w-0' : 'w-72'
+          }`}
+        >
+          <div className="w-72 h-full flex flex-col">
+            <LeftSidebar
+              incomingTrafficRate={incomingTrafficRate}
+              onChangeTrafficRate={handleTrafficChange}
+              durationSeconds={durationSeconds}
+              onChangeDuration={handleDurationChange}
+              nodes={nodes}
+              edges={edges}
+              nodeResults={simulationResult?.nodeResults || {}}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={handleSelectNode}
+              onAddNode={handleAddNode}
+              onDeleteNode={handleDeleteNode}
+              onToggleNode={handleToggleNode}
+              onRestoreOriginal={handleRestoreOriginal}
+              onOpenImportRepo={() => setIsImportRepoOpen(true)}
+              onToggleCollapse={() => setIsLeftCollapsed(true)}
+              onUpdateNode={handleUpdateNode}
+            />
+          </div>
+        </div>
 
         {/* Center Canvas: Interactive Architecture Diagram */}
-        <main className="flex-1 h-full relative overflow-hidden bg-slate-50">
+        <main className="flex-1 h-full relative overflow-hidden bg-slate-50 dark:bg-slate-950">
+          {/* Re-expand trigger for left sidebar */}
+          {isLeftCollapsed && (
+            <button
+              onClick={() => setIsLeftCollapsed(false)}
+              className="absolute left-2.5 top-2.5 z-30 p-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
+              title="Expand left sidebar"
+            >
+              <PanelLeftOpen className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Re-expand trigger for right sidebar */}
+          {isRightCollapsed && (
+            <button
+              onClick={() => setIsRightCollapsed(false)}
+              className="absolute right-2.5 top-2.5 z-30 p-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
+              title="Expand right sidebar"
+            >
+              <PanelRightOpen className="w-4 h-4" />
+            </button>
+          )}
+
           <ArchitectureCanvas
             nodes={nodes}
             edges={edges}
             nodeResults={simulationResult?.nodeResults || {}}
             edgeResults={simulationResult?.edgeResults || {}}
             selectedNodeId={selectedNodeId}
-            onSelectNode={(id) => setSelectedNodeId(id)}
+            onSelectNode={handleSelectNode}
             onNodesChangePosition={handleNodesPositionChange}
             onAddEdge={handleAddEdge}
             onToggleEdge={handleToggleEdge}
             onDeleteEdge={handleDeleteEdge}
+            onUpdateEdge={handleUpdateEdge}
             viewMode={viewMode}
             onToggleViewMode={handleToggleViewMode}
+            isDark={isDark}
           />
         </main>
 
         {/* Right Panel: Selected Component Inspector OR Results & Bottlenecks */}
-        <aside className="w-80 bg-white border-l border-slate-200 h-full flex flex-col shrink-0 z-10 overflow-hidden shadow-xs">
-          {selectedNode ? (
-            <ComponentInspector
-              node={selectedNode}
-              result={selectedNodeResult}
-              edges={edges}
-              onClose={() => setSelectedNodeId(null)}
-              onUpdateNode={handleUpdateNode}
-              onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
-              onDeleteEdge={handleDeleteEdge}
-              onChangeIncomingTrafficRate={
-                selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
-              }
-              incomingTrafficRate={incomingTrafficRate}
-              onNavigateToParent={handleNavigateToParent}
-              viewMode={viewMode}
-              allNodes={nodes}
-            />
-          ) : (
-            <BottleneckList
-              simulationResult={simulationResult}
-              nodes={nodes}
-              onSelectNode={(id) => setSelectedNodeId(id)}
-              selectedNodeId={selectedNodeId}
-            />
-          )}
-        </aside>
+        <div
+          className={`transition-all duration-300 ease-in-out flex shrink-0 z-10 overflow-hidden ${
+            isRightCollapsed ? 'w-0' : 'w-80'
+          }`}
+        >
+          <aside className="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 h-full flex flex-col shrink-0 overflow-hidden shadow-xs">
+            {selectedNode ? (
+              <ComponentInspector
+                node={selectedNode}
+                result={selectedNodeResult}
+                edges={edges}
+                onClose={() => setSelectedNodeId(null)}
+                onUpdateNode={handleUpdateNode}
+                onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+                onDeleteEdge={handleDeleteEdge}
+                onChangeIncomingTrafficRate={
+                  selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
+                }
+                incomingTrafficRate={incomingTrafficRate}
+                onNavigateToParent={handleNavigateToParent}
+                viewMode={viewMode}
+                allNodes={nodes}
+                onToggleCollapse={() => setIsRightCollapsed(true)}
+              />
+            ) : (
+              <BottleneckList
+                simulationResult={simulationResult}
+                nodes={nodes}
+                onSelectNode={handleSelectNode}
+                selectedNodeId={selectedNodeId}
+                onToggleCollapse={() => setIsRightCollapsed(true)}
+              />
+            )}
+          </aside>
+        </div>
       </div>
 
       {/* Baseline Comparison Modal */}

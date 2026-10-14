@@ -45,6 +45,7 @@ export interface ArchitectureEdge {
   label?: string;
   dataFlowDescription?: string;
   communicationType?: string;
+  customColor?: string;
 }
 
 export interface ArchitectureFixture {

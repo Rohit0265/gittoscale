@@ -31,7 +31,9 @@ export const architectureEdgeSchema = z.object({
   isBidirectional: z.boolean().optional(),
   label: z.string().optional(),
   dataFlowDescription: z.string().optional(),
-});
+  communicationType: z.string().optional(),
+  customColor: z.string().optional(),
+}).passthrough();
 
 export const simulationInputSchema = z.object({
   architectureId: z.string().optional(),
