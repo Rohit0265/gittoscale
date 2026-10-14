@@ -1,5 +1,17 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, GitCompare, Activity, Sparkles, FolderGit2, Layers, Network } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  GitCompare,
+  Activity,
+  Sparkles,
+  FolderGit2,
+  Layers,
+  Network,
+  PanelLeft,
+  PanelRight,
+} from 'lucide-react';
 import { ScenarioFixture } from '../types';
 
 interface HeaderProps {
@@ -15,6 +27,10 @@ interface HeaderProps {
   onGoHome?: () => void;
   viewMode?: 'basic' | 'detailed';
   onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
+  isLeftCollapsed?: boolean;
+  isRightCollapsed?: boolean;
+  onToggleLeft?: () => void;
+  onToggleRight?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,6 +46,10 @@ export const Header: React.FC<HeaderProps> = ({
   onGoHome,
   viewMode = 'basic',
   onToggleViewMode,
+  isLeftCollapsed,
+  isRightCollapsed,
+  onToggleLeft,
+  onToggleRight,
 }) => {
   const currentScenario = scenarios.find((s) => s.id === currentScenarioId);
 
@@ -163,12 +183,44 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Compare / Baseline button */}
         <button
           onClick={onOpenCompare}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100 transition-all shadow-sm"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100 transition-all shadow-sm cursor-pointer"
           title="Compare current architecture metrics against saved baseline"
         >
           <GitCompare className="w-3.5 h-3.5 text-indigo-600" />
           {hasBaseline ? 'Compare Baseline' : 'Set Baseline'}
         </button>
+
+        {/* Sidebar Panel Toggles */}
+        {(onToggleLeft || onToggleRight) && (
+          <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
+            {onToggleLeft && (
+              <button
+                onClick={onToggleLeft}
+                className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
+                  !isLeftCollapsed
+                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
+                    : 'bg-white border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                }`}
+                title={isLeftCollapsed ? 'Expand Left Sidebar (Traffic & Components)' : 'Collapse Left Sidebar'}
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
+            )}
+            {onToggleRight && (
+              <button
+                onClick={onToggleRight}
+                className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
+                  !isRightCollapsed
+                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
+                    : 'bg-white border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                }`}
+                title={isRightCollapsed ? 'Expand Right Sidebar (Analysis & Bottlenecks)' : 'Collapse Right Sidebar'}
+              >
+                <PanelRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );

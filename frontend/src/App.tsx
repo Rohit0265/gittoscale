@@ -19,11 +19,15 @@ import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
 import { ScrollTimeline } from './components/lightswind/scroll-timeline';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Navigation mode: 'landing' | 'simulator'
   const [currentView, setCurrentView] = useState<'landing' | 'simulator'>('landing');
+
+  // Sidebar collapse states
+  const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(false);
+  const [isRightCollapsed, setIsRightCollapsed] = useState<boolean>(false);
 
   // Fixture states
   const [defaultArchitecture, setDefaultArchitecture] = useState<ArchitectureFixture | null>(null);
@@ -49,6 +53,16 @@ export const App: React.FC = () => {
   const [isRunning, setIsRunning] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSelectNode = useCallback(
+    (id: string | null) => {
+      setSelectedNodeId(id);
+      if (id && isRightCollapsed) {
+        setIsRightCollapsed(false);
+      }
+    },
+    [isRightCollapsed]
+  );
 
   // Baseline comparison
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
@@ -452,6 +466,10 @@ export const App: React.FC = () => {
         onGoHome={() => setCurrentView('landing')}
         viewMode={viewMode}
         onToggleViewMode={handleToggleViewMode}
+        isLeftCollapsed={isLeftCollapsed}
+        isRightCollapsed={isRightCollapsed}
+        onToggleLeft={() => setIsLeftCollapsed(!isLeftCollapsed)}
+        onToggleRight={() => setIsRightCollapsed(!isRightCollapsed)}
       />
 
       {/* 2. Top Metrics Strip */}
@@ -476,32 +494,65 @@ export const App: React.FC = () => {
       {/* 3. Three-Section Workspace */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left Panel: Component List & Traffic Controls */}
-        <LeftSidebar
-          incomingTrafficRate={incomingTrafficRate}
-          onChangeTrafficRate={handleTrafficChange}
-          durationSeconds={durationSeconds}
-          onChangeDuration={handleDurationChange}
-          nodes={nodes}
-          edges={edges}
-          nodeResults={simulationResult?.nodeResults || {}}
-          selectedNodeId={selectedNodeId}
-          onSelectNode={(id) => setSelectedNodeId(id)}
-          onAddNode={handleAddNode}
-          onDeleteNode={handleDeleteNode}
-          onToggleNode={handleToggleNode}
-          onRestoreOriginal={handleRestoreOriginal}
-          onOpenImportRepo={() => setIsImportRepoOpen(true)}
-        />
+        <div
+          className={`transition-all duration-300 ease-in-out flex shrink-0 z-10 overflow-hidden ${
+            isLeftCollapsed ? 'w-0' : 'w-72'
+          }`}
+        >
+          <div className="w-72 h-full flex flex-col">
+            <LeftSidebar
+              incomingTrafficRate={incomingTrafficRate}
+              onChangeTrafficRate={handleTrafficChange}
+              durationSeconds={durationSeconds}
+              onChangeDuration={handleDurationChange}
+              nodes={nodes}
+              edges={edges}
+              nodeResults={simulationResult?.nodeResults || {}}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={handleSelectNode}
+              onAddNode={handleAddNode}
+              onDeleteNode={handleDeleteNode}
+              onToggleNode={handleToggleNode}
+              onRestoreOriginal={handleRestoreOriginal}
+              onOpenImportRepo={() => setIsImportRepoOpen(true)}
+              onToggleCollapse={() => setIsLeftCollapsed(true)}
+            />
+          </div>
+        </div>
 
         {/* Center Canvas: Interactive Architecture Diagram */}
         <main className="flex-1 h-full relative overflow-hidden bg-slate-50">
+          {/* Floating trigger to expand left sidebar when collapsed */}
+          {isLeftCollapsed && (
+            <button
+              onClick={() => setIsLeftCollapsed(false)}
+              className="absolute left-3 top-3 z-30 flex items-center gap-1.5 px-2.5 py-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm hover:shadow transition-all text-xs font-semibold cursor-pointer group"
+              title="Expand Traffic & Components panel"
+            >
+              <PanelLeftOpen className="w-4 h-4 text-slate-500 group-hover:text-indigo-600" />
+              <span>Traffic & Components</span>
+            </button>
+          )}
+
+          {/* Floating trigger to expand right sidebar when collapsed */}
+          {isRightCollapsed && (
+            <button
+              onClick={() => setIsRightCollapsed(false)}
+              className="absolute right-3 top-3 z-30 flex items-center gap-1.5 px-2.5 py-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm hover:shadow transition-all text-xs font-semibold cursor-pointer group"
+              title="Expand Analysis & Bottlenecks panel"
+            >
+              <span>{selectedNode ? 'Component Inspector' : 'Analysis & Bottlenecks'}</span>
+              <PanelRightOpen className="w-4 h-4 text-slate-500 group-hover:text-indigo-600" />
+            </button>
+          )}
+
           <ArchitectureCanvas
             nodes={nodes}
             edges={edges}
             nodeResults={simulationResult?.nodeResults || {}}
             edgeResults={simulationResult?.edgeResults || {}}
             selectedNodeId={selectedNodeId}
-            onSelectNode={(id) => setSelectedNodeId(id)}
+            onSelectNode={handleSelectNode}
             onNodesChangePosition={handleNodesPositionChange}
             onAddEdge={handleAddEdge}
             onToggleEdge={handleToggleEdge}
@@ -512,33 +563,41 @@ export const App: React.FC = () => {
         </main>
 
         {/* Right Panel: Selected Component Inspector OR Results & Bottlenecks */}
-        <aside className="w-80 bg-white border-l border-slate-200 h-full flex flex-col shrink-0 z-10 overflow-hidden shadow-xs">
-          {selectedNode ? (
-            <ComponentInspector
-              node={selectedNode}
-              result={selectedNodeResult}
-              edges={edges}
-              onClose={() => setSelectedNodeId(null)}
-              onUpdateNode={handleUpdateNode}
-              onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
-              onDeleteEdge={handleDeleteEdge}
-              onChangeIncomingTrafficRate={
-                selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
-              }
-              incomingTrafficRate={incomingTrafficRate}
-              onNavigateToParent={handleNavigateToParent}
-              viewMode={viewMode}
-              allNodes={nodes}
-            />
-          ) : (
-            <BottleneckList
-              simulationResult={simulationResult}
-              nodes={nodes}
-              onSelectNode={(id) => setSelectedNodeId(id)}
-              selectedNodeId={selectedNodeId}
-            />
-          )}
-        </aside>
+        <div
+          className={`transition-all duration-300 ease-in-out flex shrink-0 z-10 overflow-hidden ${
+            isRightCollapsed ? 'w-0' : 'w-80'
+          }`}
+        >
+          <aside className="w-80 bg-white border-l border-slate-200 h-full flex flex-col shrink-0 overflow-hidden shadow-xs">
+            {selectedNode ? (
+              <ComponentInspector
+                node={selectedNode}
+                result={selectedNodeResult}
+                edges={edges}
+                onClose={() => setSelectedNodeId(null)}
+                onUpdateNode={handleUpdateNode}
+                onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+                onDeleteEdge={handleDeleteEdge}
+                onChangeIncomingTrafficRate={
+                  selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
+                }
+                incomingTrafficRate={incomingTrafficRate}
+                onNavigateToParent={handleNavigateToParent}
+                viewMode={viewMode}
+                allNodes={nodes}
+                onToggleCollapse={() => setIsRightCollapsed(true)}
+              />
+            ) : (
+              <BottleneckList
+                simulationResult={simulationResult}
+                nodes={nodes}
+                onSelectNode={handleSelectNode}
+                selectedNodeId={selectedNodeId}
+                onToggleCollapse={() => setIsRightCollapsed(true)}
+              />
+            )}
+          </aside>
+        </div>
       </div>
 
       {/* Baseline Comparison Modal */}

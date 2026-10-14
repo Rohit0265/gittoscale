@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   TrendingUp,
   ChevronRight,
+  PanelRightClose,
 } from 'lucide-react';
 import {
   SimulationResult,
@@ -17,6 +18,7 @@ interface BottleneckListProps {
   nodes: ArchitectureNode[];
   onSelectNode: (nodeId: string) => void;
   selectedNodeId: string | null;
+  onToggleCollapse?: () => void;
 }
 
 export const BottleneckList: React.FC<BottleneckListProps> = ({
@@ -24,6 +26,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
   nodes,
   onSelectNode,
   selectedNodeId,
+  onToggleCollapse,
 }) => {
   const [activeTab, setActiveTab] = useState<'bottlenecks' | 'charts' | 'utilization'>(
     'bottlenecks'
@@ -31,8 +34,24 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
 
   if (!simulationResult) {
     return (
-      <div className="p-6 text-center text-slate-400 text-xs">
-        Run simulation to see performance bottlenecks.
+      <div className="flex flex-col h-full text-xs bg-white">
+        <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <span className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+            Analysis & Bottlenecks
+          </span>
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              title="Collapse sidebar"
+              className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 rounded transition-colors cursor-pointer"
+            >
+              <PanelRightClose className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="p-6 text-center text-slate-400 text-xs">
+          Run simulation to see performance bottlenecks.
+        </div>
       </div>
     );
   }
@@ -48,17 +67,28 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
           <span className="font-bold text-slate-800 text-xs uppercase tracking-wider">
             Analysis & Bottlenecks
           </span>
-          <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-              metrics.overloadedCount > 0
-                ? 'bg-red-100 text-red-700'
-                : 'bg-emerald-100 text-emerald-700'
-            }`}
-          >
-            {metrics.overloadedCount > 0
-              ? `${metrics.overloadedCount} Overloaded`
-              : 'All Systems Normal'}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                metrics.overloadedCount > 0
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-emerald-100 text-emerald-700'
+              }`}
+            >
+              {metrics.overloadedCount > 0
+                ? `${metrics.overloadedCount} Overloaded`
+                : 'All Systems Normal'}
+            </span>
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                title="Collapse sidebar"
+                className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 rounded transition-colors cursor-pointer"
+              >
+                <PanelRightClose className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab switch */}

@@ -11,6 +11,7 @@ import {
   Trash2,
   Power,
   FolderGit2,
+  PanelLeftClose,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, ComponentType } from '../types';
 
@@ -29,6 +30,7 @@ interface LeftSidebarProps {
   onToggleNode: (nodeId: string) => void;
   onRestoreOriginal: () => void;
   onOpenImportRepo?: () => void;
+  onToggleCollapse?: () => void;
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -46,6 +48,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onToggleNode,
   onRestoreOriginal,
   onOpenImportRepo,
+  onToggleCollapse,
 }) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
 
@@ -58,7 +61,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   };
 
   return (
-    <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 select-none z-10 text-xs overflow-hidden">
+    <aside className="w-full bg-white border-r border-slate-200 flex flex-col h-full shrink-0 select-none z-10 text-xs overflow-hidden">
       {/* Simulation Controls Section */}
       <div className="p-3.5 border-b border-slate-200 space-y-4 bg-slate-50/50">
         <div className="flex items-center justify-between">
@@ -66,9 +69,20 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <Sliders className="w-3.5 h-3.5 text-indigo-600" />
             Traffic Generator
           </span>
-          <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 text-xs">
-            {incomingTrafficRate.toLocaleString()} req/s
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 text-xs">
+              {incomingTrafficRate.toLocaleString()} req/s
+            </span>
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                title="Collapse sidebar"
+                className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 rounded transition-colors cursor-pointer"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Traffic Rate Slider & Input */}

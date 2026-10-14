@@ -10,6 +10,7 @@ import {
   AlertOctagon,
   AlertTriangle,
   Trash2,
+  PanelRightClose,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult } from '../types';
 
@@ -26,6 +27,7 @@ interface ComponentInspectorProps {
   onNavigateToParent?: (parentId: string) => void;
   viewMode?: 'basic' | 'detailed';
   allNodes?: ArchitectureNode[];
+  onToggleCollapse?: () => void;
 }
 
 export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
@@ -41,6 +43,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
   onNavigateToParent,
   viewMode,
   allNodes = [],
+  onToggleCollapse,
 }) => {
   const isSource = node.type === 'load_generator';
   const outgoingEdges = edges.filter((e) => e.source === node.id);
@@ -110,12 +113,24 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           </span>
           <h3 className="font-bold text-sm text-slate-800">{node.name}</h3>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              title="Collapse sidebar"
+              className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+            >
+              <PanelRightClose className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            title="Close inspector"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
