@@ -189,3 +189,50 @@
     max-width: 100%;
   }
 }
+
+/* Dark mode overrides */
+.dark .gts-footer-container {
+  background-color: #020617;
+  color: #f1f5f9;
+  border-top: 1px solid #1e293b;
+}
+
+.dark .gts-column-title {
+  color: #f8fafc;
+}
+
+.dark .gts-column-link {
+  color: #94a3b8;
+}
+
+.dark .gts-column-link:hover {
+  color: #ffffff;
+}
+
+.dark .gts-brand-logo {
+  background-color: #4f46e5;
+}
+
+.dark .gts-brand-name {
+  color: #f8fafc;
+}
+
+.dark .gts-brand-desc {
+  color: #94a3b8;
+}
+
+.dark .gts-divider {
+  border-top: 1px solid #1e293b;
+}
+
+.dark .gts-copyright {
+  color: #64748b;
+}
+
+.dark .gts-watermark-text {
+  color: #020617;
+  text-shadow:
+    0 1px 0 #0f172a,
+    0 2px 0 #1e293b,
+    0 4px 14px rgba(0, 0, 0, 0.6);
+}

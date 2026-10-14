@@ -13,42 +13,71 @@ import { TimeSeriesSample } from '../types';
 
 interface TimeSeriesChartProps {
   data: TimeSeriesSample[];
+  isDark?: boolean;
 }
 
-export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
+export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data, isDark: propIsDark }) => {
+  const [isDark, setIsDark] = React.useState(() => {
+    if (typeof propIsDark === 'boolean') return propIsDark;
+    return typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  });
+
+  React.useEffect(() => {
+    if (typeof propIsDark === 'boolean') {
+      setIsDark(propIsDark);
+      return;
+    }
+    const checkDark = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDark();
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [propIsDark]);
+
   if (!data || data.length === 0) {
     return (
-      <div className="h-44 flex items-center justify-center text-xs text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+      <div className="h-44 flex items-center justify-center text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
         No simulation data available
       </div>
     );
   }
 
+  const gridStroke = isDark ? '#334155' : '#f1f5f9';
+  const axisTickColor = isDark ? '#94a3b8' : '#64748b';
+  const tooltipBg = isDark ? '#1e293b' : '#ffffff';
+  const tooltipBorder = isDark ? '#334155' : '#e2e8f0';
+  const tooltipColor = isDark ? '#f8fafc' : '#0f172a';
+
   return (
     <div className="space-y-4">
       {/* Throughput Chart */}
-      <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-        <span className="text-[11px] font-bold text-slate-700 block mb-2">
+      <div className="bg-white dark:bg-slate-800/60 p-3 rounded-lg border border-slate-200 dark:border-slate-700/80 shadow-xs">
+        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 block mb-2">
           Throughput Dynamics (req/s)
         </span>
         <div className="h-36 w-full text-[10px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
               <XAxis
                 dataKey="time"
                 unit="s"
-                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                tick={{ fill: axisTickColor, fontSize: 10 }}
                 tickLine={false}
               />
-              <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} />
+              <YAxis tick={{ fill: axisTickColor, fontSize: 10 }} tickLine={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#ffffff',
-                  borderColor: '#e2e8f0',
+                  backgroundColor: tooltipBg,
+                  borderColor: tooltipBorder,
+                  color: tooltipColor,
                   borderRadius: '6px',
                   fontSize: '11px',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  boxShadow: isDark
+                    ? '0 4px 12px -2px rgba(0, 0, 0, 0.5)'
+                    : '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                 }}
               />
               <Legend wrapperStyle={{ fontSize: '10px' }} />
@@ -74,28 +103,31 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
       </div>
 
       {/* Queue & Dropped Requests Chart */}
-      <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-        <span className="text-[11px] font-bold text-slate-700 block mb-2">
+      <div className="bg-white dark:bg-slate-800/60 p-3 rounded-lg border border-slate-200 dark:border-slate-700/80 shadow-xs">
+        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 block mb-2">
           Queue Accumulation & Rejections
         </span>
         <div className="h-36 w-full text-[10px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
               <XAxis
                 dataKey="time"
                 unit="s"
-                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                tick={{ fill: axisTickColor, fontSize: 10 }}
                 tickLine={false}
               />
-              <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} />
+              <YAxis tick={{ fill: axisTickColor, fontSize: 10 }} tickLine={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#ffffff',
-                  borderColor: '#e2e8f0',
+                  backgroundColor: tooltipBg,
+                  borderColor: tooltipBorder,
+                  color: tooltipColor,
                   borderRadius: '6px',
                   fontSize: '11px',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  boxShadow: isDark
+                    ? '0 4px 12px -2px rgba(0, 0, 0, 0.5)'
+                    : '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                 }}
               />
               <Legend wrapperStyle={{ fontSize: '10px' }} />

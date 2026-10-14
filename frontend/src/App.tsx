@@ -25,6 +25,45 @@ export const App: React.FC = () => {
   // Navigation mode: 'landing' | 'simulator'
   const [currentView, setCurrentView] = useState<'landing' | 'simulator'>('landing');
 
+  // Theme state: light | dark with persistence & system preference detection
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('gitoscale-theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      const saved = localStorage.getItem('gitoscale-theme');
+      if (!saved) {
+        setIsDark(e.matches);
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const handleToggleTheme = useCallback(() => {
+    setIsDark((prev) => {
+      const next = !prev;
+      localStorage.setItem('gitoscale-theme', next ? 'dark' : 'light');
+      return next;
+    });
+  }, []);
+
   // Sidebar collapse states
   const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(false);
   const [isRightCollapsed, setIsRightCollapsed] = useState<boolean>(false);
@@ -410,8 +449,10 @@ export const App: React.FC = () => {
 
   if (currentView === 'landing') {
     return (
-      <div className="min-h-screen w-full flex flex-col">
+      <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-slate-950">
         <LandingPage
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
           onSelectTestSite={() => {
             setCurrentView('simulator');
             if (defaultArchitecture && nodes.length === 0) {
@@ -423,12 +464,13 @@ export const App: React.FC = () => {
           }}
         >
           {/* Scroll Timeline Component */}
-          <section className="w-full py-8 border-t border-slate-200/80 bg-slate-50/50">
+          <section className="w-full py-8 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
             <ScrollTimeline
               title="Simulation & Scaling Journey"
               subtitle="Scroll down to explore how GitToScale maps architectures, injects traffic, and pinpoints system bottlenecks"
               cardEffect="shadow"
               cardVariant="elevated"
+              darkMode={isDark}
             />
           </section>
         </LandingPage>
@@ -445,7 +487,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 font-sans">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 dark:bg-slate-950 font-sans">
       {/* 1. Header */}
       <Header
         scenarios={scenarios}
@@ -466,6 +508,8 @@ export const App: React.FC = () => {
         onGoHome={() => setCurrentView('landing')}
         viewMode={viewMode}
         onToggleViewMode={handleToggleViewMode}
+        isDark={isDark}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* 2. Top Metrics Strip */}
@@ -473,14 +517,14 @@ export const App: React.FC = () => {
 
       {/* Error Banner */}
       {error && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-2 flex items-center justify-between text-xs text-red-700 z-20">
+        <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/50 px-4 py-2 flex items-center justify-between text-xs text-red-700 dark:text-red-300 z-20">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={() => triggerSimulation(nodes, edges, incomingTrafficRate, durationSeconds)}
-            className="flex items-center gap-1 font-semibold text-red-800 hover:underline cursor-pointer"
+            className="flex items-center gap-1 font-semibold text-red-800 dark:text-red-300 hover:underline cursor-pointer"
           >
             <RefreshCw className="w-3 h-3" /> Retry
           </button>
@@ -518,12 +562,12 @@ export const App: React.FC = () => {
         </div>
 
         {/* Center Canvas: Interactive Architecture Diagram */}
-        <main className="flex-1 h-full relative overflow-hidden bg-slate-50">
+        <main className="flex-1 h-full relative overflow-hidden bg-slate-50 dark:bg-slate-950">
           {/* Re-expand trigger for left sidebar */}
           {isLeftCollapsed && (
             <button
               onClick={() => setIsLeftCollapsed(false)}
-              className="absolute left-2.5 top-2.5 z-30 p-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
+              className="absolute left-2.5 top-2.5 z-30 p-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
               title="Expand left sidebar"
             >
               <PanelLeftOpen className="w-4 h-4" />
@@ -534,7 +578,7 @@ export const App: React.FC = () => {
           {isRightCollapsed && (
             <button
               onClick={() => setIsRightCollapsed(false)}
-              className="absolute right-2.5 top-2.5 z-30 p-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
+              className="absolute right-2.5 top-2.5 z-30 p-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
               title="Expand right sidebar"
             >
               <PanelRightOpen className="w-4 h-4" />
@@ -563,7 +607,7 @@ export const App: React.FC = () => {
             isRightCollapsed ? 'w-0' : 'w-80'
           }`}
         >
-          <aside className="w-80 bg-white border-l border-slate-200 h-full flex flex-col shrink-0 overflow-hidden shadow-xs">
+          <aside className="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 h-full flex flex-col shrink-0 overflow-hidden shadow-xs">
             {selectedNode ? (
               <ComponentInspector
                 node={selectedNode}

@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ReactFlow,
   Background,
@@ -77,6 +77,20 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   viewMode = 'basic',
   onToggleViewMode,
 }) => {
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  );
+
+  useEffect(() => {
+    const checkDark = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDark();
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
   // Convert domain nodes to React Flow nodes
   const flowNodes: Node[] = useMemo(() => {
     return nodes.map((node) => ({
@@ -242,16 +256,16 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   );
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative bg-slate-50 dark:bg-slate-950 transition-colors">
       {/* Floating Two-Mode Toggle & Flow Modes Legend Above Canvas */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
-        <div className="flex items-center gap-1 bg-white/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200">
+        <div className="flex items-center gap-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200 dark:border-slate-800">
           <button
             onClick={() => onToggleViewMode?.('basic')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'basic'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
             title="Basic View: High-level overview of services, gateways, datastores, and external services"
           >
@@ -263,7 +277,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'detailed'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
             title="Detailed View: Repository-derived architecture flow exposing controllers, middleware, models & external flow"
           >
@@ -272,40 +286,40 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           </button>
 
           {viewMode === 'detailed' && (
-            <span className="ml-2 pl-2 border-l border-slate-200 text-[10px] text-slate-500 font-medium hidden sm:inline-block">
+            <span className="ml-2 pl-2 border-l border-slate-200 dark:border-slate-700 text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden sm:inline-block">
               {nodes.length} components • {edges.length} flow paths
             </span>
           )}
         </div>
 
         {/* Edge Modes Legend Bar */}
-        <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-slate-200 shadow-xs text-[10px] text-slate-600">
-          <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-400">
+        <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs rounded-full border border-slate-200 dark:border-slate-800 shadow-xs text-[10px] text-slate-600 dark:text-slate-400">
+          <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Edge Modes:
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-0.5 bg-indigo-600 rounded"></span>
-            <span className="font-sans font-medium text-slate-700">HTTP / REST</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">HTTP / REST</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-0.5 bg-emerald-600 rounded"></span>
-            <span className="font-sans font-medium text-slate-700">Database</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">Database</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-0.5 bg-amber-500 rounded"></span>
-            <span className="font-sans font-medium text-slate-700">Cache</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">Cache</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-0.5 bg-purple-600 rounded"></span>
-            <span className="font-sans font-medium text-slate-700">RPC / Internal</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">RPC / Internal</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-orange-500"></span>
-            <span className="font-sans font-medium text-slate-700">Async Queue</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">Async Queue</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-rose-500"></span>
-            <span className="font-sans font-medium text-slate-700">Cloud API</span>
+            <span className="font-sans font-medium text-slate-700 dark:text-slate-300">Cloud API</span>
           </span>
         </div>
       </div>
@@ -341,11 +355,12 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           variant={BackgroundVariant.Lines}
           gap={24}
           size={1}
-          color="#e2e8f0"
+          className="[&>line]:stroke-slate-200 dark:[&>line]:stroke-slate-800"
+          color={isDark ? '#1e293b' : '#cbd5e1'}
         />
         <Controls
           showInteractive={false}
-          className="!bg-white !border !border-slate-200 !shadow-md !rounded-lg"
+          className="!bg-white dark:!bg-slate-900 !border !border-slate-200 dark:!border-slate-800 !shadow-md !rounded-lg [&>button]:dark:!bg-slate-900 [&>button]:dark:!border-slate-800 [&>button]:dark:!fill-slate-200 [&>button]:dark:hover:!bg-slate-800"
         />
         <MiniMap
           nodeColor={(n) => {
@@ -356,7 +371,9 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             if (status === 'disabled') return '#94a3b8';
             return '#10b981';
           }}
-          className="!border !border-slate-200 !rounded-lg !bg-white/90"
+          maskColor={isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(240, 242, 245, 0.7)'}
+          nodeStrokeColor={isDark ? '#334155' : '#cbd5e1'}
+          className="!border !border-slate-200 dark:!border-slate-800 !rounded-lg !bg-white/90 dark:!bg-slate-900/90"
         />
       </ReactFlow>
     </div>

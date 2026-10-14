@@ -4,6 +4,8 @@ import {
   Activity,
   Sparkles,
   FolderGit2,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { ScenarioFixture } from '../types';
 
@@ -20,6 +22,8 @@ interface HeaderProps {
   onGoHome?: () => void;
   viewMode?: 'basic' | 'detailed';
   onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,10 +33,11 @@ export const Header: React.FC<HeaderProps> = ({
   onReset,
   onOpenImportRepo,
   onGoHome,
+  isDark = false,
+  onToggleTheme,
 }) => {
-
   return (
-    <header className="h-14 border-b px-4 flex items-center justify-between z-20 shrink-0">
+    <header className="h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 flex items-center justify-between z-20 shrink-0 transition-colors">
       {/* Brand & Title */}
       <div className="flex items-center gap-3">
         <button
@@ -40,19 +45,19 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2.5 text-left group hover:opacity-85 transition-opacity"
           title="Return to Landing Page"
         >
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200 group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200 dark:shadow-none group-hover:scale-105 transition-transform">
             <Activity className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-bold text-sm tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+              <h1 className="font-bold text-sm tracking-tight text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 System Design Playground
               </h1>
-              <span className="text-[10px] uppercase font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
+              <span className="text-[10px] uppercase font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
                 Traffic Simulator
               </span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               Interactive microservices capacity planner & bottleneck visualizer
             </p>
           </div>
@@ -61,35 +66,50 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Action Controls & Scenario Selector */}
       <div className="flex items-center gap-3">
-        {/* Two-Mode Architecture View Toggle */}
         {/* Reset button */}
         <button
           onClick={onReset}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm cursor-pointer"
           title="Reset architecture to initial scenario values"
         >
-          <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+          <RotateCcw className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
           Reset
         </button>
 
         {/* Import Repo button */}
         <button
           onClick={onOpenImportRepo}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition-all shadow-sm cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 dark:bg-slate-700 text-white hover:bg-slate-900 dark:hover:bg-slate-600 transition-all shadow-sm cursor-pointer"
           title="Import architecture from GitHub or local repository"
         >
           <FolderGit2 className="w-3.5 h-3.5 text-indigo-400" />
           <span>Import Repo</span>
         </button>
 
+        {/* Dark/Light Theme Toggle */}
+        {onToggleTheme && (
+          <button
+            onClick={onToggleTheme}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center"
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-slate-600" />
+            )}
+          </button>
+        )}
+
         {/* Scenario dropdown - placed at the top right side */}
-        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs ml-1 shadow-2xs">
+        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs ml-1 shadow-2xs">
           <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <span className="text-slate-500 font-medium text-[11px]">Scenario:</span>
+          <span className="text-slate-500 dark:text-slate-400 font-medium text-[11px]">Scenario:</span>
           <select
             value={currentScenarioId}
             onChange={(e) => onSelectScenario(e.target.value)}
-            className="bg-transparent font-semibold text-slate-800 text-xs focus:outline-none cursor-pointer"
+            className="bg-transparent font-semibold text-slate-800 dark:text-slate-200 text-xs focus:outline-none cursor-pointer [&>option]:dark:bg-slate-800 [&>option]:dark:text-slate-100"
           >
             {scenarios.map((s) => (
               <option key={s.id} value={s.id}>
