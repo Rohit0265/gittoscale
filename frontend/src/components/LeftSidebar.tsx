@@ -208,7 +208,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           </div>
 
           {/* Import Repo Button */}
-          {onOpenImportRepo && (
+          {/* {onOpenImportRepo && (
             <button
               onClick={onOpenImportRepo}
               className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all"
@@ -216,16 +216,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             >
               <FolderGit2 className="w-3.5 h-3.5" />
             </button>
-          )}
+          )} */}
 
           {/* Restore Architecture Button */}
-          <button
+          {/* <button
             onClick={onRestoreOriginal}
             className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
             title="Restore original architecture"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          </button> */}
         </div>
       </div>
 
