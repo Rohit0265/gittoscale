@@ -466,10 +466,6 @@ export const App: React.FC = () => {
         onGoHome={() => setCurrentView('landing')}
         viewMode={viewMode}
         onToggleViewMode={handleToggleViewMode}
-        isLeftCollapsed={isLeftCollapsed}
-        isRightCollapsed={isRightCollapsed}
-        onToggleLeft={() => setIsLeftCollapsed(!isLeftCollapsed)}
-        onToggleRight={() => setIsRightCollapsed(!isRightCollapsed)}
       />
 
       {/* 2. Top Metrics Strip */}
@@ -522,27 +518,25 @@ export const App: React.FC = () => {
 
         {/* Center Canvas: Interactive Architecture Diagram */}
         <main className="flex-1 h-full relative overflow-hidden bg-slate-50">
-          {/* Floating trigger to expand left sidebar when collapsed */}
+          {/* Re-expand trigger for left sidebar */}
           {isLeftCollapsed && (
             <button
               onClick={() => setIsLeftCollapsed(false)}
-              className="absolute left-3 top-3 z-30 flex items-center gap-1.5 px-2.5 py-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm hover:shadow transition-all text-xs font-semibold cursor-pointer group"
-              title="Expand Traffic & Components panel"
+              className="absolute left-2.5 top-2.5 z-30 p-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
+              title="Expand left sidebar"
             >
-              <PanelLeftOpen className="w-4 h-4 text-slate-500 group-hover:text-indigo-600" />
-              <span>Traffic & Components</span>
+              <PanelLeftOpen className="w-4 h-4" />
             </button>
           )}
 
-          {/* Floating trigger to expand right sidebar when collapsed */}
+          {/* Re-expand trigger for right sidebar */}
           {isRightCollapsed && (
             <button
               onClick={() => setIsRightCollapsed(false)}
-              className="absolute right-3 top-3 z-30 flex items-center gap-1.5 px-2.5 py-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-sm hover:shadow transition-all text-xs font-semibold cursor-pointer group"
-              title="Expand Analysis & Bottlenecks panel"
+              className="absolute right-2.5 top-2.5 z-30 p-1.5 bg-white/95 backdrop-blur-xs border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
+              title="Expand right sidebar"
             >
-              <span>{selectedNode ? 'Component Inspector' : 'Analysis & Bottlenecks'}</span>
-              <PanelRightOpen className="w-4 h-4 text-slate-500 group-hover:text-indigo-600" />
+              <PanelRightOpen className="w-4 h-4" />
             </button>
           )}
 

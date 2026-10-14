@@ -9,8 +9,6 @@ import {
   FolderGit2,
   Layers,
   Network,
-  PanelLeft,
-  PanelRight,
 } from 'lucide-react';
 import { ScenarioFixture } from '../types';
 
@@ -27,10 +25,6 @@ interface HeaderProps {
   onGoHome?: () => void;
   viewMode?: 'basic' | 'detailed';
   onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
-  isLeftCollapsed?: boolean;
-  isRightCollapsed?: boolean;
-  onToggleLeft?: () => void;
-  onToggleRight?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -46,10 +40,6 @@ export const Header: React.FC<HeaderProps> = ({
   onGoHome,
   viewMode = 'basic',
   onToggleViewMode,
-  isLeftCollapsed,
-  isRightCollapsed,
-  onToggleLeft,
-  onToggleRight,
 }) => {
   const currentScenario = scenarios.find((s) => s.id === currentScenarioId);
 
@@ -81,10 +71,10 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
       </div>
 
-      {/* Scenario Selector & Controls */}
+      {/* Action Controls & Scenario Selector */}
       <div className="flex items-center gap-3">
         {/* Two-Mode Architecture View Toggle */}
-        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+        {/* <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
           <button
             onClick={() => onToggleViewMode?.('basic')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
@@ -109,38 +99,12 @@ export const Header: React.FC<HeaderProps> = ({
             <Network className="w-3.5 h-3.5" />
             <span>Detailed</span>
           </button>
-        </div>
-
-        {/* Scenario dropdown */}
-        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <span className="text-slate-500 font-medium text-[11px]">Scenario:</span>
-          <select
-            value={currentScenarioId}
-            onChange={(e) => onSelectScenario(e.target.value)}
-            className="bg-transparent font-semibold text-slate-800 text-xs focus:outline-none cursor-pointer"
-          >
-            {scenarios.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {currentScenario && (
-          <span
-            className="hidden xl:inline-block max-w-sm truncate text-[11px] text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg"
-            title={currentScenario.description}
-          >
-            {currentScenario.description}
-          </span>
-        )}
+        </div> */}
 
         {/* Play/Pause Button */}
-        <button
+        {/* <button
           onClick={onToggleRun}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer ${
             isRunning
               ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200'
               : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
@@ -158,12 +122,12 @@ export const Header: React.FC<HeaderProps> = ({
               Run
             </>
           )}
-        </button>
+        </button> */}
 
         {/* Reset button */}
         <button
           onClick={onReset}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm cursor-pointer"
           title="Reset architecture to initial scenario values"
         >
           <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
@@ -173,7 +137,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Import Repo button */}
         <button
           onClick={onOpenImportRepo}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition-all shadow-sm"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition-all shadow-sm cursor-pointer"
           title="Import architecture from GitHub or local repository"
         >
           <FolderGit2 className="w-3.5 h-3.5 text-indigo-400" />
@@ -181,46 +145,31 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Compare / Baseline button */}
-        <button
+        {/* <button
           onClick={onOpenCompare}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100 transition-all shadow-sm cursor-pointer"
           title="Compare current architecture metrics against saved baseline"
         >
           <GitCompare className="w-3.5 h-3.5 text-indigo-600" />
           {hasBaseline ? 'Compare Baseline' : 'Set Baseline'}
-        </button>
+        </button> */}
 
-        {/* Sidebar Panel Toggles */}
-        {(onToggleLeft || onToggleRight) && (
-          <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
-            {onToggleLeft && (
-              <button
-                onClick={onToggleLeft}
-                className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-                  !isLeftCollapsed
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                    : 'bg-white border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-50'
-                }`}
-                title={isLeftCollapsed ? 'Expand Left Sidebar (Traffic & Components)' : 'Collapse Left Sidebar'}
-              >
-                <PanelLeft className="w-4 h-4" />
-              </button>
-            )}
-            {onToggleRight && (
-              <button
-                onClick={onToggleRight}
-                className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-                  !isRightCollapsed
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                    : 'bg-white border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-50'
-                }`}
-                title={isRightCollapsed ? 'Expand Right Sidebar (Analysis & Bottlenecks)' : 'Collapse Right Sidebar'}
-              >
-                <PanelRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        )}
+        {/* Scenario dropdown - placed at the top right side */}
+        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs ml-1 shadow-2xs">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+          <span className="text-slate-500 font-medium text-[11px]">Scenario:</span>
+          <select
+            value={currentScenarioId}
+            onChange={(e) => onSelectScenario(e.target.value)}
+            className="bg-transparent font-semibold text-slate-800 text-xs focus:outline-none cursor-pointer"
+          >
+            {scenarios.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </header>
   );
