@@ -37,6 +37,8 @@ interface ArchitectureCanvasProps {
   onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
   isDark?: boolean;
   isRunning?: boolean;
+  isLeftCollapsed?: boolean;
+  isRightCollapsed?: boolean;
 }
 
 const NodeFocusController: React.FC<{
@@ -86,7 +88,11 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   onToggleViewMode,
   isDark: propIsDark,
   isRunning = true,
+  isLeftCollapsed = false,
+  isRightCollapsed = false,
 }) => {
+  const controlsShiftX = isLeftCollapsed ? 0 : 368;
+  const minimapShiftX = isRightCollapsed ? 0 : -368;
   const [internalSelectedEdgeId, setInternalSelectedEdgeId] = useState<string | null>(null);
   const activeSelectedEdgeId = selectedEdgeId !== undefined ? selectedEdgeId : internalSelectedEdgeId;
   const handleSelectEdge = useCallback((id: string | null) => {
@@ -419,10 +425,20 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           color={isDark ? '#262626' : '#cbd5e1'}
         />
         <Controls
+          position="bottom-left"
           showInteractive={false}
-          className="!bg-white dark:!bg-[#0A0A0A] !border !border-slate-200 dark:!border-neutral-800 !shadow-md !rounded-lg [&>button]:dark:!bg-[#0A0A0A] [&>button]:dark:!border-neutral-800 [&>button]:dark:!fill-neutral-300 [&>button]:dark:hover:!bg-neutral-900"
+          style={{
+            transform: `translateX(${controlsShiftX}px)`,
+            transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+          className="!bg-[#080B13] !border !border-white/[0.08] !shadow-2xl !rounded-xl [&>button]:!bg-[#080B13] [&>button]:!border-white/[0.08] [&>button]:!fill-slate-300 [&>button:hover]:!bg-[#111726] [&>button]:!text-slate-300 z-10"
         />
         <MiniMap
+          position="bottom-right"
+          style={{
+            transform: `translateX(${minimapShiftX}px)`,
+            transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
           nodeColor={(n) => {
             const nodeData = n.data as unknown as { result?: NodeSimulationResult };
             const status = nodeData?.result?.status;
@@ -431,9 +447,9 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             if (status === 'disabled') return '#94a3b8';
             return '#10b981';
           }}
-          maskColor={isDark ? 'rgba(10, 10, 10, 0.75)' : 'rgba(240, 242, 245, 0.7)'}
+          maskColor={isDark ? 'rgba(8, 11, 19, 0.85)' : 'rgba(240, 242, 245, 0.7)'}
           nodeStrokeColor={isDark ? '#262626' : '#cbd5e1'}
-          className="!border !border-slate-200 dark:!border-neutral-800 !rounded-lg !bg-white/90 dark:!bg-[#0A0A0A]/90"
+          className="!border !border-white/[0.08] !rounded-xl !bg-[#080B13]/90 shadow-2xl z-10"
         />
       </ReactFlow>
     </div>

@@ -562,6 +562,8 @@ export const App: React.FC = () => {
             onToggleViewMode={handleToggleViewMode}
             isDark={isDark}
             isRunning={isRunning}
+            isLeftCollapsed={isLeftCollapsed}
+            isRightCollapsed={isRightCollapsed}
           />
         </main>
 
