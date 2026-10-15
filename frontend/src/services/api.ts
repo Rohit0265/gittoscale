@@ -55,7 +55,12 @@ export const api = {
     return res.data;
   },
 
-  async testLLM(params: { provider?: string; apiKey?: string }): Promise<{ success: boolean; message: string }> {
+  async testLLM(params: {
+    provider?: string;
+    apiKey?: string;
+    baseUrl?: string;
+    model?: string;
+  }): Promise<{ success: boolean; message: string }> {
     const res = await axios.post(`${API_BASE}/repository/test-llm`, params);
     return res.data;
   },

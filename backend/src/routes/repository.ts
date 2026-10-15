@@ -16,6 +16,7 @@ const analyzeSchema = z.object({
       provider: z.string().optional(),
       apiKey: z.string().optional(),
       model: z.string().optional(),
+      baseUrl: z.string().optional(),
     })
     .optional(),
 });
@@ -152,13 +153,54 @@ router.post('/test-llm', async (req: Request, res: Response) => {
       ? process.env.GEMINI_API_KEY
       : process.env.ANTHROPIC_API_KEY);
 
-  if (!apiKey) {
+  if (!apiKey && provider !== 'other') {
     return res.status(400).json({ success: false, message: 'API key is required.' });
   }
 
   // Verify connection
   try {
-    if (provider === 'gemini') {
+    if (provider === 'other') {
+      const baseUrl = req.body.baseUrl;
+      if (!baseUrl) {
+        return res.status(400).json({ success: false, message: 'Base URL is required for custom LLM endpoint.' });
+      }
+      const cleanBase = baseUrl.replace(/\/+$/, '');
+      const testUrl = cleanBase.endsWith('/models') || cleanBase.endsWith('/chat/completions')
+        ? cleanBase
+        : `${cleanBase}/models`;
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+
+      const resp = await fetch(testUrl, {
+        method: 'GET',
+        headers,
+      });
+
+      if (resp.ok) {
+        return res.json({ success: true, message: 'Successfully connected to custom LLM endpoint!' });
+      } else {
+        // If /models returned 404/405, test /chat/completions with minimal payload
+        if (resp.status === 404 || resp.status === 405) {
+          const chatUrl = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
+          const chatResp = await fetch(chatUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              model: req.body.model || 'default',
+              messages: [{ role: 'user', content: 'test' }],
+              max_tokens: 1,
+            }),
+          });
+          if (chatResp.ok) {
+            return res.json({ success: true, message: 'Successfully connected to custom LLM endpoint!' });
+          }
+        }
+        return res.status(400).json({ success: false, message: `Endpoint returned status ${resp.status}` });
+      }
+    } else if (provider === 'gemini') {
       const resp = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
       );

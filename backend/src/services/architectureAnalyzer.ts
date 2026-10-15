@@ -6,9 +6,10 @@ import {
 } from './repoAnalysisTypes.js';
 
 export interface LLMConfig {
-  provider?: string; // 'openai' | 'gemini' | 'anthropic'
+  provider?: string; // 'openai' | 'gemini' | 'anthropic' | 'other'
   apiKey?: string;
   model?: string;
+  baseUrl?: string;
 }
 
 /**
@@ -35,9 +36,10 @@ export async function analyzeArchitectureWithLLM(
     provider,
     apiKey,
     model,
+    baseUrl: llmConfig?.baseUrl,
   };
 
-  if (resolvedConfig.apiKey) {
+  if (resolvedConfig.apiKey || (provider === 'other' && resolvedConfig.baseUrl)) {
     try {
       let llmResult: LLMAnalysisResult | null = null;
       if (provider === 'gemini') {
@@ -1217,16 +1219,28 @@ async function callOpenAIProvider(
 ): Promise<LLMAnalysisResult> {
   const prompt = buildPrompt(inventory, viewMode);
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  let endpoint = 'https://api.openai.com/v1/chat/completions';
+  if (config.baseUrl) {
+    const cleanBase = config.baseUrl.replace(/\/+$/, '');
+    endpoint = cleanBase.endsWith('/chat/completions')
+      ? cleanBase
+      : `${cleanBase}/chat/completions`;
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (config.apiKey) {
+    headers['Authorization'] = `Bearer ${config.apiKey}`;
+  }
+
+  const res = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.apiKey}`,
-    },
+    headers,
     body: JSON.stringify({
       model: config.model || 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
+      ...(config.provider === 'other' ? {} : { response_format: { type: 'json_object' } }),
     }),
   });
 
