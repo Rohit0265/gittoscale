@@ -542,59 +542,10 @@ export const App: React.FC = () => {
       )}
 
       {/* 3. Three-Section Workspace */}
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Left Panel: Component List & Traffic Controls */}
-        <div
-          className={`transition-all duration-300 ease-in-out flex shrink-0 z-10 overflow-hidden ${
-            isLeftCollapsed ? 'w-0' : 'w-[364px]'
-          }`}
-        >
-          <div className="w-[364px] h-full flex flex-col">
-            <LeftSidebar
-              incomingTrafficRate={incomingTrafficRate}
-              onChangeTrafficRate={handleTrafficChange}
-              durationSeconds={durationSeconds}
-              onChangeDuration={handleDurationChange}
-              nodes={nodes}
-              edges={edges}
-              nodeResults={simulationResult?.nodeResults || {}}
-              selectedNodeId={selectedNodeId}
-              onSelectNode={handleSelectNode}
-              onAddNode={handleAddNode}
-              onDeleteNode={handleDeleteNode}
-              onToggleNode={handleToggleNode}
-              onRestoreOriginal={handleRestoreOriginal}
-              onOpenImportRepo={() => setIsImportRepoOpen(true)}
-              onToggleCollapse={() => setIsLeftCollapsed(true)}
-              onUpdateNode={handleUpdateNode}
-            />
-          </div>
-        </div>
-
-        {/* Center Canvas: Interactive Architecture Diagram */}
-        <main className="flex-1 h-full relative overflow-hidden bg-slate-50 dark:bg-[#0A0A0A]">
-          {/* Re-expand trigger for left sidebar */}
-          {isLeftCollapsed && (
-            <button
-              onClick={() => setIsLeftCollapsed(false)}
-              className="absolute left-2.5 top-2.5 z-30 p-1.5 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xs border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
-              title="Expand left sidebar"
-            >
-              <PanelLeftOpen className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Re-expand trigger for right sidebar */}
-          {isRightCollapsed && (
-            <button
-              onClick={() => setIsRightCollapsed(false)}
-              className="absolute right-2.5 top-2.5 z-30 p-1.5 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xs border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
-              title="Expand right sidebar"
-            >
-              <PanelRightOpen className="w-4 h-4" />
-            </button>
-          )}
-
+      {/* 3. Three-Section Workspace */}
+      <div className="flex flex-1 overflow-hidden relative w-full h-full">
+        {/* Full Canvas: Interactive Architecture Diagram */}
+        <main className="w-full h-full absolute inset-0 overflow-hidden bg-slate-50 dark:bg-[#0A0A0A]">
           <ArchitectureCanvas
             nodes={nodes}
             edges={edges}
@@ -614,40 +565,94 @@ export const App: React.FC = () => {
           />
         </main>
 
-        {/* Right Panel: Selected Component Inspector OR Results & Bottlenecks */}
+        {/* Left Floating Panel: Component List & Traffic Controls */}
         <div
-          className={`transition-all duration-300 ease-in-out flex shrink-0 z-10 overflow-hidden ${
-            isRightCollapsed ? 'w-0' : 'w-80'
+          className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
+            isLeftCollapsed ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
-          <aside className="w-80 bg-white dark:bg-[#0A0A0A] border-l border-slate-200 dark:border-neutral-800 h-full flex flex-col shrink-0 overflow-hidden shadow-xs">
-            {selectedNode ? (
-              <ComponentInspector
-                node={selectedNode}
-                result={selectedNodeResult}
-                edges={edges}
-                onClose={() => setSelectedNodeId(null)}
-                onUpdateNode={handleUpdateNode}
-                onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
-                onDeleteEdge={handleDeleteEdge}
-                onChangeIncomingTrafficRate={
-                  selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
-                }
+          <div className="w-[364px] h-full flex flex-col pointer-events-none">
+            <div className="pointer-events-auto h-full flex flex-col">
+              <LeftSidebar
                 incomingTrafficRate={incomingTrafficRate}
-                onNavigateToParent={handleNavigateToParent}
-                viewMode={viewMode}
-                allNodes={nodes}
-                onToggleCollapse={() => setIsRightCollapsed(true)}
-              />
-            ) : (
-              <BottleneckList
-                simulationResult={simulationResult}
+                onChangeTrafficRate={handleTrafficChange}
+                durationSeconds={durationSeconds}
+                onChangeDuration={handleDurationChange}
                 nodes={nodes}
-                onSelectNode={handleSelectNode}
+                edges={edges}
+                nodeResults={simulationResult?.nodeResults || {}}
                 selectedNodeId={selectedNodeId}
-                onToggleCollapse={() => setIsRightCollapsed(true)}
+                onSelectNode={handleSelectNode}
+                onAddNode={handleAddNode}
+                onDeleteNode={handleDeleteNode}
+                onToggleNode={handleToggleNode}
+                onRestoreOriginal={handleRestoreOriginal}
+                onOpenImportRepo={() => setIsImportRepoOpen(true)}
+                onToggleCollapse={() => setIsLeftCollapsed(true)}
+                onUpdateNode={handleUpdateNode}
               />
-            )}
+            </div>
+          </div>
+        </div>
+
+        {/* Re-expand trigger for left sidebar (Vertically centered to match the card) */}
+        {isLeftCollapsed && (
+          <button
+            onClick={() => setIsLeftCollapsed(false)}
+            className="absolute left-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-[#080B13] hover:bg-[#0E1320] border border-white/[0.08] hover:border-white/20 text-slate-400 hover:text-white rounded-xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer group"
+            title="Expand left sidebar"
+          >
+            <PanelLeftOpen className="w-4 h-4 text-slate-400 group-hover:text-white" />
+          </button>
+        )}
+
+        {/* Re-expand trigger for right sidebar (Vertically centered to match the card) */}
+        {isRightCollapsed && (
+          <button
+            onClick={() => setIsRightCollapsed(false)}
+            className="absolute right-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-[#080B13] hover:bg-[#0E1320] border border-white/[0.08] hover:border-white/20 text-slate-400 hover:text-white rounded-xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer group"
+            title="Expand right sidebar"
+          >
+            <PanelRightOpen className="w-4 h-4 text-slate-400 group-hover:text-white" />
+          </button>
+        )}
+
+        {/* Right Floating Panel: Selected Component Inspector OR Results & Bottlenecks */}
+        <div
+          className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
+            isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+          }`}
+        >
+          <aside className="w-[364px] bg-transparent h-full flex flex-col justify-center items-center py-4 px-3 shrink-0 overflow-hidden select-none pointer-events-none">
+            <div className="pointer-events-auto">
+              {selectedNode ? (
+                <ComponentInspector
+                  node={selectedNode}
+                  result={selectedNodeResult}
+                  edges={edges}
+                  onClose={() => setSelectedNodeId(null)}
+                  onUpdateNode={handleUpdateNode}
+                  onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+                  onDeleteEdge={handleDeleteEdge}
+                  onChangeIncomingTrafficRate={
+                    selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
+                  }
+                  incomingTrafficRate={incomingTrafficRate}
+                  onNavigateToParent={handleNavigateToParent}
+                  viewMode={viewMode}
+                  allNodes={nodes}
+                  onToggleCollapse={() => setIsRightCollapsed(true)}
+                />
+              ) : (
+                <BottleneckList
+                  simulationResult={simulationResult}
+                  nodes={nodes}
+                  onSelectNode={handleSelectNode}
+                  selectedNodeId={selectedNodeId}
+                  onToggleCollapse={() => setIsRightCollapsed(true)}
+                />
+              )}
+            </div>
           </aside>
         </div>
       </div>

@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   AlertOctagon,
   AlertTriangle,
   CheckCircle2,
   TrendingUp,
   ChevronRight,
-  PanelRightClose,
+  PanelRight,
+  BarChart3,
 } from 'lucide-react';
 import {
   SimulationResult,
   ArchitectureNode,
 } from '../types';
-import { TimeSeriesChart } from './TimeSeriesChart';
 
 interface BottleneckListProps {
   simulationResult: SimulationResult | null;
@@ -23,241 +23,158 @@ interface BottleneckListProps {
 
 export const BottleneckList: React.FC<BottleneckListProps> = ({
   simulationResult,
-  nodes,
   onSelectNode,
   selectedNodeId,
   onToggleCollapse,
 }) => {
-  const [activeTab, setActiveTab] = useState<'bottlenecks' | 'charts' | 'utilization'>(
-    'bottlenecks'
-  );
-
   if (!simulationResult) {
     return (
-      <div className="flex flex-col h-full text-xs bg-white dark:bg-[#0A0A0A]">
-        <div className="p-3 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] flex items-center justify-between">
-          <span className="font-bold text-slate-800 dark:text-neutral-100 text-xs uppercase tracking-wider">
-            Analysis & Bottlenecks
+      <div className="my-auto w-full max-w-[340px] rounded-2xl bg-[#080B13] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-3.5 flex flex-col space-y-3.5 text-slate-200 select-none">
+        <div className="flex items-center justify-between px-0.5 pt-0.5">
+          <span className="text-[11px] font-bold tracking-wider text-slate-300 uppercase">
+            ANALYSIS & BOTTLENECKS
           </span>
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              title="Collapse sidebar"
-              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-neutral-200 hover:bg-slate-200/70 dark:hover:bg-neutral-800 rounded transition-colors cursor-pointer"
+              title="Collapse right sidebar"
+              className="p-1.5 rounded-lg bg-[#111726] hover:bg-[#161E31] border border-white/[0.06] text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
-              <PanelRightClose className="w-4 h-4" />
+              <PanelRight className="w-4 h-4" />
             </button>
           )}
         </div>
-        <div className="p-6 text-center text-slate-400 dark:text-neutral-500 text-xs">
-          Run simulation to see performance bottlenecks.
+        <div className="bg-[#0E1320] border border-white/[0.06] rounded-xl p-6 text-center text-slate-400 text-xs">
+          Run simulation to analyze performance bottlenecks.
         </div>
       </div>
     );
   }
 
-  const { bottlenecks, mostConstrainedComponent, timeSeries } =
-    simulationResult;
+  const { bottlenecks, mostConstrainedComponent } = simulationResult;
 
   return (
-    <div className="flex flex-col h-full text-xs bg-white dark:bg-[#0A0A0A]">
-      {/* Header & Tabs */}
-      <div className="p-3 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] shrink-0">
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="font-bold text-slate-800 dark:text-neutral-100 text-xs uppercase tracking-wider">
-            Analysis & Bottlenecks
-          </span>
-        </div>
-
-        {/* Tab switch */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-200/70 dark:bg-neutral-900 p-1 rounded-lg text-[11px] font-medium text-slate-600 dark:text-neutral-400 border border-transparent dark:border-neutral-800">
+    <div className="my-auto w-full max-w-[340px] rounded-2xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-3.5 flex flex-col space-y-3.5 text-slate-200 select-none">
+      {/* 1. Header Row */}
+      <div className="flex items-center justify-between px-0.5 pt-0.5">
+        {onToggleCollapse && (
           <button
-            onClick={() => setActiveTab('bottlenecks')}
-            className={`py-1 rounded text-center transition-all ${
-              activeTab === 'bottlenecks'
-                ? 'bg-white dark:bg-neutral-800 text-slate-800 dark:text-neutral-100 shadow-xs font-semibold'
-                : 'hover:text-slate-900 dark:hover:text-neutral-200'
-            }`}
+            onClick={onToggleCollapse}
+            title="Collapse right sidebar"
+            className="p-1.5 rounded-lg bg-[#111726] hover:bg-[#161E31] border border-white/[0.06] text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
-            Bottlenecks ({bottlenecks.length})
+            <PanelRight className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => setActiveTab('charts')}
-            className={`py-1 rounded text-center transition-all ${
-              activeTab === 'charts'
-                ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-xs font-semibold'
-                : 'hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            Dynamics
-          </button>
-          <button
-            onClick={() => setActiveTab('utilization')}
-            className={`py-1 rounded text-center transition-all ${
-              activeTab === 'utilization'
-                ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-xs font-semibold'
-                : 'hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            Utilization
-          </button>
-        </div>
+        )}
+        <span className="text-[11px] font-bold tracking-wider text-slate-300 uppercase">
+          ANALYSIS & BOTTLENECKS ({bottlenecks.length})
+        </span>
       </div>
 
-      {/* Main Tab Content */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-4">
-        {activeTab === 'bottlenecks' && (
-          <div className="space-y-3">
-            {/* Most Constrained Banner */}
-            {mostConstrainedComponent && (
-              <div className="p-3 rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/30">
-                <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400 font-bold mb-1 text-[11px]">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Primary Constrained Service</span>
-                </div>
-                <div className="font-semibold text-slate-800 dark:text-slate-100 text-xs">
-                  {mostConstrainedComponent.nodeName} ({mostConstrainedComponent.utilization.toFixed(1)}% util)
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                  {mostConstrainedComponent.reason}
-                </p>
-              </div>
-            )}
+      {/* 2. Most Constrained Component Banner (if present) */}
+      {mostConstrainedComponent && (
+        <div className=" border border-indigo-500/25 rounded-xl p-3 space-y-1 shadow-inner">
+          <div className="flex items-center gap-1.5 text-indigo-400 font-semibold text-xs">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span className="tracking-tight">Primary Constrained Service</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-slate-100 text-[13px] tracking-tight">
+              {mostConstrainedComponent.nodeName}
+            </span>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-200">
+              {mostConstrainedComponent.utilization.toFixed(0)}% util
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 leading-relaxed pt-0.5">
+            {mostConstrainedComponent.reason}
+          </p>
+        </div>
+      )}
 
-            {/* Bottlenecks List */}
-            {bottlenecks.length === 0 ? (
-              <div className="p-6 text-center bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-                <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                <p className="font-semibold text-slate-700 dark:text-slate-200">No Bottlenecks Detected</p>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-                  All components have sufficient throughput and zero queue build-up under current traffic load.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
-                  Ranked Bottlenecks ({bottlenecks.length})
-                </span>
-                {bottlenecks.map((b, idx) => (
-                  <div
-                    key={b.nodeId}
-                    onClick={() => onSelectNode(b.nodeId)}
-                    className={`p-3 rounded-lg border transition-all cursor-pointer ${
-                      selectedNodeId === b.nodeId
-                        ? 'border-indigo-500 ring-1 ring-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/40'
-                        : b.severity === 'critical'
-                        ? 'border-red-200 bg-red-50/30 hover:border-red-300 dark:border-red-900/40 dark:bg-red-950/20 dark:hover:border-red-800/60'
-                        : 'border-amber-200 bg-amber-50/30 hover:border-amber-300 dark:border-amber-900/40 dark:bg-amber-950/20 dark:hover:border-amber-800/60'
+      {/* 3. Bottlenecks List */}
+      <div className="space-y-2 overflow-y-auto max-h-[50vh] pr-0.5">
+        {bottlenecks.length === 0 ? (
+          <div className="bg-[#0E1320]/75 border border-white/[0.06] rounded-xl p-6 text-center space-y-2">
+            <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+            <p className="font-semibold text-slate-100 text-xs">No Bottlenecks Detected</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              All services have sufficient throughput and zero queue build-up under current traffic load.
+            </p>
+          </div>
+        ) : (
+          bottlenecks.map((b, idx) => {
+            const isSelected = selectedNodeId === b.nodeId;
+            const isCritical = b.severity === 'critical';
+
+            return (
+              <div
+                key={b.nodeId}
+                onClick={() => onSelectNode(b.nodeId)}
+                className={`p-3 rounded-xl border transition-all cursor-pointer group ${
+                  isSelected
+                    ? 'bg-[#12192B] border-indigo-500/50 shadow-sm ring-1 ring-indigo-500/25'
+                    : 'bg-[#0E1320]/75 hover:bg-[#121829] border-white/[0.06] hover:border-white/10'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+                    <span className="font-mono text-[10px] text-slate-500 font-bold shrink-0">
+                      #{idx + 1}
+                    </span>
+                    {isCritical ? (
+                      <AlertOctagon className="w-3.5 h-3.5 text-rose-400 shrink-0 animate-pulse" />
+                    ) : (
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    )}
+                    <span className="font-medium text-slate-100 text-[13px] tracking-tight truncate">
+                      {b.nodeName}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md shrink-0 border ${
+                      isCritical
+                        ? 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                        : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-[10px] text-slate-400 font-bold">
-                          #{idx + 1}
-                        </span>
-                        {b.severity === 'critical' ? (
-                          <AlertOctagon className="w-3.5 h-3.5 text-red-600 animate-pulse" />
-                        ) : (
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                        )}
-                        <span className="font-bold text-slate-800 dark:text-slate-100 text-xs">
-                          {b.nodeName}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                          b.severity === 'critical'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
-                            : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                        }`}
-                      >
-                        {b.utilization.toFixed(0)}% util
-                      </span>
-                    </div>
+                    {b.utilization.toFixed(0)}% util
+                  </span>
+                </div>
 
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed mb-2">
-                      {b.reason}
-                    </p>
+                <p className="text-[11px] text-slate-400 leading-relaxed mb-2.5">
+                  {b.reason}
+                </p>
 
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 border-t border-slate-200/60 dark:border-slate-800/80 pt-1.5">
-                      <span>Offered: {Math.round(b.offeredLoad)} r/s</span>
-                      <span>Cap: {Math.round(b.effectiveCapacity)} r/s</span>
-                      <span className="text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-0.5">
-                        Inspect <ChevronRight className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono border-t border-white/[0.06] pt-2">
+                  <span>Load: {Math.round(b.offeredLoad)} r/s</span>
+                  <span>Cap: {Math.round(b.effectiveCapacity)} r/s</span>
+                  <span className="text-indigo-400 group-hover:text-indigo-300 font-sans font-medium flex items-center gap-0.5 transition-colors">
+                    Inspect <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
+            );
+          })
         )}
+      </div>
 
-        {/* Charts Tab */}
-        {activeTab === 'charts' && (
-          <div>
-            <TimeSeriesChart data={timeSeries} />
-          </div>
-        )}
-
-        {/* Utilization Breakdown Tab */}
-        {activeTab === 'utilization' && (
-          <div className="space-y-3">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
-              Component Utilization Breakdown
-            </span>
-            <div className="space-y-2.5">
-              {nodes
-                .filter((n) => n.enabled && n.type !== 'load_generator')
-                .map((node) => {
-                  const res = simulationResult.nodeResults[node.id];
-                  const util = res?.offeredUtilization ?? 0;
-                  const cap = res?.effectiveCapacity ?? 1;
-
-                  return (
-                    <div
-                      key={node.id}
-                      onClick={() => onSelectNode(node.id)}
-                      className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-                          {node.name}
-                        </span>
-                        <span
-                          className={`font-mono font-bold ${
-                            util > 100
-                              ? 'text-red-600 dark:text-red-400'
-                              : util >= 80
-                              ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-slate-700 dark:text-slate-300'
-                          }`}
-                        >
-                          {util.toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all ${
-                            util > 100
-                              ? 'bg-red-500'
-                              : util >= 80
-                              ? 'bg-amber-500'
-                              : 'bg-emerald-500'
-                          }`}
-                          style={{ width: `${Math.min(100, util)}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 dark:text-slate-400 mt-1 font-mono">
-                        <span>Load: {Math.round(res?.offeredRequestsPerSecond ?? 0)} req/s</span>
-                        <span>Capacity: {Math.round(cap)} req/s</span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
+      {/* 4. Footer Information inside the box */}
+      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-white/[0.06] px-1">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`w-2 h-2 rounded-full ${
+              bottlenecks.length === 0
+                ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                : 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
+            }`}
+          />
+          <span>{bottlenecks.length === 0 ? 'Optimal System Health' : `${bottlenecks.length} Constraint${bottlenecks.length > 1 ? 's' : ''}`}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-slate-400">
+          <BarChart3 className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.75} />
+          <span className="font-mono text-[10px] tracking-tight">M/M/m/K Model</span>
+        </div>
       </div>
     </div>
   );
