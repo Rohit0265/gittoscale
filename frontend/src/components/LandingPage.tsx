@@ -19,20 +19,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onToggleTheme,
 }) => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 dark:bg-[#0A0A0A] flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
       {/* Top Header */}
-      <header className="h-16 border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-6 flex items-center justify-between shadow-xs transition-colors">
+      <header className="h-16 border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-4 sm:px-6 md:px-8 flex items-center justify-between shadow-xs transition-colors w-full">
         <div className="flex items-center gap-3">
           <img
             src={isDark ? '/logo.png' : '/logo-light.png'}
             alt="GitToScale"
-            className="h-9 sm:h-10 w-auto object-contain cursor-pointer"
+            className="h-8 sm:h-9 md:h-10 w-auto object-contain cursor-pointer"
           />
         </div>
         <div className="flex items-center gap-3">
-          {/* <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
-            Production Architecture & Load Simulation
-          </span> */}
           {onToggleTheme && (
             <button
               onClick={onToggleTheme}
@@ -51,12 +48,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Hero Section */}
-      <main className="min-h-[72vh] w-full flex flex-col justify-center relative py-12 lg:py-16">
-        <div className="max-w-[1340px] mx-auto w-full px-6 sm:px-10 lg:px-12 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-14 my-auto">
+      <main className="min-h-[72vh] w-full flex flex-col justify-center relative py-8 sm:py-12 lg:py-16">
+        <div className="max-w-[1340px] mx-auto w-full px-4 sm:px-8 lg:px-12 flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12 lg:gap-14 my-auto">
           {/* Left Column: Headline, Subtitle, and Action Buttons */}
-          <div className="flex-1 max-w-xl lg:max-w-2xl text-left flex flex-col items-start">
+          <div className="flex-1 max-w-xl lg:max-w-2xl text-left flex flex-col items-start w-full">
             {/* Headline */}
-            <h1 className="text-5xl sm:text-6xl lg:text-[64px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.05] mb-5">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[64px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.08] sm:leading-[1.05] mb-4 sm:mb-5">
               Scale your system{' '}
               <span className="block text-slate-500 dark:text-neutral-400 font-extrabold">
                 before disaster.
@@ -64,15 +61,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg lg:text-xl text-slate-600 dark:text-neutral-400 leading-relaxed mb-9 max-w-xl">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-neutral-400 leading-relaxed mb-6 sm:mb-9 max-w-xl">
               Import your GitHub repository and instantly analyze your architecture, discover bottlenecks, and understand how your system behaves under load.
             </p>
 
             {/* Action Button Group */}
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={onSelectUseRepository}
-                className="px-6 py-3.5 rounded-xl font-bold text-base bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-neutral-950 shadow-sm transition-all flex items-center gap-2.5 cursor-pointer group"
+                className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-bold text-sm sm:text-base bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-neutral-950 shadow-sm transition-all flex items-center justify-center gap-2.5 cursor-pointer group w-full sm:w-auto"
               >
                 <Github className="w-5 h-5 fill-current" />
                 <span>Import Repository</span>
@@ -81,7 +78,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <button
                 onClick={onSelectTestSite}
-                className="px-5 py-3.5 rounded-xl font-semibold text-base border border-slate-300 dark:border-neutral-800 bg-white dark:bg-[#141414] text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-[#1e1e1e] hover:text-slate-900 dark:hover:text-white shadow-xs transition-all flex items-center gap-2.5 cursor-pointer group"
+                className="px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base border border-slate-300 dark:border-neutral-800 bg-white dark:bg-[#141414] text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-[#1e1e1e] hover:text-slate-900 dark:hover:text-white shadow-xs transition-all flex items-center justify-center gap-2.5 cursor-pointer group w-full sm:w-auto"
               >
                 <Play className="w-4 h-4 fill-current opacity-80" />
                 <span>Open Test Site</span>

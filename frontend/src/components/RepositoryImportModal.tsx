@@ -106,9 +106,12 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
     const spaceAbove = rect.top;
     const openUpwards = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
 
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8));
+    const width = Math.min(rect.width, window.innerWidth - 16);
+
     setMenuCoords({
-      left: rect.left,
-      width: rect.width,
+      left,
+      width,
       top: openUpwards ? Math.max(10, rect.top - dropdownHeight - 6) : rect.bottom + 6,
       openUpwards,
     });
@@ -408,14 +411,9 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
     }
   };
 
-  const isCustomConfigured =
-    envKeyConfigured ||
-    Boolean(llmApiKey.trim()) ||
-    (llmProvider === 'other' && Boolean(llmBaseUrl.trim()));
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="bg-white dark:bg-[#0E0F15] rounded-3xl shadow-2xl border border-slate-200 dark:border-[#20222C] w-full max-w-[560px] overflow-hidden text-xs text-slate-800 dark:text-neutral-100 p-6 sm:p-7 space-y-6 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-2.5 sm:p-4 animate-in fade-in duration-150">
+      <div className="bg-white dark:bg-[#0E0F15] rounded-3xl shadow-2xl border border-slate-200 dark:border-[#20222C] w-full max-w-[560px] max-h-[92vh] overflow-y-auto text-xs text-slate-800 dark:text-neutral-100 p-4 sm:p-6 md:p-7 space-y-5 sm:space-y-6 transition-all">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -557,7 +555,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             {showLLMSettings && (
               <div className="space-y-3.5 pt-1">
                 {/* Provider and Model row */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Provider Custom Dropdown */}
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 dark:text-neutral-400 mb-1.5 block">
@@ -650,11 +648,15 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-[11px] font-semibold text-slate-600 dark:text-neutral-400 block">
                       API Key{' '}
-                      {llmProvider === 'other' && (
+                      {envKeyConfigured && !llmApiKey ? (
+                        <span className="font-normal text-emerald-600 dark:text-emerald-400 text-[10px]">
+                          (Server env key active)
+                        </span>
+                      ) : llmProvider === 'other' ? (
                         <span className="font-normal text-slate-400 dark:text-neutral-500 text-[10px]">
                           (Optional for local LLMs like Ollama)
                         </span>
-                      )}
+                      ) : null}
                     </label>
                   </div>
                   <div className="flex items-center gap-2">
@@ -662,7 +664,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                       <Key className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-400 mr-2.5 shrink-0" />
                       <input
                         type={showApiKey ? 'text' : 'password'}
-                        placeholder="••••••••••••••••"
+                        placeholder={envKeyConfigured ? '•••••••• (using server key)' : '••••••••••••••••'}
                         value={llmApiKey}
                         onChange={(e) => setLlmApiKey(e.target.value)}
                         className="w-full bg-transparent font-mono text-xs text-slate-800 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none"

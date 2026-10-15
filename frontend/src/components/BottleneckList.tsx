@@ -6,7 +6,6 @@ import {
   TrendingUp,
   ChevronRight,
   PanelRight,
-  BarChart3,
 } from 'lucide-react';
 import {
   SimulationResult,
@@ -29,7 +28,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
 }) => {
   if (!simulationResult) {
     return (
-      <div className="my-auto w-full max-w-[340px] rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3.5 flex flex-col space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
+      <div className="my-auto w-full max-w-[340px] max-h-[calc(100vh-80px)] overflow-y-auto rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3 sm:p-3.5 flex flex-col space-y-3 sm:space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
         <div className="flex items-center justify-between px-0.5 pt-0.5">
           {onToggleCollapse && (
             <button
@@ -54,7 +53,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
   const { bottlenecks, mostConstrainedComponent } = simulationResult;
 
   return (
-    <div className="my-auto w-full max-w-[340px] rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3.5 flex flex-col space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
+    <div className="my-auto w-full max-w-[340px] max-h-[calc(100vh-80px)] overflow-y-auto rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3 sm:p-3.5 flex flex-col space-y-3 sm:space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
       {/* 1. Header Row */}
       <div className="flex items-center justify-between px-0.5 pt-0.5">
         {onToggleCollapse && (

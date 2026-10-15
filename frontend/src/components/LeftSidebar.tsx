@@ -169,9 +169,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const sliderPercent = Math.min(100, Math.max(0, ((incomingTrafficRate - 100) / (5000 - 100)) * 100));
 
   return (
-    <aside className="w-full h-full flex flex-col justify-between items-center py-4 px-3 bg-transparent select-none text-xs overflow-hidden transition-colors">
+    <aside className="w-full h-full flex flex-col justify-center items-center py-2 sm:py-4 px-2 sm:px-3 bg-transparent select-none text-xs overflow-hidden transition-colors">
       {/* Centered Architecture Card - No box-shadow, subtle 1px border */}
-      <div className="my-auto w-full max-w-[340px] rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3.5 flex flex-col space-y-3.5 text-slate-800 dark:text-slate-200">
+      <div className="my-auto w-full max-w-[340px] max-h-[calc(100vh-80px)] overflow-y-auto rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3 sm:p-3.5 flex flex-col space-y-3 sm:space-y-3.5 text-slate-800 dark:text-slate-200">
         {/* 1. Arrival Rate Control Card */}
         <div className="bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-2.5">
           <div className="flex justify-between items-center">

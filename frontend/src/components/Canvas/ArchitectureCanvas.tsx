@@ -104,8 +104,20 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   isLeftCollapsed = false,
   isRightCollapsed = false,
 }) => {
-  const controlsShiftX = isLeftCollapsed ? 0 : 368;
-  const minimapShiftX = isRightCollapsed ? 0 : -368;
+  const [isLargeScreen, setIsLargeScreen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const controlsShiftX = isLargeScreen ? (isLeftCollapsed ? 0 : 368) : 0;
+  const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -368) : 0;
   const [internalSelectedEdgeId, setInternalSelectedEdgeId] = useState<string | null>(null);
   const activeSelectedEdgeId = selectedEdgeId !== undefined ? selectedEdgeId : internalSelectedEdgeId;
   const handleSelectEdge = useCallback((id: string | null) => {
@@ -363,11 +375,11 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   return (
     <div className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors">
       {/* Floating Two-Mode Toggle & Flow Modes Legend Above Canvas */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
+      <div className="absolute top-2.5 sm:top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
         <div className="flex items-center gap-1 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200 dark:border-neutral-800">
           <button
             onClick={() => onToggleViewMode?.('basic')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'basic'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-900'
@@ -379,7 +391,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           </button>
           <button
             onClick={() => onToggleViewMode?.('detailed')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'detailed'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-900'
@@ -493,7 +505,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           }}
           maskColor={isDark ? 'rgba(10, 10, 10, 0.85)' : 'rgba(241, 245, 249, 0.7)'}
           nodeStrokeColor={isDark ? '#333333' : '#cbd5e1'}
-          className="!border !border-slate-200 dark:!border-neutral-800 !rounded-xl !bg-white/95 dark:!bg-[#0A0A0A]/95 shadow-none z-10"
+          className="!border !border-slate-200 dark:!border-neutral-800 !rounded-xl !bg-white/95 dark:!bg-[#0A0A0A]/95 shadow-none z-10 hidden sm:block"
         />
       </ReactFlow>
     </div>

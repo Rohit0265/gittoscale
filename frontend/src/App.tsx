@@ -64,9 +64,33 @@ export const App: React.FC = () => {
     });
   }, []);
 
-  // Sidebar collapse states
-  const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(false);
-  const [isRightCollapsed, setIsRightCollapsed] = useState<boolean>(false);
+  // Sidebar collapse states - auto-collapse on smaller screens
+  const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024;
+    }
+    return false;
+  });
+  const [isRightCollapsed, setIsRightCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1280;
+    }
+    return false;
+  });
+
+  // Keep sidebars non-colliding on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsLeftCollapsed(true);
+        setIsRightCollapsed(true);
+      } else if (window.innerWidth < 1024) {
+        setIsLeftCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fixture states
   const [defaultArchitecture, setDefaultArchitecture] = useState<ArchitectureFixture | null>(null);
@@ -96,12 +120,29 @@ export const App: React.FC = () => {
   const handleSelectNode = useCallback(
     (id: string | null) => {
       setSelectedNodeId(id);
-      if (id && isRightCollapsed) {
+      if (id) {
         setIsRightCollapsed(false);
+        if (window.innerWidth < 768) {
+          setIsLeftCollapsed(true);
+        }
       }
     },
-    [isRightCollapsed]
+    []
   );
+
+  const handleOpenLeft = useCallback(() => {
+    setIsLeftCollapsed(false);
+    if (window.innerWidth < 768) {
+      setIsRightCollapsed(true);
+    }
+  }, []);
+
+  const handleOpenRight = useCallback(() => {
+    setIsRightCollapsed(false);
+    if (window.innerWidth < 768) {
+      setIsLeftCollapsed(true);
+    }
+  }, []);
 
   // Baseline comparison
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
@@ -575,13 +616,24 @@ export const App: React.FC = () => {
           />
         </main>
 
+        {/* Mobile backdrop for overlay sidebars */}
+        {(!isLeftCollapsed || !isRightCollapsed) && (
+          <div
+            onClick={() => {
+              setIsLeftCollapsed(true);
+              setIsRightCollapsed(true);
+            }}
+            className="md:hidden absolute inset-0 bg-black/25 dark:bg-black/50 z-15 backdrop-blur-[1px] transition-opacity cursor-pointer"
+          />
+        )}
+
         {/* Left Floating Panel: Component List & Traffic Controls */}
         <div
           className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
             isLeftCollapsed ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
-          <div className="w-[364px] h-full flex flex-col pointer-events-none">
+          <div className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] h-full flex flex-col pointer-events-none">
             <div className="pointer-events-auto h-full flex flex-col">
               <LeftSidebar
                 incomingTrafficRate={incomingTrafficRate}
@@ -605,22 +657,22 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Re-expand trigger for left sidebar (Vertically centered to match the card) */}
+        {/* Re-expand trigger for left sidebar */}
         {isLeftCollapsed && (
           <button
-            onClick={() => setIsLeftCollapsed(false)}
-            className="absolute left-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
+            onClick={handleOpenLeft}
+            className="absolute left-2 sm:left-3 top-1/4 -translate-y-1/2 z-30 p-2 sm:p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
             title="Expand left sidebar"
           >
             <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100" />
           </button>
         )}
 
-        {/* Re-expand trigger for right sidebar (Vertically centered to match the card) */}
+        {/* Re-expand trigger for right sidebar */}
         {isRightCollapsed && (
           <button
-            onClick={() => setIsRightCollapsed(false)}
-            className="absolute right-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
+            onClick={handleOpenRight}
+            className="absolute right-2 sm:right-3 top-1/4 -translate-y-1/2 z-30 p-2 sm:p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
             title="Expand right sidebar"
           >
             <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100" />
@@ -633,8 +685,8 @@ export const App: React.FC = () => {
             isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
-          <aside className="w-[364px] bg-transparent h-full flex flex-col justify-center items-center py-4 px-3 shrink-0 overflow-hidden select-none pointer-events-none">
-            <div className="pointer-events-auto">
+          <aside className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] bg-transparent h-full flex flex-col justify-center items-center py-2 sm:py-4 px-2 sm:px-3 shrink-0 overflow-hidden select-none pointer-events-none">
+            <div className="pointer-events-auto w-full">
               {selectedNode ? (
                 <ComponentInspector
                   node={selectedNode}

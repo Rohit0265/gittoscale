@@ -44,12 +44,12 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-800 w-full max-w-2xl overflow-hidden text-xs text-slate-800 dark:text-slate-200 transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs p-2 sm:p-4">
+      <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-800 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden text-xs text-slate-800 dark:text-slate-200 transition-colors">
         {/* Modal Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414] flex items-center justify-between">
+        <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400">
+            <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 shrink-0">
               <GitCompare className="w-4 h-4" />
             </div>
             <div>
@@ -70,9 +70,9 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 space-y-5">
+        <div className="p-3 sm:p-5 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
           {/* Baseline status banner */}
-          <div className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414]">
             <div>
               <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold block">
                 Saved Baseline
@@ -83,7 +83,7 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
             </div>
             <button
               onClick={onSaveAsBaseline}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-none transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-none transition-colors cursor-pointer w-full sm:w-auto"
             >
               <BookmarkPlus className="w-3.5 h-3.5" />
               Save Current as Baseline
@@ -92,8 +92,8 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
 
           {/* Comparison Table */}
           {baselineMetrics && currentMetrics ? (
-            <div className="border border-slate-200 dark:border-neutral-800 rounded-xl overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <div className="border border-slate-200 dark:border-neutral-800 rounded-xl overflow-x-auto w-full">
+              <table className="w-full min-w-[480px] text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-100/70 dark:bg-[#141414] border-b border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-300 font-semibold text-[11px]">
                     <th className="p-2.5">Key Metric (Model Estimates)</th>

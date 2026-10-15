@@ -97,7 +97,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
   const parentDisplayName = parentNode?.name || node.parentId;
 
   return (
-    <div className="my-auto w-full max-w-[340px] rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3.5 flex flex-col space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
+    <div className="my-auto w-full max-w-[340px] max-h-[calc(100vh-80px)] overflow-y-auto rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3 sm:p-3.5 flex flex-col space-y-3 sm:space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
       {/* Header */}
       <div className="flex items-center justify-between px-0.5 pt-0.5">
         <div className="min-w-0 flex-1 mr-2">
