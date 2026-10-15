@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Play</span>
+                <span>Start</span>
               </>
             )}
           </button>

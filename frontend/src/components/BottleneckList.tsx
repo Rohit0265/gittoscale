@@ -31,9 +31,6 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
     return (
       <div className="my-auto w-full max-w-[340px] rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3.5 flex flex-col space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
         <div className="flex items-center justify-between px-0.5 pt-0.5">
-          <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-            ANALYSIS &amp; BOTTLENECKS
-          </span>
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
@@ -43,6 +40,9 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
               <PanelRight className="w-4 h-4" />
             </button>
           )}
+          <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+            ANALYSIS &amp; BOTTLENECKS
+          </span>
         </div>
         <div className="bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 rounded-xl p-6 text-center text-slate-500 dark:text-slate-400 text-xs">
           Run simulation to analyze performance bottlenecks.
@@ -57,9 +57,6 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
     <div className="my-auto w-full max-w-[340px] rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3.5 flex flex-col space-y-3.5 text-slate-800 dark:text-slate-200 select-none">
       {/* 1. Header Row */}
       <div className="flex items-center justify-between px-0.5 pt-0.5">
-        <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-          ANALYSIS &amp; BOTTLENECKS ({bottlenecks.length})
-        </span>
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
@@ -69,6 +66,9 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
             <PanelRight className="w-4 h-4" />
           </button>
         )}
+        <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+          ANALYSIS &amp; BOTTLENECKS ({bottlenecks.length})
+        </span>
       </div>
 
       {/* 2. Most Constrained Component Banner (if present) */}
@@ -171,10 +171,10 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
           />
           <span>{bottlenecks.length === 0 ? 'Optimal System Health' : `${bottlenecks.length} Constraint${bottlenecks.length > 1 ? 's' : ''}`}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+        {/* <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
           <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" strokeWidth={1.75} />
           <span className="font-mono text-[10px] tracking-tight">M/M/m/K Model</span>
-        </div>
+        </div> */}
       </div>
     </div>
   );
