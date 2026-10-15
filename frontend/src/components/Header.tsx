@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   RotateCcw,
-  Activity,
   Sparkles,
   FolderGit2,
   Sun,
@@ -42,25 +41,14 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-3">
         <button
           onClick={onGoHome}
-          className="flex items-center gap-2.5 text-left group hover:opacity-85 transition-opacity"
+          className="flex items-center text-left group hover:opacity-85 transition-opacity"
           title="Return to Landing Page"
         >
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200 dark:shadow-none group-hover:scale-105 transition-transform">
-            <Activity className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-bold text-sm tracking-tight text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                System Design Playground
-              </h1>
-              <span className="text-[10px] uppercase font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
-                Traffic Simulator
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Interactive microservices capacity planner & bottleneck visualizer
-            </p>
-          </div>
+          <img
+            src={isDark ? '/logo.png' : '/logo-light.png'}
+            alt="GitToScale"
+            className="h-8 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105"
+          />
         </button>
       </div>
 

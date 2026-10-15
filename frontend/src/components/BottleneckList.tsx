@@ -56,7 +56,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
     );
   }
 
-  const { bottlenecks, mostConstrainedComponent, metrics, timeSeries } =
+  const { bottlenecks, mostConstrainedComponent, timeSeries } =
     simulationResult;
 
   return (
@@ -67,7 +67,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
           <span className="font-bold text-slate-800 dark:text-slate-100 text-xs uppercase tracking-wider">
             Analysis & Bottlenecks
           </span>
-          <div className="flex items-center gap-1.5">
+          {/* <div className="flex items-center gap-1.5">
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                 metrics.overloadedCount > 0
@@ -88,7 +88,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
                 <PanelRightClose className="w-4 h-4" />
               </button>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Tab switch */}
