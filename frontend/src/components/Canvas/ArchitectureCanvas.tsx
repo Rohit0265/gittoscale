@@ -360,11 +360,11 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             <span>Detailed View</span>
           </button>
 
-          {viewMode === 'detailed' && (
+          {/* {viewMode === 'detailed' && (
             <span className="ml-2 pl-2 border-l border-slate-200 dark:border-neutral-800 text-[10px] text-slate-500 dark:text-neutral-400 font-medium hidden sm:inline-block">
               {nodes.length} components • {edges.length} flow paths
             </span>
-          )}
+          )} */}
         </div>
 
         {/* Edge Modes Legend Bar */}
