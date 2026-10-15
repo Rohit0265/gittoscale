@@ -13,7 +13,7 @@ import {
   ChevronDown,
   Key,
   Lock,
-  Share2,
+  GitBranch,
   Check,
   Eye,
   EyeOff,
@@ -419,8 +419,8 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-11 h-11 rounded-2xl bg-[#524bf7] text-white flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
-              <Share2 className="w-5 h-5 text-white stroke-[2.2]" />
+            <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 dark:bg-[#524bf7] dark:border-transparent dark:text-white flex items-center justify-center shadow-xs dark:shadow-md dark:shadow-indigo-500/25 shrink-0 transition-colors">
+              <GitBranch className="w-5 h-5 text-indigo-600 dark:text-white stroke-[2.2]" />
             </div>
             <div className="ml-3.5 flex flex-col justify-center">
               <h2 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
@@ -509,7 +509,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                 </div>
 
                 {/* Status indicator pill */}
-                <span
+                {/* <span
                   className={`ml-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
                     isCustomConfigured
                       ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60'
@@ -524,7 +524,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                     }`}
                   />
                   {isCustomConfigured ? 'Custom LLM configured' : 'Using built-in default'}
-                </span>
+                </span> */}
               </div>
 
               {/* Reset to default action and collapse chevron */}
