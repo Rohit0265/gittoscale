@@ -1,5 +1,7 @@
 import React from 'react';
 import {
+  Play,
+  Pause,
   RotateCcw,
   Sparkles,
   FolderGit2,
@@ -29,6 +31,8 @@ export const Header: React.FC<HeaderProps> = ({
   scenarios,
   currentScenarioId,
   onSelectScenario,
+  isRunning = true,
+  onToggleRun,
   onReset,
   onOpenImportRepo,
   onGoHome,
@@ -54,6 +58,31 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Action Controls & Scenario Selector */}
       <div className="flex items-center gap-3">
+        {/* Play/Pause Simulation Button */}
+        {onToggleRun && (
+          <button
+            onClick={onToggleRun}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer ${
+              isRunning
+                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
+            }`}
+            title={isRunning ? 'Pause request flow simulation' : 'Play live request simulation'}
+          >
+            {isRunning ? (
+              <>
+                <Pause className="w-3.5 h-3.5 fill-current" />
+                <span>Pause</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Play</span>
+              </>
+            )}
+          </button>
+        )}
+
         {/* Reset button */}
         <button
           onClick={onReset}

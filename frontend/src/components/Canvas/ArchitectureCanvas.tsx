@@ -36,6 +36,7 @@ interface ArchitectureCanvasProps {
   viewMode?: 'basic' | 'detailed';
   onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
   isDark?: boolean;
+  isRunning?: boolean;
 }
 
 const NodeFocusController: React.FC<{
@@ -84,6 +85,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   viewMode = 'basic',
   onToggleViewMode,
   isDark: propIsDark,
+  isRunning = true,
 }) => {
   const [internalSelectedEdgeId, setInternalSelectedEdgeId] = useState<string | null>(null);
   const activeSelectedEdgeId = selectedEdgeId !== undefined ? selectedEdgeId : internalSelectedEdgeId;
@@ -189,6 +191,17 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
       const hasTraffic = isEnabled && (edgeRes?.flowRate ?? 0) > 0;
       const styleConfig = getEdgeStyleConfig(mode, hasTraffic, isDarkMode);
 
+      const targetRes = nodeResults[edge.target];
+      const isTargetOverloaded =
+        targetRes?.status === 'overloaded' ||
+        targetRes?.bottleneckSeverity === 'critical' ||
+        (targetRes?.rejectedRequests ?? 0) > 0 ||
+        (targetRes?.effectiveUtilization ?? 0) >= 100;
+      const isTargetWarning =
+        targetRes?.status === 'warning' ||
+        targetRes?.bottleneckSeverity === 'warning' ||
+        Boolean(targetRes?.isBottleneck);
+
       return {
         id: edge.id,
         source: edge.source,
@@ -211,6 +224,9 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           communicationType: edge.communicationType,
           isExternal,
           isDark: isDarkMode,
+          isRunning,
+          isOverloaded: isTargetOverloaded,
+          isWarning: isTargetWarning,
           onToggle: () => onToggleEdge(edge.id),
           onDelete: () => onDeleteEdge?.(edge.id),
           onUpdateEdge,
@@ -239,7 +255,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           : undefined,
       };
     });
-  }, [edges, edgeResults, onToggleEdge, onDeleteEdge, onUpdateEdge, handleSelectEdge, activeSelectedEdgeId, nodes, isDark]);
+  }, [edges, edgeResults, nodeResults, onToggleEdge, onDeleteEdge, onUpdateEdge, handleSelectEdge, activeSelectedEdgeId, nodes, isDark, isRunning]);
 
   const [rfNodes, setRfNodes, onRfNodesChange] = useNodesState(flowNodes);
   const [rfEdges, setRfEdges, onRfEdgesChange] = useEdgesState(flowEdges);
@@ -285,13 +301,13 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
           {
             ...connection,
             type: 'customEdge',
-            data: { requestsPerInput: 1.0, flowRate: 0, enabled: true, isDark: isDarkMode },
+            data: { requestsPerInput: 1.0, flowRate: 0, enabled: true, isDark: isDarkMode, isRunning },
           },
           eds
         )
       );
     },
-    [onAddEdge, setRfEdges, isDark]
+    [onAddEdge, setRfEdges, isDark, isRunning]
   );
 
   return (

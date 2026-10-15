@@ -610,6 +610,7 @@ export const App: React.FC = () => {
             viewMode={viewMode}
             onToggleViewMode={handleToggleViewMode}
             isDark={isDark}
+            isRunning={isRunning}
           />
         </main>
 

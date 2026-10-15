@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -36,6 +36,9 @@ export interface CustomEdgeData {
   customColor?: string;
   isExternal?: boolean;
   isDark?: boolean;
+  isRunning?: boolean;
+  isOverloaded?: boolean;
+  isWarning?: boolean;
   onToggle?: () => void;
   onDelete?: () => void;
   onUpdateEdge?: (edgeId: string, updates: Partial<ArchitectureEdge>) => void;
@@ -194,6 +197,33 @@ export const CustomEdge: React.FC<EdgeProps> = ({
   });
 
   const isSelected = selected || Boolean(edgeData.isSelected);
+  const isRunning = edgeData.isRunning ?? true;
+  const isOverloaded = Boolean(edgeData.isOverloaded);
+  const isWarning = Boolean(edgeData.isWarning);
+  const hasBottleneck = isOverloaded || isWarning;
+
+  // Approximate smooth step edge path length based on Manhattan coordinates
+  const dx = Math.abs(targetX - sourceX);
+  const dy = Math.abs(targetY - sourceY);
+  const approxEdgeLength = Math.max(90, dx + dy);
+
+  // Dynamic density: 1 request ball per ~75px of edge path length (min 2, max 12)
+  const ballCount = Math.max(2, Math.min(12, Math.round(approxEdgeLength / 75)));
+
+  // Steady graceful speed (~65 px/s for normal, ~55 px/s for bottleneck)
+  const speed = hasBottleneck ? 55 : 65;
+  const durSec = Math.max(4.5, approxEdgeLength / speed);
+
+  // Distribute balls evenly along the full edge path
+  const balls = useMemo(() => {
+    return Array.from({ length: ballCount }, (_, index) => {
+      const offset = (index * durSec) / ballCount;
+      return {
+        id: index,
+        begin: `-${offset.toFixed(2)}s`,
+      };
+    });
+  }, [ballCount, durSec]);
 
   return (
     <>
@@ -217,6 +247,45 @@ export const CustomEdge: React.FC<EdgeProps> = ({
         }}
         interactionWidth={28}
       />
+
+      {/* Live Request Flow Animation along the Edge (Scaled Density & Size) */}
+      {isRunning && enabled && (
+        <g className="pointer-events-none">
+          {balls.map((ball) => (
+            <circle
+              key={`${id}-ball-${ball.id}`}
+              r={hasBottleneck ? 6.5 : 5.2}
+              fill={hasBottleneck ? '#ef4444' : isDarkMode ? '#ffffff' : '#000000'}
+              style={{
+                filter: hasBottleneck
+                  ? 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.95))'
+                  : isDarkMode
+                  ? 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.85))'
+                  : 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45))',
+              }}
+            >
+              {hasBottleneck ? (
+                <animateMotion
+                  path={edgePath}
+                  dur={`${durSec.toFixed(2)}s`}
+                  begin={ball.begin}
+                  repeatCount="indefinite"
+                  keyPoints="0; 0.65; 0.82; 0.70; 0.88; 0.78; 1"
+                  keyTimes="0; 0.48; 0.66; 0.76; 0.88; 0.94; 1"
+                  calcMode="linear"
+                />
+              ) : (
+                <animateMotion
+                  path={edgePath}
+                  dur={`${durSec.toFixed(2)}s`}
+                  begin={ball.begin}
+                  repeatCount="indefinite"
+                />
+              )}
+            </circle>
+          ))}
+        </g>
+      )}
 
       {/* ONLY when tapped / selected: show different type of edge and delete edge option */}
       {isSelected && (
