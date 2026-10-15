@@ -199,8 +199,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
   const isSelected = selected || Boolean(edgeData.isSelected);
   const isRunning = edgeData.isRunning ?? true;
   const isOverloaded = Boolean(edgeData.isOverloaded);
-  const isWarning = Boolean(edgeData.isWarning);
-  const hasBottleneck = isOverloaded || isWarning;
+  const isWarning = !isOverloaded && Boolean(edgeData.isWarning);
 
   // Approximate smooth step edge path length based on Manhattan coordinates
   const dx = Math.abs(targetX - sourceX);
@@ -210,9 +209,29 @@ export const CustomEdge: React.FC<EdgeProps> = ({
   // Dynamic density: 1 request ball per ~75px of edge path length (min 2, max 12)
   const ballCount = Math.max(2, Math.min(12, Math.round(approxEdgeLength / 75)));
 
-  // Steady graceful speed (~65 px/s for normal, ~55 px/s for bottleneck)
-  const speed = hasBottleneck ? 55 : 65;
+  // Speed: ~48 px/s when overloaded (congested), ~55 px/s when warning (smoothly slowed), ~65 px/s for normal flow
+  const speed = isOverloaded ? 48 : isWarning ? 55 : 65;
   const durSec = Math.max(4.5, approxEdgeLength / speed);
+
+  // Ball visual styling:
+  // - Overloaded (red): size 6.5, red fill, rebounces with debounced recoil
+  // - Warning (yellow): size 5.8, amber fill, moves smoothly without rebounce
+  // - Normal: size 5.2, crisp monochrome, moves smoothly
+  const ballRadius = isOverloaded ? 6.5 : isWarning ? 5.8 : 5.2;
+  const ballFill = isOverloaded
+    ? '#ef4444'
+    : isWarning
+    ? '#f59e0b'
+    : isDarkMode
+    ? '#ffffff'
+    : '#0f172a';
+  const ballStroke = isOverloaded
+    ? '#991b1b'
+    : isWarning
+    ? '#b45309'
+    : isDarkMode
+    ? '#334155'
+    : '#cbd5e1';
 
   // Distribute balls evenly along the full edge path
   const balls = useMemo(() => {
@@ -254,12 +273,12 @@ export const CustomEdge: React.FC<EdgeProps> = ({
           {balls.map((ball) => (
             <circle
               key={`${id}-ball-${ball.id}`}
-              r={hasBottleneck ? 6.5 : 5.2}
-              fill={hasBottleneck ? '#ef4444' : isDarkMode ? '#ffffff' : '#0f172a'}
-              stroke={hasBottleneck ? '#991b1b' : isDarkMode ? '#334155' : '#cbd5e1'}
+              r={ballRadius}
+              fill={ballFill}
+              stroke={ballStroke}
               strokeWidth={1}
             >
-              {hasBottleneck ? (
+              {isOverloaded ? (
                 <animateMotion
                   path={edgePath}
                   dur={`${durSec.toFixed(2)}s`}

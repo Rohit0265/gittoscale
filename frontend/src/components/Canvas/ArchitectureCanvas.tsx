@@ -204,9 +204,10 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         (targetRes?.rejectedRequests ?? 0) > 0 ||
         (targetRes?.effectiveUtilization ?? 0) >= 100;
       const isTargetWarning =
-        targetRes?.status === 'warning' ||
-        targetRes?.bottleneckSeverity === 'warning' ||
-        Boolean(targetRes?.isBottleneck);
+        !isTargetOverloaded &&
+        (targetRes?.status === 'warning' ||
+          targetRes?.bottleneckSeverity === 'warning' ||
+          Boolean(targetRes?.isBottleneck));
 
       return {
         id: edge.id,
