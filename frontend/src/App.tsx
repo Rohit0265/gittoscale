@@ -546,10 +546,10 @@ export const App: React.FC = () => {
         {/* Left Panel: Component List & Traffic Controls */}
         <div
           className={`transition-all duration-300 ease-in-out flex shrink-0 z-10 overflow-hidden ${
-            isLeftCollapsed ? 'w-0' : 'w-72'
+            isLeftCollapsed ? 'w-0' : 'w-[364px]'
           }`}
         >
-          <div className="w-72 h-full flex flex-col">
+          <div className="w-[364px] h-full flex flex-col">
             <LeftSidebar
               incomingTrafficRate={incomingTrafficRate}
               onChangeTrafficRate={handleTrafficChange}
