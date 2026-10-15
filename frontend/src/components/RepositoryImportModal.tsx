@@ -134,9 +134,9 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white dark:bg-[#0E131F] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-xl overflow-hidden text-xs max-h-[90vh] flex flex-col text-slate-800 dark:text-slate-200 transition-colors">
+      <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-800 w-full max-w-xl overflow-hidden text-xs max-h-[90vh] flex flex-col text-slate-800 dark:text-slate-200 transition-colors">
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#141B2D] flex items-center justify-between shrink-0">
+        <div className="p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-indigo-600 text-white shadow-none">
               <FolderGit2 className="w-4 h-4" />
@@ -152,14 +152,14 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab switch */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-[#141B2D] p-2 gap-2 text-xs shrink-0">
+        <div className="flex border-b border-slate-200 dark:border-neutral-800 bg-slate-100/70 dark:bg-[#141414] p-2 gap-2 text-xs shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -168,7 +168,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
               activeTab === 'github'
-                ? 'bg-white dark:bg-[#0E131F] text-indigo-700 dark:text-indigo-400 font-semibold border border-slate-200 dark:border-slate-700 shadow-none'
+                ? 'bg-white dark:bg-[#0A0A0A] text-indigo-700 dark:text-indigo-400 font-semibold border border-slate-200 dark:border-neutral-700 shadow-none'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -183,7 +183,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
               activeTab === 'local'
-                ? 'bg-white dark:bg-[#0E131F] text-indigo-700 dark:text-indigo-400 font-semibold border border-slate-200 dark:border-slate-700 shadow-none'
+                ? 'bg-white dark:bg-[#0A0A0A] text-indigo-700 dark:text-indigo-400 font-semibold border border-slate-200 dark:border-neutral-700 shadow-none'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -206,7 +206,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                   placeholder="https://github.com/username/repository"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
-                  className="w-full pl-3 pr-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-[#0E131F] text-slate-900 dark:text-slate-100"
+                  className="w-full pl-3 pr-3 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100"
                 />
               </div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -224,7 +224,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                 placeholder="/home/my/Desktop/gitoscale or ./my-project"
                 value={localPath}
                 onChange={(e) => setLocalPath(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-[#0E131F] text-slate-900 dark:text-slate-100"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100"
               />
               <p className="text-[10px] text-slate-500 dark:text-slate-400">
                 Scans entry files, docker-compose, scripts, and distinguishes runtime services from shared packages.
@@ -233,11 +233,11 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
           )}
 
           {/* Collapsible LLM Config */}
-          <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/40">
+          <div className="border border-slate-200 dark:border-neutral-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-neutral-900/40">
             <button
               type="button"
               onClick={() => setShowLLMSettings(!showLLMSettings)}
-              className="w-full p-2.5 flex items-center justify-between text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="w-full p-2.5 flex items-center justify-between text-left hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <Cpu className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
@@ -256,7 +256,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             </button>
 
             {showLLMSettings && (
-              <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0E131F] space-y-3">
+              <div className="p-3 border-t border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
@@ -265,7 +265,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                     <select
                       value={llmProvider}
                       onChange={(e) => setLlmProvider(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs bg-slate-50 dark:bg-[#141B2D] text-slate-800 dark:text-slate-200"
+                      className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 text-xs bg-slate-50 dark:bg-[#141414] text-slate-800 dark:text-slate-200"
                     >
                       <option value="openai">OpenAI</option>
                       <option value="gemini">Google Gemini</option>
@@ -280,7 +280,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                       type="text"
                       value={llmModel}
                       onChange={(e) => setLlmModel(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 font-mono text-xs bg-slate-50 dark:bg-[#141B2D] text-slate-800 dark:text-slate-200"
+                      className="w-full px-2 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 font-mono text-xs bg-slate-50 dark:bg-[#141414] text-slate-800 dark:text-slate-200"
                     />
                   </div>
                 </div>
@@ -295,13 +295,13 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                       placeholder="sk-..."
                       value={llmApiKey}
                       onChange={(e) => setLlmApiKey(e.target.value)}
-                      className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 font-mono text-xs bg-white dark:bg-[#0E131F] text-slate-800 dark:text-slate-100"
+                      className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 font-mono text-xs bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100"
                     />
                     <button
                       type="button"
                       onClick={handleTestLLM}
                       disabled={testStatus.testing}
-                      className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#141B2D] hover:bg-slate-200 dark:hover:bg-[#1A2238] font-medium text-slate-700 dark:text-slate-300 text-xs shrink-0 flex items-center gap-1 cursor-pointer transition-colors shadow-none"
+                      className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#141414] hover:bg-slate-200 dark:hover:bg-[#1A1A1A] font-medium text-slate-700 dark:text-slate-300 text-xs shrink-0 flex items-center gap-1 cursor-pointer transition-colors shadow-none"
                     >
                       {testStatus.testing ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -350,7 +350,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             </div>
           )}
 
-          <div className="bg-slate-50 dark:bg-[#141B2D]/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
+          <div className="bg-slate-50 dark:bg-[#141414]/40 p-3 rounded-xl border border-slate-200 dark:border-neutral-800 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
             <span className="font-semibold text-slate-800 dark:text-slate-200 block">
               Architectural Classification Principles:
             </span>
@@ -361,7 +361,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             </ul>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
             <button
               type="button"
               onClick={onClose}
