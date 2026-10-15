@@ -300,28 +300,58 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
     [nodes, onNodesChangePosition]
   );
 
-  // Handle edge connection
+  // Handle edge connection: defaults to bidirectional flow
   const handleConnect = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target) return;
+      const isDarkMode =
+        isDark !== undefined
+          ? Boolean(isDark)
+          : typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+      const styleConfig = getEdgeStyleConfig('http', false, isDarkMode);
+
       const newEdge: ArchitectureEdge = {
         id: `edge-${connection.source}-${connection.target}-${Date.now().toString().slice(-4)}`,
         source: connection.source,
         target: connection.target,
         requestsPerInput: 1.0,
         enabled: true,
+        isBidirectional: true,
+        communicationType: 'http',
+        label: 'http',
       };
       onAddEdge(newEdge);
-      const isDarkMode =
-        isDark !== undefined
-          ? Boolean(isDark)
-          : typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+
       setRfEdges((eds) =>
         addEdge(
           {
             ...connection,
+            id: newEdge.id,
             type: 'customEdge',
-            data: { requestsPerInput: 1.0, flowRate: 0, enabled: true, isDark: isDarkMode, isRunning },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: styleConfig.markerColor,
+              width: 14,
+              height: 14,
+            },
+            markerStart: {
+              type: MarkerType.ArrowClosed,
+              color: styleConfig.markerColor,
+              width: 14,
+              height: 14,
+            },
+            data: {
+              edgeId: newEdge.id,
+              source: newEdge.source,
+              target: newEdge.target,
+              requestsPerInput: 1.0,
+              flowRate: 0,
+              enabled: true,
+              isBidirectional: true,
+              communicationType: 'http',
+              isDark: isDarkMode,
+              isRunning,
+            },
           },
           eds
         )

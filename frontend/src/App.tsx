@@ -310,8 +310,17 @@ export const App: React.FC = () => {
   };
 
   const handleAddEdge = (newEdge: ArchitectureEdge) => {
-    const updated = [...edges, newEdge];
+    const edgeWithDefaults: ArchitectureEdge = {
+      isBidirectional: true,
+      ...newEdge,
+    };
+    const updated = [...edges, edgeWithDefaults];
     setEdges(updated);
+    if (viewMode === 'detailed' && detailedGraphCacheRef.current) {
+      detailedGraphCacheRef.current.edges = updated;
+    } else if (viewMode === 'basic' && basicGraphCacheRef.current) {
+      basicGraphCacheRef.current.edges = updated;
+    }
     queueSimulation(nodes, updated, incomingTrafficRate, durationSeconds);
   };
 

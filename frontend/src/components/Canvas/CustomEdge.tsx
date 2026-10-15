@@ -381,9 +381,34 @@ export const CustomEdge: React.FC<EdgeProps> = ({
               })}
             </div>
 
+            {/* Bidirectional Flow Toggle */}
+            <div className="pt-1 border-t border-slate-100 dark:border-neutral-800">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  edgeData.onUpdateEdge?.(id, {
+                    isBidirectional: !edgeData.isBidirectional,
+                  });
+                }}
+                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-medium text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+              >
+                <span>Bi-directional</span>
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                    edgeData.isBidirectional
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800'
+                      : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700'
+                  }`}
+                >
+                  {edgeData.isBidirectional ? '⇄ Both ways' : '→ One way'}
+                </span>
+              </button>
+            </div>
+
             {/* Delete Option */}
             {edgeData.onDelete && (
-              <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-1 border-t border-slate-100 dark:border-neutral-800">
                 <button
                   type="button"
                   onClick={(e) => {

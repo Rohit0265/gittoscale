@@ -135,7 +135,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
 
       <div className="space-y-3 overflow-y-auto max-h-[52vh] pr-0.5">
         {/* Component State Toggle */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414]">
+        {/* <div className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414]">
           <div className="flex items-center gap-2">
             <Power
               className={`w-4 h-4 ${node.enabled ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-400'}`}
@@ -152,7 +152,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           >
             {node.enabled ? 'Enabled' : 'Disabled'}
           </button>
-        </div>
+        </div> */}
 
         {/* Component Role Selector */}
         <div className="p-2.5 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414] space-y-1.5">

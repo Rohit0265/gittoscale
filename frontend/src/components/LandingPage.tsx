@@ -30,9 +30,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           />
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
+          {/* <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
             Production Architecture & Load Simulation
-          </span>
+          </span> */}
           {onToggleTheme && (
             <button
               onClick={onToggleTheme}
@@ -50,38 +50,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </header>
 
-      {/* Hero Section: occupies 0.75 page with impactful sizing on both sides */}
-      <main className="min-h-[75vh] w-full flex flex-col justify-center relative py-12 lg:py-16">
-        <div className="max-w-[1500px] mx-auto w-full px-6 sm:px-10 lg:px-16 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 my-auto">
-          {/* Left Column: Scaled up Headline, Subtitle, and Action Buttons */}
-          <div className="flex-1 max-w-2xl text-left flex flex-col items-start">
-            {/* Headline matching reference (clean theme colors, strictly no purple/rainbow gradients) */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.03] mb-6">
+      {/* Hero Section */}
+      <main className="min-h-[72vh] w-full flex flex-col justify-center relative py-12 lg:py-16">
+        <div className="max-w-[1340px] mx-auto w-full px-6 sm:px-10 lg:px-12 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-14 my-auto">
+          {/* Left Column: Headline, Subtitle, and Action Buttons */}
+          <div className="flex-1 max-w-xl lg:max-w-2xl text-left flex flex-col items-start">
+            {/* Headline */}
+            <h1 className="text-5xl sm:text-6xl lg:text-[64px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.05] mb-5">
               Scale your system{' '}
-              <span className="block text-slate-600 dark:text-neutral-400 font-extrabold">
+              <span className="block text-slate-500 dark:text-neutral-400 font-extrabold">
                 before disaster.
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 dark:text-neutral-400 leading-relaxed mb-10 max-w-xl">
+            <p className="text-base sm:text-lg lg:text-xl text-slate-600 dark:text-neutral-400 leading-relaxed mb-9 max-w-xl">
               Import your GitHub repository and instantly analyze your architecture, discover bottlenecks, and understand how your system behaves under load.
             </p>
 
-            {/* Action Button Group: Scaled up Primary Import + Secondary Test Site Button */}
+            {/* Action Button Group */}
             <div className="flex flex-wrap items-center gap-4">
               <button
                 onClick={onSelectUseRepository}
-                className="px-7 py-4 rounded-2xl font-bold text-base sm:text-lg bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-neutral-950 shadow-md transition-all flex items-center gap-3 cursor-pointer group"
+                className="px-6 py-3.5 rounded-xl font-bold text-base bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-neutral-950 shadow-sm transition-all flex items-center gap-2.5 cursor-pointer group"
               >
                 <Github className="w-5 h-5 fill-current" />
                 <span>Import Repository</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
                 onClick={onSelectTestSite}
-                className="px-5 py-4 rounded-2xl font-semibold text-sm sm:text-base border border-slate-300 dark:border-neutral-800 bg-white dark:bg-[#141414] text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-[#1e1e1e] hover:text-slate-900 dark:hover:text-white shadow-xs transition-all flex items-center gap-2.5 cursor-pointer group"
+                className="px-5 py-3.5 rounded-xl font-semibold text-base border border-slate-300 dark:border-neutral-800 bg-white dark:bg-[#141414] text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-[#1e1e1e] hover:text-slate-900 dark:hover:text-white shadow-xs transition-all flex items-center gap-2.5 cursor-pointer group"
               >
                 <Play className="w-4 h-4 fill-current opacity-80" />
                 <span>Open Test Site</span>
@@ -89,12 +89,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Scaled up Architecture Flow Diagram */}
-          <div className="flex-1 w-full max-w-3xl xl:max-w-4xl flex items-center justify-center lg:justify-end">
-            <HeroArchitectureDiagram
-              onImportRepo={onSelectUseRepository}
-              onOpenTestSite={onSelectTestSite}
-            />
+          {/* Right Column: Visual Architecture Flow Diagram (Non-Clickable) */}
+          <div className="flex-1 w-full max-w-2xl lg:max-w-3xl flex items-center justify-center lg:justify-end">
+            <HeroArchitectureDiagram />
           </div>
         </div>
       </main>
@@ -103,7 +100,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {children}
 
       {/* Global Footer */}
-      <Fotter brandName="GitToScale" />
+      <Fotter brandName="GitToScale" isDark={isDark} />
     </div>
   );
 };

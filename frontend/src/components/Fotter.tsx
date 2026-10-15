@@ -19,10 +19,15 @@ const NAV_LINKS: FooterNavLink[] = [
 
 export interface FotterProps {
   brandName?: string;
+  isDark?: boolean;
 }
 
-export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
+export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark }) => {
   const viewBoxWidth = Math.max(600, (brandName || 'GitToScale').length * 115);
+  const isDarkMode =
+    isDark !== undefined
+      ? Boolean(isDark)
+      : typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   return (
     <footer className="gts-footer-container">
@@ -32,7 +37,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
           {/* Brand Logo (Mark only, no company text) */}
           <div className="gts-minimal-brand">
             <img
-              src="/logo-mark.png"
+              src={isDarkMode ? '/logo-mark.png' : '/logo-mark-dark.png'}
               alt="GitToScale Logo"
               className="w-8 h-8 sm:w-9 sm:h-9 object-contain"
             />
