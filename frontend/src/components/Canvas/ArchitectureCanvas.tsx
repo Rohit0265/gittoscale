@@ -44,8 +44,21 @@ interface ArchitectureCanvasProps {
 const NodeFocusController: React.FC<{
   selectedNodeId: string | null;
   nodes: ArchitectureNode[];
-}> = ({ selectedNodeId, nodes }) => {
-  const { setCenter } = useReactFlow();
+  viewMode?: 'basic' | 'detailed';
+}> = ({ selectedNodeId, nodes, viewMode }) => {
+  const { setCenter, fitView } = useReactFlow();
+
+  // Re-fit canvas into view when switching between basic and detailed view modes
+  const prevViewModeRef = React.useRef(viewMode);
+  React.useEffect(() => {
+    if (prevViewModeRef.current !== viewMode) {
+      prevViewModeRef.current = viewMode;
+      const timer = setTimeout(() => {
+        fitView({ padding: 0.15, duration: 500 });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, fitView]);
 
   React.useEffect(() => {
     if (selectedNodeId) {
@@ -150,17 +163,17 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         const dy = tNode.position.y - sNode.position.y;
         const dx = tNode.position.x - sNode.position.x;
 
-        if (dy > 80) {
+        if (dy > 120) {
           // Downward tree flow
-          if (dx < -60) {
+          if (dx < -80) {
             sourceHandle = 'source-bottom-left';
-          } else if (dx > 60) {
+          } else if (dx > 80) {
             sourceHandle = 'source-bottom-right';
           } else {
             sourceHandle = 'source-bottom';
           }
           targetHandle = 'target-top';
-        } else if (Math.abs(dy) <= 80) {
+        } else if (Math.abs(dy) <= 120) {
           // Peer horizontal connection in same row/tier
           if (dx >= 0) {
             sourceHandle = 'source-right';
@@ -418,7 +431,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         maxZoom={2.0}
         proOptions={{ hideAttribution: true }}
       >
-        <NodeFocusController selectedNodeId={selectedNodeId} nodes={nodes} />
+        <NodeFocusController selectedNodeId={selectedNodeId} nodes={nodes} viewMode={viewMode} />
         <Background
           variant={BackgroundVariant.Dots}
           gap={24}

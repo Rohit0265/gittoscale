@@ -113,12 +113,12 @@ export function convertAnalysisToArchitecture(analysis: LLMAnalysisResult): {
         c.submoduleType === 'external_api'
     );
 
-    layoutRow(rowUser, 40, 500, 300);
-    layoutRow(rowFrontend, 220, 50, 300);
-    layoutRow(rowGateway, 440, 380, 400);
-    layoutRow(rowServices, 660, 50, 370);
-    layoutRow(rowDataAndLogic, 900, 50, 220);
-    layoutRow(rowExternal, 1140, 150, 500);
+    layoutRow(rowUser, 60, 500, 380);
+    layoutRow(rowFrontend, 340, 50, 380);
+    layoutRow(rowGateway, 640, 380, 420);
+    layoutRow(rowServices, 960, 50, 420);
+    layoutRow(rowDataAndLogic, 1280, 50, 380);
+    layoutRow(rowExternal, 1600, 150, 500);
   } else {
     // 5-Tier Vertical Layout for Basic View (Top-to-Bottom)
     const rowUser = components.filter((c) => c.type === 'load_generator');
