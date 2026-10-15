@@ -84,9 +84,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   };
 
   return (
-    <aside className="w-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full shrink-0 select-none z-10 text-xs overflow-hidden transition-colors">
+    <aside className="w-full bg-white dark:bg-[#0A0A0A] border-r border-slate-200 dark:border-neutral-800 flex flex-col h-full shrink-0 select-none z-10 text-xs overflow-hidden transition-colors">
       {/* Simulation Controls Section */}
-      <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 space-y-4 bg-slate-50/50 dark:bg-slate-900/60">
+      <div className="p-3.5 border-b border-slate-200 dark:border-neutral-800 space-y-4 bg-slate-50/50 dark:bg-[#0A0A0A]">
         {/* Traffic Rate Slider & Input */}
         <div className="space-y-1.5">
           <div className="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400">
@@ -101,7 +101,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 const val = Math.max(0, parseInt(e.target.value) || 0);
                 onChangeTrafficRate(val);
               }}
-              className="w-20 text-right font-mono font-semibold px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
+              className="w-20 text-right font-mono font-semibold px-1.5 py-0.5 rounded border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
             />
           </div>
           <input
@@ -111,9 +111,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             step={50}
             value={incomingTrafficRate}
             onChange={(e) => onChangeTrafficRate(Number(e.target.value))}
-            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            className="w-full h-1.5 bg-slate-200 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-indigo-600"
           />
-          <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+          <div className="flex justify-between text-[10px] text-slate-400 dark:text-neutral-500 font-mono">
             <span>100 r/s</span>
             <span>2,500 r/s</span>
             <span>5,000 r/s</span>
@@ -122,12 +122,12 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
         {/* Duration Selector */}
         <div className="space-y-1.5 pt-1">
-          <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
+          <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-neutral-400">
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3 text-slate-400" />
               Window Duration
             </span>
-            <span className="font-mono text-slate-700 dark:text-slate-300 font-semibold">{durationSeconds}s</span>
+            <span className="font-mono text-slate-700 dark:text-neutral-300 font-semibold">{durationSeconds}s</span>
           </div>
           <div className="grid grid-cols-4 gap-1">
             {[10, 30, 60, 120].map((sec) => (
@@ -136,8 +136,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 onClick={() => onChangeDuration(sec)}
                 className={`py-1 rounded text-center text-[11px] font-mono font-medium transition-all cursor-pointer ${
                   durationSeconds === sec
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                    : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'
                 }`}
               >
                 {sec}s
@@ -148,8 +148,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       {/* Component & Architecture Tools */}
-      <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900">
-        <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+      <div className="p-3 border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between bg-white dark:bg-[#0A0A0A]">
+        <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 dark:text-neutral-300">
           <span>COMPONENTS ({nodes.length})</span>
         </div>
         <div className="flex items-center gap-1">
@@ -164,7 +164,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               Add
             </button>
             {showAddMenu && (
-              <div className="absolute left-0 mt-1 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-1 z-30 space-y-0.5">
+              <div className="absolute left-0 mt-1 w-44 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-lg shadow-xl p-1 z-30 space-y-0.5">
                 <button
                   onClick={() => {
                     onAddNode('service', `Custom Service ${nodes.length + 1}`);
@@ -354,9 +354,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-2.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-[10px] text-slate-500 dark:text-slate-400 flex justify-between items-center">
+      <div className="p-2.5 border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] text-[10px] text-slate-500 dark:text-neutral-400 flex justify-between items-center">
         <span>Connections: {edges.filter((e) => e.enabled).length} active</span>
-        <span className="font-mono text-slate-400 dark:text-slate-500">DAG Analytical</span>
+        <span className="font-mono text-slate-400 dark:text-neutral-500">DAG Analytical</span>
       </div>
     </aside>
   );

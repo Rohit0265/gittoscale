@@ -62,7 +62,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         <path
           d="M 60 147 C 12 147, 8 95, 45 56"
           fill="none"
-          className="stroke-slate-300 dark:stroke-neutral-800"
+          className="stroke-black dark:stroke-white"
           strokeWidth="1.75"
         />
 
@@ -71,21 +71,21 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         <path
           d="M 230 147 C 275 147, 275 99, 320 99"
           fill="none"
-          className="stroke-slate-300 dark:stroke-neutral-800"
+          className="stroke-black dark:stroke-white"
           strokeWidth="1.75"
         />
         {/* Branch 2 to Middle Database (320, 163) */}
         <path
           d="M 230 147 C 275 147, 275 163, 320 163"
           fill="none"
-          className="stroke-slate-300 dark:stroke-neutral-800"
+          className="stroke-black dark:stroke-white"
           strokeWidth="1.75"
         />
         {/* Branch 3 to Bottom Worker (320, 227) */}
         <path
           d="M 230 147 C 275 147, 275 227, 320 227"
           fill="none"
-          className="stroke-slate-300 dark:stroke-neutral-800"
+          className="stroke-black dark:stroke-white"
           strokeWidth="1.75"
         />
 
@@ -93,7 +93,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         <path
           d="M 490 99 C 532 99, 530 75, 495 56"
           fill="none"
-          className="stroke-slate-300 dark:stroke-neutral-800"
+          className="stroke-black dark:stroke-white"
           strokeWidth="1.75"
         />
 
@@ -102,31 +102,31 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
           cx="20"
           cy="115"
           r="3"
-          className="fill-slate-400 dark:fill-neutral-400 animate-pulse"
+          className="fill-black dark:fill-white animate-pulse"
         />
         <circle
           cx="275"
           cy="118"
           r="3"
-          className="fill-slate-400 dark:fill-neutral-400 animate-pulse"
+          className="fill-black dark:fill-white animate-pulse"
         />
         <circle
           cx="275"
           cy="155"
           r="3"
-          className="fill-slate-400 dark:fill-neutral-400 animate-pulse"
+          className="fill-black dark:fill-white animate-pulse"
         />
         <circle
           cx="275"
           cy="192"
           r="3"
-          className="fill-slate-400 dark:fill-neutral-400 animate-pulse"
+          className="fill-black dark:fill-white animate-pulse"
         />
         <circle
           cx="522"
           cy="84"
           r="3"
-          className="fill-slate-400 dark:fill-neutral-400 animate-pulse"
+          className="fill-black dark:fill-white animate-pulse"
         />
       </svg>
 
@@ -154,7 +154,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         title="Click to Import Repository"
       >
         {/* Left incoming wire port */}
-        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white dark:border-[#0A0A0A] bg-slate-400 dark:bg-neutral-500" />
+        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         {/* GitHub Logo (white in dark mode, black in light mode) */}
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
@@ -168,7 +168,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         </div>
 
         {/* Right outgoing wire port */}
-        <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white dark:border-[#0A0A0A] bg-slate-400 dark:bg-neutral-500" />
+        <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
       </div>
 
       {/* Right Column: 3 Destination Microservices */}
@@ -180,7 +180,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         title="Click to Open Test Site"
       >
         {/* Left incoming port */}
-        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-slate-300 dark:bg-neutral-600" />
+        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
@@ -196,7 +196,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
 
         {/* Right outgoing loop port */}
-        <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-slate-300 dark:bg-neutral-600" />
+        <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
       </div>
 
       {/* Service 2 (Middle): Database */}
@@ -207,7 +207,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         title="Click to Open Test Site"
       >
         {/* Left incoming port */}
-        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-slate-300 dark:bg-neutral-600" />
+        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
@@ -231,7 +231,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         title="Click to Open Test Site"
       >
         {/* Left incoming port */}
-        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-slate-300 dark:bg-neutral-600" />
+        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">

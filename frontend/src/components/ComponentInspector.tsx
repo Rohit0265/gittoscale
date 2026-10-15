@@ -104,21 +104,21 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
   const parentDisplayName = parentNode?.name || node.parentId;
 
   return (
-    <div className="flex flex-col h-full text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors">
+    <div className="flex flex-col h-full text-xs bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-neutral-100 transition-colors">
       {/* Header */}
-      <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
+      <div className="p-3.5 border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between bg-slate-50 dark:bg-[#0A0A0A]">
         <div>
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
             Inspector {viewMode ? `• ${viewMode === 'detailed' ? 'Detailed View' : 'Basic View'}` : ''}
           </span>
-          <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">{node.name}</h3>
+          <h3 className="font-bold text-sm text-slate-800 dark:text-neutral-100">{node.name}</h3>
         </div>
         <div className="flex items-center gap-1">
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
               title="Collapse sidebar"
-              className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             >
               <PanelRightClose className="w-4 h-4" />
             </button>
@@ -126,7 +126,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           <button
             onClick={onClose}
             title="Close inspector"
-            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

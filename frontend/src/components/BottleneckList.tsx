@@ -34,22 +34,22 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
 
   if (!simulationResult) {
     return (
-      <div className="flex flex-col h-full text-xs bg-white dark:bg-slate-900">
-        <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex items-center justify-between">
-          <span className="font-bold text-slate-800 dark:text-slate-100 text-xs uppercase tracking-wider">
+      <div className="flex flex-col h-full text-xs bg-white dark:bg-[#0A0A0A]">
+        <div className="p-3 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] flex items-center justify-between">
+          <span className="font-bold text-slate-800 dark:text-neutral-100 text-xs uppercase tracking-wider">
             Analysis & Bottlenecks
           </span>
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
               title="Collapse sidebar"
-              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-neutral-200 hover:bg-slate-200/70 dark:hover:bg-neutral-800 rounded transition-colors cursor-pointer"
             >
               <PanelRightClose className="w-4 h-4" />
             </button>
           )}
         </div>
-        <div className="p-6 text-center text-slate-400 dark:text-slate-500 text-xs">
+        <div className="p-6 text-center text-slate-400 dark:text-neutral-500 text-xs">
           Run simulation to see performance bottlenecks.
         </div>
       </div>
@@ -60,45 +60,23 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
     simulationResult;
 
   return (
-    <div className="flex flex-col h-full text-xs bg-white dark:bg-slate-900">
+    <div className="flex flex-col h-full text-xs bg-white dark:bg-[#0A0A0A]">
       {/* Header & Tabs */}
-      <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 shrink-0">
+      <div className="p-3 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] shrink-0">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="font-bold text-slate-800 dark:text-slate-100 text-xs uppercase tracking-wider">
+          <span className="font-bold text-slate-800 dark:text-neutral-100 text-xs uppercase tracking-wider">
             Analysis & Bottlenecks
           </span>
-          {/* <div className="flex items-center gap-1.5">
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                metrics.overloadedCount > 0
-                  ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 dark:border dark:border-red-800/40'
-                  : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border dark:border-emerald-800/40'
-              }`}
-            >
-              {metrics.overloadedCount > 0
-                ? `${metrics.overloadedCount} Overloaded`
-                : 'All Systems Normal'}
-            </span>
-            {onToggleCollapse && (
-              <button
-                onClick={onToggleCollapse}
-                title="Collapse sidebar"
-                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
-              >
-                <PanelRightClose className="w-4 h-4" />
-              </button>
-            )}
-          </div> */}
         </div>
 
         {/* Tab switch */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-200/70 dark:bg-slate-800/80 p-1 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-400">
+        <div className="grid grid-cols-3 gap-1 bg-slate-200/70 dark:bg-neutral-900 p-1 rounded-lg text-[11px] font-medium text-slate-600 dark:text-neutral-400 border border-transparent dark:border-neutral-800">
           <button
             onClick={() => setActiveTab('bottlenecks')}
             className={`py-1 rounded text-center transition-all ${
               activeTab === 'bottlenecks'
-                ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-xs font-semibold'
-                : 'hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-neutral-800 text-slate-800 dark:text-neutral-100 shadow-xs font-semibold'
+                : 'hover:text-slate-900 dark:hover:text-neutral-200'
             }`}
           >
             Bottlenecks ({bottlenecks.length})
