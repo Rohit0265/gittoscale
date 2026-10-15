@@ -45,15 +45,15 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white dark:bg-[#0A0A0A] rounded-xl shadow-2xl border border-slate-200 dark:border-neutral-800 w-full max-w-2xl overflow-hidden text-xs text-slate-800 dark:text-neutral-100 transition-colors">
+      <div className="bg-white dark:bg-[#0E131F] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl overflow-hidden text-xs text-slate-800 dark:text-slate-200 transition-colors">
         {/* Modal Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] flex items-center justify-between">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#141B2D] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400">
               <GitCompare className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100">
+              <h2 className="font-bold text-sm text-slate-900 dark:text-slate-100">
                 Scenario Baseline Comparison
               </h2>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -63,7 +63,7 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -72,7 +72,7 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
         {/* Modal Body */}
         <div className="p-5 space-y-5">
           {/* Baseline status banner */}
-          <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+          <div className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#141B2D]">
             <div>
               <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold block">
                 Saved Baseline
@@ -83,7 +83,7 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
             </div>
             <button
               onClick={onSaveAsBaseline}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-none transition-colors cursor-pointer"
             >
               <BookmarkPlus className="w-3.5 h-3.5" />
               Save Current as Baseline
@@ -92,10 +92,10 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
 
           {/* Comparison Table */}
           {baselineMetrics && currentMetrics ? (
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+            <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-100/70 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-[11px]">
+                  <tr className="bg-slate-100/70 dark:bg-[#141B2D] border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-[11px]">
                     <th className="p-2.5">Key Metric (Model Estimates)</th>
                     <th className="p-2.5 text-right">Baseline</th>
                     <th className="p-2.5 text-right">Current ({currentScenarioName})</th>
@@ -224,17 +224,17 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
             </div>
           )}
 
-          <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-lg border border-indigo-100 dark:border-indigo-900/50 text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/50 text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
             <span className="font-bold text-indigo-900 dark:text-indigo-300 block mb-0.5">Note on Model Estimates:</span>
             All values displayed above are analytical approximations calculated by the deterministic DAG simulation engine. They reflect steady-state capacity models, queue rate integrals, and downstream multiplier bounds.
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3.5 border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] flex justify-end">
+        <div className="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#141B2D] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-slate-800 dark:bg-neutral-800 text-white font-medium hover:bg-slate-900 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white font-medium hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors cursor-pointer shadow-none"
           >
             Close
           </button>

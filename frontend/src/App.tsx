@@ -497,7 +497,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 dark:bg-[#0A0A0A] font-sans">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#090B10] font-sans">
       {/* 1. Header */}
       <Header
         scenarios={scenarios}
@@ -542,10 +542,9 @@ export const App: React.FC = () => {
       )}
 
       {/* 3. Three-Section Workspace */}
-      {/* 3. Three-Section Workspace */}
       <div className="flex flex-1 overflow-hidden relative w-full h-full">
         {/* Full Canvas: Interactive Architecture Diagram */}
-        <main className="w-full h-full absolute inset-0 overflow-hidden bg-slate-50 dark:bg-[#0A0A0A]">
+        <main className="w-full h-full absolute inset-0 overflow-hidden bg-slate-50 dark:bg-[#090B10]">
           <ArchitectureCanvas
             nodes={nodes}
             edges={edges}
@@ -601,10 +600,10 @@ export const App: React.FC = () => {
         {isLeftCollapsed && (
           <button
             onClick={() => setIsLeftCollapsed(false)}
-            className="absolute left-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-[#080B13] hover:bg-[#0E1320] border border-white/[0.08] hover:border-white/20 text-slate-400 hover:text-white rounded-xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer group"
+            className="absolute left-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
             title="Expand left sidebar"
           >
-            <PanelLeftOpen className="w-4 h-4 text-slate-400 group-hover:text-white" />
+            <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100" />
           </button>
         )}
 
@@ -612,10 +611,10 @@ export const App: React.FC = () => {
         {isRightCollapsed && (
           <button
             onClick={() => setIsRightCollapsed(false)}
-            className="absolute right-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-[#080B13] hover:bg-[#0E1320] border border-white/[0.08] hover:border-white/20 text-slate-400 hover:text-white rounded-xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer group"
+            className="absolute right-3 top-1/4 -translate-y-1/2 z-30 p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
             title="Expand right sidebar"
           >
-            <PanelRightOpen className="w-4 h-4 text-slate-400 group-hover:text-white" />
+            <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100" />
           </button>
         )}
 

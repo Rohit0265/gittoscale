@@ -18,6 +18,9 @@ import {
   PanelLeft,
   X,
   HelpCircle,
+  Zap,
+  Cpu,
+  Activity,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, ComponentType } from '../types';
 
@@ -83,16 +86,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   const getStatusDot = (nodeId: string, enabled: boolean) => {
     if (!enabled) {
-      return 'bg-slate-600 opacity-40';
+      return 'bg-slate-400 dark:bg-slate-600 opacity-50';
     }
     const res = nodeResults[nodeId];
     if (res?.status === 'overloaded') {
-      return 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.95)] animate-pulse';
+      return 'bg-rose-500 ring-2 ring-rose-500/20';
     }
     if (res?.status === 'warning') {
-      return 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.85)]';
+      return 'bg-amber-500 ring-2 ring-amber-500/20';
     }
-    return 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]';
+    return 'bg-emerald-500 ring-2 ring-emerald-500/20';
   };
 
   const getComponentVisual = (node: ArchitectureNode) => {
@@ -103,54 +106,54 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     if (type === 'load_generator' || nameLower.includes('frontend') || idLower.includes('client')) {
       return {
         icon: Monitor,
-        containerStyle: 'bg-[#0E172A] border-[#1E293B] text-sky-400',
+        containerStyle: 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400',
       };
     }
     if (type === 'gateway' || nameLower.includes('gateway') || idLower.includes('gateway')) {
       return {
         icon: Cloud,
-        containerStyle: 'bg-[#1D132D] border-[#2E1D47] text-purple-400',
+        containerStyle: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400',
       };
     }
     if (nameLower.includes('auth') || idLower.includes('auth')) {
       return {
         icon: Shield,
-        containerStyle: 'bg-[#0B1E17] border-[#16382B] text-emerald-400',
+        containerStyle: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
       };
     }
     if (nameLower.includes('agent') || idLower.includes('agent') || nameLower.includes('bot')) {
       return {
         icon: Bot,
-        containerStyle: 'bg-[#26150D] border-[#3F2316] text-orange-400',
+        containerStyle: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400',
       };
     }
     if (nameLower.includes('billing') || nameLower.includes('payment') || idLower.includes('billing')) {
       return {
         icon: CreditCard,
-        containerStyle: 'bg-[#241C09] border-[#3D3010] text-amber-400',
+        containerStyle: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400',
       };
     }
     if (type === 'cache' || nameLower.includes('cache') || nameLower.includes('redis')) {
       return {
         icon: Database,
-        containerStyle: 'bg-[#0A1A28] border-[#132E47] text-cyan-400',
+        containerStyle: 'bg-cyan-50 dark:bg-cyan-950/40 border-cyan-200 dark:border-cyan-800 text-cyan-600 dark:text-cyan-400',
       };
     }
     if (nameLower.includes('chat') || idLower.includes('chat') || nameLower.includes('message')) {
       return {
         icon: MessageSquare,
-        containerStyle: 'bg-[#220F2B] border-[#3A1B49] text-fuchsia-400',
+        containerStyle: 'bg-fuchsia-50 dark:bg-fuchsia-950/40 border-fuchsia-200 dark:border-fuchsia-800 text-fuchsia-600 dark:text-fuchsia-400',
       };
     }
     if (type === 'database') {
       return {
         icon: Database,
-        containerStyle: 'bg-[#0B1E17] border-[#16382B] text-emerald-400',
+        containerStyle: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
       };
     }
     return {
       icon: Server,
-      containerStyle: 'bg-[#131728] border-[#222944] text-indigo-400',
+      containerStyle: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400',
     };
   };
 
@@ -167,14 +170,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   return (
     <aside className="w-full h-full flex flex-col justify-between items-center py-4 px-3 bg-transparent select-none text-xs overflow-hidden transition-colors">
-      {/* Centered Architecture Card */}
-      <div className="my-auto w-full max-w-[340px] rounded-2xl bg-[#080B13] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-3.5 flex flex-col space-y-3.5 text-slate-200">
+      {/* Centered Architecture Card - No box-shadow, subtle 1px border */}
+      <div className="my-auto w-full max-w-[340px] rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3.5 flex flex-col space-y-3.5 text-slate-800 dark:text-slate-200">
         {/* 1. Arrival Rate Control Card */}
-        <div className="bg-[#0E1320] border border-white/[0.06] rounded-xl p-3 space-y-2.5 shadow-inner">
+        <div className="bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-2.5">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-200">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
               <span className="tracking-tight">Request/Sec</span>
-              {/* <Info className="w-3.5 h-3.5 text-slate-400 hover:text-slate-200 transition-colors cursor-help" /> */}
             </div>
             <div className="relative">
               <input
@@ -187,12 +189,12 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   const val = Math.max(0, parseInt(e.target.value) || 0);
                   onChangeTrafficRate(val);
                 }}
-                className="w-16 text-center font-mono font-bold text-xs px-2 py-0.5 rounded-lg border border-indigo-500/30 bg-[#13192B] text-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-xs"
+                className="w-16 text-center font-mono font-bold text-xs px-2 py-0.5 rounded-lg border border-indigo-300 dark:border-indigo-500/30 bg-white dark:bg-[#0A0A0A] text-indigo-600 dark:text-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-none"
               />
             </div>
           </div>
 
-          {/* Precision Gradient Range Slider */}
+          {/* Range Slider */}
           <div className="space-y-1.5">
             <input
               type="range"
@@ -202,11 +204,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               value={incomingTrafficRate}
               onChange={(e) => onChangeTrafficRate(Number(e.target.value))}
               style={{
-                background: `linear-gradient(to right, #818CF8 0%, #6366F1 ${sliderPercent}%, #1E2538 ${sliderPercent}%, #1E2538 100%)`,
+                background: `linear-gradient(to right, #6366F1 0%, #6366F1 ${sliderPercent}%, var(--border-strong) ${sliderPercent}%, var(--border-strong) 100%)`,
               }}
-              className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#818CF8]"
+              className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-400"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 font-mono tracking-tight">
+            <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-tight">
               <span>100 r/s</span>
               <span>2,500 r/s</span>
               <span>5,000 r/s</span>
@@ -216,7 +218,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
         {/* 2. Components Header Row */}
         <div className="flex items-center justify-between px-0.5 pt-0.5">
-          <span className="text-[11px] font-bold tracking-wider text-slate-300 uppercase">
+          <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
             COMPONENTS ({nodes.length})
           </span>
           <div className="flex items-center gap-1.5">
@@ -224,22 +226,22 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowAddMenu(!showAddMenu)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#5542F6] hover:bg-[#4836E4] active:scale-95 text-white font-medium text-xs transition-all shadow-sm cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-medium text-xs transition-colors shadow-none cursor-pointer"
                 title="Add component to architecture"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add</span>
               </button>
               {showAddMenu && (
-                <div className="absolute right-0 mt-1.5 w-44 bg-[#0E1320] border border-white/[0.08] rounded-xl shadow-2xl p-1 z-30 space-y-0.5 text-slate-200">
+                <div className="absolute right-0 mt-1.5 w-44 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-xl shadow-lg p-1 z-30 space-y-0.5 text-slate-700 dark:text-slate-200">
                   <button
                     onClick={() => {
                       onAddNode('service', `Custom Service ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] text-left text-xs cursor-pointer text-slate-200 transition-colors"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Server className="w-3.5 h-3.5 text-sky-400" />
+                    <Server className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
                     Service
                   </button>
                   <button
@@ -247,9 +249,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       onAddNode('cache', `Redis Cache ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] text-left text-xs cursor-pointer text-slate-200 transition-colors"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                    <Layers className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
                     Cache
                   </button>
                   <button
@@ -257,9 +259,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       onAddNode('database', `Database ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] text-left text-xs cursor-pointer text-slate-200 transition-colors"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Database className="w-3.5 h-3.5 text-emerald-400" />
+                    <Database className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
                     Database
                   </button>
                   <button
@@ -267,9 +269,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       onAddNode('gateway', `API Gateway ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] text-left text-xs cursor-pointer text-slate-200 transition-colors"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Globe className="w-3.5 h-3.5 text-purple-400" />
+                    <Globe className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
                     Gateway
                   </button>
                 </div>
@@ -281,7 +283,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               <button
                 onClick={onToggleCollapse}
                 title="Collapse left sidebar"
-                className="p-1.5 rounded-lg bg-[#111726] hover:bg-[#161E31] border border-white/[0.06] text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <PanelLeft className="w-4 h-4" />
               </button>
@@ -306,8 +308,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 onClick={() => onSelectNode(node.id)}
                 className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                   isSelected
-                    ? 'bg-[#12192B] border-indigo-500/50 shadow-sm ring-1 ring-indigo-500/25'
-                    : 'bg-[#0E1320]/75 hover:bg-[#121829] border-white/[0.06] hover:border-white/10'
+                    ? 'bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-400 dark:border-indigo-500/50 shadow-none ring-1 ring-indigo-400/30'
+                    : 'bg-white dark:bg-[#141414]/75 hover:bg-slate-50 dark:hover:bg-[#141414] border-slate-200 dark:border-neutral-800 shadow-none'
                 }`}
               >
                 {/* Left side: status dot + icon badge + structured text */}
@@ -335,23 +337,23 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         }}
                         onBlur={() => handleSaveRename(node.id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full font-semibold text-slate-100 text-xs px-1.5 py-0.5 rounded border border-indigo-500 bg-[#080B13] shadow-xs focus:outline-none"
+                        className="w-full font-semibold text-slate-900 dark:text-slate-100 text-xs px-1.5 py-0.5 rounded border border-indigo-500 bg-white dark:bg-[#0A0A0A] focus:outline-none"
                       />
                     ) : (
                       <div className="flex items-center truncate">
-                        <span className="font-medium text-slate-100 text-[13px] tracking-tight truncate">
+                        <span className="font-medium text-slate-900 dark:text-slate-100 text-[13px] tracking-tight truncate">
                           {title}
                         </span>
                         {fileTag && (
-                          <span className="text-slate-400 font-mono text-[11px] ml-1.5 shrink-0 opacity-90">
+                          <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px] ml-1.5 shrink-0 opacity-90">
                             {fileTag}
                           </span>
                         )}
                       </div>
                     )}
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono mt-0.5 tracking-tight">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 tracking-tight">
                       <span>{node.workerCount}w</span>
-                      <span className="text-slate-600">•</span>
+                      <span className="text-slate-400 dark:text-slate-600">•</span>
                       <span>{node.capacityPerSecond.toLocaleString()} r/s</span>
                     </div>
                   </div>
@@ -368,8 +370,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       e.stopPropagation();
                       setOpenMenuNodeId(isMenuOpen ? null : node.id);
                     }}
-                    className={`p-1 rounded text-slate-500 hover:text-slate-200 hover:bg-white/[0.06] transition-colors cursor-pointer ${
-                      isMenuOpen ? 'bg-white/[0.08] text-white' : ''
+                    className={`p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer ${
+                      isMenuOpen ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white' : ''
                     }`}
                     title="Component options"
                   >
@@ -380,7 +382,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   {isMenuOpen && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="absolute right-0 top-full mt-1 w-36 bg-[#0E1320] border border-white/[0.08] rounded-xl shadow-2xl py-1 z-30 text-left text-slate-200"
+                      className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-xl shadow-lg py-1 z-30 text-left text-slate-700 dark:text-slate-200"
                     >
                       <button
                         onClick={() => {
@@ -388,9 +390,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                           setRenameValue(node.name);
                           setOpenMenuNodeId(null);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-white/[0.06] transition-colors text-left cursor-pointer"
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                       >
-                        <Pencil className="w-3.5 h-3.5 text-indigo-400" />
+                        <Pencil className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
                         <span>Rename</span>
                       </button>
 
@@ -402,8 +404,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                           }}
                           className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-xs transition-colors text-left cursor-pointer ${
                             node.enabled
-                              ? 'text-amber-400 hover:bg-amber-950/30'
-                              : 'text-emerald-400 hover:bg-emerald-950/30'
+                              ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                              : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
                           }`}
                         >
                           <Power className="w-3.5 h-3.5" />
@@ -417,7 +419,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             onDeleteNode(node.id);
                             setOpenMenuNodeId(null);
                           }}
-                          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-red-400 hover:bg-red-950/30 transition-colors text-left cursor-pointer"
+                          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Delete</span>
@@ -430,28 +432,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             );
           })}
         </div>
-
-        {/* 4. Footer Information inside the box */}
-        {/* <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-white/[0.06] px-1">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-            <span>Connections: {activeConnectionsCount} active</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-slate-400">
-            <BarChart3 className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.75} />
-            <span className="font-mono text-[10px] tracking-tight">DAG Analytical</span>
-          </div>
-        </div> */}
       </div>
 
       {/* Outside the box at the bottom of the left side: small ? written help */}
       <div className="w-full max-w-[340px] flex justify-start pt-2 pb-1">
         <button
           onClick={() => setShowHelpModal(true)}
-          className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0E1320] hover:bg-[#13192B] border border-white/[0.08] hover:border-white/20 text-slate-400 hover:text-slate-100 text-xs transition-all shadow-md cursor-pointer"
+          className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-xs transition-colors shadow-none cursor-pointer"
           title="Architecture & Simulation Guide"
         >
-          <span className="w-3.5 h-3.5 rounded-full border border-slate-500 group-hover:border-slate-300 flex items-center justify-center text-[10px] font-bold">
+          <span className="w-3.5 h-3.5 rounded-full border border-slate-400 dark:border-slate-500 group-hover:border-slate-600 dark:group-hover:border-slate-300 flex items-center justify-center text-[10px] font-bold">
             ?
           </span>
           <span className="text-[11px] font-medium tracking-wide">Help</span>
@@ -460,37 +450,46 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
       {/* High-Craft Help & Simulation Guide Modal */}
       {showHelpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
-          <div className="bg-[#080B13] border border-white/[0.08] rounded-2xl shadow-2xl max-w-md w-full p-5 text-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-2xl shadow-xl max-w-md w-full p-5 text-slate-800 dark:text-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-neutral-800">
               <div className="flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-indigo-400" strokeWidth={1.75} />
-                <h3 className="font-bold text-sm text-white tracking-tight">System Design Simulation Guide</h3>
+                <HelpCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400" strokeWidth={1.75} />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white tracking-tight">System Design Simulation Guide</h3>
               </div>
               <button
                 onClick={() => setShowHelpModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3.5 text-xs text-slate-300">
-              <div className="space-y-1 bg-[#0E1320] p-3 rounded-xl border border-white/[0.06]">
-                <p className="font-semibold text-indigo-300">⚡ Arrival Rate (λ)</p>
-                <p className="text-slate-400 leading-relaxed">
+            <div className="space-y-3.5 text-xs text-slate-700 dark:text-slate-300">
+              <div className="space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
+                <p className="font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Arrival Rate (λ)</span>
+                </p>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                   Controls incoming user request velocity into the Frontend entrypoint. Increase it to simulate traffic surges and uncover queue backpressure thresholds.
                 </p>
               </div>
-              <div className="space-y-1 bg-[#0E1320] p-3 rounded-xl border border-white/[0.06]">
-                <p className="font-semibold text-indigo-300">🧩 Component Scaling</p>
-                <p className="text-slate-400 leading-relaxed">
+              <div className="space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
+                <p className="font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                  <Cpu className="w-3.5 h-3.5" />
+                  <span>Component Scaling</span>
+                </p>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                   Click any service or cache to inspect analytical utilization ($M/M/m/K$). Scale workers or capacity to relieve overloaded nodes.
                 </p>
               </div>
-              <div className="space-y-1 bg-[#0E1320] p-3 rounded-xl border border-white/[0.06]">
-                <p className="font-semibold text-indigo-300">🌊 Backpressure & Flow Packets</p>
-                <p className="text-slate-400 leading-relaxed">
+              <div className="space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
+                <p className="font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Backpressure & Flow Packets</span>
+                </p>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                   Edge packets represent active requests. Overloaded targets turn packets red with debounced recoil to model network congestion.
                 </p>
               </div>
@@ -499,7 +498,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setShowHelpModal(false)}
-                className="px-4 py-1.5 rounded-lg bg-[#5542F6] hover:bg-[#4836E4] text-white font-medium text-xs transition-colors cursor-pointer shadow-sm"
+                className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs transition-colors cursor-pointer shadow-none"
               >
                 Got it
               </button>

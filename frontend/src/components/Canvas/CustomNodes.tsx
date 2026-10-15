@@ -82,17 +82,17 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
   };
 
   const getCardBorder = () => {
-    if (selected) return 'ring-2 ring-indigo-500 shadow-lg border-indigo-500';
+    if (selected) return 'ring-2 ring-indigo-500 border-indigo-500 shadow-none';
     switch (status) {
       case 'overloaded':
-        return 'border-red-400 dark:border-red-500/80 shadow-md shadow-red-100/50 dark:shadow-red-950/40 bg-red-50/20 dark:bg-red-950/30';
+        return 'border-red-400 dark:border-red-500/80 bg-red-50/20 dark:bg-red-950/30 shadow-none';
       case 'warning':
-        return 'border-amber-400 dark:border-amber-500/80 shadow-sm shadow-amber-100/50 dark:shadow-amber-950/40 bg-amber-50/20 dark:bg-amber-950/30';
+        return 'border-amber-400 dark:border-amber-500/80 bg-amber-50/20 dark:bg-amber-950/30 shadow-none';
       case 'disabled':
-        return 'border-slate-300 dark:border-neutral-800 opacity-60 bg-slate-50 dark:bg-[#0A0A0A]';
+        return 'border-slate-300 dark:border-neutral-800 opacity-60 bg-slate-50 dark:bg-[#0A0A0A] shadow-none';
       case 'normal':
       default:
-        return 'border-slate-200 dark:border-neutral-800 shadow-sm hover:border-slate-300 dark:hover:border-neutral-700 bg-white dark:bg-[#141416]';
+        return 'border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 bg-white dark:bg-[#141416] shadow-none';
     }
   };
 

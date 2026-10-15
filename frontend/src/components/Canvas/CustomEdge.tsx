@@ -5,7 +5,7 @@ import {
   EdgeProps,
   getSmoothStepPath,
 } from '@xyflow/react';
-import { X, Trash2, Check } from 'lucide-react';
+import { X, Trash2, Check, ArrowRight, Zap, RefreshCw, Globe } from 'lucide-react';
 import { ArchitectureEdge } from '../../types';
 
 export type EdgeMode =
@@ -50,14 +50,14 @@ export interface CustomEdgeData {
 export interface EdgeTypeOption {
   value: string;
   label: string;
-  icon: string;
+  iconName: 'arrow' | 'zap' | 'refresh' | 'globe';
 }
 
 export const EDGE_TYPES: EdgeTypeOption[] = [
-  { value: 'http', label: 'Synchronous', icon: '→' },
-  { value: 'queue', label: 'Queue / Async', icon: '⚡' },
-  { value: 'websocket', label: 'WebSocket', icon: '⟲' },
-  { value: 'external', label: 'Cloud API', icon: '🌐' },
+  { value: 'http', label: 'Synchronous', iconName: 'arrow' },
+  { value: 'queue', label: 'Queue / Async', iconName: 'zap' },
+  { value: 'websocket', label: 'WebSocket', iconName: 'refresh' },
+  { value: 'external', label: 'Cloud API', iconName: 'globe' },
 ];
 
 export function resolveEdgeMode(
@@ -255,14 +255,9 @@ export const CustomEdge: React.FC<EdgeProps> = ({
             <circle
               key={`${id}-ball-${ball.id}`}
               r={hasBottleneck ? 6.5 : 5.2}
-              fill={hasBottleneck ? '#ef4444' : isDarkMode ? '#ffffff' : '#000000'}
-              style={{
-                filter: hasBottleneck
-                  ? 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.95))'
-                  : isDarkMode
-                  ? 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.85))'
-                  : 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45))',
-              }}
+              fill={hasBottleneck ? '#ef4444' : isDarkMode ? '#ffffff' : '#0f172a'}
+              stroke={hasBottleneck ? '#991b1b' : isDarkMode ? '#334155' : '#cbd5e1'}
+              strokeWidth={1}
             >
               {hasBottleneck ? (
                 <animateMotion
@@ -296,7 +291,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
             }}
-            className="nodrag nopan nowheel z-40 w-52 rounded-xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-xl p-2 text-xs text-slate-800 dark:text-neutral-100 space-y-1.5 animate-in fade-in zoom-in-95 duration-100"
+            className="nodrag nopan nowheel z-40 w-52 rounded-xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-lg p-2 text-xs text-slate-800 dark:text-neutral-100 space-y-1.5 animate-in fade-in zoom-in-95 duration-100"
           >
             {/* Header: title & close */}
             <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-neutral-800 px-1">
@@ -324,6 +319,20 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                   currentMode === type.value ||
                   (type.value === 'http' && ['http', 'db', 'cache', 'grpc', 'graphql', 'ui'].includes(currentMode)) ||
                   ((commType || 'http') === type.value);
+
+                const renderIcon = () => {
+                  switch (type.iconName) {
+                    case 'arrow':
+                      return <ArrowRight className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                    case 'zap':
+                      return <Zap className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                    case 'refresh':
+                      return <RefreshCw className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                    case 'globe':
+                      return <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                  }
+                };
+
                 return (
                   <button
                     key={type.value}
@@ -344,7 +353,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                   >
                     <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-black dark:bg-white" />
-                      <span className="text-xs">{type.icon}</span>
+                      {renderIcon()}
                       <span className="text-[11px] font-medium">{type.label}</span>
                     </div>
                     {isCurrent && <Check className="w-3.5 h-3.5 text-black dark:text-white" />}
@@ -355,7 +364,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
 
             {/* Delete Option */}
             {edgeData.onDelete && (
-              <div className="pt-1 border-t border-slate-100 dark:border-neutral-800">
+              <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={(e) => {

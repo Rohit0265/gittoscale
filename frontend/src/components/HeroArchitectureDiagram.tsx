@@ -193,7 +193,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         </div>
 
         {/* Emerald Green status dot */}
-        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
+        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
 
         {/* Right outgoing loop port */}
         <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
@@ -220,7 +220,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         </div>
 
         {/* Amber status dot */}
-        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.9)]" />
+        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 ring-2 ring-amber-500/20" />
       </div>
 
       {/* Service 3 (Bottom): Settings / Worker */}
@@ -244,7 +244,7 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
         </div>
 
         {/* Red / Rose status dot */}
-        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]" />
+        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500 ring-2 ring-rose-500/20" />
       </div>
     </div>
   );

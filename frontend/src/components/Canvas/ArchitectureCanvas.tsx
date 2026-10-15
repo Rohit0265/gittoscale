@@ -354,7 +354,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         </div>
 
         {/* Edge Modes Legend Bar */}
-        <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur-xs rounded-full border border-slate-200 dark:border-neutral-800 shadow-xs text-[10px] text-slate-600 dark:text-neutral-400">
+        {/* <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur-xs rounded-full border border-slate-200 dark:border-neutral-800 shadow-xs text-[10px] text-slate-600 dark:text-neutral-400">
           <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             Edge Styles:
           </span>
@@ -374,7 +374,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-black dark:border-white"></span>
             <span className="font-sans font-medium text-slate-700 dark:text-neutral-300">Cloud API</span>
           </span>
-        </div>
+        </div> */}
       </div>
 
       <ReactFlow
@@ -431,7 +431,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             transform: `translateX(${controlsShiftX}px)`,
             transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
           }}
-          className="!bg-[#080B13] !border !border-white/[0.08] !shadow-2xl !rounded-xl [&>button]:!bg-[#080B13] [&>button]:!border-white/[0.08] [&>button]:!fill-slate-300 [&>button:hover]:!bg-[#111726] [&>button]:!text-slate-300 z-10"
+          className="!bg-white dark:!bg-[#0A0A0A] !border !border-slate-200 dark:!border-neutral-800 shadow-none !rounded-xl [&>button]:!bg-white dark:[&>button]:!bg-[#0A0A0A] [&>button]:!border-slate-200 dark:[&>button]:!border-neutral-800 [&>button]:!fill-slate-600 dark:[&>button]:!fill-slate-300 [&>button:hover]:!bg-slate-100 dark:[&>button:hover]:!bg-[#141414] [&>button]:!text-slate-600 dark:[&>button]:!text-slate-300 z-10"
         />
         <MiniMap
           position="bottom-right"
@@ -447,9 +447,9 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
             if (status === 'disabled') return '#94a3b8';
             return '#10b981';
           }}
-          maskColor={isDark ? 'rgba(8, 11, 19, 0.85)' : 'rgba(240, 242, 245, 0.7)'}
-          nodeStrokeColor={isDark ? '#262626' : '#cbd5e1'}
-          className="!border !border-white/[0.08] !rounded-xl !bg-[#080B13]/90 shadow-2xl z-10"
+          maskColor={isDark ? 'rgba(10, 10, 10, 0.85)' : 'rgba(241, 245, 249, 0.7)'}
+          nodeStrokeColor={isDark ? '#333333' : '#cbd5e1'}
+          className="!border !border-slate-200 dark:!border-neutral-800 !rounded-xl !bg-white/95 dark:!bg-[#0A0A0A]/95 shadow-none z-10"
         />
       </ReactFlow>
     </div>
