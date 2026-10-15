@@ -45,9 +45,9 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl overflow-hidden text-xs text-slate-800 dark:text-slate-100 transition-colors">
+      <div className="bg-white dark:bg-[#0A0A0A] rounded-xl shadow-2xl border border-slate-200 dark:border-neutral-800 w-full max-w-2xl overflow-hidden text-xs text-slate-800 dark:text-neutral-100 transition-colors">
         {/* Modal Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400">
               <GitCompare className="w-4 h-4" />
@@ -231,10 +231,10 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-end">
+        <div className="p-3.5 border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#0A0A0A] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white font-medium hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors cursor-pointer"
+            className="px-4 py-1.5 rounded-lg bg-slate-800 dark:bg-neutral-800 text-white font-medium hover:bg-slate-900 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
           >
             Close
           </button>

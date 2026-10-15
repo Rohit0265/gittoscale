@@ -89,10 +89,10 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
       case 'warning':
         return 'border-amber-400 dark:border-amber-500/80 shadow-sm shadow-amber-100/50 dark:shadow-amber-950/40 bg-amber-50/20 dark:bg-amber-950/30';
       case 'disabled':
-        return 'border-slate-300 dark:border-slate-700 opacity-60 bg-slate-50 dark:bg-slate-900';
+        return 'border-slate-300 dark:border-neutral-800 opacity-60 bg-slate-50 dark:bg-[#0A0A0A]';
       case 'normal':
       default:
-        return 'border-slate-200 dark:border-slate-800 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900';
+        return 'border-slate-200 dark:border-neutral-800 shadow-sm hover:border-slate-300 dark:hover:border-neutral-700 bg-white dark:bg-[#141416]';
     }
   };
 
@@ -137,19 +137,19 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
             type="target"
             id="target-top"
             position={Position.Top}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-600"
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-600"
           />
           <Handle
             type="target"
             id="target-left"
             position={Position.Left}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-600"
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-600"
           />
           <Handle
             type="target"
             id="target-right"
             position={Position.Right}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-600"
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-600"
           />
         </>
       )}
@@ -233,33 +233,33 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
         type="source"
         id="source-bottom"
         position={Position.Bottom}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-700"
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
       />
       <Handle
         type="source"
         id="source-bottom-left"
         position={Position.Bottom}
         style={{ left: '25%' }}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-700"
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
       />
       <Handle
         type="source"
         id="source-bottom-right"
         position={Position.Bottom}
         style={{ left: '75%' }}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-700"
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
       />
       <Handle
         type="source"
         id="source-right"
         position={Position.Right}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-700"
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
       />
       <Handle
         type="source"
         id="source-left"
         position={Position.Left}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-slate-900 hover:!bg-indigo-700"
+        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
       />
     </div>
   );

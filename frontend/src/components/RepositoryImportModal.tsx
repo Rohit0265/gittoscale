@@ -256,16 +256,16 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             </button>
 
             {showLLMSettings && (
-              <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
+              <div className="p-3 border-t border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
+                    <label className="text-[10px] font-bold text-slate-600 dark:text-neutral-400 block mb-1">
                       Provider
                     </label>
                     <select
                       value={llmProvider}
                       onChange={(e) => setLlmProvider(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded border border-slate-200 dark:border-slate-700 text-xs bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                      className="w-full px-2 py-1.5 rounded border border-slate-200 dark:border-neutral-800 text-xs bg-slate-50 dark:bg-neutral-900 text-slate-800 dark:text-neutral-200"
                     >
                       <option value="openai">OpenAI</option>
                       <option value="gemini">Google Gemini</option>

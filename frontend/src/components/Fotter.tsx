@@ -29,26 +29,13 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
       <div className="gts-footer-inner">
         {/* Centered Top Brand Logo & Navigation */}
         <div className="gts-minimal-top">
-          {/* Brand Logo & Name */}
+          {/* Brand Logo (Mark only, no company text) */}
           <div className="gts-minimal-brand">
-            <div className="gts-minimal-logo" aria-hidden="true">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="6" y1="3" x2="6" y2="15"></line>
-                <circle cx="18" cy="6" r="3"></circle>
-                <circle cx="6" cy="18" r="3"></circle>
-                <path d="M18 9a9 9 0 0 1-9 9"></path>
-              </svg>
-            </div>
-            <span className="gts-minimal-name">{brandName}</span>
+            <img
+              src="/logo-mark.png"
+              alt="GitToScale Logo"
+              className="w-8 h-8 sm:w-9 sm:h-9 object-contain"
+            />
           </div>
 
           {/* Centered Horizontal Links */}
