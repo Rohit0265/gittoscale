@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
   Play,
@@ -182,61 +182,6 @@ function Demo({ onLaunch }: { onLaunch: () => void }) {
   );
 }
 
-function StepPage({ i, s }: { i: number; s: (typeof steps)[number] }) {
-  return (
-    <section
-      id={`step-${i + 1}`}
-      className="relative flex min-h-screen snap-start items-center px-6 sm:px-10 py-12"
-    >
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-8 md:gap-14 md:grid-cols-[1fr_auto_1fr]">
-        {/* Giant Outlined Step Number */}
-        <motion.p
-          initial={{ opacity: 0, x: -60 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ amount: 0.5 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="outline-text select-none text-[26vw] md:text-[16vw] font-black leading-none text-center md:text-left"
-        >
-          0{i + 1}
-        </motion.p>
-
-        {/* Vertical Animated Progress Divider */}
-        <div className="relative hidden h-64 w-px bg-slate-200 dark:bg-neutral-800 md:block">
-          <motion.div
-            initial={{ height: 0 }}
-            whileInView={{ height: '100%' }}
-            viewport={{ amount: 0.5 }}
-            transition={{ duration: 1, ease: 'easeInOut' }}
-            className="absolute top-0 w-px bg-slate-900 dark:bg-white"
-          />
-        </div>
-
-        {/* Step Info Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 40, filter: 'blur(6px)' }}
-          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          viewport={{ amount: 0.5 }}
-          transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-md mx-auto md:mx-0"
-        >
-          <p className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-            <Calendar className="h-4 w-4" /> Step {i + 1} of {steps.length}
-          </p>
-          <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {s.title}
-          </h2>
-          <p className="mt-2 font-mono text-xs uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-            {s.tag}
-          </p>
-          <p className="mt-6 text-base sm:text-lg leading-relaxed text-slate-600 dark:text-neutral-400">
-            {s.body}
-          </p>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
 export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectTestSite,
   onSelectUseRepository,
@@ -245,18 +190,70 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onToggleTheme,
 }) => {
   const [active, setActive] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [scrollDir, setScrollDir] = useState<'forward' | 'backward'>('forward');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const stepsSectionRef = useRef<HTMLDivElement>(null);
+
+  const updateStep = useCallback((newStep: number) => {
+    setCurrentStep((prev) => {
+      if (newStep !== prev) {
+        setScrollDir(newStep >= prev ? 'forward' : 'backward');
+        return newStep;
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleStepClick = (idx: number) => {
+    updateStep(idx);
+    const target = document.getElementById(`step-${idx + 1}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Scroll position observer to update active step in sync
+  const handleScroll = useCallback(() => {
+    if (!stepsSectionRef.current || !containerRef.current) return;
+    const container = containerRef.current;
+    const stepsRect = stepsSectionRef.current.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    // Check if within steps section
+    const relativeTop = stepsRect.top - containerRect.top;
+    const scrollableRange = stepsRect.height - containerRect.height;
+
+    if (scrollableRange > 0 && relativeTop <= 20 && relativeTop >= -scrollableRange) {
+      const progress = Math.max(0, Math.min(0.999, -relativeTop / scrollableRange));
+      const stepIdx = Math.min(3, Math.floor(progress * 4));
+      updateStep(stepIdx);
+      setActive(2 + stepIdx);
+    }
+  }, [updateStep]);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
             const idx = PAGES.indexOf(e.target.id);
-            if (idx !== -1) setActive(idx);
+            if (idx !== -1) {
+              setActive(idx);
+              if (e.target.id.startsWith('step-')) {
+                const stepNum = parseInt(e.target.id.replace('step-', ''), 10) - 1;
+                if (!isNaN(stepNum) && stepNum >= 0 && stepNum < steps.length) {
+                  updateStep(stepNum);
+                }
+              }
+            }
           }
         });
       },
-      { threshold: 0.4 }
+      { root: container, threshold: 0.45 }
     );
 
     PAGES.forEach((id) => {
@@ -264,11 +261,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       if (el) obs.observe(el);
     });
 
-    return () => obs.disconnect();
-  }, []);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      obs.disconnect();
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll, updateStep]);
 
   return (
-    <div className="h-screen w-full snap-y snap-mandatory overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 transition-colors">
+    <div
+      ref={containerRef}
+      className="h-screen w-full snap-y snap-mandatory overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 transition-colors"
+    >
       <PageDots active={active} />
 
       {/* Section 1: Hero Header & Content (#top) */}
@@ -356,7 +361,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
 
-        {/* Subtle Bottom Arrow / Scroll Hint */}
+        {/* Subtle Bottom Spacer */}
         <div className="h-4" />
       </header>
 
@@ -390,10 +395,96 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </motion.div>
       </section>
 
-      {/* Sections 3–6: 4 Full-Page Step Pages (#step-1 to #step-4) */}
-      {steps.map((s, i) => (
-        <StepPage key={s.title} i={i} s={s} />
-      ))}
+      {/* Sections 3–6: Interactive Pinned Steps Journey */}
+      <div ref={stepsSectionRef} id="steps-section" className="relative h-[400vh]">
+        {/* Invisible snap targets for the 4 steps */}
+        <div id="step-1" className="absolute top-0 h-screen w-full pointer-events-none snap-start" />
+        <div id="step-2" className="absolute top-[100vh] h-screen w-full pointer-events-none snap-start" />
+        <div id="step-3" className="absolute top-[200vh] h-screen w-full pointer-events-none snap-start" />
+        <div id="step-4" className="absolute top-[300vh] h-screen w-full pointer-events-none snap-start" />
+
+        {/* Pinned Sticky Stage */}
+        <div className="sticky top-0 h-screen w-full flex items-center justify-center px-6 sm:px-10 py-12">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-8 md:gap-14 md:grid-cols-[1fr_auto_1fr]">
+            {/* Stationary Giant Number with in-place transition */}
+            <div className="relative h-[24vw] md:h-[15vw] flex items-center justify-center md:justify-start overflow-hidden">
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={currentStep}
+                  initial={{ y: scrollDir === 'forward' ? 50 : -50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: scrollDir === 'forward' ? -50 : 50, opacity: 0 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className="outline-text select-none text-[26vw] md:text-[16vw] font-black leading-none block text-center md:text-left"
+                >
+                  0{currentStep + 1}
+                </motion.span>
+              </AnimatePresence>
+            </div>
+
+            {/* Vertical Animated Progress Divider */}
+            <div className="relative hidden h-64 w-px bg-slate-200 dark:bg-neutral-800 md:block">
+              <motion.div
+                className="absolute top-0 w-px bg-slate-900 dark:bg-white"
+                animate={{ height: `${((currentStep + 1) / steps.length) * 100}%` }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+
+            {/* Only the Text in Front Re-renders and Transitions */}
+            <div className="max-w-md mx-auto md:mx-0 min-h-[240px] flex flex-col justify-center">
+              {/* Interactive Step Pills for quick switching */}
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-4">
+                {steps.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleStepClick(idx)}
+                    className={`px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      idx === currentStep
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
+                        : 'bg-slate-200/70 text-slate-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-slate-300 dark:hover:bg-neutral-700'
+                    }`}
+                  >
+                    0{idx + 1}
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{
+                    opacity: 0,
+                    y: scrollDir === 'forward' ? 20 : -20,
+                    filter: 'blur(4px)',
+                  }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{
+                    opacity: 0,
+                    y: scrollDir === 'forward' ? -20 : 20,
+                    filter: 'blur(4px)',
+                  }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <p className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                    <Calendar className="h-4 w-4" /> Step {currentStep + 1} of {steps.length}
+                  </p>
+                  <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    {steps[currentStep].title}
+                  </h2>
+                  <p className="mt-2 font-mono text-xs uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                    {steps[currentStep].tag}
+                  </p>
+                  <p className="mt-6 text-base sm:text-lg leading-relaxed text-slate-600 dark:text-neutral-400">
+                    {steps[currentStep].body}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Optional Children */}
       {children}
