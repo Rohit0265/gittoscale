@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Calendar,
   Play,
   ArrowRight,
   BarChart3,
@@ -441,10 +440,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <p className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                    <Calendar className="h-4 w-4" /> Step {currentStep + 1} of {steps.length}
-                  </p>
-                  <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
                     {steps[currentStep].title}
                   </h2>
                   <p className="mt-2 font-mono text-xs uppercase tracking-wider text-slate-400 dark:text-neutral-500">
