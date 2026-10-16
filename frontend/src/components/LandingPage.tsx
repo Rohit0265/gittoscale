@@ -205,14 +205,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     });
   }, []);
 
-  const handleStepClick = (idx: number) => {
-    updateStep(idx);
-    const target = document.getElementById(`step-${idx + 1}`);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   // Scroll position observer to update active step in sync
   const handleScroll = useCallback(() => {
     if (!stepsSectionRef.current || !containerRef.current) return;
@@ -433,24 +425,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Only the Text in Front Re-renders and Transitions */}
             <div className="max-w-md mx-auto md:mx-0 min-h-[240px] flex flex-col justify-center">
-              {/* Interactive Step Pills for quick switching */}
-              <div className="flex items-center gap-1.5 sm:gap-2 mb-4">
-                {steps.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleStepClick(idx)}
-                    className={`px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                      idx === currentStep
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
-                        : 'bg-slate-200/70 text-slate-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-slate-300 dark:hover:bg-neutral-700'
-                    }`}
-                  >
-                    0{idx + 1}
-                  </button>
-                ))}
-              </div>
-
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentStep}
