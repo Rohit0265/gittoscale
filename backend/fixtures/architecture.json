@@ -1,0 +1,193 @@
+{
+  "description": "System Design Architecture Overview organized as a non-overlapping hierarchical tree flow.",
+  "nodes": [
+    {
+      "id": "client",
+      "name": "Frontend [App.jsx]",
+      "type": "load_generator",
+      "position": { "x": 600, "y": 40 },
+      "capacityPerSecond": 10000,
+      "workerCount": 1,
+      "enabled": true,
+      "category": "Chat interface",
+      "config": {
+        "baselineLatencyMs": 0,
+        "maxQueueSize": 10000,
+        "overflowPolicy": "drop",
+        "isSource": true,
+        "defaultTrafficRate": 800,
+        "reason": "Client web frontend sending user chat queries and authentication requests."
+      }
+    },
+    {
+      "id": "api-gateway",
+      "name": "API Gateway [index.js]",
+      "type": "gateway",
+      "position": { "x": 600, "y": 280 },
+      "capacityPerSecond": 20000,
+      "workerCount": 4,
+      "enabled": true,
+      "category": "API gateway",
+      "config": {
+        "baselineLatencyMs": 3,
+        "maxQueueSize": 20000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/gateway/index.js",
+        "reason": "Central ingress proxy performing routing, session guard checks, and TLS termination."
+      }
+    },
+    {
+      "id": "auth-service",
+      "name": "Auth Service [auth.controller.js]",
+      "type": "service",
+      "position": { "x": 100, "y": 520 },
+      "capacityPerSecond": 4000,
+      "workerCount": 2,
+      "enabled": true,
+      "category": "Identity and sessions",
+      "config": {
+        "baselineLatencyMs": 10,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/auth/controllers/auth.controllers.js",
+        "reason": "Authenticates user credentials and verifies session tokens."
+      }
+    },
+    {
+      "id": "agent-service",
+      "name": "Agent Service [agent.controller.js]",
+      "type": "service",
+      "position": { "x": 600, "y": 520 },
+      "capacityPerSecond": 4000,
+      "workerCount": 4,
+      "enabled": true,
+      "category": "AI and conversations",
+      "config": {
+        "baselineLatencyMs": 35,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/agent/controllers/agent.controller.js",
+        "reason": "Orchestrates AI agents, LangGraph workflows, and model execution."
+      }
+    },
+    {
+      "id": "billing-service",
+      "name": "Billing Service [billing.controller.js]",
+      "type": "service",
+      "position": { "x": 1100, "y": 520 },
+      "capacityPerSecond": 1000,
+      "workerCount": 1,
+      "enabled": true,
+      "category": "Billing",
+      "config": {
+        "baselineLatencyMs": 25,
+        "maxQueueSize": 1000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/billing/controllers/billing.controller.js",
+        "reason": "Subscription billing, payment orders, and plan authorization."
+      }
+    },
+    {
+      "id": "session-cache",
+      "name": "Session Cache [redis.js]",
+      "type": "cache",
+      "position": { "x": 100, "y": 760 },
+      "capacityPerSecond": 5000,
+      "workerCount": 1,
+      "enabled": true,
+      "category": "Identity and sessions",
+      "config": {
+        "baselineLatencyMs": 2,
+        "maxQueueSize": 5000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/shared/redis/redis.js",
+        "reason": "Low-latency in-memory cache for fast session claim lookups."
+      }
+    },
+    {
+      "id": "chat-service",
+      "name": "Chat Service [chat.controller.js]",
+      "type": "service",
+      "position": { "x": 600, "y": 760 },
+      "capacityPerSecond": 4000,
+      "workerCount": 2,
+      "enabled": true,
+      "category": "AI and conversations",
+      "config": {
+        "baselineLatencyMs": 15,
+        "maxQueueSize": 4000,
+        "overflowPolicy": "reject",
+        "entryPoint": "backend/services/chat/controllers/chat.controller.js",
+        "reason": "Manages conversation history, message threads, and user chat sessions."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-client-gateway",
+      "source": "client",
+      "target": "api-gateway",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "REST API",
+      "communicationType": "http",
+      "isBidirectional": true,
+      "dataFlowDescription": "Inbound HTTPS requests ⇄ Outbound JSON responses"
+    },
+    {
+      "id": "edge-gateway-auth",
+      "source": "api-gateway",
+      "target": "auth-service",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Route Request",
+      "communicationType": "http",
+      "isBidirectional": true,
+      "dataFlowDescription": "Forward login / token requests ⇄ Auth claims"
+    },
+    {
+      "id": "edge-auth-redis",
+      "source": "auth-service",
+      "target": "session-cache",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Cache Operations",
+      "communicationType": "cache",
+      "isBidirectional": true,
+      "dataFlowDescription": "Read/write session tokens ⇄ Cached session records"
+    },
+    {
+      "id": "edge-gateway-agent",
+      "source": "api-gateway",
+      "target": "agent-service",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Route Request",
+      "communicationType": "http",
+      "isBidirectional": true,
+      "dataFlowDescription": "Forward agent prompts ⇄ Assistant completions"
+    },
+    {
+      "id": "edge-agent-chat",
+      "source": "agent-service",
+      "target": "chat-service",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Internal RPC",
+      "communicationType": "grpc",
+      "isBidirectional": true,
+      "dataFlowDescription": "Persist generated responses ⇄ Message records"
+    },
+    {
+      "id": "edge-gateway-billing",
+      "source": "api-gateway",
+      "target": "billing-service",
+      "requestsPerInput": 1.0,
+      "enabled": true,
+      "label": "Route Request",
+      "communicationType": "http",
+      "isBidirectional": true,
+      "dataFlowDescription": "Forward checkout requests ⇄ Payment confirmation"
+    }
+  ]
+}

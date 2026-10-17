@@ -41,7 +41,9 @@ function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
 
-export default startServer;
+export default app;
 

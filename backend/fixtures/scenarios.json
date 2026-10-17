@@ -1,0 +1,75 @@
+[
+  {
+    "id": "normal-traffic",
+    "name": "Normal Traffic",
+    "description": "Baseline operational traffic at 800 req/s. All services operate safely within capacity, no bottlenecks or dropped requests.",
+    "incomingTrafficRate": 800,
+    "durationSeconds": 60,
+    "nodeOverrides": {},
+    "edgeOverrides": {}
+  },
+  {
+    "id": "traffic-spike",
+    "name": "Traffic Spike",
+    "description": "Sudden surge to 2,500 req/s. Offered load pushes the API Gateway, Agent Service, and Billing Service near and beyond their operational thresholds.",
+    "incomingTrafficRate": 2500,
+    "durationSeconds": 60,
+    "nodeOverrides": {},
+    "edgeOverrides": {}
+  },
+  {
+    "id": "database-pressure",
+    "name": "Session Cache Pressure",
+    "description": "Downscaled Redis capacity (1 worker @ 600 req/s), creating a primary cache bottleneck during session validation.",
+    "incomingTrafficRate": 1500,
+    "durationSeconds": 60,
+    "nodeOverrides": {
+      "session-cache": {
+        "capacityPerSecond": 600,
+        "workerCount": 1
+      }
+    },
+    "edgeOverrides": {
+      "edge-auth-redis": {
+        "requestsPerInput": 2.0
+      }
+    }
+  },
+  {
+    "id": "flash-sale",
+    "name": "Flash Sale",
+    "description": "Massive promotional event with 4,000 req/s. Multiple tiers (Gateway, Agent, Chat, Billing) become heavily overloaded with growing queues and rejected requests.",
+    "incomingTrafficRate": 4000,
+    "durationSeconds": 60,
+    "nodeOverrides": {},
+    "edgeOverrides": {}
+  },
+  {
+    "id": "scale-out",
+    "name": "Scale-Out Fleet",
+    "description": "Same 4,000 req/s flash sale load, but with scaled-out horizontal worker pools across Gateway, Services, and Session Cache to demonstrate bottleneck resolution.",
+    "incomingTrafficRate": 4000,
+    "durationSeconds": 60,
+    "nodeOverrides": {
+      "api-gateway": {
+        "workerCount": 6
+      },
+      "auth-service": {
+        "workerCount": 4
+      },
+      "agent-service": {
+        "workerCount": 6
+      },
+      "chat-service": {
+        "workerCount": 4
+      },
+      "billing-service": {
+        "workerCount": 4
+      },
+      "session-cache": {
+        "workerCount": 3
+      }
+    },
+    "edgeOverrides": {}
+  }
+]
