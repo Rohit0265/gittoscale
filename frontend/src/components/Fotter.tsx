@@ -39,7 +39,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
             >
               <MessageSquarePlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Feedback &amp; Bug Report</span>
-              <span className="gts-feedback-badge">Share idea</span>
+              {/* <span className="gts-feedback-badge">Share idea</span> */}
             </button>
           </div>
 
