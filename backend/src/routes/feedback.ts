@@ -67,7 +67,7 @@ export async function sendTelegramNotification(feedback: FeedbackItem): Promise<
     `<b>🏷️ Type:</b> ${categoryEmoji}`,
     ``,
     `<b>💬 Message:</b>`,
-    `<blockquote>${escapeTelegramHtml(feedback.message)}</blockquote>`,
+    `<pre>${escapeTelegramHtml(feedback.message)}</pre>`,
     ``,
     `<i>🕒 ${timestamp}</i>`,
   ].join('\n');

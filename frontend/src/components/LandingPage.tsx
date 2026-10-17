@@ -15,6 +15,8 @@ import {
   Layers,
   ShieldCheck,
   Compass,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
@@ -189,32 +191,160 @@ function HeroDiagram() {
   );
 }
 
+const DEMO_SLIDES = [
+  {
+    id: 'basic',
+    label: 'Basic View',
+    tag: '7 Microservices',
+    url: 'gittoscale://demo/basic-view',
+    image: '/demo-basic.png',
+    description: 'Interactive microservice DAG with live flow rate propagation and worker capacity metrics',
+  },
+  {
+    id: 'detailed',
+    label: 'Detailed Fleet',
+    tag: '23 Services',
+    url: 'gittoscale://demo/detailed-fleet',
+    image: '/demo-detailed.png',
+    description: 'Multi-tier enterprise fleet with automated bottleneck ranking and queue overflow diagnosis',
+  },
+  {
+    id: 'import',
+    label: 'AI Ingestion',
+    tag: 'GitHub Scanner',
+    url: 'gittoscale://demo/ai-repo-scanner',
+    image: '/demo-import.png',
+    description: 'AI-assisted architecture extraction directly from GitHub repositories into simulation nodes',
+  },
+];
+
 function Demo({ onLaunch }: { onLaunch: () => void }) {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const current = DEMO_SLIDES[activeSlide];
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveSlide((prev) => (prev === 0 ? DEMO_SLIDES.length - 1 : prev - 1));
+  };
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveSlide((prev) => (prev === DEMO_SLIDES.length - 1 ? 0 : prev + 1));
+  };
+
   return (
-    <div
-      onClick={onLaunch}
-      className="relative w-full aspect-video overflow-hidden cursor-pointer group"
-    >
-      <img
-        src="/demo-preview.png"
-        alt="GitToScale simulator preview"
-        className="w-full h-full object-cover object-top select-none"
-        draggable={false}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors duration-300 flex items-center justify-center pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.07, 1] }}
-          transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-xl"
-        >
-          <Play className="ml-1 h-7 w-7 fill-slate-900 text-slate-900" />
-        </motion.div>
+    <div className="w-full flex flex-col bg-white dark:bg-[#121214]">
+      {/* Top Controls & View Switcher */}
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-200 dark:border-neutral-800 bg-slate-50/90 dark:bg-[#0A0A0A]/90 px-4 py-2.5 gap-2">
+        {/* macOS Dots + Dynamic URL */}
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
+            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+          </div>
+          <span className="ml-2 font-mono text-xs text-slate-500 dark:text-neutral-400 truncate hidden md:inline">
+            {current.url}
+          </span>
+        </div>
+
+        {/* View Switcher Tabs */}
+        <div className="flex items-center gap-1.5 p-0.5 rounded-lg bg-slate-200/60 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shrink-0">
+          {DEMO_SLIDES.map((slide, idx) => (
+            <button
+              key={slide.id}
+              type="button"
+              onClick={() => setActiveSlide(idx)}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                activeSlide === idx
+                  ? 'bg-white text-slate-900 shadow-xs dark:bg-[#1e1e22] dark:text-white'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+            >
+              {slide.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-        <span className="px-3 py-1 rounded-full bg-black/60 text-white text-xs font-medium tracking-wide">
-          Launch interactive simulator
-        </span>
+
+      {/* Main High-Resolution Image Display (Non-Video) */}
+      <div
+        onClick={onLaunch}
+        className="relative w-full overflow-hidden bg-slate-950 cursor-pointer group"
+      >
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={current.id}
+            src={current.image}
+            alt={current.label}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="w-full h-auto block select-none"
+            draggable={false}
+          />
+        </AnimatePresence>
+
+        {/* Previous / Next Arrow Controls */}
+        <button
+          type="button"
+          onClick={handlePrev}
+          aria-label="Previous image"
+          className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleNext}
+          aria-label="Next image"
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Subtle hover prompt */}
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <span className="px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-sm text-white/90 text-[11px] font-medium">
+            Click to launch live simulator
+          </span>
+        </div>
+      </div>
+
+      {/* Image Caption & Indicator Footer */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-[#0A0A0A]/80 px-4 py-3 text-xs">
+        <div className="flex items-center gap-2 text-slate-600 dark:text-neutral-300 min-w-0">
+          <span className="font-semibold text-slate-900 dark:text-white shrink-0">
+            {current.label}
+          </span>
+          <span className="text-slate-400 dark:text-neutral-500 hidden sm:inline">·</span>
+          <span className="truncate text-slate-500 dark:text-neutral-400">
+            {current.description}
+          </span>
+        </div>
+
+        {/* Slide Indicator Dots & Counter */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1.5">
+            {DEMO_SLIDES.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveSlide(idx)}
+                aria-label={`Switch to slide ${idx + 1}`}
+                className={`h-2 rounded-full transition-all cursor-pointer ${
+                  activeSlide === idx
+                    ? 'w-6 bg-slate-900 dark:bg-white'
+                    : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-neutral-700 dark:hover:bg-neutral-600'
+                }`}
+              />
+            ))}
+          </div>
+          <span className="font-mono text-[11px] text-slate-400 dark:text-neutral-500">
+            {activeSlide + 1} / {DEMO_SLIDES.length}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -431,15 +561,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-2xl">
-            {/* macOS Chrome Bar */}
-            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-neutral-800 px-4 py-3 bg-slate-50/80 dark:bg-[#0A0A0A]/80">
-              <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-              <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-              <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-              <span className="ml-3 font-mono text-xs text-slate-500 dark:text-neutral-400">
-                gittoscale://demo
-              </span>
-            </div>
             <Demo onLaunch={onSelectTestSite} />
           </div>
         </motion.div>

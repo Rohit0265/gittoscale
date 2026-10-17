@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Github } from 'lucide-react';
+import { Github, Star } from 'lucide-react';
 
 /**
  * Props for the GitHubStarButton component.
@@ -12,7 +12,7 @@ export interface GitHubStarButtonProps {
 }
 
 /**
- * Minimalist GitHub star button displaying only the official GitHub logo and live repository star count.
+ * Minimalist GitHub button displaying the official GitHub logo, a yellow star icon, and the repository star count.
  */
 export const GitHubStarButton: React.FC<GitHubStarButtonProps> = ({
   repo = 'Rohit0265/gittoscale',
@@ -51,8 +51,13 @@ export const GitHubStarButton: React.FC<GitHubStarButtonProps> = ({
       aria-label="Star repository on GitHub"
     >
       <Github className="w-4 h-4 fill-current shrink-0" />
-      <span className="whitespace-nowrap">
-        {stars !== null ? `${stars} ${stars === 1 ? 'star' : 'stars'}` : 'Stars'}
+      <span className="inline-flex items-center gap-1">
+        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0" />
+        {stars !== null && (
+          <span className="font-semibold text-xs tabular-nums text-slate-800 dark:text-neutral-200">
+            {stars}
+          </span>
+        )}
       </span>
     </a>
   );
