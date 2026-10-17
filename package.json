@@ -2,6 +2,7 @@
   "name": "system-design-playground",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "System Design Playground — Microservices Traffic Simulator and Bottleneck Visualizer",
   "workspaces": [
     "backend",
