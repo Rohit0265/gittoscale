@@ -33,28 +33,28 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
     <footer className="gts-footer-container">
       <div className="gts-footer-inner">
         {/* Centered Top Brand Logo & Navigation */}
-        <div className="gts-minimal-top">
+        {/* <div className="gts-minimal-top"> */}
           {/* Brand Logo (Mark only, no company text) */}
-          <div className="gts-minimal-brand">
+          {/* <div className="gts-minimal-brand">
             <img
               src={isDarkMode ? '/logo-mark.png' : '/logo-mark-dark.png'}
               alt="GitToScale Logo"
               className="w-8 h-8 sm:w-9 sm:h-9 object-contain"
             />
-          </div>
+          </div> */}
 
           {/* Centered Horizontal Links */}
-          <nav className="gts-minimal-nav" aria-label="Footer navigation">
+          {/* <nav className="gts-minimal-nav" aria-label="Footer navigation">
             {NAV_LINKS.map((link) => (
               <a key={link.label} href={link.href} className="gts-minimal-nav-link">
                 {link.label}
               </a>
             ))}
           </nav>
-        </div>
+        </div> */}
 
         {/* Dotted Divider */}
-        <div className="gts-dotted-divider" />
+        {/* <div className="gts-dotted-divider" /> */}
 
         {/* Bottom Bar: Copyright on Left, Social Icons on Right */}
         <div className="justify-between items-center gap-4">
