@@ -2,7 +2,7 @@ import { createApp } from './app.js';
 
 import { execSync } from 'node:child_process';
 
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const app = createApp();
 
 function killPortProcess(port: number) {
@@ -24,7 +24,7 @@ function killPortProcess(port: number) {
 
 function startServer() {
   const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Backend] System Design Playground API listening strictly on http://0.0.0.0:${PORT}`);
+    console.log(`[Backend] System Design Playground API listening on http://0.0.0.0:${PORT}`);
   });
 
   server.on('error', (err: any) => {
@@ -40,6 +40,8 @@ function startServer() {
     }
   });
 }
+
+startServer();
 
 export default startServer;
 
