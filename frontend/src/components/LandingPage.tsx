@@ -191,22 +191,23 @@ function HeroDiagram() {
 
 function Demo({ onLaunch }: { onLaunch: () => void }) {
   return (
-    <div className="flex aspect-video w-full flex-col items-center justify-center gap-4 text-center p-6 bg-slate-50/50 dark:bg-[#0A0A0A]/50">
-      <motion.button
-        type="button"
-        onClick={onLaunch}
-        aria-label="Launch simulator demo"
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
-        className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-slate-900 dark:border-white shadow-md cursor-pointer hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors group"
-      >
-        <Play className="ml-1 h-8 w-8 fill-slate-900 dark:fill-white text-slate-900 dark:text-white group-hover:scale-105 transition-transform" />
-      </motion.button>
-      <div className="space-y-1">
-        <p className="text-lg font-semibold text-slate-800 dark:text-neutral-100">Project demo ready to explore</p>
-        <p className="font-mono text-xs text-slate-400 dark:text-neutral-500">Tap to run interactive system simulation · 16:9</p>
-      </div>
-    </div>
+    <div> </div>
+    // <div className="flex aspect-video w-full flex-col items-center justify-center gap-4 text-center p-6 bg-slate-50/50 dark:bg-[#0A0A0A]/50">
+    //   <motion.button
+    //     type="button"
+    //     onClick={onLaunch}
+    //     aria-label="Launch simulator demo"
+    //     animate={{ scale: [1, 1.08, 1] }}
+    //     transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
+    //     className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-slate-900 dark:border-white shadow-md cursor-pointer hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors group"
+    //   >
+    //     <Play className="ml-1 h-8 w-8 fill-slate-900 dark:fill-white text-slate-900 dark:text-white group-hover:scale-105 transition-transform" />
+    //   </motion.button>
+    //   <div className="space-y-1">
+    //     <p className="text-lg font-semibold text-slate-800 dark:text-neutral-100">Project demo ready to explore</p>
+    //     <p className="font-mono text-xs text-slate-400 dark:text-neutral-500">Tap to run interactive system simulation · 16:9</p>
+    //   </div>
+    // </div>
   );
 }
 
@@ -390,55 +391,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Section 2: Live Demo (#demo) */}
-      <section
-        id="demo"
-        className="relative flex min-h-screen snap-start items-center px-4 sm:px-6 py-16"
-      >
-        <motion.div
-          className="mx-auto w-full max-w-4xl"
-          initial="hidden"
-          whileInView="show"
-          viewport={{ amount: 0.3 }}
-          variants={fadeUp}
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                Live demo
-              </h2>
-              <p className="mt-1 text-sm text-slate-600 dark:text-neutral-400">
-                Experience simulated stress tests and discrete-event load distribution in real time.
-              </p>
-            </div>
-            <button
-              onClick={onSelectTestSite}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors cursor-pointer"
-            >
-              <span>Launch Simulator</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xl">
-            {/* macOS Chrome Bar */}
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-neutral-800 px-4 py-3 bg-slate-50/80 dark:bg-[#0A0A0A]/80">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-                <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-                <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-                <span className="ml-3 font-mono text-xs text-slate-500 dark:text-neutral-400">
-                  gittoscale://demo
-                </span>
-              </div>
-              <span className="text-[11px] font-mono font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Engine Active
-              </span>
-            </div>
-            <Demo onLaunch={onSelectTestSite} />
-          </div>
-        </motion.div>
-      </section>
 
       {/* Sections 3–6: Interactive Pinned Steps Journey */}
       <div ref={stepsSectionRef} id="steps-section" className="relative h-[400vh]">
