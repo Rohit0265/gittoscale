@@ -274,6 +274,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       updateStep(stepIdx);
       setActive(2 + stepIdx);
     }
+
+    // Activate footer dot when user scrolls to the bottom
+    if (container.scrollHeight - container.scrollTop - container.clientHeight < 80) {
+      setActive(PAGES.indexOf('footer'));
+    }
   }, [updateStep]);
 
   useEffect(() => {
@@ -297,7 +302,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           }
         });
       },
-      { root: container, threshold: 0.3 }
+      { root: container, threshold: 0.2 }
     );
 
     PAGES.forEach((id) => {
@@ -316,7 +321,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full snap-y snap-mandatory overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 transition-colors"
+      className="h-screen w-full snap-y snap-proximity overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 transition-colors"
     >
       <PageDots active={active} />
 
@@ -1135,7 +1140,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {children}
 
       {/* Section 12: Global Footer (#footer) */}
-      <div id="footer" className="relative flex min-h-screen snap-start flex-col justify-end">
+      <div id="footer" className="relative w-full">
         <Fotter brandName="GitToScale" isDark={isDark} />
       </div>
     </div>
