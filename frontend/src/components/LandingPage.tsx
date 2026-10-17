@@ -208,6 +208,18 @@ const DEMO_IMAGES = [
 
 function Demo({ onLaunch }: { onLaunch: () => void }) {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Automatically cycle through images every 4 seconds, pause when hovering
+  useEffect(() => {
+    if (isPaused) return;
+
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev === DEMO_IMAGES.length - 1 ? 0 : prev + 1));
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [isPaused, activeSlide]);
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -220,64 +232,72 @@ function Demo({ onLaunch }: { onLaunch: () => void }) {
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-neutral-800 bg-slate-950 shadow-2xl group">
-      {/* Clickable Image to Launch */}
-      <div onClick={onLaunch} className="relative w-full cursor-pointer select-none">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={activeSlide}
-            src={DEMO_IMAGES[activeSlide].src}
-            alt={DEMO_IMAGES[activeSlide].alt}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            className="w-full h-auto block select-none"
-            draggable={false}
-          />
-        </AnimatePresence>
+    <div
+      className="w-full flex flex-col items-center"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Outer row with outside flanking arrow buttons and the large image */}
+      <div className="relative flex items-center justify-center gap-2 sm:gap-4 md:gap-6 w-full">
+        {/* Left Arrow Button (Outside image) */}
+        <button
+          type="button"
+          onClick={handlePrev}
+          aria-label="Previous image"
+          className="shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white dark:bg-[#18181b] hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg cursor-pointer z-10"
+        >
+          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+        </button>
+
+        {/* Big High-Resolution Image Frame */}
+        <div
+          onClick={onLaunch}
+          className="relative flex-1 min-w-0 overflow-hidden rounded-2xl border border-slate-200 dark:border-neutral-800 bg-slate-950 shadow-2xl cursor-pointer select-none"
+        >
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={activeSlide}
+              src={DEMO_IMAGES[activeSlide].src}
+              alt={DEMO_IMAGES[activeSlide].alt}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="w-full h-auto block select-none"
+              draggable={false}
+            />
+          </AnimatePresence>
+        </div>
+
+        {/* Right Arrow Button (Outside image) */}
+        <button
+          type="button"
+          onClick={handleNext}
+          aria-label="Next image"
+          className="shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white dark:bg-[#18181b] hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg cursor-pointer z-10"
+        >
+          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+        </button>
       </div>
 
-      {/* Prominent Left Navigation Button */}
-      <button
-        type="button"
-        onClick={handlePrev}
-        aria-label="Previous image"
-        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-2xl cursor-pointer z-10"
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </button>
-
-      {/* Prominent Right Navigation Button */}
-      <button
-        type="button"
-        onClick={handleNext}
-        aria-label="Next image"
-        className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-2xl cursor-pointer z-10"
-      >
-        <ChevronRight className="h-6 w-6" />
-      </button>
-
-      {/* Clean Dots Indicator */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center z-10 pointer-events-auto">
-        <div className="flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-md px-3 py-1.5 border border-white/10 shadow-lg">
-          {DEMO_IMAGES.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveSlide(idx);
-              }}
-              aria-label={`Go to image ${idx + 1}`}
-              className={`h-2 rounded-full transition-all cursor-pointer ${
-                activeSlide === idx
-                  ? 'w-6 bg-white'
-                  : 'w-2 bg-white/40 hover:bg-white/70'
-              }`}
-            />
-          ))}
-        </div>
+      {/* Clean Dots Indicator Below the Image */}
+      <div className="flex justify-center items-center mt-5 gap-2">
+        {DEMO_IMAGES.map((_, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSlide(idx);
+            }}
+            aria-label={`Go to image ${idx + 1}`}
+            className={`h-2.5 rounded-full transition-all cursor-pointer ${
+              activeSlide === idx
+                ? 'w-7 bg-indigo-600 dark:bg-indigo-400 shadow-xs'
+                : 'w-2.5 bg-slate-300 hover:bg-slate-400 dark:bg-neutral-700 dark:hover:bg-neutral-600'
+            }`}
+          />
+        ))}
       </div>
     </div>
   );
@@ -466,23 +486,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Section 2: Project Overview (#demo) */}
       <section
         id="demo"
-        className="relative flex min-h-screen snap-start items-center justify-center px-4 sm:px-6 lg:px-8 py-16"
+        className="relative flex min-h-screen snap-start items-center justify-center px-2 sm:px-4 lg:px-8 py-16"
       >
         <motion.div
-          className="mx-auto w-full max-w-6xl xl:max-w-7xl"
+          className="mx-auto w-full max-w-[1400px]"
           initial="hidden"
           whileInView="show"
           viewport={{ amount: 0.3 }}
           variants={fadeUp}
         >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                Project overview
-              </h2>
-            </div>
-
-          </div>
+    
 
           <Demo onLaunch={onSelectTestSite} />
         </motion.div>
