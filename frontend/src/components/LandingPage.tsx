@@ -523,10 +523,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             variants={fadeUp}
             className="mb-12 max-w-2xl"
           >
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 mb-3">
+            {/* <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 mb-3">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Target Audiences</span>
-            </div>
+            </div> */}
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
               Who benefits from GitToScale
             </h2>
@@ -555,10 +555,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Validate proposed microservice topologies, database sharding strategies, and message broker backpressure before writing a single line of infrastructure code.
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
+              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
                 <span>Outcome: Zero unexpected cascading faults</span>
                 <span className="text-indigo-600 dark:text-indigo-400 font-semibold">Pre-production</span>
-              </div>
+              </div> */}
             </motion.div>
 
             {/* Card 2 */}
@@ -580,10 +580,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Diagnose whether downstream DB connection pools or queue worker threads saturate first during 10x traffic spikes, pinpointing root bottlenecks instantly.
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
+              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
                 <span>Outcome: Queue & latency safety thresholds</span>
                 <span className="text-sky-600 dark:text-sky-400 font-semibold">Capacity Planning</span>
-              </div>
+              </div> */}
             </motion.div>
 
             {/* Card 3 */}
@@ -605,10 +605,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Make data-backed infrastructure budget decisions. Compare baseline vs. scaled configurations side-by-side to justify cloud spend and replica counts.
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
+              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
                 <span>Outcome: Eliminate over-provisioning spend</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Cost Efficiency</span>
-              </div>
+              </div> */}
             </motion.div>
 
             {/* Card 4 */}
@@ -630,10 +630,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Move beyond static whiteboard diagrams. Test caching layers, load balancers, rate limiters, and failover mechanics interactively under synthetic loads.
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
+              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
                 <span>Outcome: Hands-on distributed system mastery</span>
                 <span className="text-amber-600 dark:text-amber-400 font-semibold">Interactive Learning</span>
-              </div>
+              </div> */}
             </motion.div>
           </div>
         </div>
