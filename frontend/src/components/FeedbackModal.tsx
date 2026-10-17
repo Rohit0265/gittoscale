@@ -313,12 +313,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Submitting...</span>
+                        <span>Sending...</span>
                       </>
                     ) : (
                       <>
                         <Send className="h-4 w-4" />
-                        <span>Submit Feedback</span>
+                        <span>Send Message</span>
                       </>
                     )}
                   </button>
