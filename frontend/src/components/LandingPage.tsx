@@ -42,7 +42,7 @@ const PAGES = [
 
 const PAGE_LABELS: Record<string, string> = {
   top: 'Overview',
-  demo: 'Live Demo',
+  demo: 'Project Overview',
   'step-1': 'Step 01: Discover',
   'step-2': 'Step 02: Simulate',
   'step-3': 'Step 03: Detect',
@@ -191,92 +191,43 @@ function HeroDiagram() {
   );
 }
 
-const DEMO_SLIDES = [
+const DEMO_IMAGES = [
   {
-    id: 'basic',
-    label: 'Basic View',
-    tag: '7 Microservices',
-    url: 'gittoscale://demo/basic-view',
-    image: '/demo-basic.png',
-    description: 'Interactive microservice DAG with live flow rate propagation and worker capacity metrics',
+    src: '/demo-basic.png',
+    alt: 'GitToScale Basic Architecture Simulation View',
   },
   {
-    id: 'detailed',
-    label: 'Detailed Fleet',
-    tag: '23 Services',
-    url: 'gittoscale://demo/detailed-fleet',
-    image: '/demo-detailed.png',
-    description: 'Multi-tier enterprise fleet with automated bottleneck ranking and queue overflow diagnosis',
+    src: '/demo-detailed.png',
+    alt: 'GitToScale Detailed Fleet and Bottleneck Analysis View',
   },
   {
-    id: 'import',
-    label: 'AI Ingestion',
-    tag: 'GitHub Scanner',
-    url: 'gittoscale://demo/ai-repo-scanner',
-    image: '/demo-import.png',
-    description: 'AI-assisted architecture extraction directly from GitHub repositories into simulation nodes',
+    src: '/demo-import.png',
+    alt: 'GitToScale AI Ingestion and Architecture Extraction',
   },
 ];
 
 function Demo({ onLaunch }: { onLaunch: () => void }) {
   const [activeSlide, setActiveSlide] = useState(0);
-  const current = DEMO_SLIDES[activeSlide];
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setActiveSlide((prev) => (prev === 0 ? DEMO_SLIDES.length - 1 : prev - 1));
+    setActiveSlide((prev) => (prev === 0 ? DEMO_IMAGES.length - 1 : prev - 1));
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setActiveSlide((prev) => (prev === DEMO_SLIDES.length - 1 ? 0 : prev + 1));
+    setActiveSlide((prev) => (prev === DEMO_IMAGES.length - 1 ? 0 : prev + 1));
   };
 
   return (
-    <div className="w-full flex flex-col bg-white dark:bg-[#121214]">
-      {/* Top Controls & View Switcher */}
-      <div className="flex flex-wrap items-center justify-between border-b border-slate-200 dark:border-neutral-800 bg-slate-50/90 dark:bg-[#0A0A0A]/90 px-4 py-2.5 gap-2">
-        {/* macOS Dots + Dynamic URL */}
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-          </div>
-          <span className="ml-2 font-mono text-xs text-slate-500 dark:text-neutral-400 truncate hidden md:inline">
-            {current.url}
-          </span>
-        </div>
-
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1.5 p-0.5 rounded-lg bg-slate-200/60 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shrink-0">
-          {DEMO_SLIDES.map((slide, idx) => (
-            <button
-              key={slide.id}
-              type="button"
-              onClick={() => setActiveSlide(idx)}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                activeSlide === idx
-                  ? 'bg-white text-slate-900 shadow-xs dark:bg-[#1e1e22] dark:text-white'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-              }`}
-            >
-              {slide.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Main High-Resolution Image Display (Non-Video) */}
-      <div
-        onClick={onLaunch}
-        className="relative w-full overflow-hidden bg-slate-950 cursor-pointer group"
-      >
+    <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-neutral-800 bg-slate-950 shadow-2xl group">
+      {/* Clickable Image to Launch */}
+      <div onClick={onLaunch} className="relative w-full cursor-pointer select-none">
         <AnimatePresence mode="wait">
           <motion.img
-            key={current.id}
-            src={current.image}
-            alt={current.label}
+            key={activeSlide}
+            src={DEMO_IMAGES[activeSlide].src}
+            alt={DEMO_IMAGES[activeSlide].alt}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -285,65 +236,47 @@ function Demo({ onLaunch }: { onLaunch: () => void }) {
             draggable={false}
           />
         </AnimatePresence>
-
-        {/* Previous / Next Arrow Controls */}
-        <button
-          type="button"
-          onClick={handlePrev}
-          aria-label="Previous image"
-          className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          onClick={handleNext}
-          aria-label="Next image"
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/75 text-white/90 hover:text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-
-        {/* Subtle hover prompt */}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <span className="px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-sm text-white/90 text-[11px] font-medium">
-            Click to launch live simulator
-          </span>
-        </div>
       </div>
 
-      {/* Image Caption & Indicator Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-[#0A0A0A]/80 px-4 py-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-600 dark:text-neutral-300 min-w-0">
-          <span className="font-semibold text-slate-900 dark:text-white shrink-0">
-            {current.label}
-          </span>
-          <span className="text-slate-400 dark:text-neutral-500 hidden sm:inline">·</span>
-          <span className="truncate text-slate-500 dark:text-neutral-400">
-            {current.description}
-          </span>
-        </div>
+      {/* Prominent Left Navigation Button */}
+      <button
+        type="button"
+        onClick={handlePrev}
+        aria-label="Previous image"
+        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-2xl cursor-pointer z-10"
+      >
+        <ChevronLeft className="h-6 w-6" />
+      </button>
 
-        {/* Slide Indicator Dots & Counter */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-1.5">
-            {DEMO_SLIDES.map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setActiveSlide(idx)}
-                aria-label={`Switch to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all cursor-pointer ${
-                  activeSlide === idx
-                    ? 'w-6 bg-slate-900 dark:bg-white'
-                    : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-neutral-700 dark:hover:bg-neutral-600'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="font-mono text-[11px] text-slate-400 dark:text-neutral-500">
-            {activeSlide + 1} / {DEMO_SLIDES.length}
-          </span>
+      {/* Prominent Right Navigation Button */}
+      <button
+        type="button"
+        onClick={handleNext}
+        aria-label="Next image"
+        className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-2xl cursor-pointer z-10"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </button>
+
+      {/* Clean Dots Indicator */}
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center z-10 pointer-events-auto">
+        <div className="flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-md px-3 py-1.5 border border-white/10 shadow-lg">
+          {DEMO_IMAGES.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveSlide(idx);
+              }}
+              aria-label={`Go to image ${idx + 1}`}
+              className={`h-2 rounded-full transition-all cursor-pointer ${
+                activeSlide === idx
+                  ? 'w-6 bg-white'
+                  : 'w-2 bg-white/40 hover:bg-white/70'
+              }`}
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -530,13 +463,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="h-4" />
       </header>
 
-      {/* Section 2: Live Demo (#demo) */}
+      {/* Section 2: Project Overview (#demo) */}
       <section
         id="demo"
-        className="relative flex min-h-screen snap-start items-center justify-center px-4 sm:px-6 py-16"
+        className="relative flex min-h-screen snap-start items-center justify-center px-4 sm:px-6 lg:px-8 py-16"
       >
         <motion.div
-          className="mx-auto w-full max-w-4xl"
+          className="mx-auto w-full max-w-6xl xl:max-w-7xl"
           initial="hidden"
           whileInView="show"
           viewport={{ amount: 0.3 }}
@@ -545,24 +478,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                Live demo
+                Project overview
               </h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400">
-                Interactive architecture simulator and traffic bottleneck visualizer
-              </p>
             </div>
-            <button
-              onClick={onSelectTestSite}
-              className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Launch Simulator</span>
-            </button>
+
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-2xl">
-            <Demo onLaunch={onSelectTestSite} />
-          </div>
+          <Demo onLaunch={onSelectTestSite} />
         </motion.div>
       </section>
 
