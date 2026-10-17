@@ -189,7 +189,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   const val = Math.max(0, parseInt(e.target.value) || 0);
                   onChangeTrafficRate(val);
                 }}
-                className="w-16 text-center font-mono font-bold text-xs justify-center px-2 py-0.5 rounded-lg border bg-white dark:bg-[#0A0A0A]  focus:outline-none focus:ring-1 shadow-none no-spinner"
+                className="w-16 text-center font-mono font-bold text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 shadow-none no-spinner"
               />
             </div>
           </div>

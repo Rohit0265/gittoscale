@@ -56,10 +56,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
         {/* Dotted Divider */}
         {/* <div className="gts-dotted-divider" /> */}
 
-        {/* Bottom Bar: Copyright on Left, Social Icons on Right */}
-        <div className="justify-between items-center gap-4">
-            
-
+        {/* Bottom Bar: Copyright and Social Icons */}
         <div className="gts-minimal-bottom">
           <p className="gts-minimal-copyright">
             &copy; 2026 {brandName} LLC. All rights reserved.
@@ -112,8 +109,6 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
               <Instagram className="w-5 h-5" />
             </a>
           </div>
-        </div>
-
         </div>
 
         {/* Giant Watermark Background Text (Preserved at bottom) */}

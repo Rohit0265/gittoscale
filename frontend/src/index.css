@@ -1,5 +1,4 @@
 @import '@xyflow/react/dist/style.css';
-@import 'lightswind/styles.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -79,16 +78,16 @@
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #0a0a0a;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #262626;
   border-radius: 3px;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3f3f46;
 }
 
 .excel-grid {

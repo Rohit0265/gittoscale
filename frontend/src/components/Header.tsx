@@ -126,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
           <select
             value={currentScenarioId}
             onChange={(e) => onSelectScenario(e.target.value)}
-            className="bg-transparent font-semibold text-slate-800 dark:text-neutral-200 text-xs focus:outline-none cursor-pointer truncate max-w-[85px] sm:max-w-[130px] md:max-w-none [&>option]:dark:bg-[#0A0A0A] [&>option]:dark:text-neutral-100"
+            className="bg-transparent font-semibold text-slate-800 dark:text-neutral-200 text-xs focus:outline-none cursor-pointer truncate max-w-[85px] sm:max-w-[130px] md:max-w-none [&>option]:bg-white [&>option]:text-slate-800 [&>option]:dark:bg-[#0A0A0A] [&>option]:dark:text-neutral-100"
           >
             {scenarios.map((s) => (
               <option key={s.id} value={s.id}>
