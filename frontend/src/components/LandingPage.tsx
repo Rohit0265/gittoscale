@@ -375,7 +375,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="flex items-center gap-2 rounded-xl border border-slate-300 dark:border-neutral-800 bg-white dark:bg-[#141416] px-5 sm:px-6 py-3 text-sm font-semibold text-slate-800 dark:text-neutral-200 transition-colors hover:bg-slate-100 dark:hover:bg-[#1e1e22] shadow-xs cursor-pointer"
               >
                 <Play className="h-3.5 w-3.5 fill-current opacity-80" />
-                <span>Open Test Site</span>
+                <span>Look Demo</span>
               </motion.button>
             </motion.div>
           </motion.div>

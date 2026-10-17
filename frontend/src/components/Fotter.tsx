@@ -1,5 +1,5 @@
 import React from 'react';
-import { Twitter, Linkedin, Github, Facebook, Instagram } from 'lucide-react';
+import { Twitter, Linkedin, Github, Facebook, Instagram, Mail } from 'lucide-react';
 import './Fotter.css';
 
 export interface FooterNavLink {
@@ -63,7 +63,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
           </p>
 
           <div className="gts-minimal-socials" aria-label="Social media links">
-            <a
+            {/* <a
               href="https://twitter.com"
               target="_blank"
               rel="noreferrer"
@@ -71,9 +71,9 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
               aria-label="Twitter"
             >
               <Twitter className="w-5 h-5" />
-            </a>
+            </a> */}
             <a
-              href="https://linkedin.com"
+              href="https://linkedin.com/in/rohitmathur95"
               target="_blank"
               rel="noreferrer"
               className="gts-minimal-social-icon"
@@ -82,7 +82,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
               <Linkedin className="w-5 h-5" />
             </a>
             <a
-              href="https://github.com"
+              href="https://github.com/Rohit0265"
               target="_blank"
               rel="noreferrer"
               className="gts-minimal-social-icon"
@@ -91,15 +91,15 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
               <Github className="w-5 h-5" />
             </a>
             <a
-              href="https://facebook.com"
+              href="mailto:rohit@myportfolio-rsm.in"
               target="_blank"
               rel="noreferrer"
               className="gts-minimal-social-icon"
               aria-label="Facebook"
             >
-              <Facebook className="w-5 h-5" />
+              <Mail className="w-5 h-5" />
             </a>
-            <a
+            {/* <a
               href="https://instagram.com"
               target="_blank"
               rel="noreferrer"
@@ -107,7 +107,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
               aria-label="Instagram"
             >
               <Instagram className="w-5 h-5" />
-            </a>
+            </a> */}
           </div>
         </div>
 
