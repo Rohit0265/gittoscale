@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Github } from 'lucide-react';
 
-interface GitHubStarButtonProps {
+/**
+ * Props for the GitHubStarButton component.
+ */
+export interface GitHubStarButtonProps {
+  /** Target GitHub repository in "owner/repo" format (defaults to "Rohit0265/gittoscale") */
   repo?: string;
+  /** Optional custom CSS classes to merge */
   className?: string;
 }
 
+/**
+ * Minimalist GitHub star button displaying only the official GitHub logo and live repository star count.
+ */
 export const GitHubStarButton: React.FC<GitHubStarButtonProps> = ({
   repo = 'Rohit0265/gittoscale',
   className = '',

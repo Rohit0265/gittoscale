@@ -70,6 +70,9 @@ export const api = {
     return res.data;
   },
 
+  /**
+   * Submits user feedback (recommendation or bug report) to the backend API.
+   */
   async submitFeedback(data: {
     name: string;
     email: string;

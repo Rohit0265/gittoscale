@@ -12,16 +12,25 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 
+/**
+ * Props for the FeedbackModal component.
+ */
 export interface FeedbackModalProps {
+  /** Whether the modal is currently visible */
   isOpen: boolean;
+  /** Callback invoked to close the modal */
   onClose: () => void;
-  isDark?: boolean;
 }
 
+/**
+ * Interactive Feedback and Bug Reporting Modal Dialog.
+ *
+ * Allows users to submit recommendations or bug reports with client-side
+ * validation, loading states, and celebratory confirmation screens.
+ */
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   isOpen,
   onClose,
-  isDark: _isDark,
 }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

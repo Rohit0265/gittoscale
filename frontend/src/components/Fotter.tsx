@@ -3,47 +3,32 @@ import { Linkedin, Github, Mail, MessageSquarePlus } from 'lucide-react';
 import { FeedbackModal } from './FeedbackModal';
 import './Fotter.css';
 
+/**
+ * Props for the Fotter component.
+ */
 export interface FotterProps {
+  /** Brand display name rendered in the copyright and giant background watermark */
   brandName?: string;
+  /** Explicit dark mode flag */
   isDark?: boolean;
 }
 
-export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark }) => {
+/**
+ * Global application footer component.
+ *
+ * Features:
+ * - Direct "Feedback & Bug Report" interactive modal launcher
+ * - Social & professional links (LinkedIn, GitHub, Email)
+ * - Responsive SVG typographic background watermark
+ */
+export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const viewBoxWidth = Math.max(600, (brandName || 'GitToScale').length * 115);
-  const _isDarkMode =
-    isDark !== undefined
-      ? Boolean(isDark)
-      : typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   return (
     <footer className="gts-footer-container">
       <div className="gts-footer-inner">
-        {/* Centered Top Brand Logo & Navigation */}
-        {/* <div className="gts-minimal-top"> */}
-          {/* Brand Logo (Mark only, no company text) */}
-          {/* <div className="gts-minimal-brand">
-            <img
-              src={isDarkMode ? '/logo-mark.png' : '/logo-mark-dark.png'}
-              alt="GitToScale Logo"
-              className="w-8 h-8 sm:w-9 sm:h-9 object-contain"
-            />
-          </div> */}
-
-          {/* Centered Horizontal Links */}
-          {/* <nav className="gts-minimal-nav" aria-label="Footer navigation">
-            {NAV_LINKS.map((link) => (
-              <a key={link.label} href={link.href} className="gts-minimal-nav-link">
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        </div> */}
-
-        {/* Dotted Divider */}
-        {/* <div className="gts-dotted-divider" /> */}
-
-        {/* Bottom Bar: Feedback Button, Copyright, and Social Icons */}
+        {/* Bottom Bar: Feedback Button, Copyright, and Social Links */}
         <div className="gts-minimal-bottom">
           <div className="gts-feedback-row">
             <button
@@ -63,15 +48,6 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
           </p>
 
           <div className="gts-minimal-socials" aria-label="Social media links">
-            {/* <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noreferrer"
-              className="gts-minimal-social-icon"
-              aria-label="Twitter"
-            >
-              <Twitter className="w-5 h-5" />
-            </a> */}
             <a
               href="https://linkedin.com/in/rohitmathur95"
               target="_blank"
@@ -95,19 +71,10 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
               target="_blank"
               rel="noreferrer"
               className="gts-minimal-social-icon"
-              aria-label="Facebook"
+              aria-label="Email"
             >
               <Mail className="w-5 h-5" />
             </a>
-            {/* <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              className="gts-minimal-social-icon"
-              aria-label="Instagram"
-            >
-              <Instagram className="w-5 h-5" />
-            </a> */}
           </div>
         </div>
 
@@ -148,7 +115,8 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
 
             <text
               x="50%"
-              y="105%"              textAnchor="middle"
+              y="105%"
+              textAnchor="middle"
               className="gts-watermark-text"
               textLength={viewBoxWidth * 0.98}
               lengthAdjust="spacingAndGlyphs"
@@ -163,7 +131,6 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
-        isDark={_isDarkMode}
       />
     </footer>
   );

@@ -3,6 +3,9 @@ import { z } from 'zod';
 
 const router = Router();
 
+/**
+ * Validation schema for user-submitted feedback.
+ */
 const feedbackSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100),
   email: z.string().trim().email('Valid email is required'),
@@ -10,6 +13,9 @@ const feedbackSchema = z.object({
   message: z.string().trim().min(1, 'Message is required').max(2000),
 });
 
+/**
+ * Representation of a stored user feedback entry.
+ */
 export interface FeedbackItem {
   id: string;
   name: string;
@@ -19,8 +25,17 @@ export interface FeedbackItem {
   createdAt: string;
 }
 
+/**
+ * In-memory storage for feedback submissions.
+ */
 export const feedbackStore: FeedbackItem[] = [];
 
+/**
+ * POST /api/feedback
+ *
+ * Receives and validates user recommendations and bug reports.
+ * Returns HTTP 201 Created on success, or HTTP 400 Bad Request on validation errors.
+ */
 router.post('/', (req: Request, res: Response) => {
   const result = feedbackSchema.safeParse(req.body);
   if (!result.success) {
@@ -47,4 +62,3 @@ router.post('/', (req: Request, res: Response) => {
 });
 
 export default router;
-

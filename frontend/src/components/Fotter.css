@@ -1,3 +1,4 @@
+/* Global Footer Container */
 .gts-footer-container {
   width: 100%;
   background-color: #ffffff;
@@ -18,69 +19,7 @@
   box-sizing: border-box;
 }
 
-/* Centered Top Brand Logo & Navigation */
-.gts-minimal-top {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  padding-bottom: 20px;
-}
-
-.gts-minimal-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.gts-minimal-logo {
-  width: 28px;
-  height: 28px;
-  background-color: #0f172a;
-  color: #ffffff;
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-.gts-minimal-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.015em;
-}
-
-.gts-minimal-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px 32px;
-}
-
-.gts-minimal-nav-link {
-  font-size: 13.5px;
-  color: #64748b;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s ease;
-}
-
-.gts-minimal-nav-link:hover {
-  color: #0f172a;
-}
-
-/* Dotted Divider */
-.gts-dotted-divider {
-  width: 100%;
-  border-top: 1px dotted #e2e8f0;
-  margin: 8px 0 20px 0;
-}
-
-/* Bottom Bar: Copyright above, Social Icons below — both centered */
+/* Bottom Bar: Feedback Pill, Copyright, Social Icons */
 .gts-minimal-bottom {
   display: flex;
   flex-direction: column;
@@ -91,7 +30,7 @@
   padding-bottom: 10px;
 }
 
-/* Feedback Pill Button */
+/* Interactive Feedback Launcher Pill */
 .gts-feedback-row {
   display: flex;
   justify-content: center;
@@ -191,7 +130,7 @@
   filter: url(#gtsLightWatermarkFilter);
 }
 
-/* Responsive adjustments */
+/* Responsive Breakpoints */
 @media (max-width: 900px) {
   .gts-footer-container {
     padding: 40px 24px 0 24px;
@@ -200,9 +139,6 @@
     width: calc(100% + 48px);
     margin-left: -24px;
     margin-right: -24px;
-  }
-  .gts-minimal-nav {
-    gap: 16px 24px;
   }
 }
 
@@ -223,32 +159,11 @@
   }
 }
 
-/* Dark mode overrides */
+/* Dark Mode Theme Overrides */
 .dark .gts-footer-container {
   background-color: #0A0A0A;
   color: #f1f5f9;
   border-top: 1px solid #1f1f1f;
-}
-
-.dark .gts-minimal-logo {
-  background-color: #ffffff;
-  color: #000000;
-}
-
-.dark .gts-minimal-name {
-  color: #ffffff;
-}
-
-.dark .gts-minimal-nav-link {
-  color: #94a3b8;
-}
-
-.dark .gts-minimal-nav-link:hover {
-  color: #ffffff;
-}
-
-.dark .gts-dotted-divider {
-  border-top: 1px dotted #262626;
 }
 
 .dark .gts-minimal-copyright {
