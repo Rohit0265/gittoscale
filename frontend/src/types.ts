@@ -52,6 +52,8 @@ export interface ArchitectureFixture {
   description: string;
   nodes: ArchitectureNode[];
   edges: ArchitectureEdge[];
+  basicGraph?: ArchitectureFixture;
+  detailedGraph?: ArchitectureFixture;
 }
 
 export interface ScenarioFixture {

@@ -102,6 +102,9 @@ export const App: React.FC = () => {
   // Caches for instant switching between Basic and Detailed views
   const basicGraphCacheRef = useRef<{ nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null>(null);
   const detailedGraphCacheRef = useRef<{ nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null>(null);
+  // Pristine baseline references to apply scenarios onto without mutating original definitions
+  const baseBasicGraphRef = useRef<{ nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null>(null);
+  const baseDetailedGraphRef = useRef<{ nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null>(null);
 
   // Architecture & simulation state
   const [nodes, setNodes] = useState<ArchitectureNode[]>([]);
@@ -163,9 +166,14 @@ export const App: React.FC = () => {
         setDefaultArchitecture(arch);
         setScenarios(scens);
 
-        // Populate basic & detailed cache
+        // Populate basic & detailed cache and baseline fixtures
+        baseBasicGraphRef.current = { nodes: arch.nodes, edges: arch.edges };
         basicGraphCacheRef.current = { nodes: arch.nodes, edges: arch.edges };
         if (arch.detailedGraph) {
+          baseDetailedGraphRef.current = {
+            nodes: arch.detailedGraph.nodes,
+            edges: arch.detailedGraph.edges,
+          };
           detailedGraphCacheRef.current = {
             nodes: arch.detailedGraph.nodes,
             edges: arch.detailedGraph.edges,
@@ -173,7 +181,7 @@ export const App: React.FC = () => {
         }
 
         // Apply normal traffic scenario by default
-        applyScenario('normal-traffic', arch, scens);
+        applyScenario('normal-traffic', arch, scens, 'basic');
       } catch (err: unknown) {
         console.error('Failed to load initial fixtures:', err);
         setError('Failed to connect to simulation backend. Please ensure the backend is running.');
@@ -234,30 +242,20 @@ export const App: React.FC = () => {
     [isRunning, triggerSimulation]
   );
 
-  // 3. Apply scenario logic
-  const applyScenario = (
-    scenarioId: string,
-    archFixture = defaultArchitecture,
-    scensList = scenarios
-  ) => {
-    if (!archFixture) return;
-    const scen = scensList.find((s) => s.id === scenarioId);
-    if (!scen) return;
+  // Helper to apply scenario overrides to any graph without side effects
+  const applyScenarioToGraph = (
+    baseGraph: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
+    scen: ScenarioFixture
+  ): { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } => {
+    let newNodes: ArchitectureNode[] = JSON.parse(JSON.stringify(baseGraph.nodes));
+    let newEdges: ArchitectureEdge[] = JSON.parse(JSON.stringify(baseGraph.edges));
 
-    setCurrentScenarioId(scenarioId);
-    const targetRate = scen.incomingTrafficRate;
-    const targetDuration = scen.durationSeconds;
-    setIncomingTrafficRate(targetRate);
-    setDurationSeconds(targetDuration);
-
-    // Deep clone nodes and edges from fixture
-    let newNodes: ArchitectureNode[] = JSON.parse(JSON.stringify(archFixture.nodes));
-    let newEdges: ArchitectureEdge[] = JSON.parse(JSON.stringify(archFixture.edges));
-
-    // Apply node overrides
-    if (scen.nodeOverrides) {
+    // Apply node overrides (matching direct node id or parentId for detailed submodules)
+    if (scen.nodeOverrides && Object.keys(scen.nodeOverrides).length > 0) {
       newNodes = newNodes.map((node) => {
-        const override = scen.nodeOverrides?.[node.id];
+        const override =
+          scen.nodeOverrides?.[node.id] ||
+          (node.parentId ? scen.nodeOverrides?.[node.parentId] : undefined);
         if (override) {
           return {
             ...node,
@@ -273,7 +271,7 @@ export const App: React.FC = () => {
     }
 
     // Apply edge overrides
-    if (scen.edgeOverrides) {
+    if (scen.edgeOverrides && Object.keys(scen.edgeOverrides).length > 0) {
       newEdges = newEdges.map((edge) => {
         const override = scen.edgeOverrides?.[edge.id];
         if (override) {
@@ -283,9 +281,59 @@ export const App: React.FC = () => {
       });
     }
 
-    setNodes(newNodes);
-    setEdges(newEdges);
-    triggerSimulation(newNodes, newEdges, targetRate, targetDuration);
+    return { nodes: newNodes, edges: newEdges };
+  };
+
+  // 3. Apply scenario logic (respects current viewMode so Detailed View is preserved)
+  const applyScenario = (
+    scenarioId: string,
+    archFixture?: ArchitectureFixture | null,
+    scensList = scenarios,
+    overrideViewMode?: 'basic' | 'detailed'
+  ) => {
+    const scen = scensList.find((s) => s.id === scenarioId);
+    if (!scen) return;
+
+    setCurrentScenarioId(scenarioId);
+    const targetRate = scen.incomingTrafficRate;
+    const targetDuration = scen.durationSeconds;
+    setIncomingTrafficRate(targetRate);
+    setDurationSeconds(targetDuration);
+
+    const activeMode = overrideViewMode || viewMode;
+
+    // 1. Update basic graph cache with this scenario applied to basic baseline
+    const basicBase =
+      archFixture?.basicGraph ||
+      (archFixture && archFixture.nodes ? archFixture : null) ||
+      baseBasicGraphRef.current ||
+      defaultArchitecture;
+
+    if (basicBase && basicBase.nodes) {
+      basicGraphCacheRef.current = applyScenarioToGraph(basicBase, scen);
+    }
+
+    // 2. Update detailed graph cache with this scenario applied to detailed baseline
+    const detailedBase =
+      archFixture?.detailedGraph ||
+      baseDetailedGraphRef.current ||
+      defaultArchitecture?.detailedGraph;
+
+    if (detailedBase && detailedBase.nodes) {
+      detailedGraphCacheRef.current = applyScenarioToGraph(detailedBase, scen);
+    }
+
+    // 3. Render the active graph according to the active viewMode
+    const activeGraph =
+      activeMode === 'detailed'
+        ? detailedGraphCacheRef.current
+        : basicGraphCacheRef.current;
+
+    if (activeGraph && activeGraph.nodes && activeGraph.nodes.length > 0) {
+      setNodes(activeGraph.nodes);
+      setEdges(activeGraph.edges);
+      triggerSimulation(activeGraph.nodes, activeGraph.edges, targetRate, targetDuration);
+    }
   };
 
   // 4. Parameter handlers
@@ -444,6 +492,7 @@ export const App: React.FC = () => {
         try {
           setLoading(true);
           const detailed = await api.getArchitecture('detailed');
+          baseDetailedGraphRef.current = { nodes: detailed.nodes, edges: detailed.edges };
           detailedGraphCacheRef.current = { nodes: detailed.nodes, edges: detailed.edges };
           setNodes(detailed.nodes);
           setEdges(detailed.edges);
@@ -491,16 +540,23 @@ export const App: React.FC = () => {
     basicGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
     detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] }
   ) => {
-    if (basicGraph) basicGraphCacheRef.current = basicGraph;
-    if (detailedGraph) detailedGraphCacheRef.current = detailedGraph;
+    const basicToUse = basicGraph || { nodes: newNodes, edges: newEdges };
+    baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
+    basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
+
+    if (detailedGraph) {
+      baseDetailedGraphRef.current = JSON.parse(JSON.stringify(detailedGraph));
+      detailedGraphCacheRef.current = JSON.parse(JSON.stringify(detailedGraph));
+    } else {
+      baseDetailedGraphRef.current = null;
+      detailedGraphCacheRef.current = null;
+    }
 
     setViewMode('basic');
-    const nodesToRender = basicGraph ? basicGraph.nodes : newNodes;
-    const edgesToRender = basicGraph ? basicGraph.edges : newEdges;
-    setNodes(nodesToRender);
-    setEdges(edgesToRender);
+    setNodes(basicToUse.nodes);
+    setEdges(basicToUse.edges);
     setSelectedNodeId(null);
-    triggerSimulation(nodesToRender, edgesToRender, incomingTrafficRate, durationSeconds);
+    triggerSimulation(basicToUse.nodes, basicToUse.edges, incomingTrafficRate, durationSeconds);
   };
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);

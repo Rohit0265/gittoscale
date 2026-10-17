@@ -475,7 +475,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                 </span>
 
                 {/* Info button & tooltip */}
-                <div className="relative inline-flex items-center ml-1.5">
+                {/* <div className="relative inline-flex items-center ml-1.5">
                   <button
                     ref={infoButtonRef}
                     type="button"
@@ -491,7 +491,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                     }}
                     className="w-4 h-4 rounded-full border border-slate-300 dark:border-neutral-700 text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-neutral-500 flex items-center justify-center text-[10.5px] font-bold leading-none transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
-                    !
+                    ?
                   </button>
 
                   {showInfoTooltip && (
@@ -504,7 +504,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                       <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-[1px] border-4 border-transparent border-t-slate-900 dark:border-t-[#1E202B]" />
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 {/* Status indicator pill */}
                 {/* <span
