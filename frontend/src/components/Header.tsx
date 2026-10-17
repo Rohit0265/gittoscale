@@ -9,6 +9,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { ScenarioFixture } from '../types';
+import { GitHubStarButton } from './GitHubStarButton';
 
 interface HeaderProps {
   scenarios: ScenarioFixture[];
@@ -102,6 +103,9 @@ export const Header: React.FC<HeaderProps> = ({
           <FolderGit2 className="w-3.5 h-3.5 text-indigo-400" />
           <span className="hidden sm:inline">Import Repo</span>
         </button>
+
+        {/* GitHub Star Button */}
+        <GitHubStarButton className="hidden sm:inline-flex" />
 
         {/* Dark/Light Theme Toggle */}
         {onToggleTheme && (

@@ -17,6 +17,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
+import { GitHubStarButton } from './GitHubStarButton';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
@@ -323,7 +324,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="h-8 sm:h-9 md:h-10 w-auto object-contain cursor-pointer"
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <GitHubStarButton />
             {onToggleTheme && (
               <button
                 onClick={onToggleTheme}
