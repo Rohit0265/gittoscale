@@ -69,5 +69,15 @@ export const api = {
     const res = await axios.get(`${API_BASE}/repository/llm-status`);
     return res.data;
   },
+
+  async submitFeedback(data: {
+    name: string;
+    email: string;
+    type: 'recommendation' | 'bug';
+    message: string;
+  }): Promise<{ success: boolean; message: string; id?: string }> {
+    const res = await axios.post(`${API_BASE}/feedback`, data);
+    return res.data;
+  },
 };
 

@@ -8,6 +8,7 @@ import architectureRoute from './routes/architecture.js';
 import scenariosRoute from './routes/scenarios.js';
 import simulateRoute from './routes/simulate.js';
 import repositoryRoute from './routes/repository.js';
+import feedbackRoute from './routes/feedback.js';
 
 import { loadEnvFiles } from './utils/env.js';
 
@@ -27,6 +28,7 @@ export function createApp() {
   app.use('/api/scenarios', scenariosRoute);
   app.use('/api/simulate', simulateRoute);
   app.use('/api/repository', repositoryRoute);
+  app.use('/api/feedback', feedbackRoute);
 
   // Serve static frontend in production if built
   const frontendDistCandidates = [

@@ -1,21 +1,7 @@
-import React from 'react';
-import { Twitter, Linkedin, Github, Facebook, Instagram, Mail } from 'lucide-react';
+import React, { useState } from 'react';
+import { Linkedin, Github, Mail, MessageSquarePlus } from 'lucide-react';
+import { FeedbackModal } from './FeedbackModal';
 import './Fotter.css';
-
-export interface FooterNavLink {
-  label: string;
-  href: string;
-}
-
-const NAV_LINKS: FooterNavLink[] = [
-  { label: 'Products', href: '#' },
-  { label: 'Studio', href: '#' },
-  { label: 'Clients', href: '#' },
-  { label: 'Pricing', href: '#' },
-  { label: 'Blog', href: '#' },
-  { label: 'Privacy', href: '#' },
-  { label: 'Terms', href: '#' },
-];
 
 export interface FotterProps {
   brandName?: string;
@@ -23,8 +9,9 @@ export interface FotterProps {
 }
 
 export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark }) => {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const viewBoxWidth = Math.max(600, (brandName || 'GitToScale').length * 115);
-  const isDarkMode =
+  const _isDarkMode =
     isDark !== undefined
       ? Boolean(isDark)
       : typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
@@ -56,8 +43,21 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
         {/* Dotted Divider */}
         {/* <div className="gts-dotted-divider" /> */}
 
-        {/* Bottom Bar: Copyright and Social Icons */}
+        {/* Bottom Bar: Feedback Button, Copyright, and Social Icons */}
         <div className="gts-minimal-bottom">
+          <div className="gts-feedback-row">
+            <button
+              type="button"
+              onClick={() => setIsFeedbackOpen(true)}
+              className="gts-feedback-pill"
+              aria-label="Give feedback or report a bug"
+            >
+              <MessageSquarePlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>Feedback &amp; Bug Report</span>
+              <span className="gts-feedback-badge">Share idea</span>
+            </button>
+          </div>
+
           <p className="gts-minimal-copyright">
             &copy; 2026 {brandName} LLC. All rights reserved.
           </p>
@@ -158,6 +158,13 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', isDark
           </svg>
         </div>
       </div>
+
+      {/* Feedback Modal Dialog */}
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        isDark={_isDarkMode}
+      />
     </footer>
   );
 };
