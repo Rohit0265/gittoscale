@@ -194,14 +194,20 @@ function HeroDiagram() {
 const DEMO_IMAGES = [
   {
     src: '/demo-basic.png',
+    title: 'Basic Architecture View',
+    subtitle: 'High-level microservices, cache tiers, and load balancers',
     alt: 'GitToScale Basic Architecture Simulation View',
   },
   {
     src: '/demo-detailed.png',
+    title: 'Detailed Fleet & Bottleneck View',
+    subtitle: 'Deep dive into queue saturation, latencies, and constrained nodes',
     alt: 'GitToScale Detailed Fleet and Bottleneck Analysis View',
   },
   {
     src: '/demo-import.png',
+    title: 'Automated Codebase Scanner',
+    subtitle: 'Auto-construct interactive topology from any GitHub repository',
     alt: 'GitToScale AI Ingestion and Architecture Extraction',
   },
 ];
@@ -209,79 +215,148 @@ const DEMO_IMAGES = [
 function Demo({ onLaunch }: { onLaunch: () => void }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
-  // Automatically cycle through images every 4 seconds, pause when hovering
+  // Automatically cycle through images every 4 seconds, pause when hovering/touching
   useEffect(() => {
     if (isPaused) return;
 
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev === DEMO_IMAGES.length - 1 ? 0 : prev + 1));
-    }, 4000);
+    }, 4500);
 
     return () => clearInterval(timer);
   }, [isPaused, activeSlide]);
 
-  const handlePrev = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handlePrev = useCallback(() => {
     setActiveSlide((prev) => (prev === 0 ? DEMO_IMAGES.length - 1 : prev - 1));
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setActiveSlide((prev) => (prev === DEMO_IMAGES.length - 1 ? 0 : prev + 1));
+  }, []);
+
+  // Keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft') {
+      handlePrev();
+    } else if (e.key === 'ArrowRight') {
+      handleNext();
+    }
   };
 
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveSlide((prev) => (prev === DEMO_IMAGES.length - 1 ? 0 : prev + 1));
+  // Touch swipe handling for mobile and tablet
+  const minSwipeDistance = 45;
+  const onTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (touchStartX.current !== null && touchEndX.current !== null) {
+      const distance = touchStartX.current - touchEndX.current;
+      if (distance > minSwipeDistance) {
+        handleNext();
+      } else if (distance < -minSwipeDistance) {
+        handlePrev();
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+    setTimeout(() => setIsPaused(false), 2000);
   };
 
   return (
     <div
-      className="w-full flex flex-col items-center"
+      className="w-full flex flex-col items-center select-none outline-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Project Overview Slides"
     >
-      {/* Outer row with outside flanking arrow buttons and the large image */}
-      <div className="relative flex items-center justify-center gap-2 sm:gap-4 md:gap-6 w-full">
-        {/* Left Arrow Button (Outside image) */}
+      {/* Interactive Showcase Frame with Responsive Layout */}
+      <div className="relative flex items-center justify-center gap-2 sm:gap-4 md:gap-6 w-full max-w-6xl">
+        {/* Left Arrow Button:
+            - Desktop (sm:): comfortably flanked outside the image
+            - Mobile (<sm): floating sleek control with high contrast & touch target */}
         <button
           type="button"
-          onClick={handlePrev}
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePrev();
+          }}
           aria-label="Previous image"
-          className="shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white dark:bg-[#18181b] hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg cursor-pointer z-10"
+          className="absolute sm:static left-2 sm:left-auto top-1/2 -translate-y-1/2 sm:translate-y-0 z-20 shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white/95 dark:bg-[#18181b]/95 hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-800 dark:text-neutral-100 border border-slate-200/90 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg backdrop-blur-sm cursor-pointer"
         >
           <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
 
-        {/* Big High-Resolution Image Frame */}
+        {/* Big High-Resolution Image Canvas Frame */}
         <div
           onClick={onLaunch}
-          className="relative flex-1 min-w-0 overflow-hidden rounded-2xl border border-slate-200 dark:border-neutral-800 bg-slate-950 shadow-2xl cursor-pointer select-none"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          className="relative flex-1 min-w-0 w-full overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200/90 dark:border-neutral-800 bg-slate-950 shadow-2xl cursor-pointer group flex items-center justify-center"
         >
           <AnimatePresence mode="wait">
             <motion.img
               key={activeSlide}
               src={DEMO_IMAGES[activeSlide].src}
               alt={DEMO_IMAGES[activeSlide].alt}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="w-full h-auto block select-none"
+              initial={{ opacity: 0, scale: 0.995 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.995 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
+              className="w-full h-auto max-h-[58vh] sm:max-h-[64vh] md:max-h-[68vh] lg:max-h-[72vh] object-contain block mx-auto select-none"
               draggable={false}
             />
           </AnimatePresence>
+
+          {/* Sleek Hover/Touch Badge to indicate clickability */}
+          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-medium border border-white/10 shadow-lg">
+            <span>Explore live demo</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </div>
         </div>
 
-        {/* Right Arrow Button (Outside image) */}
+        {/* Right Arrow Button:
+            - Desktop (sm:): comfortably flanked outside the image
+            - Mobile (<sm): floating sleek control with high contrast & touch target */}
         <button
           type="button"
-          onClick={handleNext}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNext();
+          }}
           aria-label="Next image"
-          className="shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white dark:bg-[#18181b] hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg cursor-pointer z-10"
+          className="absolute sm:static right-2 sm:right-auto top-1/2 -translate-y-1/2 sm:translate-y-0 z-20 shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white/95 dark:bg-[#18181b]/95 hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-800 dark:text-neutral-100 border border-slate-200/90 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg backdrop-blur-sm cursor-pointer"
         >
           <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
       </div>
 
-      {/* Clean Dots Indicator Below the Image */}
-      <div className="flex justify-center items-center mt-5 gap-2">
+      {/* Slide Information & Description Header */}
+      <div className="mt-4 sm:mt-5 text-center px-4 max-w-xl">
+        <div className="text-sm sm:text-base font-semibold text-slate-900 dark:text-neutral-100 tracking-tight transition-all">
+          {DEMO_IMAGES[activeSlide].title}
+        </div>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
+          {DEMO_IMAGES[activeSlide].subtitle}
+        </p>
+      </div>
+
+      {/* Clean Dots Indicator with 44px Accessible Touch Target */}
+      <div className="flex justify-center items-center mt-2 sm:mt-3 gap-1">
         {DEMO_IMAGES.map((_, idx) => (
           <button
             key={idx}
@@ -290,13 +365,17 @@ function Demo({ onLaunch }: { onLaunch: () => void }) {
               e.stopPropagation();
               setActiveSlide(idx);
             }}
-            aria-label={`Go to image ${idx + 1}`}
-            className={`h-2.5 rounded-full transition-all cursor-pointer ${
-              activeSlide === idx
-                ? 'w-7 bg-indigo-600 dark:bg-indigo-400 shadow-xs'
-                : 'w-2.5 bg-slate-300 hover:bg-slate-400 dark:bg-neutral-700 dark:hover:bg-neutral-600'
-            }`}
-          />
+            aria-label={`Go to slide ${idx + 1}`}
+            className="p-2.5 flex items-center justify-center cursor-pointer touch-manipulation group"
+          >
+            <span
+              className={`h-2 rounded-full transition-all duration-300 block ${
+                activeSlide === idx
+                  ? 'w-7 bg-indigo-600 dark:bg-indigo-400 shadow-xs'
+                  : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-neutral-700 dark:hover:bg-neutral-600 group-hover:scale-110'
+              }`}
+            />
+          </button>
         ))}
       </div>
     </div>
@@ -488,17 +567,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Section 2: Project Overview (#demo) */}
       <section
         id="demo"
-        className="relative flex min-h-screen snap-start items-center justify-center px-2 sm:px-4 lg:px-8 py-16"
+        className="relative flex min-h-screen snap-start items-center justify-center px-3 sm:px-6 lg:px-10 py-10 sm:py-16 md:py-20"
       >
         <motion.div
-          className="mx-auto w-full max-w-[1400px]"
+          className="mx-auto w-full max-w-7xl flex flex-col items-center"
           initial="hidden"
           whileInView="show"
-          viewport={{ amount: 0.3 }}
+          viewport={{ amount: 0.2 }}
           variants={fadeUp}
         >
-    
-
           <Demo onLaunch={onSelectTestSite} />
         </motion.div>
       </section>
