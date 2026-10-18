@@ -18,13 +18,19 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
   let resolvedBranch = 'main';
   let commitSha: string | undefined;
 
+  const reqHeaders: Record<string, string> = {
+    'User-Agent': 'System-Design-Playground',
+    Accept: 'application/vnd.github.v3+json',
+  };
+  const githubToken = process.env.GITHUB_TOKEN?.trim();
+  if (githubToken) {
+    reqHeaders['Authorization'] = `Bearer ${githubToken}`;
+  }
+
   // 1. Fetch repo metadata (default branch)
   try {
     const metaResp = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: {
-        'User-Agent': 'System-Design-Playground',
-        Accept: 'application/vnd.github.v3+json',
-      },
+      headers: reqHeaders,
     });
     if (metaResp.ok) {
       const meta: any = await metaResp.json();
@@ -43,10 +49,7 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
       const resp = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/git/trees/${b}?recursive=1`,
         {
-          headers: {
-            'User-Agent': 'System-Design-Playground',
-            Accept: 'application/vnd.github.v3+json',
-          },
+          headers: reqHeaders,
         }
       );
       if (resp.ok) {
