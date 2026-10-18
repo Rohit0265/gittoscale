@@ -19,6 +19,7 @@ import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
 const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
@@ -835,7 +836,9 @@ export const App: React.FC = () => {
         onClose={() => setIsImportRepoOpen(false)}
         onImportArchitecture={handleImportArchitecture}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 };
-
