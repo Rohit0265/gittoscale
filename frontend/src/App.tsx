@@ -20,9 +20,33 @@ import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
+const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
+const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
+
+const isCustomDomain = () => {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname.toLowerCase().includes('gittoscale.tech');
+};
+
+const isAppDomain = () => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname.toLowerCase();
+  const search = new URLSearchParams(window.location.search);
+  return (
+    host === 'app.gittoscale.tech' ||
+    host.startsWith('app.') ||
+    window.location.pathname.startsWith('/app') ||
+    search.has('app') ||
+    search.has('repo') ||
+    search.has('demo')
+  );
+};
+
 export const App: React.FC = () => {
-  // Navigation mode: 'landing' | 'simulator'
-  const [currentView, setCurrentView] = useState<'landing' | 'simulator'>('landing');
+  // Navigation mode: 'landing' | 'simulator' (defaults to simulator on app subdomain)
+  const [currentView, setCurrentView] = useState<'landing' | 'simulator'>(() => {
+    return isAppDomain() ? 'simulator' : 'landing';
+  });
 
   // Theme state: light | dark with persistence & system preference detection
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -178,6 +202,22 @@ export const App: React.FC = () => {
             nodes: arch.detailedGraph.nodes,
             edges: arch.detailedGraph.edges,
           };
+        }
+
+        // If URL has ?repo= parameter, automatically load that repository architecture
+        const search = new URLSearchParams(window.location.search);
+        const repoParam = search.get('repo');
+        if (repoParam) {
+          try {
+            const res = await api.analyzeRepository({ repoUrl: repoParam });
+            const repoName =
+              res.repoName || repoParam.split('/').pop()?.replace('.git', '') || 'Repository';
+            handleImportArchitecture(res.nodes, res.edges, repoName, res.basicGraph, res.detailedGraph);
+            return;
+          } catch (repoErr) {
+            console.error('Failed to auto-load repo from URL parameter:', repoErr);
+            setError(`Failed to load repository "${repoParam}". Loaded default architecture.`);
+          }
         }
 
         // Apply normal traffic scenario by default
@@ -569,6 +609,10 @@ export const App: React.FC = () => {
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
           onSelectTestSite={() => {
+            if (isCustomDomain() && !isAppDomain()) {
+              window.location.href = `${APP_SUBDOMAIN_URL}/?demo=true`;
+              return;
+            }
             setCurrentView('simulator');
             if (defaultArchitecture && nodes.length === 0) {
               applyScenario('normal-traffic', defaultArchitecture, scenarios);
@@ -581,7 +625,11 @@ export const App: React.FC = () => {
         <RepositoryImportModal
           isOpen={isImportRepoOpen}
           onClose={() => setIsImportRepoOpen(false)}
-          onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph) => {
+          onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl) => {
+            if (isCustomDomain() && !isAppDomain() && repoUrl) {
+              window.location.href = `${APP_SUBDOMAIN_URL}/?repo=${encodeURIComponent(repoUrl)}`;
+              return;
+            }
             handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph);
             setCurrentView('simulator');
           }}
@@ -609,7 +657,13 @@ export const App: React.FC = () => {
         onOpenCompare={() => setIsCompareOpen(true)}
         onOpenImportRepo={() => setIsImportRepoOpen(true)}
         hasBaseline={baseline !== null}
-        onGoHome={() => setCurrentView('landing')}
+        onGoHome={() => {
+          if (isCustomDomain() && isAppDomain()) {
+            window.location.href = LANDING_DOMAIN_URL;
+            return;
+          }
+          setCurrentView('landing');
+        }}
         viewMode={viewMode}
         onToggleViewMode={handleToggleViewMode}
         isDark={isDark}

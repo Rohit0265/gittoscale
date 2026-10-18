@@ -32,7 +32,8 @@ interface RepositoryImportModalProps {
     edges: ArchitectureEdge[],
     repoName: string,
     basicGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
-    detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] }
+    detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
+    repoUrl?: string
   ) => void;
 }
 
@@ -357,7 +358,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
         trimmed.split('/').pop()?.replace('.git', '') ||
         'Repository';
 
-      onImportArchitecture(res.nodes, res.edges, repoName, res.basicGraph, res.detailedGraph);
+      onImportArchitecture(res.nodes, res.edges, repoName, res.basicGraph, res.detailedGraph, trimmed);
       onClose();
     } catch (err: any) {
       setError(

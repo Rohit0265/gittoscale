@@ -2,18 +2,87 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitToScale — Turn Code into Interactive System Architectures & Capacity Simulations</title>
+
+    <!-- SEO Meta Tags -->
+    <meta
+      name="description"
+      content="Turn any GitHub repository into an interactive, simulated system architecture. Simulate high-concurrency traffic, discover bottlenecks, and test system resilience before production."
+    />
+    <meta
+      name="keywords"
+      content="system design, capacity planning, architecture simulator, github visualizer, microservices diagram, distributed systems, traffic simulation, queue bottleneck, devtools"
+    />
+    <meta name="author" content="GitToScale" />
+    <meta name="robots" content="index, follow" />
+    <meta name="google-site-verification" content="K1z6clDmkGAW3HB_utPIvgmBuIlkbuI4dSWDEGF6q6M" />
+    <link rel="canonical" href="https://gittoscale.tech/" />
+
+    <!-- Open Graph / Facebook / LinkedIn / Discord -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gittoscale.tech/" />
+    <meta property="og:site_name" content="GitToScale" />
+    <meta property="og:title" content="GitToScale — Interactive System Design & Capacity Simulator" />
+    <meta
+      property="og:description"
+      content="Turn any GitHub repository into an interactive, simulated system architecture. Simulate traffic spikes and discover bottlenecks before production."
+    />
+    <meta property="og:image" content="https://gittoscale.tech/demo-basic.png" />
+    <meta property="og:image:alt" content="GitToScale Interactive Architecture Canvas and Bottleneck Simulator" />
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://gittoscale.tech/" />
+    <meta name="twitter:title" content="GitToScale — Interactive System Design & Capacity Simulator" />
+    <meta
+      name="twitter:description"
+      content="Turn any GitHub repository into an interactive, simulated system architecture. Simulate traffic spikes and find bottlenecks before disaster."
+    />
+    <meta name="twitter:image" content="https://gittoscale.tech/demo-basic.png" />
+
+    <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/png" href="/logo-mark.png" />
+    <link rel="apple-touch-icon" href="/logo-mark.png" />
+    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
-    <title>GitToScale — Scale your system before disaster</title>
+
+    <!-- Structured Data (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "GitToScale",
+        "headline": "Interactive System Design & Capacity Simulator",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "description": "Turn any GitHub repository into an interactive, simulated system architecture. Simulate traffic spikes, discover queue bottlenecks, and test system resilience before production.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Automated GitHub codebase architecture ingestion",
+          "Interactive ReactFlow system diagram canvas",
+          "Queueing theory analytical simulation (M/M/m/K)",
+          "Real-time bottleneck detection & failure scenarios",
+          "Cost and capacity forecasting"
+        ]
+      }
+    </script>
   </head>
   <body class="bg-slate-50 text-slate-900 font-sans antialiased select-none min-h-screen">
     <div id="root" class="min-h-screen w-full flex flex-col"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
