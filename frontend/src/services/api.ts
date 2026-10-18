@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { ArchitectureFixture, ScenarioFixture, SimulationResult, ArchitectureNode, ArchitectureEdge } from '../types';
 
-const API_BASE = '/api';
+const RAW_BACKEND_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').trim();
+const CLEAN_URL = RAW_BACKEND_URL.replace(/\/+$/, '');
+const API_BASE = CLEAN_URL
+  ? (CLEAN_URL.endsWith('/api') ? CLEAN_URL : `${CLEAN_URL}/api`)
+  : '/api';
 
 export const api = {
   async getHealth() {
