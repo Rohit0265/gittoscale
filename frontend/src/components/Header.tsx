@@ -20,6 +20,7 @@ interface HeaderProps {
   onReset: () => void;
   onOpenCompare?: () => void;
   onOpenImportRepo: () => void;
+  onOpenRecommender?: () => void;
   hasBaseline?: boolean;
   onGoHome?: () => void;
   viewMode?: 'basic' | 'detailed';
@@ -36,6 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleRun,
   onReset,
   onOpenImportRepo,
+  onOpenRecommender,
   onGoHome,
   isDark = false,
   onToggleTheme,
@@ -103,6 +105,18 @@ export const Header: React.FC<HeaderProps> = ({
           <FolderGit2 className="w-3.5 h-3.5 text-indigo-400" />
           <span className="hidden sm:inline">Import Repo</span>
         </button>
+
+        {/* AI Architecture Recommender button */}
+        {onOpenRecommender && (
+          <button
+            onClick={onOpenRecommender}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
+            title="Design a new architecture from natural language requirements"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Architect</span>
+          </button>
+        )}
 
         {/* GitHub Star Button */}
         <GitHubStarButton className="hidden sm:inline-flex" />

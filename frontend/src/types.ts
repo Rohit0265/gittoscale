@@ -150,3 +150,74 @@ export interface BaselineSnapshot {
   nodeResults: Record<string, NodeSimulationResult>;
 }
 
+export type ArchitecturePattern =
+  | 'Monolith'
+  | 'Modular Monolith'
+  | 'Microservices'
+  | 'Event-Driven'
+  | 'Serverless'
+  | 'Hybrid';
+
+export interface TechnologyRecommendation {
+  category: string;
+  name: string;
+  reason: string;
+  tradeoffs: string[];
+  alternatives: string[];
+}
+
+export interface DataFlow {
+  id: string;
+  name: string;
+  description: string;
+  steps: string[];
+}
+
+export interface TradeoffDecision {
+  decision: string;
+  pros: string[];
+  cons: string[];
+}
+
+export interface ArchitectureRecommendation {
+  id: string;
+  projectName: string;
+  summary: string;
+  architecturePattern: ArchitecturePattern;
+  patternReasoning: string;
+  requirements: {
+    functional: string[];
+    nonFunctional: string[];
+    assumptions: string[];
+    constraints: string[];
+  };
+  technologies: TechnologyRecommendation[];
+  nodes: ArchitectureNode[];
+  edges: ArchitectureEdge[];
+  dataFlows: DataFlow[];
+  securityConsiderations: string[];
+  scalingStrategy: string[];
+  tradeoffs: TradeoffDecision[];
+  futureImprovements: string[];
+  clarifyingQuestions?: string[];
+}
+
+export interface RecommenderInput {
+  projectDescription: string;
+  expectedScale?: string;
+  budgetConstraint?: string;
+  preferredTech?: string[];
+  deploymentPreference?: string;
+  reliabilityRequirement?: string;
+  securityRequirement?: string;
+  teamSize?: string;
+  refinementRequest?: string;
+  llmConfig?: {
+    provider?: string;
+    apiKey?: string;
+    model?: string;
+    baseUrl?: string;
+  };
+}
+
+

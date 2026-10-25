@@ -17,6 +17,7 @@ import {
   Compass,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
@@ -24,6 +25,8 @@ import { GitHubStarButton } from './GitHubStarButton';
 interface LandingPageProps {
   onSelectTestSite: () => void;
   onSelectUseRepository: () => void;
+  onOpenRecommender?: () => void;
+  onOpenAuth?: () => void;
   children?: React.ReactNode;
   isDark?: boolean;
   onToggleTheme?: () => void;
@@ -383,10 +386,10 @@ function Demo({ onLaunch }: { onLaunch: () => void }) {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
-  
-  
   onSelectTestSite,
   onSelectUseRepository,
+  onOpenRecommender,
+  onOpenAuth,
   children,
   isDark = false,
   onToggleTheme,
@@ -480,7 +483,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-[#0A0A0A]"
       >
         {/* Preserved Top Header */}
-        <div className="h-16 border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-4 sm:px-6 md:px-8 flex items-center justify-between shadow-xs transition-colors w-full z-20">
+        <div className="h-16 border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-3 sm:px-6 md:px-8 flex items-center justify-between shadow-xs transition-colors w-full z-20">
           <div className="flex items-center gap-3">
             <img
               src={isDark ? '/logo.png' : '/logo-light.png'}
@@ -488,14 +491,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="h-8 sm:h-9 md:h-10 w-auto object-contain cursor-pointer"
             />
           </div>
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <GitHubStarButton />
+          <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+            {/* Test Demo Site */}
+            <button
+              onClick={onSelectTestSite}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0"
+              title="Test Demo Site"
+            >
+              <Play className="h-3 w-3 fill-current opacity-80" />
+              <span className="hidden sm:inline">Test Demo Site</span>
+              <span className="sm:hidden">Demo</span>
+            </button>
+
+            {/* AI Architecture Architect */}
+            {onOpenRecommender && (
+              <button
+                onClick={onOpenRecommender}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/80 dark:bg-indigo-950/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors shadow-xs cursor-pointer shrink-0"
+                title="AI Architecture Recommender"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span className="hidden sm:inline">AI Architect</span>
+                <span className="sm:hidden">AI</span>
+              </button>
+            )}
+
+            {/* Import Repository */}
+            <button
+              onClick={onSelectUseRepository}
+              className="flex items-center gap-1.5 rounded-lg bg-slate-900 dark:bg-white px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-white dark:text-neutral-950 hover:opacity-90 transition-opacity shadow-xs cursor-pointer shrink-0"
+              title="Import Repository"
+            >
+              <Github className="h-3.5 w-3.5 fill-current" />
+              <span className="hidden sm:inline">Import Repository</span>
+              <span className="sm:hidden">Import</span>
+            </button>
+
+            {/* Sign In Button */}
+            {onOpenAuth && (
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0"
+                title="Sign in or Sign up"
+              >
+                <span>Sign In</span>
+              </button>
+            )}
+
+            <GitHubStarButton className="hidden md:inline-flex" />
+
             {onToggleTheme && (
               <button
                 onClick={onToggleTheme}
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                className="p-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center"
+                className="p-1.5 sm:p-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center shrink-0"
               >
                 {isDark ? (
                   <Sun className="w-4 h-4 text-amber-400" />
@@ -532,26 +582,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               and understand how your system behaves under load.
             </motion.p>
 
-            <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3.5">
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={onSelectUseRepository}
-                className="flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-5 sm:px-6 py-3 text-sm font-semibold text-white dark:text-neutral-950 transition-opacity hover:opacity-90 shadow-sm cursor-pointer group"
-              >
-                <Github className="h-4 w-4 fill-current" />
-                <span>Import Repository</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </motion.button>
-
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={onSelectTestSite}
-                className="flex items-center gap-2 rounded-xl border border-slate-300 dark:border-neutral-800 bg-white dark:bg-[#141416] px-5 sm:px-6 py-3 text-sm font-semibold text-slate-800 dark:text-neutral-200 transition-colors hover:bg-slate-100 dark:hover:bg-[#1e1e22] shadow-xs cursor-pointer"
-              >
-                <Play className="h-3.5 w-3.5 fill-current opacity-80" />
-                <span>Test Demo Site</span>
-              </motion.button>
-            </motion.div>
+            {onOpenRecommender && (
+              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3.5">
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={onOpenRecommender}
+                  className="flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-5 sm:px-6 py-3 text-sm font-semibold text-white dark:text-neutral-950 transition-opacity hover:opacity-90 shadow-sm cursor-pointer group"
+                >
+                  <Sparkles className="h-4 w-4 text-indigo-400 dark:text-indigo-600 group-hover:rotate-12 transition-transform" />
+                  <span>Design Architecture with AI</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </motion.button>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Hero Architecture Visual */}

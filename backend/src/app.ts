@@ -9,6 +9,8 @@ import scenariosRoute from './routes/scenarios.js';
 import simulateRoute from './routes/simulate.js';
 import repositoryRoute from './routes/repository.js';
 import feedbackRoute from './routes/feedback.js';
+import recommendRoute from './routes/recommend.js';
+import authRoute from './routes/auth.js';
 
 import { loadEnvFiles } from './utils/env.js';
 
@@ -29,6 +31,8 @@ export function createApp() {
   app.use('/api/simulate', simulateRoute);
   app.use('/api/repository', repositoryRoute);
   app.use('/api/feedback', feedbackRoute);
+  app.use('/api/recommend', recommendRoute);
+  app.use('/api/auth', authRoute);
 
   // Serve static frontend in production if built
   const frontendDistCandidates = [

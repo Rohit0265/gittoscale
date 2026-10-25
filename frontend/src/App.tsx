@@ -18,6 +18,8 @@ import { BottleneckList } from './components/BottleneckList';
 import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
+import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
+import ModernLoginSignup from './components/ui/modern-login-signup';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
@@ -26,6 +28,29 @@ const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
 const isCustomDomain = () => {
   if (typeof window === 'undefined') return false;
   return window.location.hostname.toLowerCase().includes('gittoscale.tech');
+};
+
+const isAuthUrl = () => {
+  if (typeof window === 'undefined') return false;
+  const search = new URLSearchParams(window.location.search);
+  return (
+    search.has('auth') ||
+    search.has('login') ||
+    search.has('signup') ||
+    window.location.pathname.startsWith('/auth') ||
+    window.location.pathname.startsWith('/login')
+  );
+};
+
+const isRecommenderUrl = () => {
+  if (typeof window === 'undefined') return false;
+  const search = new URLSearchParams(window.location.search);
+  return (
+    search.has('architect') ||
+    search.has('recommender') ||
+    window.location.pathname.startsWith('/architect') ||
+    window.location.pathname.startsWith('/recommender')
+  );
 };
 
 const isAppDomain = () => {
@@ -43,10 +68,14 @@ const isAppDomain = () => {
 };
 
 export const App: React.FC = () => {
-  // Navigation mode: 'landing' | 'simulator' (defaults to simulator on app subdomain)
-  const [currentView, setCurrentView] = useState<'landing' | 'simulator'>(() => {
+  // Navigation mode: 'landing' | 'simulator' | 'recommender'
+  const [currentView, setCurrentView] = useState<'landing' | 'simulator' | 'recommender'>(() => {
+    if (isRecommenderUrl()) return 'recommender';
     return isAppDomain() ? 'simulator' : 'landing';
   });
+
+  // Modern login/signup modal state
+  const [isAuthOpen, setIsAuthOpen] = useState<boolean>(() => isAuthUrl());
 
   // Theme state: light | dark with persistence & system preference detection
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -608,6 +637,8 @@ export const App: React.FC = () => {
         <LandingPage
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
+          onOpenRecommender={() => setCurrentView('recommender')}
+          onOpenAuth={() => setIsAuthOpen(true)}
           onSelectTestSite={() => {
             if (isCustomDomain() && !isAppDomain()) {
               window.location.href = `${APP_SUBDOMAIN_URL}/?demo=true`;
@@ -634,7 +665,48 @@ export const App: React.FC = () => {
             setCurrentView('simulator');
           }}
         />
+        {isAuthOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
+            <ModernLoginSignup
+              onClose={() => setIsAuthOpen(false)}
+              onSuccess={(_user) => {
+                setTimeout(() => setIsAuthOpen(false), 1200);
+              }}
+            />
+          </div>
+        )}
       </div>
+    );
+  }
+
+  if (currentView === 'recommender') {
+    return (
+      <ArchitectureRecommenderPage
+        isDark={isDark}
+        onToggleTheme={handleToggleTheme}
+        onGoHome={() => {
+          if (isCustomDomain() && isAppDomain()) {
+            window.location.href = LANDING_DOMAIN_URL;
+            return;
+          }
+          setCurrentView('landing');
+        }}
+        onGoToSimulator={() => setCurrentView('simulator')}
+        onSimulate={(recNodes: ArchitectureNode[], recEdges: ArchitectureEdge[]) => {
+          const basicToUse = { nodes: recNodes, edges: recEdges };
+          baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
+          basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
+          baseDetailedGraphRef.current = null;
+          detailedGraphCacheRef.current = null;
+
+          setViewMode('basic');
+          setNodes(recNodes);
+          setEdges(recEdges);
+          setSelectedNodeId(null);
+          setCurrentView('simulator');
+          triggerSimulation(recNodes, recEdges, incomingTrafficRate, durationSeconds);
+        }}
+      />
     );
   }
 
@@ -656,6 +728,7 @@ export const App: React.FC = () => {
         onReset={handleReset}
         onOpenCompare={() => setIsCompareOpen(true)}
         onOpenImportRepo={() => setIsImportRepoOpen(true)}
+        onOpenRecommender={() => setCurrentView('recommender')}
         hasBaseline={baseline !== null}
         onGoHome={() => {
           if (isCustomDomain() && isAppDomain()) {
@@ -835,6 +908,18 @@ export const App: React.FC = () => {
         onClose={() => setIsImportRepoOpen(false)}
         onImportArchitecture={handleImportArchitecture}
       />
+
+      {/* Modern Login / Signup Modal */}
+      {isAuthOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
+          <ModernLoginSignup
+            onClose={() => setIsAuthOpen(false)}
+            onSuccess={(_user) => {
+              setTimeout(() => setIsAuthOpen(false), 1200);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

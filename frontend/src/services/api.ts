@@ -1,5 +1,13 @@
 import axios from 'axios';
-import { ArchitectureFixture, ScenarioFixture, SimulationResult, ArchitectureNode, ArchitectureEdge } from '../types';
+import {
+  ArchitectureFixture,
+  ScenarioFixture,
+  SimulationResult,
+  ArchitectureNode,
+  ArchitectureEdge,
+  ArchitectureRecommendation,
+  RecommenderInput,
+} from '../types';
 
 const RAW_BACKEND_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').trim();
 const CLEAN_URL = RAW_BACKEND_URL.replace(/\/+$/, '');
@@ -75,6 +83,14 @@ export const api = {
   },
 
   /**
+   * Generates a recommended system architecture based on natural language project requirements.
+   */
+  async recommendArchitecture(params: RecommenderInput): Promise<ArchitectureRecommendation> {
+    const res = await axios.post(`${API_BASE}/recommend`, params);
+    return res.data;
+  },
+
+  /**
    * Submits user feedback (recommendation or bug report) to the backend API.
    */
   async submitFeedback(data: {
@@ -84,6 +100,38 @@ export const api = {
     message: string;
   }): Promise<{ success: boolean; message: string; id?: string }> {
     const res = await axios.post(`${API_BASE}/feedback`, data);
+    return res.data;
+  },
+
+  /**
+   * Mock authentication endpoints (no DB connected)
+   */
+  async login(data: { email: string }): Promise<{
+    success: boolean;
+    message: string;
+    token?: string;
+    user?: { id: string; email: string; name: string };
+  }> {
+    const res = await axios.post(`${API_BASE}/auth/login`, data);
+    return res.data;
+  },
+
+  async signup(data: { name?: string; email: string }): Promise<{
+    success: boolean;
+    message: string;
+    token?: string;
+    user?: { id: string; email: string; name: string };
+  }> {
+    const res = await axios.post(`${API_BASE}/auth/signup`, data);
+    return res.data;
+  },
+
+  async getAuthSession(): Promise<{
+    success: boolean;
+    authenticated: boolean;
+    user?: { id: string; email: string; name: string };
+  }> {
+    const res = await axios.get(`${API_BASE}/auth/me`);
     return res.data;
   },
 };
