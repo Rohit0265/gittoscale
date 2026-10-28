@@ -21,14 +21,19 @@ import {
   Zap,
   Cpu,
   Activity,
+  Sparkles,
+  Send,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, ComponentType } from '../types';
 
 interface LeftSidebarProps {
-  incomingTrafficRate: number;
-  onChangeTrafficRate: (val: number) => void;
-  durationSeconds: number;
-  onChangeDuration: (val: number) => void;
+  incomingTrafficRate?: number;
+  onChangeTrafficRate?: (val: number) => void;
+  durationSeconds?: number;
+  onChangeDuration?: (val: number) => void;
+  activePrompt?: string;
+  onRefinePrompt?: (refinement: string) => void;
+  isGenerating?: boolean;
   nodes: ArchitectureNode[];
   edges: ArchitectureEdge[];
   nodeResults: Record<string, NodeSimulationResult>;
@@ -44,8 +49,9 @@ interface LeftSidebarProps {
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({
-  incomingTrafficRate,
-  onChangeTrafficRate,
+  activePrompt,
+  onRefinePrompt,
+  isGenerating = false,
   nodes,
   edges: _edges,
   nodeResults,
@@ -62,6 +68,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const [renamingNodeId, setRenamingNodeId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState<string>('');
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [refineInput, setRefineInput] = useState('');
 
   useEffect(() => {
     const handleDocumentClick = () => {
@@ -166,54 +173,61 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     };
   };
 
-  const sliderPercent = Math.min(100, Math.max(0, ((incomingTrafficRate - 100) / (5000 - 100)) * 100));
+  const handleRefineSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (refineInput.trim() && onRefinePrompt) {
+      onRefinePrompt(refineInput.trim());
+      setRefineInput('');
+    }
+  };
 
   return (
     <aside className="w-full h-full flex flex-col justify-center items-center py-2 sm:py-4 px-2 sm:px-3 bg-transparent select-none text-xs overflow-hidden transition-colors">
       {/* Centered Architecture Card - No box-shadow, subtle 1px border */}
       <div className="my-auto w-full max-w-[340px] max-h-[calc(100vh-80px)] overflow-y-auto rounded-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 shadow-none p-3 sm:p-3.5 flex flex-col space-y-3 sm:space-y-3.5 text-slate-800 dark:text-slate-200">
-        {/* 1. Arrival Rate Control Card */}
-        <div className="bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-2.5">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <span className="tracking-tight">Request/Sec</span>
+        {/* 1. System Requirements Card */}
+        <div className="bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+              <span className="text-[11px] font-bold tracking-wider uppercase text-slate-700 dark:text-slate-200">
+                System Requirements
+              </span>
             </div>
-            <div className="relative">
-              <input
-                type="number"
-                min={100}
-                max={5000}
-                step={50}
-                value={incomingTrafficRate}
-                onChange={(e) => {
-                  const val = Math.max(0, parseInt(e.target.value) || 0);
-                  onChangeTrafficRate(val);
-                }}
-                className="w-16 text-center font-mono font-bold text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 shadow-none no-spinner"
-              />
-            </div>
+            {isGenerating && (
+              <span className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping" />
+                Refining...
+              </span>
+            )}
           </div>
 
-          {/* Range Slider */}
-          <div className="space-y-1.5">
-            <input
-              type="range"
-              min={100}
-              max={5000}
-              step={50}
-              value={incomingTrafficRate}
-              onChange={(e) => onChangeTrafficRate(Number(e.target.value))}
-              style={{
-                background: `linear-gradient(to right, #6366F1 0%, #6366F1 ${sliderPercent}%, var(--border-strong) ${sliderPercent}%, var(--border-strong) 100%)`,
-              }}
-              className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-400"
-            />
-            <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-tight">
-              <span>100 r/s</span>
-              <span>2,500 r/s</span>
-              <span>5,000 r/s</span>
-            </div>
+          <div className="p-2 rounded-lg bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800">
+            <p className="text-[11px] text-slate-600 dark:text-neutral-300 line-clamp-3 leading-relaxed italic">
+              &ldquo;{activePrompt || 'Default distributed cloud architecture'}&rdquo;
+            </p>
           </div>
+
+          {onRefinePrompt && (
+            <form onSubmit={handleRefineSubmit} className="flex items-center gap-1.5 pt-0.5">
+              <input
+                type="text"
+                placeholder="Ask AI or refine architecture..."
+                value={refineInput}
+                onChange={(e) => setRefineInput(e.target.value)}
+                disabled={isGenerating}
+                className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-indigo-500"
+              />
+              <button
+                type="submit"
+                disabled={!refineInput.trim() || isGenerating}
+                className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white transition-colors cursor-pointer"
+                title="Send refinement to AI"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </form>
+          )}
         </div>
 
         {/* 2. Components Header Row */}

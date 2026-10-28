@@ -8,10 +8,12 @@ import {
   SimulationResult,
   BaselineSnapshot,
   ComponentType,
+  RecommenderInput,
 } from './types';
 import { Header } from './components/Header';
 import { MetricsStrip } from './components/MetricsStrip';
 import { LeftSidebar } from './components/LeftSidebar';
+import { RequestSenderCard } from './components/RequestSenderCard';
 import { ArchitectureCanvas } from './components/Canvas/ArchitectureCanvas';
 import { ComponentInspector } from './components/ComponentInspector';
 import { BottleneckList } from './components/BottleneckList';
@@ -21,7 +23,8 @@ import { LandingPage } from './components/LandingPage';
 import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
 import { ProjectWorkspace } from './components/ProjectWorkspace/ProjectWorkspace';
 import ModernLoginSignup from './components/ui/modern-login-signup';
-import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
+import { toVerticalTree } from './utils/treeLayout';
+import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
 const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
@@ -100,13 +103,20 @@ export const App: React.FC = () => {
   // Navigation mode: 'landing' | 'simulator' | 'recommender' | 'projectWorkspace'
   const [currentView, setCurrentView] = useState<'landing' | 'simulator' | 'recommender' | 'projectWorkspace'>(() => {
     const route = getProjectRouteInfo();
-    if (route) return 'projectWorkspace';
+    if (route) return 'simulator';
     if (isRecommenderUrl()) return 'recommender';
     return isAppDomain() ? 'simulator' : 'landing';
   });
 
   // Modern login/signup modal state
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(() => isAuthUrl());
+
+  // Active prompt for architecture generation
+  const [activePromptText, setActivePromptText] = useState<string>(() => {
+    const route = getProjectRouteInfo();
+    return route?.prompt || '';
+  });
+  const [isGeneratingArchitecture, setIsGeneratingArchitecture] = useState<boolean>(false);
 
   // Theme state: light | dark with persistence & system preference detection
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -152,7 +162,8 @@ export const App: React.FC = () => {
       const route = getProjectRouteInfo();
       if (route) {
         setActiveProject(route);
-        setCurrentView('projectWorkspace');
+        if (route.prompt) setActivePromptText(route.prompt);
+        setCurrentView('simulator');
       } else if (isRecommenderUrl()) {
         setCurrentView('recommender');
       } else if (isAppDomain()) {
@@ -163,23 +174,6 @@ export const App: React.FC = () => {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const handleStartProject = useCallback((promptText: string) => {
-    const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`gitoscale_project_${projectId}`, promptText);
-    }
-
-    if (isCustomDomain() && !isAppDomain()) {
-      window.location.href = `${APP_SUBDOMAIN_URL}/project/${projectId}?prompt=${encodeURIComponent(promptText)}`;
-      return;
-    }
-
-    const projectUrl = `/project/${projectId}?prompt=${encodeURIComponent(promptText)}`;
-    window.history.pushState({ projectId, prompt: promptText }, '', projectUrl);
-    setActiveProject({ projectId, prompt: promptText });
-    setCurrentView('projectWorkspace');
   }, []);
 
   // Sidebar collapse states - auto-collapse on smaller screens
@@ -376,6 +370,81 @@ export const App: React.FC = () => {
     },
     [isRunning, triggerSimulation]
   );
+
+  const handleToggleRunning = useCallback(() => {
+    setIsRunning((prev) => !prev);
+  }, []);
+
+  // Generate / synthesize architecture directly from a prompt using vertical tree layout
+  const handleGenerateFromPrompt = useCallback(
+    async (promptText: string) => {
+      if (!promptText.trim()) return;
+      setActivePromptText(promptText);
+      setIsGeneratingArchitecture(true);
+      setError(null);
+      try {
+        const payload: RecommenderInput = {
+          projectDescription: promptText,
+          expectedScale: '10,000 req/s Growth Tier with Read Replicas',
+          budgetConstraint: 'Balanced cloud ECS/RDS ($500-$2000/mo)',
+          preferredTech: ['Redis Cache', 'Multi-AZ RDS'],
+          deploymentPreference: 'AWS Cloud',
+        };
+        const res = await api.recommendArchitecture(payload);
+        const verticalNodes = toVerticalTree(res.nodes, res.edges);
+        setNodes(verticalNodes);
+        setEdges(res.edges);
+        baseBasicGraphRef.current = { nodes: verticalNodes, edges: res.edges };
+        basicGraphCacheRef.current = { nodes: verticalNodes, edges: res.edges };
+        triggerSimulation(verticalNodes, res.edges, incomingTrafficRate, durationSeconds);
+      } catch (err: any) {
+        console.error('Error generating architecture for prompt:', err);
+        setError(err?.response?.data?.message || err?.message || 'Failed to generate architecture for prompt');
+      } finally {
+        setIsGeneratingArchitecture(false);
+      }
+    },
+    [incomingTrafficRate, durationSeconds, triggerSimulation]
+  );
+
+  // AI Refine callback from left sidebar
+  const handleRefinePrompt = useCallback(
+    async (refinement: string) => {
+      const updatedPrompt = activePromptText ? `${activePromptText} • ${refinement}` : refinement;
+      await handleGenerateFromPrompt(updatedPrompt);
+    },
+    [activePromptText, handleGenerateFromPrompt]
+  );
+
+  // Directly navigate to simulator and generate architecture on prompt submit
+  const handleStartProject = useCallback(
+    (promptText: string) => {
+      const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`gitoscale_project_${projectId}`, promptText);
+      }
+
+      if (isCustomDomain() && !isAppDomain()) {
+        window.location.href = `${APP_SUBDOMAIN_URL}/app?prompt=${encodeURIComponent(promptText)}`;
+        return;
+      }
+
+      const projectUrl = `/app?prompt=${encodeURIComponent(promptText)}`;
+      window.history.pushState({ projectId, prompt: promptText }, '', projectUrl);
+      setActiveProject({ projectId, prompt: promptText });
+      setCurrentView('simulator');
+      handleGenerateFromPrompt(promptText);
+    },
+    [handleGenerateFromPrompt]
+  );
+
+  // Check URL on mount if prompt query is present
+  useEffect(() => {
+    const route = getProjectRouteInfo();
+    if (route?.prompt) {
+      handleGenerateFromPrompt(route.prompt);
+    }
+  }, [handleGenerateFromPrompt]);
 
   // Helper to apply scenario overrides to any graph without side effects
   const applyScenarioToGraph = (
@@ -870,6 +939,13 @@ export const App: React.FC = () => {
       <div className="flex flex-1 overflow-hidden relative w-full h-full">
         {/* Full Canvas: Interactive Architecture Diagram */}
         <main className="w-full h-full absolute inset-0 overflow-hidden bg-slate-50 dark:bg-[#090B10]">
+          {isGeneratingArchitecture && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 dark:bg-[#0A0A0A]/95 border border-indigo-500/30 dark:border-indigo-500/40 text-slate-900 dark:text-white shadow-lg backdrop-blur-md text-xs font-medium">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500 animate-spin" />
+              <span>Synthesizing system architecture from requirements...</span>
+            </div>
+          )}
           <ArchitectureCanvas
             nodes={nodes}
             edges={edges}
@@ -902,7 +978,7 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* Left Floating Panel: Component List & Traffic Controls */}
+        {/* Left Floating Panel: Requirements & Component List */}
         <div
           className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
             isLeftCollapsed ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
@@ -911,10 +987,9 @@ export const App: React.FC = () => {
           <div className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] h-full flex flex-col pointer-events-none">
             <div className="pointer-events-auto h-full flex flex-col">
               <LeftSidebar
-                incomingTrafficRate={incomingTrafficRate}
-                onChangeTrafficRate={handleTrafficChange}
-                durationSeconds={durationSeconds}
-                onChangeDuration={handleDurationChange}
+                activePrompt={activePromptText}
+                onRefinePrompt={handleRefinePrompt}
+                isGenerating={isGeneratingArchitecture}
                 nodes={nodes}
                 edges={edges}
                 nodeResults={simulationResult?.nodeResults || {}}
@@ -954,14 +1029,25 @@ export const App: React.FC = () => {
           </button>
         )}
 
-        {/* Right Floating Panel: Selected Component Inspector OR Results & Bottlenecks */}
+        {/* Right Floating Panel: Request Sender + Selected Component Inspector OR Bottlenecks */}
         <div
           className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
             isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
           <aside className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] bg-transparent h-full flex flex-col justify-center items-center py-2 sm:py-4 px-2 sm:px-3 shrink-0 overflow-hidden select-none pointer-events-none">
-            <div className="pointer-events-auto w-full">
+            <div className="pointer-events-auto w-full max-h-[calc(100vh-80px)] overflow-y-auto space-y-3">
+              {/* Request Sender Card: Shifted to Right Bar */}
+              <RequestSenderCard
+                incomingTrafficRate={incomingTrafficRate}
+                onChangeTrafficRate={handleTrafficChange}
+                isRunning={isRunning}
+                onToggleRunning={handleToggleRunning}
+                durationSeconds={durationSeconds}
+                onChangeDuration={handleDurationChange}
+              />
+
+              {/* Component Inspector or Bottlenecks List */}
               {selectedNode ? (
                 <ComponentInspector
                   node={selectedNode}
