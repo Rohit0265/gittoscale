@@ -1,0 +1,1 @@
+now you have to implemet the ai feature of now in which when the user enter the prompt it goes to differet page that is app.gittoscale.tech/project/{prpoject.id} and when the diagram is making in left side bar it will ask some question if necesaay like budget traffic etc when the diagram is making at the main scren it show the skeleton of architecture
