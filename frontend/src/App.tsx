@@ -636,6 +636,7 @@ export const App: React.FC = () => {
       <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#0A0A0A]">
         <LandingPage
           isDark={isDark}
+          isAppDomain={isAppDomain()}
           onToggleTheme={handleToggleTheme}
           onOpenRecommender={() => setCurrentView('recommender')}
           onOpenAuth={() => setIsAuthOpen(true)}

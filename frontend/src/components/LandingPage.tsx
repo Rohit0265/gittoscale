@@ -31,7 +31,22 @@ interface LandingPageProps {
   children?: React.ReactNode;
   isDark?: boolean;
   onToggleTheme?: () => void;
+  isAppDomain?: boolean;
 }
+
+const checkIsAppDomain = () => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname.toLowerCase();
+  const search = new URLSearchParams(window.location.search);
+  return (
+    host === 'app.gittoscale.tech' ||
+    host.startsWith('app.') ||
+    window.location.pathname.startsWith('/app') ||
+    search.has('app') ||
+    search.has('demo') ||
+    search.has('repo')
+  );
+};
 
 const PAGES = [
   'top',
@@ -394,7 +409,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   children,
   isDark = false,
   onToggleTheme,
+  isAppDomain: isAppDomainProp,
 }) => {
+  const isApp = isAppDomainProp !== undefined ? isAppDomainProp : checkIsAppDomain();
   const [active, setActive] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [scrollDir, setScrollDir] = useState<'forward' | 'backward'>('forward');
@@ -483,78 +500,104 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         id="top"
         className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-[#0A0A0A]"
       >
-        {/* Preserved Top Header */}
-        <div className="h-16 border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-3 sm:px-6 md:px-8 flex items-center justify-between shadow-xs transition-colors w-full z-20">
-          <div className="flex items-center gap-3">
-            <img
-              src={isDark ? '/logo.png' : '/logo-light.png'}
-              alt="GitToScale"
-              className="h-8 sm:h-9 md:h-10 w-auto object-contain cursor-pointer"
-            />
-          </div>
-          <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
-            {/* Test Demo Site */}
-            <button
-              onClick={onSelectTestSite}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0"
-              title="Test Demo Site"
-            >
-              <Play className="h-3 w-3 fill-current opacity-80" />
-              <span className="hidden sm:inline">Test Demo Site</span>
-              <span className="sm:hidden">Demo</span>
-            </button>
-
-            {/* AI Architecture Architect */}
-            {onOpenRecommender && (
+        {/* Top Navbar: Shrunk compact pill on Landing, Full Size on app.gittoscale.tech */}
+        <div
+          className={`w-full z-20 transition-all duration-300 ${
+            isApp
+              ? 'border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur'
+              : 'pt-3 sm:pt-4 px-3 sm:px-6 flex justify-center'
+          }`}
+        >
+          <div
+            className={`flex items-center justify-between transition-all duration-300 ${
+              isApp
+                ? 'h-16 w-full px-3 sm:px-6 md:px-8 shadow-xs'
+                : 'h-12 sm:h-13 w-full max-w-5xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
+            }`}
+          >
+            <div className="flex items-center gap-2 sm:gap-3">
+              <img
+                src={isDark ? '/logo.png' : '/logo-light.png'}
+                alt="GitToScale"
+                className={`w-auto object-contain cursor-pointer transition-all ${
+                  isApp ? 'h-8 sm:h-9 md:h-10' : 'h-6 sm:h-7'
+                }`}
+              />
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5">
+              {/* Test Demo Site */}
               <button
-                onClick={onOpenRecommender}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/80 dark:bg-indigo-950/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors shadow-xs cursor-pointer shrink-0"
-                title="AI Architecture Recommender"
+                onClick={onSelectTestSite}
+                className={`flex items-center gap-1.5 border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0 ${
+                  isApp ? 'px-2.5 sm:px-3 py-1.5 rounded-lg' : 'px-2.5 sm:px-3 py-1 rounded-full'
+                }`}
+                title="Test Demo Site"
               >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span className="hidden sm:inline">AI Architect</span>
-                <span className="sm:hidden">AI</span>
+                <Play className="h-3 w-3 fill-current opacity-80" />
+                <span className="hidden sm:inline">Test Demo Site</span>
+                <span className="sm:hidden">Demo</span>
               </button>
-            )}
 
-            {/* Import Repository */}
-            <button
-              onClick={onSelectUseRepository}
-              className="flex items-center gap-1.5 rounded-lg bg-slate-900 dark:bg-white px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-white dark:text-neutral-950 hover:opacity-90 transition-opacity shadow-xs cursor-pointer shrink-0"
-              title="Import Repository"
-            >
-              <Github className="h-3.5 w-3.5 fill-current" />
-              <span className="hidden sm:inline">Import Repository</span>
-              <span className="sm:hidden">Import</span>
-            </button>
+              {/* AI Architecture Architect */}
+              {onOpenRecommender && (
+                <button
+                  onClick={onOpenRecommender}
+                  className={`flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/80 dark:bg-indigo-950/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors shadow-xs cursor-pointer shrink-0 ${
+                    isApp ? 'px-2.5 sm:px-3 py-1.5 rounded-lg' : 'px-2.5 sm:px-3 py-1 rounded-full'
+                  }`}
+                  title="AI Architecture Recommender"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span className="hidden sm:inline">AI Architect</span>
+                  <span className="sm:hidden">AI</span>
+                </button>
+              )}
 
-            {/* Sign In Button */}
-            {onOpenAuth && (
+              {/* Import Repository */}
               <button
-                onClick={onOpenAuth}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0"
-                title="Sign in or Sign up"
+                onClick={onSelectUseRepository}
+                className={`flex items-center gap-1.5 bg-slate-900 dark:bg-white text-xs font-semibold text-white dark:text-neutral-950 hover:opacity-90 transition-opacity shadow-xs cursor-pointer shrink-0 ${
+                  isApp ? 'px-2.5 sm:px-3.5 py-1.5 rounded-lg' : 'px-2.5 sm:px-3.5 py-1 rounded-full'
+                }`}
+                title="Import Repository"
               >
-                <span>Sign In</span>
+                <Github className="h-3.5 w-3.5 fill-current" />
+                <span className="hidden sm:inline">Import Repository</span>
+                <span className="sm:hidden">Import</span>
               </button>
-            )}
 
-            <GitHubStarButton className="hidden md:inline-flex" />
+              {/* Sign In Button */}
+              {onOpenAuth && (
+                <button
+                  onClick={onOpenAuth}
+                  className={`flex items-center gap-1.5 border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0 ${
+                    isApp ? 'px-2.5 sm:px-3 py-1.5 rounded-lg' : 'px-2.5 sm:px-3 py-1 rounded-full'
+                  }`}
+                  title="Sign in or Sign up"
+                >
+                  <span>Sign In</span>
+                </button>
+              )}
 
-            {onToggleTheme && (
-              <button
-                onClick={onToggleTheme}
-                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                className="p-1.5 sm:p-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center shrink-0"
-              >
-                {isDark ? (
-                  <Sun className="w-4 h-4 text-amber-400" />
-                ) : (
-                  <Moon className="w-4 h-4 text-slate-600" />
-                )}
-              </button>
-            )}
+              <GitHubStarButton className="hidden md:inline-flex" />
+
+              {onToggleTheme && (
+                <button
+                  onClick={onToggleTheme}
+                  aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                  title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                  className={`border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center shrink-0 ${
+                    isApp ? 'p-1.5 sm:p-2 rounded-lg' : 'p-1.5 rounded-full'
+                  }`}
+                >
+                  {isDark ? (
+                    <Sun className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-slate-600" />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
