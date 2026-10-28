@@ -1033,28 +1033,10 @@ export const App: React.FC = () => {
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   const selectedNodeResult = selectedNodeId ? simulationResult?.nodeResults[selectedNodeId] : undefined;
 
-  if (currentView === 'signup') {
+  if (currentView === 'signup' || currentView === 'signin') {
     return (
       <ModernLoginSignup
-        initialMode="signup"
         onClose={handleGoHome}
-        onNavigate={handleNavigate}
-        onSuccess={() => {
-          if (!pendingAction) {
-            window.history.pushState({}, '', '/app');
-            setCurrentView('simulator');
-          }
-        }}
-      />
-    );
-  }
-
-  if (currentView === 'signin') {
-    return (
-      <ModernLoginSignup
-        initialMode="signin"
-        onClose={handleGoHome}
-        onNavigate={handleNavigate}
         onSuccess={() => {
           if (!pendingAction) {
             window.history.pushState({}, '', '/app');
