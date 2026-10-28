@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Github, ArrowRight, Sparkles } from 'lucide-react';
+import { Github } from 'lucide-react';
+import { PlaceholdersAndVanishInput } from '@/components/ui/placeholders-and-vanish-input';
 
 export interface NewOneProps {
   onSelectTestSite?: () => void;
@@ -13,13 +14,22 @@ export const NewOne: React.FC<NewOneProps> = ({
   onSelectUseRepository,
   onOpenRecommender,
 }) => {
-  const [query, setQuery] = useState('');
+  const [, setQuery] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const placeholders = [
+    "Describe your system architecture or app idea...",
+    "How to design an auto-scaling microservices fleet?",
+    "Architect an event-driven payment processing pipeline...",
+    "What's the best database strategy for 10M active users?",
+    "Ask any architecture question or describe what you want to build...",
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!query.trim()) return;
-
-    // Trigger architecture recommender or action with query
     if (onOpenRecommender) {
       onOpenRecommender();
     }
@@ -33,7 +43,7 @@ export const NewOne: React.FC<NewOneProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
+      <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center w-full">
         {/* Main Hero Heading */}
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.08]">
           Scale your system{' '}
@@ -47,29 +57,13 @@ export const NewOne: React.FC<NewOneProps> = ({
           What&apos;s on your mind?
         </p>
 
-        {/* Input Box Section */}
+        {/* Input Box Section using PlaceholdersAndVanishInput */}
         <div className="mt-8 sm:mt-10 w-full max-w-xl">
-          <form
+          <PlaceholdersAndVanishInput
+            placeholders={placeholders}
+            onChange={handleChange}
             onSubmit={handleSubmit}
-            className="group relative flex items-center w-full rounded-2xl dark:border-neutral-800 bg-white/90 dark:bg-[#121214]/90 p-2 shadow-lg shadow-slate-200/50 dark:shadow-black/50 backdrop-blur-md transition-all duration-200 "
-          >
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Describe your idea ......."
-              className="w-full bg-transparent px-2 py-2 text-sm sm:text-base text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 focus:outline-hidden"
-            />
-
-            <button
-              type="submit"
-              disabled={!query.trim()}
-              className="flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-neutral-950 hover:bg-slate-800 dark:hover:bg-neutral-200 disabled:opacity-30 disabled:hover:bg-slate-900 dark:disabled:hover:bg-white transition-all cursor-pointer disabled:cursor-not-allowed shrink-0 shadow-xs"
-              aria-label="Submit"
-            >
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-          </form>
+          />
 
           {/* OR Divider */}
           <div className="flex items-center gap-4 my-5 sm:my-6 w-full">
@@ -84,7 +78,7 @@ export const NewOne: React.FC<NewOneProps> = ({
           <button
             type="button"
             onClick={onSelectUseRepository}
-            className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-sm font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1c1c20] hover:border-slate-300 dark:hover:border-neutral-700 transition-all shadow-xs cursor-pointer group"
+            className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-full border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-sm font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1c1c20] hover:border-slate-300 dark:hover:border-neutral-700 transition-all shadow-xs cursor-pointer group"
           >
             <Github className="w-4 h-4 text-slate-900 dark:text-white group-hover:scale-110 transition-transform" />
             <span>Import GitHub Repo</span>
