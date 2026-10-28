@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ArrowLeft,
   Sparkles,
-  TrendingUp,
-  DollarSign,
-  Database,
-  Globe,
+  Layers,
+  Network,
   Play,
   Download,
   Sun,
   Moon,
   AlertCircle,
 } from 'lucide-react';
-import { ContextualQuerySidebar, ContextualQuestion } from './ContextualQuerySidebar';
+import { ContextualQuerySidebar } from './ContextualQuerySidebar';
 import { SkeletonCanvas } from './SkeletonCanvas';
 import { ArchitectureCanvas } from '../Canvas/ArchitectureCanvas';
 import { api } from '../../services/api';
@@ -32,108 +30,315 @@ export interface ProjectWorkspaceProps {
   onToggleTheme?: () => void;
 }
 
-const DEFAULT_QUESTIONS: ContextualQuestion[] = [
-  {
-    id: 'scale_concurrency',
-    category: 'scale',
-    title: 'Peak Traffic & Concurrency Target',
-    description: 'Determine the request throughput your architecture must withstand without degraded latency.',
-    icon: <TrendingUp className="w-4 h-4 text-sky-500" />,
-    options: [
-      {
-        id: 'scale_mvp',
-        label: 'MVP / Startup (< 1,000 req/s)',
-        detail: 'Single instance database with lightweight caching.',
-        architecturalImpact: 'Standard Monolithic API + PostgreSQL',
+/**
+ * Builds a decomposed, production-grade Detailed Architecture Graph
+ * from high-level basic nodes, expanding gateways into rate limiters,
+ * clusters into worker pools, queues into message brokers, and DBs into connection poolers & replicas.
+ */
+function buildDetailedArchitecture(
+  _basicNodes: ArchitectureNode[],
+  _basicEdges: ArchitectureEdge[],
+  prompt: string
+): { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } {
+  const isEventDriven =
+    prompt.toLowerCase().includes('stream') ||
+    prompt.toLowerCase().includes('kafka') ||
+    prompt.toLowerCase().includes('burst') ||
+    prompt.toLowerCase().includes('event');
+
+  const detailedNodes: ArchitectureNode[] = [
+    // 1. Ingress & Edge
+    {
+      id: 'dt-client',
+      name: 'Client Ingress (Web / Mobile)',
+      type: 'load_generator',
+      position: { x: 40, y: 220 },
+      capacityPerSecond: 10000,
+      workerCount: 1,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 0,
+        maxQueueSize: 10000,
+        overflowPolicy: 'reject',
+        isSource: true,
+        defaultTrafficRate: 2000,
       },
-      {
-        id: 'scale_growth',
-        label: 'Growth Tier (10,000 req/s)',
-        detail: 'Horizontally scaled services with Redis cache & read replicas.',
-        architecturalImpact: '+ Redis Cluster & Read Replicas',
+    },
+    {
+      id: 'dt-cdn',
+      name: 'Cloudflare Edge CDN / WAF',
+      type: 'gateway',
+      position: { x: 240, y: 220 },
+      capacityPerSecond: 8000,
+      workerCount: 4,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 3,
+        maxQueueSize: 8000,
+        overflowPolicy: 'reject',
       },
-      {
-        id: 'scale_burst',
-        label: 'Flash Sale Burst (50,000+ req/s)',
-        detail: 'Asynchronous event streaming and partitioned database shards.',
-        architecturalImpact: '+ Apache Kafka Event Stream & Sharding',
+    },
+
+    // 2. Gateway Tier
+    {
+      id: 'dt-gateway',
+      name: 'Kong / Nginx Reverse Proxy',
+      type: 'gateway',
+      position: { x: 460, y: 150 },
+      capacityPerSecond: 6000,
+      workerCount: 3,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 5,
+        maxQueueSize: 6000,
+        overflowPolicy: 'reject',
       },
-    ],
-    selectedOptionId: 'scale_growth',
-  },
-  {
-    id: 'budget_constraints',
-    category: 'budget',
-    title: 'Infrastructure Budget & Maintenance',
-    description: 'Balance operational overhead against cloud infrastructure expenditure.',
-    icon: <DollarSign className="w-4 h-4 text-emerald-500" />,
-    options: [
-      {
-        id: 'budget_frugal',
-        label: 'Serverless Frugal (< $100/mo)',
-        detail: 'Pay-per-request serverless functions and managed databases.',
-        architecturalImpact: 'Cloudflare Workers + Serverless Postgres',
+    },
+    {
+      id: 'dt-auth-filter',
+      name: 'OAuth2 / JWT Token Validator',
+      type: 'service',
+      position: { x: 460, y: 290 },
+      capacityPerSecond: 4500,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 8,
+        maxQueueSize: 4000,
+        overflowPolicy: 'reject',
       },
-      {
-        id: 'budget_balanced',
-        label: 'Balanced Cloud ($500–$2,000/mo)',
-        detail: 'Containerized microservices on AWS ECS / Google Cloud Run.',
-        architecturalImpact: 'Managed Multi-AZ RDS & Container Fleet',
+    },
+
+    // 3. App Core Cluster & Worker Fleet
+    {
+      id: 'dt-app-cluster',
+      name: 'Core Application Service (Cluster)',
+      type: 'service',
+      position: { x: 690, y: 130 },
+      capacityPerSecond: 3500,
+      workerCount: 4,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 15,
+        maxQueueSize: 5000,
+        overflowPolicy: 'reject',
       },
-      {
-        id: 'budget_enterprise',
-        label: 'Enterprise Dedicated ($5,000+/mo)',
-        detail: 'Dedicated Kubernetes cluster with multi-region active replication.',
-        architecturalImpact: 'Kubernetes (EKS) + Multi-Region Aurora',
+    },
+    {
+      id: 'dt-queue',
+      name: isEventDriven ? 'Apache Kafka Event Broker' : 'RabbitMQ Task Queue',
+      type: 'service',
+      submoduleType: 'queue',
+      position: { x: 690, y: 310 },
+      capacityPerSecond: 5000,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 6,
+        maxQueueSize: 10000,
+        overflowPolicy: 'reject',
       },
-    ],
-    selectedOptionId: 'budget_balanced',
-  },
-  {
-    id: 'data_consistency',
-    category: 'storage',
-    title: 'Data Consistency & Storage Model',
-    description: 'Define your transactional integrity requirements under write contention.',
-    icon: <Database className="w-4 h-4 text-amber-500" />,
-    options: [
-      {
-        id: 'consistency_acid',
-        label: 'Strict ACID Compliance',
-        detail: 'Zero financial discrepancies; row-level locking with WAL.',
-        architecturalImpact: 'PostgreSQL 16 Primary with Synchronous Standby',
+    },
+    {
+      id: 'dt-async-worker',
+      name: 'Background Async Worker Fleet',
+      type: 'service',
+      position: { x: 890, y: 310 },
+      capacityPerSecond: 2500,
+      workerCount: 3,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 25,
+        maxQueueSize: 4000,
+        overflowPolicy: 'reject',
       },
-      {
-        id: 'consistency_eventual',
-        label: 'High Ingestion / Eventual Consistency',
-        detail: 'Optimized for high-throughput writes and append-only ledgers.',
-        architecturalImpact: 'Event-Sourced Kafka + DynamoDB / Cassandra',
+    },
+
+    // 4. Cache Tier
+    {
+      id: 'dt-redis-primary',
+      name: 'Redis 7 Master (Write Cache)',
+      type: 'cache',
+      position: { x: 920, y: 70 },
+      capacityPerSecond: 9000,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 2,
+        maxQueueSize: 9000,
+        overflowPolicy: 'reject',
       },
-    ],
-    selectedOptionId: 'consistency_acid',
-  },
-  {
-    id: 'deployment_region',
-    category: 'cloud',
-    title: 'Geographic Deployment & DR',
-    description: 'Select latency SLA boundaries and disaster recovery replication.',
-    icon: <Globe className="w-4 h-4 text-purple-500" />,
-    options: [
-      {
-        id: 'deploy_single',
-        label: 'Single Region (High-Availability)',
-        detail: 'Multi-AZ replication within primary cloud region.',
-        architecturalImpact: '3 Availability Zones failover',
+    },
+    {
+      id: 'dt-redis-replica',
+      name: 'Redis 7 Read Replica (Read-Through)',
+      type: 'cache',
+      position: { x: 1120, y: 70 },
+      capacityPerSecond: 12000,
+      workerCount: 3,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 1,
+        maxQueueSize: 12000,
+        overflowPolicy: 'reject',
       },
-      {
-        id: 'deploy_multiregion',
-        label: 'Global Multi-Region Active/Active',
-        detail: 'Edge routing with geo-distributed database replicas.',
-        architecturalImpact: 'Anycast DNS + Global Read Replicas',
+    },
+
+    // 5. Database Tier with Connection Pooling & Read Replicas
+    {
+      id: 'dt-pgbouncer',
+      name: 'PgBouncer Connection Pooler',
+      type: 'gateway',
+      position: { x: 920, y: 190 },
+      capacityPerSecond: 4000,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 3,
+        maxQueueSize: 4000,
+        overflowPolicy: 'reject',
       },
-    ],
-    selectedOptionId: 'deploy_single',
-  },
-];
+    },
+    {
+      id: 'dt-db-primary',
+      name: 'PostgreSQL 16 Primary (Read/Write)',
+      type: 'database',
+      position: { x: 1130, y: 190 },
+      capacityPerSecond: 2500,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 18,
+        maxQueueSize: 3000,
+        overflowPolicy: 'reject',
+      },
+    },
+    {
+      id: 'dt-db-replica',
+      name: 'PostgreSQL 16 Read Replica (Read-Only)',
+      type: 'database',
+      position: { x: 1130, y: 310 },
+      capacityPerSecond: 3500,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 12,
+        maxQueueSize: 3500,
+        overflowPolicy: 'reject',
+      },
+    },
+  ];
+
+  const detailedEdges: ArchitectureEdge[] = [
+    {
+      id: 'e-dt-client-cdn',
+      source: 'dt-client',
+      target: 'dt-cdn',
+      requestsPerInput: 1.0,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-cdn-gw',
+      source: 'dt-cdn',
+      target: 'dt-gateway',
+      requestsPerInput: 0.95,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-gw-auth',
+      source: 'dt-gateway',
+      target: 'dt-auth-filter',
+      requestsPerInput: 0.8,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-auth-app',
+      source: 'dt-auth-filter',
+      target: 'dt-app-cluster',
+      requestsPerInput: 0.9,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-gw-app',
+      source: 'dt-gateway',
+      target: 'dt-app-cluster',
+      requestsPerInput: 0.2,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-app-cache-r',
+      source: 'dt-app-cluster',
+      target: 'dt-redis-replica',
+      requestsPerInput: 0.65,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-app-cache-w',
+      source: 'dt-app-cluster',
+      target: 'dt-redis-primary',
+      requestsPerInput: 0.2,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-redis-sync',
+      source: 'dt-redis-primary',
+      target: 'dt-redis-replica',
+      requestsPerInput: 0.2,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-app-queue',
+      source: 'dt-app-cluster',
+      target: 'dt-queue',
+      requestsPerInput: 0.35,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-queue-worker',
+      source: 'dt-queue',
+      target: 'dt-async-worker',
+      requestsPerInput: 1.0,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-app-pgbouncer',
+      source: 'dt-app-cluster',
+      target: 'dt-pgbouncer',
+      requestsPerInput: 0.5,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-worker-pgbouncer',
+      source: 'dt-async-worker',
+      target: 'dt-pgbouncer',
+      requestsPerInput: 0.4,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-pgb-db-pri',
+      source: 'dt-pgbouncer',
+      target: 'dt-db-primary',
+      requestsPerInput: 0.4,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-pgb-db-rep',
+      source: 'dt-pgbouncer',
+      target: 'dt-db-replica',
+      requestsPerInput: 0.6,
+      enabled: true,
+    },
+    {
+      id: 'e-dt-db-replication',
+      source: 'dt-db-primary',
+      target: 'dt-db-replica',
+      requestsPerInput: 0.4,
+      enabled: true,
+    },
+  ];
+
+  return { nodes: detailedNodes, edges: detailedEdges };
+}
 
 export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   projectId,
@@ -143,7 +348,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   isDark = true,
   onToggleTheme,
 }) => {
-  const [prompt] = useState<string>(() => {
+  const [prompt, setPrompt] = useState<string>(() => {
     if (initialPrompt) return initialPrompt;
     if (typeof window !== 'undefined') {
       const search = new URLSearchParams(window.location.search);
@@ -155,20 +360,51 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     return 'Scalable distributed e-commerce application with high-throughput flash-sale checkout';
   });
 
-  const [questions, setQuestions] = useState<ContextualQuestion[]>(DEFAULT_QUESTIONS);
+  // Selected mandatory parameters (driven by ChatGPT-like sidebar)
+  const [selectedAnswers, setSelectedAnswers] = useState<{
+    scale?: string;
+    budget?: string;
+    consistency?: string;
+    region?: string;
+  }>({
+    scale: 'scale_growth',
+    budget: 'budget_balanced',
+    consistency: 'consistency_acid',
+    region: 'deploy_single',
+  });
+
+  // View state: 'skeleton' (loading state) | 'hydrated' (concrete diagram)
   const [viewState, setViewState] = useState<'skeleton' | 'hydrated'>('skeleton');
+
+  // View mode: 'basic' | 'detailed'
+  const [viewMode, setViewMode] = useState<'basic' | 'detailed'>('basic');
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<ArchitectureRecommendation | null>(null);
 
+  // Cached Graphs
+  const [basicGraph, setBasicGraph] = useState<{
+    nodes: ArchitectureNode[];
+    edges: ArchitectureEdge[];
+  }>({ nodes: [], edges: [] });
+
+  const [detailedGraph, setDetailedGraph] = useState<{
+    nodes: ArchitectureNode[];
+    edges: ArchitectureEdge[];
+  }>({ nodes: [], edges: [] });
+
   // Canvas selection & interactive state
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [nodes, setNodes] = useState<ArchitectureNode[]>([]);
-  const [edges, setEdges] = useState<ArchitectureEdge[]>([]);
 
-  // Compute refinement completion percentage
-  const answeredCount = questions.filter((q) => q.selectedOptionId).length;
-  const refinementProgress = Math.round((answeredCount / questions.length) * 100);
+  // Active nodes & edges on canvas based on viewMode
+  const activeNodes = useMemo(() => {
+    return viewMode === 'detailed' ? detailedGraph.nodes : basicGraph.nodes;
+  }, [viewMode, detailedGraph.nodes, basicGraph.nodes]);
+
+  const activeEdges = useMemo(() => {
+    return viewMode === 'detailed' ? detailedGraph.edges : basicGraph.edges;
+  }, [viewMode, detailedGraph.edges, basicGraph.edges]);
 
   // Save prompt cache
   useEffect(() => {
@@ -177,78 +413,110 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     }
   }, [projectId, prompt]);
 
-  // Generate / Hydrate architecture from prompt and answered questions
-  const handleHydrateArchitecture = useCallback(async () => {
-    setIsGenerating(true);
-    setError(null);
+  // Generate / Hydrate architecture from prompt and answered parameters
+  const handleHydrateArchitecture = useCallback(
+    async (customRefinement?: string) => {
+      setIsGenerating(true);
+      setError(null);
 
-    const scaleAns = questions.find((q) => q.id === 'scale_concurrency')?.selectedOptionId;
-    const budgetAns = questions.find((q) => q.id === 'budget_constraints')?.selectedOptionId;
-    const consistencyAns = questions.find((q) => q.id === 'data_consistency')?.selectedOptionId;
-    const regionAns = questions.find((q) => q.id === 'deployment_region')?.selectedOptionId;
+      const scaleMap: Record<string, string> = {
+        scale_mvp: '< 1,000 req/s MVP',
+        scale_growth: '10,000 req/s Growth Tier with Read Replicas',
+        scale_burst: '50,000+ req/s Flash Sale Burst with Kafka stream',
+      };
 
-    const scaleMap: Record<string, string> = {
-      scale_mvp: '< 1,000 req/s MVP',
-      scale_growth: '10,000 req/s Growth Tier with Read Replicas',
-      scale_burst: '50,000+ req/s Flash Sale Burst with Kafka stream',
-    };
+      const budgetMap: Record<string, string> = {
+        budget_frugal: 'Serverless low cost (<$100/mo)',
+        budget_balanced: 'Balanced cloud ECS/RDS ($500-$2000/mo)',
+        budget_enterprise: 'Dedicated enterprise multi-region ($5000+/mo)',
+      };
 
-    const budgetMap: Record<string, string> = {
-      budget_frugal: 'Serverless low cost (<$100/mo)',
-      budget_balanced: 'Balanced cloud ECS/RDS ($500-$2000/mo)',
-      budget_enterprise: 'Dedicated enterprise multi-region ($5000+/mo)',
-    };
+      const payload: RecommenderInput = {
+        projectDescription: prompt,
+        expectedScale: scaleMap[selectedAnswers.scale || 'scale_growth'],
+        budgetConstraint: budgetMap[selectedAnswers.budget || 'budget_balanced'],
+        preferredTech: [
+          selectedAnswers.consistency === 'consistency_eventual' ? 'Apache Kafka' : 'Redis Cache',
+          selectedAnswers.region === 'deploy_multiregion' ? 'Global Multi-Region' : 'Multi-AZ RDS',
+        ],
+        deploymentPreference:
+          selectedAnswers.region === 'deploy_multiregion'
+            ? 'Multi-Region Active/Active'
+            : 'AWS Cloud',
+        refinementRequest: customRefinement,
+      };
 
-    const payload: RecommenderInput = {
-      projectDescription: prompt,
-      expectedScale: scaleMap[scaleAns || 'scale_growth'],
-      budgetConstraint: budgetMap[budgetAns || 'budget_balanced'],
-      preferredTech: [
-        consistencyAns === 'consistency_eventual' ? 'Apache Kafka' : 'Redis Cache',
-        regionAns === 'deploy_multiregion' ? 'Global Multi-Region' : 'Multi-AZ RDS',
-      ],
-      deploymentPreference: regionAns === 'deploy_multiregion' ? 'Multi-Region Active/Active' : 'AWS Cloud',
-    };
+      try {
+        const res = await api.recommendArchitecture(payload);
+        setRecommendation(res);
 
-    try {
-      const res = await api.recommendArchitecture(payload);
-      setRecommendation(res);
-      setNodes(res.nodes);
-      setEdges(res.edges);
-      setViewState('hydrated');
-    } catch (err: any) {
-      console.error('Error hydrating architecture:', err);
-      setError(err?.response?.data?.message || err?.message || 'Failed to hydrate architecture.');
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [prompt, questions]);
+        // Store Basic Graph
+        setBasicGraph({
+          nodes: res.nodes,
+          edges: res.edges,
+        });
 
-  // Handle answering question in left sidebar
-  const handleAnswerQuestion = (questionId: string, optionId: string) => {
-    setQuestions((prev) =>
-      prev.map((q) => (q.id === questionId ? { ...q, selectedOptionId: optionId } : q))
-    );
+        // Generate Decomposed Detailed Graph
+        const detailed = buildDetailedArchitecture(res.nodes, res.edges, prompt);
+        setDetailedGraph(detailed);
+
+        setViewState('hydrated');
+      } catch (err: any) {
+        console.error('Error hydrating architecture:', err);
+        setError(
+          err?.response?.data?.message || err?.message || 'Failed to synthesize architecture.'
+        );
+      } finally {
+        setIsGenerating(false);
+      }
+    },
+    [prompt, selectedAnswers]
+  );
+
+  // Handle answering question in ChatGPT-like left sidebar
+  const handleAnswerSelected = (
+    category: 'scale' | 'budget' | 'consistency' | 'region',
+    optionId: string
+  ) => {
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [category]: optionId,
+    }));
   };
 
   const handleResetQuestions = () => {
-    setQuestions((prev) => prev.map((q) => ({ ...q, selectedOptionId: undefined })));
+    setSelectedAnswers({});
     setViewState('skeleton');
+    setBasicGraph({ nodes: [], edges: [] });
+    setDetailedGraph({ nodes: [], edges: [] });
+  };
+
+  const handleCustomChatMessage = (message: string) => {
+    setPrompt((prev) => `${prev} • ${message}`);
+    handleHydrateArchitecture(message);
   };
 
   const handleExportJSON = () => {
-    if (!recommendation && nodes.length === 0) return;
-    const exportData = recommendation || { projectId, prompt, nodes, edges };
+    const exportData = {
+      projectId,
+      prompt,
+      viewMode,
+      selectedAnswers,
+      recommendation,
+      activeGraph: { nodes: activeNodes, edges: activeEdges },
+      basicGraph,
+      detailedGraph,
+    };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `project-${projectId}-architecture.json`;
+    link.download = `project-${projectId}-${viewMode}-architecture.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
-  const projectName = recommendation?.projectName || 'Scalable System Architecture';
+  const projectName = recommendation?.projectName || 'Production Cloud Architecture';
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#07080B] text-slate-900 dark:text-white font-sans">
@@ -284,7 +552,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Skeleton vs Hydrated View Toggle */}
+          {/* Skeleton vs Hydrated Mode Indicator */}
           <div className="flex items-center p-0.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900 text-xs">
             <button
               type="button"
@@ -295,12 +563,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
             >
-              Skeleton
+              Skeleton Loading
             </button>
             <button
               type="button"
               onClick={() => {
-                if (nodes.length === 0) {
+                if (basicGraph.nodes.length === 0) {
                   handleHydrateArchitecture();
                 } else {
                   setViewState('hydrated');
@@ -313,7 +581,37 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               }`}
             >
               <Sparkles className="w-3 h-3" />
-              <span>Hydrated</span>
+              <span>Hydrated Diagram</span>
+            </button>
+          </div>
+
+          {/* Basic View vs Detailed View Toggle */}
+          <div className="hidden sm:flex items-center p-0.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900 text-xs">
+            <button
+              type="button"
+              onClick={() => setViewMode('basic')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'basic'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+              title="High-level architecture overview"
+            >
+              <Layers className="w-3 h-3" />
+              <span>Basic View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('detailed')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'detailed'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+              title="Decomposed architecture: controllers, pools, worker queues & replicas"
+            >
+              <Network className="w-3 h-3" />
+              <span>Detailed View</span>
             </button>
           </div>
 
@@ -321,11 +619,11 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (nodes.length > 0) {
-                onSimulate(nodes, edges);
+              if (activeNodes.length > 0) {
+                onSimulate(activeNodes, activeEdges);
               } else {
                 handleHydrateArchitecture().then(() => {
-                  if (nodes.length > 0) onSimulate(nodes, edges);
+                  if (activeNodes.length > 0) onSimulate(activeNodes, activeEdges);
                 });
               }
             }}
@@ -341,7 +639,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           <button
             type="button"
             onClick={handleExportJSON}
-            className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer hidden sm:flex"
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer hidden md:flex"
             title="Export architecture as JSON"
           >
             <Download className="w-4 h-4" />
@@ -354,7 +652,11 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               onClick={onToggleTheme}
               className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+              {isDark ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600" />
+              )}
             </button>
           )}
         </div>
@@ -362,14 +664,16 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
       {/* 2. Main Workspace Split View */}
       <div className="flex-1 flex w-full overflow-hidden">
-        {/* Left Sidebar: Dynamic Contextual Queries */}
+        {/* Left Sidebar: ChatGPT-style Conversational Assistant */}
         <ContextualQuerySidebar
-          questions={questions}
-          onAnswerQuestion={handleAnswerQuestion}
+          activePrompt={prompt}
+          selectedAnswers={selectedAnswers}
+          onAnswerSelected={handleAnswerSelected}
           onApplyRefinements={handleHydrateArchitecture}
           onResetQuestions={handleResetQuestions}
+          onSendCustomMessage={handleCustomChatMessage}
           isGenerating={isGenerating}
-          refinementProgress={refinementProgress}
+          isHydrated={viewState === 'hydrated'}
           isDark={isDark}
         />
 
@@ -383,7 +687,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               </div>
               <button
                 type="button"
-                onClick={handleHydrateArchitecture}
+                onClick={() => handleHydrateArchitecture()}
                 className="font-semibold underline ml-2 cursor-pointer"
               >
                 Retry
@@ -392,28 +696,49 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           )}
 
           <div className="flex-1 w-full h-full relative overflow-hidden">
-            {viewState === 'skeleton' || nodes.length === 0 ? (
+            {viewState === 'skeleton' || activeNodes.length === 0 ? (
               <SkeletonCanvas
                 projectName={projectName}
                 activePrompt={prompt}
-                onHydrateClick={handleHydrateArchitecture}
+                selectedAnswers={selectedAnswers}
+                viewMode={viewMode}
+                onToggleViewMode={setViewMode}
+                onHydrateClick={() => handleHydrateArchitecture()}
                 isDark={isDark}
               />
             ) : (
               <ArchitectureCanvas
-                nodes={nodes}
-                edges={edges}
+                nodes={activeNodes}
+                edges={activeEdges}
                 nodeResults={{}}
                 edgeResults={{}}
                 selectedNodeId={selectedNodeId}
                 onSelectNode={setSelectedNodeId}
-                onNodesChangePosition={(updated) => setNodes(updated)}
-                onAddEdge={(newEdge) => setEdges((prev) => [...prev, newEdge])}
-                onToggleEdge={(edgeId) =>
-                  setEdges((prev) =>
-                    prev.map((e) => (e.id === edgeId ? { ...e, enabled: !e.enabled } : e))
-                  )
-                }
+                onNodesChangePosition={(updated) => {
+                  if (viewMode === 'detailed') {
+                    setDetailedGraph((prev) => ({ ...prev, nodes: updated }));
+                  } else {
+                    setBasicGraph((prev) => ({ ...prev, nodes: updated }));
+                  }
+                }}
+                onAddEdge={(newEdge) => {
+                  if (viewMode === 'detailed') {
+                    setDetailedGraph((prev) => ({ ...prev, edges: [...prev.edges, newEdge] }));
+                  } else {
+                    setBasicGraph((prev) => ({ ...prev, edges: [...prev.edges, newEdge] }));
+                  }
+                }}
+                onToggleEdge={(edgeId) => {
+                  const updater = (edges: ArchitectureEdge[]) =>
+                    edges.map((e) => (e.id === edgeId ? { ...e, enabled: !e.enabled } : e));
+                  if (viewMode === 'detailed') {
+                    setDetailedGraph((prev) => ({ ...prev, edges: updater(prev.edges) }));
+                  } else {
+                    setBasicGraph((prev) => ({ ...prev, edges: updater(prev.edges) }));
+                  }
+                }}
+                viewMode={viewMode}
+                onToggleViewMode={setViewMode}
                 isDark={isDark}
               />
             )}
