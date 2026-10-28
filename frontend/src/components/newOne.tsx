@@ -53,10 +53,6 @@ export const NewOne: React.FC<NewOneProps> = ({
             onSubmit={handleSubmit}
             className="group relative flex items-center w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white/90 dark:bg-[#121214]/90 p-2 shadow-lg shadow-slate-200/50 dark:shadow-black/50 backdrop-blur-md transition-all duration-200 focus-within:border-indigo-500/80 focus-within:ring-4 focus-within:ring-indigo-500/10 dark:focus-within:border-indigo-500/60"
           >
-            <div className="pl-3 pr-2 text-slate-400 dark:text-neutral-500">
-              <Sparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
-            </div>
-
             <input
               type="text"
               value={query}
