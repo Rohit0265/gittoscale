@@ -61,7 +61,7 @@ export const NewOne: React.FC<NewOneProps> = ({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Describe your architecture idea or requirements..."
+              placeholder="Describe your idea ......."
               className="w-full bg-transparent px-2 py-2 text-sm sm:text-base text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 focus:outline-hidden"
             />
 
