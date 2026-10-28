@@ -35,6 +35,8 @@ interface RepositoryImportModalProps {
     detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
     repoUrl?: string
   ) => void;
+  isUserAuthenticated?: boolean;
+  onRequireAuth?: (repoUrl: string, llmConfig?: any) => void;
 }
 
 type ProviderId = 'gemini' | 'openai' | 'anthropic' | 'other';
@@ -56,6 +58,8 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
   isOpen,
   onClose,
   onImportArchitecture,
+  isUserAuthenticated = true,
+  onRequireAuth,
 }) => {
   const [repoUrl, setRepoUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -305,6 +309,24 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
     const trimmed = repoUrl.trim();
     if (!trimmed) {
       setError('Please enter a GitHub repository URL or workspace path.');
+      return;
+    }
+
+    if (!isUserAuthenticated && onRequireAuth) {
+      const hasCustomConfig =
+        Boolean(llmApiKey.trim()) ||
+        (llmProvider === 'other' && Boolean(llmBaseUrl.trim()));
+      const customConfig = hasCustomConfig
+        ? {
+            provider: llmProvider,
+            apiKey: llmApiKey.trim() || undefined,
+            model: llmModel.trim() || undefined,
+            baseUrl: llmProvider === 'other' ? llmBaseUrl.trim() : undefined,
+          }
+        : undefined;
+
+      onClose();
+      onRequireAuth(trimmed, customConfig);
       return;
     }
 

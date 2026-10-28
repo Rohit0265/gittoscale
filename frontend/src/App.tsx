@@ -21,6 +21,12 @@ import { LandingPage } from './components/LandingPage';
 import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
 import { ProjectWorkspace } from './components/ProjectWorkspace/ProjectWorkspace';
 import ModernLoginSignup from './components/ui/modern-login-signup';
+import { SignUpPage } from './components/auth/SignUpPage';
+import { SignInPage } from './components/auth/SignInPage';
+import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
+import { AuthCallback } from './components/auth/AuthCallback';
+import { HistoryDashboard } from './components/history/HistoryDashboard';
+import { useAuth } from './contexts/AuthContext';
 import { toVerticalTree } from './utils/treeLayout';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
 
@@ -95,16 +101,46 @@ const isAppDomain = () => {
   );
 };
 
+export type AppView =
+  | 'landing'
+  | 'simulator'
+  | 'recommender'
+  | 'projectWorkspace'
+  | 'signup'
+  | 'signin'
+  | 'forgot-password'
+  | 'auth-callback'
+  | 'history';
+
+const getInitialView = (): AppView => {
+  if (typeof window === 'undefined') return 'landing';
+  const path = window.location.pathname;
+  if (path === '/signup') return 'signup';
+  if (path === '/signin') return 'signin';
+  if (path === '/forgot-password') return 'forgot-password';
+  if (path.startsWith('/auth/callback')) return 'auth-callback';
+  if (path === '/history') return 'history';
+  if (getProjectRouteInfo()) return 'simulator';
+  if (isRecommenderUrl()) return 'recommender';
+  if (isAppDomain()) return 'simulator';
+  return 'landing';
+};
+
 export const App: React.FC = () => {
+  const {
+    user,
+    isLoading: isAuthLoading,
+    savePendingAction,
+    pendingAction,
+    clearPendingAction,
+    getAuthToken,
+    signOut,
+  } = useAuth();
+
   const [activeProject, setActiveProject] = useState<ProjectRouteInfo | null>(() => getProjectRouteInfo());
 
-  // Navigation mode: 'landing' | 'simulator' | 'recommender' | 'projectWorkspace'
-  const [currentView, setCurrentView] = useState<'landing' | 'simulator' | 'recommender' | 'projectWorkspace'>(() => {
-    const route = getProjectRouteInfo();
-    if (route) return 'simulator';
-    if (isRecommenderUrl()) return 'recommender';
-    return isAppDomain() ? 'simulator' : 'landing';
-  });
+  // Navigation mode
+  const [currentView, setCurrentView] = useState<AppView>(() => getInitialView());
 
   // Modern login/signup modal state
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(() => isAuthUrl());
@@ -168,19 +204,91 @@ export const App: React.FC = () => {
     });
   }, []);
 
+  const handleGoHome = useCallback(() => {
+    if (isCustomDomain() && isAppDomain()) {
+      window.location.href = LANDING_DOMAIN_URL;
+      return;
+    }
+    window.history.pushState({}, '', '/');
+    setActiveProject(null);
+    setCurrentView('landing');
+  }, []);
+
+  const handleNavigate = useCallback((viewName: string) => {
+    if (viewName === 'signup') {
+      window.history.pushState({}, '', '/signup');
+      setCurrentView('signup');
+    } else if (viewName === 'signin') {
+      window.history.pushState({}, '', '/signin');
+      setCurrentView('signin');
+    } else if (viewName === 'forgot-password') {
+      window.history.pushState({}, '', '/forgot-password');
+      setCurrentView('forgot-password');
+    } else if (viewName === 'history') {
+      window.history.pushState({}, '', '/history');
+      setCurrentView('history');
+    } else if (viewName === 'simulator') {
+      window.history.pushState({}, '', '/app');
+      setCurrentView('simulator');
+    } else {
+      window.history.pushState({}, '', '/');
+      setActiveProject(null);
+      setCurrentView('landing');
+    }
+  }, []);
+
+  // Route Protection: Unauthenticated visitors to /app, /history, /project, or app.gittoscale.tech are redirected to /signup
+  useEffect(() => {
+    if (isAuthLoading) return;
+    const path = window.location.pathname;
+    const isAuthRoute =
+      path === '/signup' ||
+      path === '/signin' ||
+      path === '/forgot-password' ||
+      path.startsWith('/auth');
+
+    if (isAuthRoute) return;
+
+    const isProtectedRoute =
+      path.startsWith('/app') ||
+      path.startsWith('/history') ||
+      path.startsWith('/project') ||
+      (isAppDomain() && path !== '/');
+
+    if (!user && isProtectedRoute) {
+      const destination = path + window.location.search;
+      window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(destination)}`);
+      setCurrentView('signup');
+    }
+  }, [user, isAuthLoading]);
+
   useEffect(() => {
     const handlePopState = () => {
-      const route = getProjectRouteInfo();
-      if (route) {
-        setActiveProject(route);
-        if (route.prompt) setActivePromptText(route.prompt);
-        setCurrentView('simulator');
-      } else if (isRecommenderUrl()) {
-        setCurrentView('recommender');
-      } else if (isAppDomain()) {
-        setCurrentView('simulator');
+      const path = window.location.pathname;
+      if (path === '/signup') {
+        setCurrentView('signup');
+      } else if (path === '/signin') {
+        setCurrentView('signin');
+      } else if (path === '/forgot-password') {
+        setCurrentView('forgot-password');
+      } else if (path.startsWith('/auth/callback')) {
+        setCurrentView('auth-callback');
+      } else if (path === '/history') {
+        setCurrentView('history');
       } else {
-        setCurrentView('landing');
+        const route = getProjectRouteInfo();
+        if (route) {
+          setActiveProject(route);
+          if (route.prompt) setActivePromptText(route.prompt);
+          setCurrentView('simulator');
+        } else if (isRecommenderUrl()) {
+          setCurrentView('recommender');
+        } else if (isAppDomain()) {
+          setCurrentView('simulator');
+        } else {
+          setActiveProject(null);
+          setCurrentView('landing');
+        }
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -420,6 +528,20 @@ export const App: React.FC = () => {
         baseBasicGraphRef.current = { nodes: verticalNodes, edges: res.edges };
         basicGraphCacheRef.current = { nodes: verticalNodes, edges: res.edges };
         triggerSimulation(verticalNodes, res.edges, incomingTrafficRate, durationSeconds);
+
+        // Persist to architecture history in PostgreSQL if user is authenticated
+        if (user) {
+          const token = getAuthToken();
+          api.saveArchitectureHistory(token, {
+            title: promptText.slice(0, 60),
+            prompt: promptText,
+            generationConfig: customAnswers,
+            architectureData: { nodes: verticalNodes, edges: res.edges },
+            status: 'completed',
+          }).catch((histErr) => {
+            console.warn('Could not persist architecture history:', histErr);
+          });
+        }
       } catch (err: any) {
         console.error('Error generating architecture for prompt:', err);
         setError(err?.response?.data?.message || err?.message || 'Failed to generate architecture for prompt');
@@ -427,7 +549,7 @@ export const App: React.FC = () => {
         setIsGeneratingArchitecture(false);
       }
     },
-    [incomingTrafficRate, durationSeconds, triggerSimulation, selectedAnswers]
+    [incomingTrafficRate, durationSeconds, triggerSimulation, selectedAnswers, user, getAuthToken]
   );
 
   // AI Refine callback from left sidebar
@@ -442,6 +564,19 @@ export const App: React.FC = () => {
   // Directly navigate to simulator and generate architecture on prompt submit
   const handleStartProject = useCallback(
     (promptText: string) => {
+      if (!user) {
+        savePendingAction({
+          type: 'prompt',
+          prompt: promptText,
+          returnUrl: '/app',
+          customAnswers: selectedAnswers,
+          createdAt: Date.now(),
+        });
+        window.history.pushState({}, '', '/signup?redirect=/app');
+        setCurrentView('signup');
+        return;
+      }
+
       const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gitoscale_project_${projectId}`, promptText);
@@ -458,7 +593,22 @@ export const App: React.FC = () => {
       setCurrentView('simulator');
       handleGenerateFromPrompt(promptText);
     },
-    [handleGenerateFromPrompt]
+    [user, savePendingAction, selectedAnswers, handleGenerateFromPrompt]
+  );
+
+  const handleRequireAuthForRepo = useCallback(
+    (repoUrl: string, llmConfig?: any) => {
+      savePendingAction({
+        type: 'repo',
+        repoUrl,
+        returnUrl: '/app',
+        llmConfig,
+        createdAt: Date.now(),
+      });
+      window.history.pushState({}, '', '/signup?redirect=/app');
+      setCurrentView('signup');
+    },
+    [savePendingAction]
   );
 
   // Check URL on mount if prompt query is present
@@ -755,34 +905,167 @@ export const App: React.FC = () => {
   };
 
   // 9. Repository Import handler
-  const handleImportArchitecture = (
-    newNodes: ArchitectureNode[],
-    newEdges: ArchitectureEdge[],
-    _repoName: string,
-    basicGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
-    detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] }
-  ) => {
-    const basicToUse = basicGraph || { nodes: newNodes, edges: newEdges };
-    baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
-    basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
+  const handleImportArchitecture = useCallback(
+    (
+      newNodes: ArchitectureNode[],
+      newEdges: ArchitectureEdge[],
+      _repoName: string,
+      basicGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
+      detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
+      repoUrl?: string
+    ) => {
+      const basicToUse = basicGraph || { nodes: newNodes, edges: newEdges };
+      baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
+      basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
 
-    if (detailedGraph) {
-      baseDetailedGraphRef.current = JSON.parse(JSON.stringify(detailedGraph));
-      detailedGraphCacheRef.current = JSON.parse(JSON.stringify(detailedGraph));
-    } else {
+      if (detailedGraph) {
+        baseDetailedGraphRef.current = JSON.parse(JSON.stringify(detailedGraph));
+        detailedGraphCacheRef.current = JSON.parse(JSON.stringify(detailedGraph));
+      } else {
+        baseDetailedGraphRef.current = null;
+        detailedGraphCacheRef.current = null;
+      }
+
+      setViewMode('basic');
+      setNodes(basicToUse.nodes);
+      setEdges(basicToUse.edges);
+      setSelectedNodeId(null);
+      triggerSimulation(basicToUse.nodes, basicToUse.edges, incomingTrafficRate, durationSeconds);
+
+      // Persist to repository history if user is authenticated and repoUrl provided
+      if (user && repoUrl) {
+        const token = getAuthToken();
+        api.saveRepositoryHistory(token, {
+          repositoryUrl: repoUrl,
+          repositoryName: _repoName,
+          architectureData: { nodes: newNodes, edges: newEdges },
+          status: 'completed',
+        }).catch((err) => console.warn('Failed to persist repository history:', err));
+      }
+    },
+    [incomingTrafficRate, durationSeconds, triggerSimulation, user, getAuthToken]
+  );
+
+  // Resume pending action after authentication
+  useEffect(() => {
+    if (user && pendingAction) {
+      const action = { ...pendingAction };
+      clearPendingAction();
+
+      if (action.type === 'prompt') {
+        const dest = action.returnUrl || '/app';
+        window.history.pushState({}, '', dest);
+        setCurrentView('simulator');
+        handleGenerateFromPrompt(action.prompt, action.customAnswers);
+      } else if (action.type === 'repo') {
+        const dest = action.returnUrl || '/app';
+        window.history.pushState({}, '', dest);
+        setCurrentView('simulator');
+        (async () => {
+          try {
+            setLoading(true);
+            const res = await api.analyzeRepository({
+              repoUrl: action.repoUrl,
+              llmConfig: action.llmConfig,
+            });
+            const repoName =
+              res.repoName || action.repoUrl.split('/').pop()?.replace('.git', '') || 'Repository';
+            handleImportArchitecture(
+              res.nodes,
+              res.edges,
+              repoName,
+              res.basicGraph,
+              res.detailedGraph,
+              action.repoUrl
+            );
+          } catch (err: any) {
+            console.error('Failed to resume repo import:', err);
+            setError(err?.message || 'Failed to resume repository import.');
+          } finally {
+            setLoading(false);
+          }
+        })();
+      }
+    }
+  }, [user, pendingAction, clearPendingAction, handleGenerateFromPrompt, handleImportArchitecture]);
+
+  const handleOpenArchitectureFromHistory = useCallback(
+    (archData: any, prompt: string) => {
+      if (!archData) return;
+      const rawNodes = archData.nodes || (Array.isArray(archData) ? archData : []);
+      const rawEdges = archData.edges || [];
+      const verticalNodes = toVerticalTree(rawNodes, rawEdges);
+      setNodes(verticalNodes);
+      setEdges(rawEdges);
+      baseBasicGraphRef.current = { nodes: verticalNodes, edges: rawEdges };
+      basicGraphCacheRef.current = { nodes: verticalNodes, edges: rawEdges };
       baseDetailedGraphRef.current = null;
       detailedGraphCacheRef.current = null;
-    }
+      setViewMode('basic');
+      setActivePromptText(prompt || '');
+      setSelectedNodeId(null);
+      window.history.pushState({}, '', '/app');
+      setCurrentView('simulator');
+      triggerSimulation(verticalNodes, rawEdges, incomingTrafficRate, durationSeconds);
+    },
+    [incomingTrafficRate, durationSeconds, triggerSimulation]
+  );
 
-    setViewMode('basic');
-    setNodes(basicToUse.nodes);
-    setEdges(basicToUse.edges);
-    setSelectedNodeId(null);
-    triggerSimulation(basicToUse.nodes, basicToUse.edges, incomingTrafficRate, durationSeconds);
-  };
+  const handleOpenRepositoryFromHistory = useCallback(
+    (archData: any, _repoName: string, repoUrl: string) => {
+      if (!archData) return;
+      const rawNodes = archData.nodes || (Array.isArray(archData) ? archData : []);
+      const rawEdges = archData.edges || [];
+      setNodes(rawNodes);
+      setEdges(rawEdges);
+      baseBasicGraphRef.current = { nodes: rawNodes, edges: rawEdges };
+      basicGraphCacheRef.current = { nodes: rawNodes, edges: rawEdges };
+      baseDetailedGraphRef.current = null;
+      detailedGraphCacheRef.current = null;
+      setViewMode('basic');
+      setSelectedNodeId(null);
+      const url = repoUrl ? `/app?repo=${encodeURIComponent(repoUrl)}` : '/app';
+      window.history.pushState({}, '', url);
+      setCurrentView('simulator');
+      triggerSimulation(rawNodes, rawEdges, incomingTrafficRate, durationSeconds);
+    },
+    [incomingTrafficRate, durationSeconds, triggerSimulation]
+  );
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   const selectedNodeResult = selectedNodeId ? simulationResult?.nodeResults[selectedNodeId] : undefined;
+
+  if (currentView === 'signup') {
+    return <SignUpPage onNavigate={handleNavigate} isDark={isDark} />;
+  }
+
+  if (currentView === 'signin') {
+    return <SignInPage onNavigate={handleNavigate} isDark={isDark} />;
+  }
+
+  if (currentView === 'forgot-password') {
+    return <ForgotPasswordPage onNavigate={handleNavigate} isDark={isDark} />;
+  }
+
+  if (currentView === 'auth-callback') {
+    return <AuthCallback onNavigate={handleNavigate} isDark={isDark} />;
+  }
+
+  if (currentView === 'history') {
+    return (
+      <HistoryDashboard
+        onGoHome={handleGoHome}
+        onOpenArchitecture={handleOpenArchitectureFromHistory}
+        onOpenRepository={handleOpenRepositoryFromHistory}
+        onNavigateToSimulator={() => {
+          window.history.pushState({}, '', '/app');
+          setCurrentView('simulator');
+        }}
+        isDark={isDark}
+        onToggleTheme={handleToggleTheme}
+      />
+    );
+  }
 
   if (currentView === 'landing') {
     return (
@@ -791,14 +1074,21 @@ export const App: React.FC = () => {
           isDark={isDark}
           isAppDomain={isAppDomain()}
           onToggleTheme={handleToggleTheme}
-          onOpenRecommender={() => setCurrentView('recommender')}
-          onOpenAuth={() => setIsAuthOpen(true)}
+          onOpenRecommender={() => {
+            window.history.pushState({}, '', '/recommender');
+            setCurrentView('recommender');
+          }}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
           onStartProject={handleStartProject}
           onSelectTestSite={() => {
             if (isCustomDomain() && !isAppDomain()) {
               window.location.href = `${APP_SUBDOMAIN_URL}/?demo=true`;
               return;
             }
+            window.history.pushState({}, '', '/app');
             setCurrentView('simulator');
             if (defaultArchitecture && nodes.length === 0) {
               applyScenario('normal-traffic', defaultArchitecture, scenarios);
@@ -811,12 +1101,15 @@ export const App: React.FC = () => {
         <RepositoryImportModal
           isOpen={isImportRepoOpen}
           onClose={() => setIsImportRepoOpen(false)}
+          isUserAuthenticated={Boolean(user)}
+          onRequireAuth={handleRequireAuthForRepo}
           onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl) => {
             if (isCustomDomain() && !isAppDomain() && repoUrl) {
               window.location.href = `${APP_SUBDOMAIN_URL}/?repo=${encodeURIComponent(repoUrl)}`;
               return;
             }
-            handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph);
+            handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl);
+            window.history.pushState({}, '', '/app');
             setCurrentView('simulator');
           }}
         />
@@ -841,30 +1134,10 @@ export const App: React.FC = () => {
         initialPrompt={activeProject.prompt}
         isDark={isDark}
         onToggleTheme={handleToggleTheme}
-        onGoHome={() => {
-          if (typeof window !== 'undefined') {
-            window.history.pushState({}, '', '/');
-          }
-          if (isCustomDomain() && isAppDomain()) {
-            window.location.href = LANDING_DOMAIN_URL;
-            return;
-          }
-          setActiveProject(null);
-          setCurrentView('landing');
-        }}
-        onSimulate={(recNodes: ArchitectureNode[], recEdges: ArchitectureEdge[]) => {
-          const basicToUse = { nodes: recNodes, edges: recEdges };
-          baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
-          basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
-          baseDetailedGraphRef.current = null;
-          detailedGraphCacheRef.current = null;
-
-          setViewMode('basic');
-          setNodes(recNodes);
-          setEdges(recEdges);
-          setSelectedNodeId(null);
+        onGoHome={handleGoHome}
+        onSimulate={(_wsNodes, _wsEdges) => {
+          window.history.pushState({}, '', '/app');
           setCurrentView('simulator');
-          triggerSimulation(recNodes, recEdges, incomingTrafficRate, durationSeconds);
         }}
       />
     );
@@ -875,14 +1148,11 @@ export const App: React.FC = () => {
       <ArchitectureRecommenderPage
         isDark={isDark}
         onToggleTheme={handleToggleTheme}
-        onGoHome={() => {
-          if (isCustomDomain() && isAppDomain()) {
-            window.location.href = LANDING_DOMAIN_URL;
-            return;
-          }
-          setCurrentView('landing');
+        onGoHome={handleGoHome}
+        onGoToSimulator={() => {
+          window.history.pushState({}, '', '/app');
+          setCurrentView('simulator');
         }}
-        onGoToSimulator={() => setCurrentView('simulator')}
         onSimulate={(recNodes: ArchitectureNode[], recEdges: ArchitectureEdge[]) => {
           const basicToUse = { nodes: recNodes, edges: recEdges };
           baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
@@ -894,6 +1164,7 @@ export const App: React.FC = () => {
           setNodes(recNodes);
           setEdges(recEdges);
           setSelectedNodeId(null);
+          window.history.pushState({}, '', '/app');
           setCurrentView('simulator');
           triggerSimulation(recNodes, recEdges, incomingTrafficRate, durationSeconds);
         }}
@@ -919,15 +1190,22 @@ export const App: React.FC = () => {
         onReset={handleReset}
         onOpenCompare={() => setIsCompareOpen(true)}
         onOpenImportRepo={() => setIsImportRepoOpen(true)}
-        onOpenRecommender={() => setCurrentView('recommender')}
-        hasBaseline={baseline !== null}
-        onGoHome={() => {
-          if (isCustomDomain() && isAppDomain()) {
-            window.location.href = LANDING_DOMAIN_URL;
-            return;
-          }
-          setCurrentView('landing');
+        onOpenRecommender={() => {
+          window.history.pushState({}, '', '/recommender');
+          setCurrentView('recommender');
         }}
+        onOpenHistory={() => {
+          window.history.pushState({}, '', '/history');
+          setCurrentView('history');
+        }}
+        user={user}
+        onOpenAuth={() => {
+          window.history.pushState({}, '', '/signin');
+          setCurrentView('signin');
+        }}
+        onSignOut={signOut}
+        hasBaseline={baseline !== null}
+        onGoHome={handleGoHome}
         viewMode={viewMode}
         onToggleViewMode={handleToggleViewMode}
         isDark={isDark}
@@ -1101,6 +1379,8 @@ export const App: React.FC = () => {
       <RepositoryImportModal
         isOpen={isImportRepoOpen}
         onClose={() => setIsImportRepoOpen(false)}
+        isUserAuthenticated={Boolean(user)}
+        onRequireAuth={handleRequireAuthForRepo}
         onImportArchitecture={handleImportArchitecture}
       />
 

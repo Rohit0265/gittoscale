@@ -7,6 +7,9 @@ import {
   FolderGit2,
   Sun,
   Moon,
+  History,
+  LogOut,
+  User,
 } from 'lucide-react';
 import { ScenarioFixture } from '../types';
 import { GitHubStarButton } from './GitHubStarButton';
@@ -21,6 +24,10 @@ interface HeaderProps {
   onOpenCompare?: () => void;
   onOpenImportRepo: () => void;
   onOpenRecommender?: () => void;
+  onOpenHistory?: () => void;
+  user?: any;
+  onOpenAuth?: () => void;
+  onSignOut?: () => void;
   hasBaseline?: boolean;
   onGoHome?: () => void;
   viewMode?: 'basic' | 'detailed';
@@ -38,6 +45,10 @@ export const Header: React.FC<HeaderProps> = ({
   onReset,
   onOpenImportRepo,
   onOpenRecommender,
+  onOpenHistory,
+  user,
+  onOpenAuth,
+  onSignOut,
   onGoHome,
   isDark = false,
   onToggleTheme,
@@ -106,6 +117,18 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">Import Repo</span>
         </button>
 
+        {/* History Dashboard button */}
+        {onOpenHistory && (
+          <button
+            onClick={onOpenHistory}
+            className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm cursor-pointer shrink-0"
+            title="View saved architectures and repository imports"
+          >
+            <History className="w-3.5 h-3.5 text-blue-500" />
+            <span className="hidden sm:inline">History</span>
+          </button>
+        )}
+
         {/* AI Architecture Recommender button */}
         {onOpenRecommender && (
           <button
@@ -136,6 +159,32 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
         )}
+
+        {/* User Session / Sign In Button */}
+        {user ? (
+          <div className="flex items-center gap-1 pl-1 border-l border-slate-200 dark:border-neutral-800 shrink-0">
+            <span className="text-[11px] font-medium text-slate-700 dark:text-neutral-300 hidden md:inline max-w-[100px] truncate" title={user.email}>
+              {user.user_metadata?.full_name || user.email?.split('@')[0]}
+            </span>
+            {onSignOut && (
+              <button
+                onClick={onSignOut}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        ) : onOpenAuth ? (
+          <button
+            onClick={onOpenAuth}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-xs cursor-pointer shrink-0"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Sign In</span>
+          </button>
+        ) : null}
 
         {/* Scenario dropdown - placed at the top right side */}
         <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-lg px-2 sm:px-2.5 py-1 text-xs shadow-2xs shrink-0 max-w-[130px] sm:max-w-[200px] md:max-w-none">

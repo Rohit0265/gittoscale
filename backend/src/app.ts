@@ -11,6 +11,7 @@ import repositoryRoute from './routes/repository.js';
 import feedbackRoute from './routes/feedback.js';
 import recommendRoute from './routes/recommend.js';
 import authRoute from './routes/auth.js';
+import historyRoute from './routes/history.js';
 
 import { loadEnvFiles } from './utils/env.js';
 
@@ -33,6 +34,7 @@ export function createApp() {
   app.use('/api/feedback', feedbackRoute);
   app.use('/api/recommend', recommendRoute);
   app.use('/api/auth', authRoute);
+  app.use('/api/history', historyRoute);
 
   // Serve static frontend in production if built
   const frontendDistCandidates = [

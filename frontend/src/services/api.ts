@@ -134,5 +134,73 @@ export const api = {
     const res = await axios.get(`${API_BASE}/auth/me`);
     return res.data;
   },
+
+  // =========================================================================
+  // History Endpoints (Architecture & Repository)
+  // =========================================================================
+
+  async getArchitectureHistory(
+    token?: string | null,
+    params?: { q?: string; status?: string; limit?: number; offset?: number }
+  ): Promise<{ success: boolean; data: any[]; total: number }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.get(`${API_BASE}/history/architectures`, { headers, params });
+    return res.data;
+  },
+
+  async saveArchitectureHistory(
+    token: string | null,
+    data: {
+      title?: string;
+      prompt: string;
+      generationConfig?: any;
+      architectureData?: any;
+      status?: string;
+      errorMessage?: string;
+    }
+  ): Promise<{ success: boolean; data: any }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.post(`${API_BASE}/history/architectures`, data, { headers });
+    return res.data;
+  },
+
+  async deleteArchitectureHistory(token: string | null, id: string): Promise<{ success: boolean }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.delete(`${API_BASE}/history/architectures/${id}`, { headers });
+    return res.data;
+  },
+
+  async getRepositoryHistory(
+    token?: string | null,
+    params?: { q?: string; status?: string; limit?: number; offset?: number }
+  ): Promise<{ success: boolean; data: any[]; total: number }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.get(`${API_BASE}/history/repositories`, { headers, params });
+    return res.data;
+  },
+
+  async saveRepositoryHistory(
+    token: string | null,
+    data: {
+      repositoryUrl: string;
+      repositoryOwner?: string;
+      repositoryName?: string;
+      repositoryMetadata?: any;
+      scanResult?: any;
+      architectureData?: any;
+      status?: string;
+      errorMessage?: string;
+    }
+  ): Promise<{ success: boolean; data: any }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.post(`${API_BASE}/history/repositories`, data, { headers });
+    return res.data;
+  },
+
+  async deleteRepositoryHistory(token: string | null, id: string): Promise<{ success: boolean }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.delete(`${API_BASE}/history/repositories/${id}`, { headers });
+    return res.data;
+  },
 };
 
