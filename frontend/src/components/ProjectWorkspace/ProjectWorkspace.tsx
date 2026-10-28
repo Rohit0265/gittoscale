@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ArrowLeft,
-  Sparkles,
   Layers,
   Network,
   Play,
@@ -552,39 +551,6 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Skeleton vs Hydrated Mode Indicator */}
-          <div className="flex items-center p-0.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900 text-xs">
-            <button
-              type="button"
-              onClick={() => setViewState('skeleton')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                viewState === 'skeleton'
-                  ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-              }`}
-            >
-              Skeleton Loading
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (basicGraph.nodes.length === 0) {
-                  handleHydrateArchitecture();
-                } else {
-                  setViewState('hydrated');
-                }
-              }}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                viewState === 'hydrated'
-                  ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-              }`}
-            >
-              <Sparkles className="w-3 h-3" />
-              <span>Hydrated Diagram</span>
-            </button>
-          </div>
-
           {/* Basic View vs Detailed View Toggle */}
           <div className="hidden sm:flex items-center p-0.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900 text-xs">
             <button
@@ -592,7 +558,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               onClick={() => setViewMode('basic')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'basic'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
               title="High-level architecture overview"
@@ -605,7 +571,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               onClick={() => setViewMode('detailed')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'detailed'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
               title="Decomposed architecture: controllers, pools, worker queues & replicas"
@@ -698,12 +664,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           <div className="flex-1 w-full h-full relative overflow-hidden">
             {viewState === 'skeleton' || activeNodes.length === 0 ? (
               <SkeletonCanvas
-                projectName={projectName}
                 activePrompt={prompt}
-                selectedAnswers={selectedAnswers}
                 viewMode={viewMode}
-                onToggleViewMode={setViewMode}
-                onHydrateClick={() => handleHydrateArchitecture()}
                 isDark={isDark}
               />
             ) : (

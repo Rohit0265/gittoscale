@@ -7,9 +7,6 @@ import {
   User,
   ArrowRight,
   Zap,
-  Globe,
-  DollarSign,
-  Database,
 } from 'lucide-react';
 
 export interface ContextualQuerySidebarProps {
