@@ -1,10 +1,21 @@
 import { Router, Response } from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
+import {
+  isNeonConfigured,
+  insertArchitectureHistory,
+  queryArchitectureHistory,
+  getArchitectureById as getArchByIdNeon,
+  deleteArchitectureById as deleteArchByIdNeon,
+  insertRepositoryHistory,
+  queryRepositoryHistory,
+  getRepositoryById as getRepoByIdNeon,
+  deleteRepositoryById as deleteRepoByIdNeon,
+} from '../services/neon.js';
 
 const router = Router();
 
-// In-memory fallback stores when Supabase is not configured yet (e.g. testing)
+// In-memory fallback stores when neither Neon nor Supabase is configured (e.g. testing)
 interface InMemArch {
   id: string;
   user_id: string;
@@ -51,11 +62,35 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
     return;
   }
 
-  const query = typeof req.query.q === 'string' ? req.query.q.toLowerCase() : '';
+  const query = typeof req.query.q === 'string' ? req.query.q : '';
   const status = typeof req.query.status === 'string' ? req.query.status : '';
   const limit = parseInt(req.query.limit as string, 10) || 50;
   const offset = parseInt(req.query.offset as string, 10) || 0;
 
+  // 1. Neon PostgreSQL
+  if (isNeonConfigured) {
+    try {
+      const { rows, total } = await queryArchitectureHistory(userId, {
+        query,
+        status,
+        limit,
+        offset,
+      });
+      res.json({
+        success: true,
+        data: rows,
+        total,
+        limit,
+        offset,
+      });
+      return;
+    } catch (err: any) {
+      console.error('[History API] Neon fetch error:', err);
+      // Fall through to other stores if Neon query fails
+    }
+  }
+
+  // 2. Supabase PostgreSQL
   if (isServerSupabaseConfigured) {
     try {
       let sbQuery = supabaseServer
@@ -90,14 +125,15 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
     }
   }
 
-  // Fallback in-memory
+  // 3. Fallback in-memory
   let items = inMemoryArchHistory.filter((item) => item.user_id === userId);
   if (status && status !== 'all') {
     items = items.filter((item) => item.status === status);
   }
   if (query) {
+    const qLower = query.toLowerCase();
     items = items.filter(
-      (item) => item.title.toLowerCase().includes(query) || item.prompt.toLowerCase().includes(query)
+      (item) => item.title.toLowerCase().includes(qLower) || item.prompt.toLowerCase().includes(qLower)
     );
   }
   const total = items.length;
@@ -142,6 +178,19 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
     error_message: errorMessage || null,
   };
 
+  // 1. Neon PostgreSQL
+  if (isNeonConfigured) {
+    try {
+      const data = await insertArchitectureHistory(newRecord);
+      res.status(201).json({ success: true, data });
+      return;
+    } catch (err: any) {
+      console.error('[History API] Failed to insert into Neon:', err);
+      // Fall through to other stores if Neon insert fails
+    }
+  }
+
+  // 2. Supabase PostgreSQL
   if (isServerSupabaseConfigured) {
     try {
       const { data, error } = await supabaseServer
@@ -160,7 +209,7 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
     }
   }
 
-  // Fallback in-memory
+  // 3. Fallback in-memory
   const created: InMemArch = {
     id: `arch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     ...newRecord,
@@ -178,6 +227,18 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
 router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.id;
   const { id } = req.params;
+
+  if (isNeonConfigured) {
+    try {
+      const data = await getArchByIdNeon(id, userId!);
+      if (data) {
+        res.json({ success: true, data });
+        return;
+      }
+    } catch (err: any) {
+      console.error('[History API] Neon fetch single error:', err);
+    }
+  }
 
   if (isServerSupabaseConfigured) {
     try {
@@ -214,6 +275,16 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
 router.delete('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.id;
   const { id } = req.params;
+
+  if (isNeonConfigured) {
+    try {
+      await deleteArchByIdNeon(id, userId!);
+      res.json({ success: true, message: 'Architecture history entry removed' });
+      return;
+    } catch (err: any) {
+      console.error('[History API] Neon delete error:', err);
+    }
+  }
 
   if (isServerSupabaseConfigured) {
     try {
@@ -256,11 +327,34 @@ router.get('/repositories', requireAuth, async (req: AuthenticatedRequest, res: 
     return;
   }
 
-  const query = typeof req.query.q === 'string' ? req.query.q.toLowerCase() : '';
+  const query = typeof req.query.q === 'string' ? req.query.q : '';
   const status = typeof req.query.status === 'string' ? req.query.status : '';
   const limit = parseInt(req.query.limit as string, 10) || 50;
   const offset = parseInt(req.query.offset as string, 10) || 0;
 
+  // 1. Neon PostgreSQL
+  if (isNeonConfigured) {
+    try {
+      const { rows, total } = await queryRepositoryHistory(userId, {
+        query,
+        status,
+        limit,
+        offset,
+      });
+      res.json({
+        success: true,
+        data: rows,
+        total,
+        limit,
+        offset,
+      });
+      return;
+    } catch (err: any) {
+      console.error('[History API] Neon repo fetch error:', err);
+    }
+  }
+
+  // 2. Supabase PostgreSQL
   if (isServerSupabaseConfigured) {
     try {
       let sbQuery = supabaseServer
@@ -297,17 +391,18 @@ router.get('/repositories', requireAuth, async (req: AuthenticatedRequest, res: 
     }
   }
 
-  // Fallback in-memory
+  // 3. Fallback in-memory
   let items = inMemoryRepoHistory.filter((item) => item.user_id === userId);
   if (status && status !== 'all') {
     items = items.filter((item) => item.status === status);
   }
   if (query) {
+    const qLower = query.toLowerCase();
     items = items.filter(
       (item) =>
-        item.repository_url.toLowerCase().includes(query) ||
-        (item.repository_name && item.repository_name.toLowerCase().includes(query)) ||
-        (item.repository_owner && item.repository_owner.toLowerCase().includes(query))
+        item.repository_url.toLowerCase().includes(qLower) ||
+        (item.repository_name && item.repository_name.toLowerCase().includes(qLower)) ||
+        (item.repository_owner && item.repository_owner.toLowerCase().includes(qLower))
     );
   }
   const total = items.length;
@@ -375,6 +470,18 @@ router.post('/repositories', requireAuth, async (req: AuthenticatedRequest, res:
     error_message: errorMessage || null,
   };
 
+  // 1. Neon PostgreSQL
+  if (isNeonConfigured) {
+    try {
+      const data = await insertRepositoryHistory(newRecord);
+      res.status(201).json({ success: true, data });
+      return;
+    } catch (err: any) {
+      console.error('[History API] Failed to insert repo history into Neon:', err);
+    }
+  }
+
+  // 2. Supabase PostgreSQL
   if (isServerSupabaseConfigured) {
     try {
       const { data, error } = await supabaseServer
@@ -393,7 +500,7 @@ router.post('/repositories', requireAuth, async (req: AuthenticatedRequest, res:
     }
   }
 
-  // Fallback in-memory
+  // 3. Fallback in-memory
   const created: InMemRepo = {
     id: `repo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     ...newRecord,
@@ -411,6 +518,16 @@ router.post('/repositories', requireAuth, async (req: AuthenticatedRequest, res:
 router.delete('/repositories/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user?.id;
   const { id } = req.params;
+
+  if (isNeonConfigured) {
+    try {
+      await deleteRepoByIdNeon(id, userId!);
+      res.json({ success: true, message: 'Repository history entry removed' });
+      return;
+    } catch (err: any) {
+      console.error('[History API] Neon delete repo error:', err);
+    }
+  }
 
   if (isServerSupabaseConfigured) {
     try {
@@ -439,4 +556,3 @@ router.delete('/repositories/:id', requireAuth, async (req: AuthenticatedRequest
 });
 
 export default router;
-
