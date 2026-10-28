@@ -228,7 +228,7 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
   const userId = req.user?.id;
   const { id } = req.params;
 
-  if (isNeonConfigured) {
+  if (isNeonConfigured()) {
     try {
       const data = await getArchByIdNeon(id, userId!);
       if (data) {
@@ -276,7 +276,7 @@ router.delete('/architectures/:id', requireAuth, async (req: AuthenticatedReques
   const userId = req.user?.id;
   const { id } = req.params;
 
-  if (isNeonConfigured) {
+  if (isNeonConfigured()) {
     try {
       await deleteArchByIdNeon(id, userId!);
       res.json({ success: true, message: 'Architecture history entry removed' });
@@ -519,7 +519,7 @@ router.delete('/repositories/:id', requireAuth, async (req: AuthenticatedRequest
   const userId = req.user?.id;
   const { id } = req.params;
 
-  if (isNeonConfigured) {
+  if (isNeonConfigured()) {
     try {
       await deleteRepoByIdNeon(id, userId!);
       res.json({ success: true, message: 'Repository history entry removed' });
