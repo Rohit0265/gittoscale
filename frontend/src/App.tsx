@@ -12,8 +12,9 @@ import {
 } from './types';
 import { Header } from './components/Header';
 import { MetricsStrip } from './components/MetricsStrip';
-import { LeftSidebar } from './components/LeftSidebar';
 import { RequestSenderCard } from './components/RequestSenderCard';
+import { ComponentsListCard } from './components/ComponentsListCard';
+import { ContextualQuerySidebar } from './components/ProjectWorkspace/ContextualQuerySidebar';
 import { ArchitectureCanvas } from './components/Canvas/ArchitectureCanvas';
 import { ComponentInspector } from './components/ComponentInspector';
 import { BottleneckList } from './components/BottleneckList';
@@ -117,6 +118,19 @@ export const App: React.FC = () => {
     return route?.prompt || '';
   });
   const [isGeneratingArchitecture, setIsGeneratingArchitecture] = useState<boolean>(false);
+
+  // Selected mandatory parameters for AI Architect chat
+  const [selectedAnswers, setSelectedAnswers] = useState<{
+    scale?: string;
+    budget?: string;
+    consistency?: string;
+    region?: string;
+  }>({
+    scale: 'scale_growth',
+    budget: 'budget_balanced',
+    consistency: 'consistency_acid',
+    region: 'deploy_single',
+  });
 
   // Theme state: light | dark with persistence & system preference detection
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -377,18 +391,34 @@ export const App: React.FC = () => {
 
   // Generate / synthesize architecture directly from a prompt using vertical tree layout
   const handleGenerateFromPrompt = useCallback(
-    async (promptText: string) => {
+    async (promptText: string, customAnswers = selectedAnswers) => {
       if (!promptText.trim()) return;
       setActivePromptText(promptText);
       setIsGeneratingArchitecture(true);
       setError(null);
       try {
+        const scaleMap: Record<string, string> = {
+          scale_mvp: '< 1,000 req/s MVP',
+          scale_growth: '10,000 req/s Growth Tier with Read Replicas',
+          scale_burst: '50,000+ req/s Flash Sale Burst with Kafka stream',
+        };
+
+        const budgetMap: Record<string, string> = {
+          budget_frugal: 'Serverless low cost (<$100/mo)',
+          budget_balanced: 'Balanced cloud ECS/RDS ($500-$2000/mo)',
+          budget_enterprise: 'Dedicated enterprise multi-region ($5000+/mo)',
+        };
+
         const payload: RecommenderInput = {
           projectDescription: promptText,
-          expectedScale: '10,000 req/s Growth Tier with Read Replicas',
-          budgetConstraint: 'Balanced cloud ECS/RDS ($500-$2000/mo)',
-          preferredTech: ['Redis Cache', 'Multi-AZ RDS'],
-          deploymentPreference: 'AWS Cloud',
+          expectedScale: scaleMap[customAnswers.scale || 'scale_growth'],
+          budgetConstraint: budgetMap[customAnswers.budget || 'budget_balanced'],
+          preferredTech: [
+            customAnswers.consistency === 'consistency_eventual' ? 'Apache Kafka' : 'Redis Cache',
+            customAnswers.region === 'deploy_multiregion' ? 'Global Multi-Region' : 'Multi-AZ RDS',
+          ],
+          deploymentPreference:
+            customAnswers.region === 'deploy_multiregion' ? 'Multi-Region Active/Active' : 'AWS Cloud',
         };
         const res = await api.recommendArchitecture(payload);
         const verticalNodes = toVerticalTree(res.nodes, res.edges);
@@ -404,7 +434,7 @@ export const App: React.FC = () => {
         setIsGeneratingArchitecture(false);
       }
     },
-    [incomingTrafficRate, durationSeconds, triggerSimulation]
+    [incomingTrafficRate, durationSeconds, triggerSimulation, selectedAnswers]
   );
 
   // AI Refine callback from left sidebar
@@ -978,30 +1008,34 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* Left Floating Panel: Requirements & Component List */}
+        {/* Left Floating Panel: Whole Left Sidebar for AI Chat */}
         <div
           className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
             isLeftCollapsed ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
-          <div className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] h-full flex flex-col pointer-events-none">
+          <div className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] h-full flex flex-col pointer-events-none py-2 sm:py-3.5 px-2 sm:px-3">
             <div className="pointer-events-auto h-full flex flex-col">
-              <LeftSidebar
-                activePrompt={activePromptText}
-                onRefinePrompt={handleRefinePrompt}
+              <ContextualQuerySidebar
+                activePrompt={activePromptText || 'Scalable distributed cloud architecture'}
+                selectedAnswers={selectedAnswers}
+                onAnswerSelected={(category, optionId) => {
+                  const updated = { ...selectedAnswers, [category]: optionId };
+                  setSelectedAnswers(updated);
+                  handleGenerateFromPrompt(activePromptText, updated);
+                }}
+                onApplyRefinements={() => {
+                  handleGenerateFromPrompt(activePromptText);
+                }}
+                onResetQuestions={() => {
+                  setSelectedAnswers({});
+                }}
+                onSendCustomMessage={(msg) => {
+                  handleRefinePrompt(msg);
+                }}
                 isGenerating={isGeneratingArchitecture}
-                nodes={nodes}
-                edges={edges}
-                nodeResults={simulationResult?.nodeResults || {}}
-                selectedNodeId={selectedNodeId}
-                onSelectNode={handleSelectNode}
-                onAddNode={handleAddNode}
-                onDeleteNode={handleDeleteNode}
-                onToggleNode={handleToggleNode}
-                onRestoreOriginal={handleRestoreOriginal}
-                onOpenImportRepo={() => setIsImportRepoOpen(true)}
-                onToggleCollapse={() => setIsLeftCollapsed(true)}
-                onUpdateNode={handleUpdateNode}
+                isHydrated={nodes.length > 0}
+                isDark={isDark}
               />
             </div>
           </div>
@@ -1012,7 +1046,7 @@ export const App: React.FC = () => {
           <button
             onClick={handleOpenLeft}
             className="absolute left-2 sm:left-3 top-1/4 -translate-y-1/2 z-30 p-2 sm:p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
-            title="Expand left sidebar"
+            title="Expand AI Architect Chat"
           >
             <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100" />
           </button>
@@ -1029,7 +1063,7 @@ export const App: React.FC = () => {
           </button>
         )}
 
-        {/* Right Floating Panel: Request Sender + Selected Component Inspector OR Bottlenecks */}
+        {/* Right Floating Panel: Request Sender + Components + Inspector OR Bottlenecks */}
         <div
           className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
             isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
@@ -1037,7 +1071,7 @@ export const App: React.FC = () => {
         >
           <aside className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] bg-transparent h-full flex flex-col justify-center items-center py-2 sm:py-4 px-2 sm:px-3 shrink-0 overflow-hidden select-none pointer-events-none">
             <div className="pointer-events-auto w-full max-h-[calc(100vh-80px)] overflow-y-auto space-y-3">
-              {/* Request Sender Card: Shifted to Right Bar */}
+              {/* 1. Request Sender Card */}
               <RequestSenderCard
                 incomingTrafficRate={incomingTrafficRate}
                 onChangeTrafficRate={handleTrafficChange}
@@ -1047,7 +1081,20 @@ export const App: React.FC = () => {
                 onChangeDuration={handleDurationChange}
               />
 
-              {/* Component Inspector or Bottlenecks List */}
+              {/* 2. Components Section (moved to Right Bar) */}
+              <ComponentsListCard
+                nodes={nodes}
+                selectedNodeId={selectedNodeId}
+                onSelectNode={handleSelectNode}
+                onAddNode={handleAddNode}
+                onDeleteNode={handleDeleteNode}
+                onToggleNode={handleToggleNode}
+                onUpdateNode={handleUpdateNode}
+                onRestoreOriginal={handleRestoreOriginal}
+                nodeResults={simulationResult?.nodeResults || {}}
+              />
+
+              {/* 3. Component Inspector or Bottlenecks List */}
               {selectedNode ? (
                 <ComponentInspector
                   node={selectedNode}
