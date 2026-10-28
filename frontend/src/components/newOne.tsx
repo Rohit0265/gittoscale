@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Github } from 'lucide-react';
 import { PlaceholdersAndVanishInput } from '@/components/ui/placeholders-and-vanish-input';
+import { VideoCarousel } from './VideoCarousel';
 
 export interface NewOneProps {
   onSelectTestSite?: () => void;
@@ -36,14 +37,14 @@ export const NewOne: React.FC<NewOneProps> = ({
   };
 
   return (
-    <section className="relative w-full flex flex-col items-center justify-center py-20 sm:py-28 px-4 sm:px-6 text-center select-none overflow-hidden">
+    <section className="relative w-full flex flex-col items-center justify-center py-16 sm:py-24 px-4 sm:px-6 text-center select-none overflow-hidden">
       {/* Background Ambient Glow */}
       <div
-        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[340px] bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-amber-500/10 dark:from-indigo-600/15 dark:via-purple-600/15 dark:to-orange-500/10 blur-3xl rounded-full"
+        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[380px] bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-amber-500/10 dark:from-indigo-600/15 dark:via-purple-600/15 dark:to-orange-500/10 blur-3xl rounded-full"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center w-full">
+      <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center w-full">
         {/* Main Hero Heading */}
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.08]">
           Scale your system{' '}
@@ -83,6 +84,11 @@ export const NewOne: React.FC<NewOneProps> = ({
             <Github className="w-4 h-4 text-slate-900 dark:text-white group-hover:scale-110 transition-transform" />
             <span>Import GitHub Repo</span>
           </button>
+        </div>
+
+        {/* Infinite 3D Video Carousel (Added after Import button, no timeline) */}
+        <div className="mt-14 sm:mt-20 w-full max-w-7xl px-2 sm:px-4 md:px-6">
+          <VideoCarousel />
         </div>
       </div>
     </section>
