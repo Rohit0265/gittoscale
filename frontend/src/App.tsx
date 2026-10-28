@@ -12,12 +12,9 @@ import {
 } from './types';
 import { Header } from './components/Header';
 import { MetricsStrip } from './components/MetricsStrip';
-import { RequestSenderCard } from './components/RequestSenderCard';
-import { ComponentsListCard } from './components/ComponentsListCard';
 import { ContextualQuerySidebar } from './components/ProjectWorkspace/ContextualQuerySidebar';
 import { ArchitectureCanvas } from './components/Canvas/ArchitectureCanvas';
-import { ComponentInspector } from './components/ComponentInspector';
-import { BottleneckList } from './components/BottleneckList';
+import { RightSidebar } from './components/RightSidebar';
 import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
@@ -385,10 +382,6 @@ export const App: React.FC = () => {
     [isRunning, triggerSimulation]
   );
 
-  const handleToggleRunning = useCallback(() => {
-    setIsRunning((prev) => !prev);
-  }, []);
-
   // Generate / synthesize architecture directly from a prompt using vertical tree layout
   const handleGenerateFromPrompt = useCallback(
     async (promptText: string, customAnswers = selectedAnswers) => {
@@ -574,11 +567,6 @@ export const App: React.FC = () => {
   const handleTrafficChange = (newRate: number) => {
     setIncomingTrafficRate(newRate);
     queueSimulation(nodes, edges, newRate, durationSeconds);
-  };
-
-  const handleDurationChange = (newDuration: number) => {
-    setDurationSeconds(newDuration);
-    queueSimulation(nodes, edges, incomingTrafficRate, newDuration);
   };
 
   const handleNodesPositionChange = (updatedNodes: ArchitectureNode[]) => {
@@ -1063,65 +1051,35 @@ export const App: React.FC = () => {
           </button>
         )}
 
-        {/* Right Floating Panel: Request Sender + Components + Inspector OR Bottlenecks */}
+        {/* Right Floating Panel: Unified Tabbed Right Sidebar (Components | Inspector | Bottlenecks) */}
         <div
           className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
             isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
           <aside className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] bg-transparent h-full flex flex-col justify-center items-center py-2 sm:py-4 px-2 sm:px-3 shrink-0 overflow-hidden select-none pointer-events-none">
-            <div className="pointer-events-auto w-full max-h-[calc(100vh-80px)] overflow-y-auto space-y-3">
-              {/* 1. Request Sender Card */}
-              <RequestSenderCard
-                incomingTrafficRate={incomingTrafficRate}
-                onChangeTrafficRate={handleTrafficChange}
-                isRunning={isRunning}
-                onToggleRunning={handleToggleRunning}
-                durationSeconds={durationSeconds}
-                onChangeDuration={handleDurationChange}
-              />
-
-              {/* 2. Components Section (moved to Right Bar) */}
-              <ComponentsListCard
+            <div className="pointer-events-auto w-full">
+              <RightSidebar
                 nodes={nodes}
+                edges={edges}
                 selectedNodeId={selectedNodeId}
+                selectedNode={selectedNode}
+                selectedNodeResult={selectedNodeResult}
+                simulationResult={simulationResult}
                 onSelectNode={handleSelectNode}
                 onAddNode={handleAddNode}
                 onDeleteNode={handleDeleteNode}
                 onToggleNode={handleToggleNode}
                 onUpdateNode={handleUpdateNode}
                 onRestoreOriginal={handleRestoreOriginal}
-                nodeResults={simulationResult?.nodeResults || {}}
+                onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+                onDeleteEdge={handleDeleteEdge}
+                onChangeIncomingTrafficRate={handleTrafficChange}
+                incomingTrafficRate={incomingTrafficRate}
+                onNavigateToParent={handleNavigateToParent}
+                viewMode={viewMode}
+                onToggleCollapse={() => setIsRightCollapsed(true)}
               />
-
-              {/* 3. Component Inspector or Bottlenecks List */}
-              {selectedNode ? (
-                <ComponentInspector
-                  node={selectedNode}
-                  result={selectedNodeResult}
-                  edges={edges}
-                  onClose={() => setSelectedNodeId(null)}
-                  onUpdateNode={handleUpdateNode}
-                  onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
-                  onDeleteEdge={handleDeleteEdge}
-                  onChangeIncomingTrafficRate={
-                    selectedNode.type === 'load_generator' ? handleTrafficChange : undefined
-                  }
-                  incomingTrafficRate={incomingTrafficRate}
-                  onNavigateToParent={handleNavigateToParent}
-                  viewMode={viewMode}
-                  allNodes={nodes}
-                  onToggleCollapse={() => setIsRightCollapsed(true)}
-                />
-              ) : (
-                <BottleneckList
-                  simulationResult={simulationResult}
-                  nodes={nodes}
-                  onSelectNode={handleSelectNode}
-                  selectedNodeId={selectedNodeId}
-                  onToggleCollapse={() => setIsRightCollapsed(true)}
-                />
-              )}
             </div>
           </aside>
         </div>

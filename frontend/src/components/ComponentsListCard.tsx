@@ -29,6 +29,7 @@ interface ComponentsListCardProps {
   onUpdateNode?: (node: ArchitectureNode) => void;
   onRestoreOriginal?: () => void;
   nodeResults: Record<string, NodeSimulationResult>;
+  embedded?: boolean;
 }
 
 export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
@@ -41,6 +42,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
   onUpdateNode,
   onRestoreOriginal,
   nodeResults,
+  embedded = false,
 }) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [openMenuNodeId, setOpenMenuNodeId] = useState<string | null>(null);
@@ -150,8 +152,12 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
     };
   };
 
+  const containerClasses = embedded
+    ? 'w-full flex flex-col space-y-3 text-slate-800 dark:text-slate-200'
+    : 'w-full bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-none text-slate-800 dark:text-slate-200';
+
   return (
-    <div className="w-full bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-2xl p-3 sm:p-3.5 space-y-3 shadow-none text-slate-800 dark:text-slate-200">
+    <div className={containerClasses}>
       {/* Header Row */}
       <div className="flex items-center justify-between pb-1">
         <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
