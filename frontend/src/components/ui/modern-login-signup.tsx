@@ -1,28 +1,41 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { api } from '@/services/api';
-import { X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { X, CheckCircle2, AlertCircle, Sparkles, FolderGit2 } from 'lucide-react';
 
 export interface ModernLoginSignupProps {
   onClose?: () => void;
   onSuccess?: (user: { id: string; email: string; name: string }) => void;
+  onNavigate?: (view: string) => void;
+  initialMode?: 'signin' | 'signup';
   logoText?: string;
   brandName?: string;
 }
 
-export default function Component({
+export default function ModernLoginSignup({
   onClose,
   onSuccess,
+  onNavigate,
+  initialMode = 'signin',
   logoText = "GS",
   brandName = "GitToScale",
 }: ModernLoginSignupProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(initialMode !== 'signup');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const { signIn, signUp, pendingAction, user } = useAuth();
+
+  useEffect(() => {
+    if (initialMode) {
+      setIsLogin(initialMode !== 'signup');
+    }
+  }, [initialMode]);
 
   useEffect(() => {
     let active = true;
@@ -186,10 +199,35 @@ export default function Component({
     };
   }, []);
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      window.history.pushState({}, '', '/');
+      onNavigate?.('landing');
+    }
+  };
+
+  const handleToggleMode = (login: boolean) => {
+    setIsLogin(login);
+    setMessage(null);
+    if (login) {
+      window.history.pushState({}, '', '/signin');
+      onNavigate?.('signin');
+    } else {
+      window.history.pushState({}, '', '/signup');
+      onNavigate?.('signup');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       setMessage({ type: 'error', text: 'Please enter a valid email address.' });
+      return;
+    }
+    if (!password) {
+      setMessage({ type: 'error', text: 'Please enter your password.' });
       return;
     }
 
@@ -198,45 +236,65 @@ export default function Component({
 
     try {
       if (isLogin) {
-        const res = await api.login({ email });
-        setMessage({ type: 'success', text: res.message || 'Signed in successfully! (mock)' });
-        if (res.user) {
-          onSuccess?.(res.user);
+        const { error: signInError } = await signIn(email, password);
+        if (signInError) {
+          setMessage({ type: 'error', text: signInError.message || 'Invalid email or password.' });
+        } else {
+          setMessage({ type: 'success', text: 'Signed in successfully! Redirecting...' });
+          onSuccess?.({
+            id: user?.id || 'usr_session',
+            email,
+            name: user?.user_metadata?.full_name || email.split('@')[0],
+          });
         }
       } else {
-        const res = await api.signup({ name, email });
-        setMessage({ type: 'success', text: res.message || 'Account created successfully! (mock)' });
-        if (res.user) {
-          onSuccess?.(res.user);
+        const fullName = name.trim() || email.split('@')[0];
+        const { error: signUpError } = await signUp(email, password, fullName);
+        if (signUpError) {
+          setMessage({ type: 'error', text: signUpError.message || 'Failed to create account.' });
+        } else {
+          setMessage({ type: 'success', text: 'Account created successfully! Redirecting...' });
+          onSuccess?.({
+            id: user?.id || 'usr_session',
+            email,
+            name: fullName,
+          });
         }
       }
     } catch (err: any) {
-      // Graceful fallback simulation if offline or error
-      const mockUser = {
-        id: 'usr_offline',
-        email,
-        name: name || email.split('@')[0],
-      };
-      setMessage({
-        type: 'success',
-        text: `${isLogin ? 'Signed in' : 'Registered'} with mock credentials!`,
-      });
-      onSuccess?.(mockUser);
+      setMessage({ type: 'error', text: err?.message || 'Authentication error occurred.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialClick = (provider: string) => {
-    setMessage({
-      type: 'success',
-      text: `${provider} authentication simulated (mock endpoint).`,
-    });
-    onSuccess?.({
-      id: `usr_${provider.toLowerCase()}`,
-      email: `user@${provider.toLowerCase()}.example`,
-      name: `${provider} User`,
-    });
+  const handleSocialClick = async (provider: string) => {
+    setIsLoading(true);
+    setMessage(null);
+    try {
+      const mockEmail = `user.${provider.toLowerCase()}@example.com`;
+      const mockName = `${provider} Developer`;
+      const res = await signIn(mockEmail, 'oauth_simulated_credential');
+      if (res.error) {
+        await signUp(mockEmail, 'oauth_simulated_credential', mockName);
+      }
+      setMessage({
+        type: 'success',
+        text: `Signed in with ${provider}! Redirecting...`,
+      });
+      onSuccess?.({
+        id: `usr_${provider.toLowerCase()}`,
+        email: mockEmail,
+        name: mockName,
+      });
+    } catch (err: any) {
+      setMessage({
+        type: 'error',
+        text: err?.message || `Failed to authenticate with ${provider}.`,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   /* ─── shared button styles ─── */
@@ -304,23 +362,39 @@ export default function Component({
   );
 
   const Logo = (
-    <div
+    <button
+      type="button"
+      onClick={handleClose}
       style={{
-        background: '#111',
-        width: 44,
-        height: 44,
-        borderRadius: '50%',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        marginBottom: '0.75rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontWeight: 700,
-        fontSize: '1.15rem',
-        marginBottom: '0.75rem',
-        border: '1px solid #333',
       }}
+      title="Go to Home"
     >
-      {logoText}
-    </div>
+      <div
+        style={{
+          background: '#111',
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 700,
+          fontSize: '1.15rem',
+          border: '1px solid #333',
+          color: '#fff',
+        }}
+      >
+        {logoText}
+      </div>
+    </button>
   );
 
   const Footer = (
@@ -363,7 +437,7 @@ export default function Component({
           position: 'absolute',
           inset: 0,
           zIndex: 1,
-          background: 'radial-gradient(circle at center,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0) 100%)',
+          background: 'radial-gradient(circle at center,rgba(0,0,0,0.75) 0%,rgba(0,0,0) 100%)',
           pointerEvents: 'none',
         }}
       />
@@ -386,24 +460,65 @@ export default function Component({
           margin: '1rem',
         }}
       >
-        {/* Optional close button */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            aria-label="Close"
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          aria-label="Close"
+          type="button"
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            background: 'transparent',
+            border: 'none',
+            color: '#888',
+            cursor: 'pointer',
+            padding: '0.25rem',
+          }}
+        >
+          <X style={{ width: 18, height: 18 }} />
+        </button>
+
+        {/* Pending Action Notification Banner */}
+        {pendingAction && (
+          <div
             style={{
-              position: 'absolute',
-              top: '1rem',
-              right: '1rem',
-              background: 'transparent',
-              border: 'none',
-              color: '#888',
-              cursor: 'pointer',
-              padding: '0.25rem',
+              width: '100%',
+              padding: '0.65rem 0.85rem',
+              borderRadius: 8,
+              fontSize: '0.75rem',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.5rem',
+              marginBottom: '0.85rem',
+              background: 'rgba(30, 41, 59, 0.7)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              textAlign: 'left',
             }}
           >
-            <X style={{ width: 18, height: 18 }} />
-          </button>
+            {pendingAction.type === 'prompt' ? (
+              <Sparkles style={{ width: 15, height: 15, color: '#60a5fa', flexShrink: 0, marginTop: 2 }} />
+            ) : (
+              <FolderGit2 style={{ width: 15, height: 15, color: '#38bdf8', flexShrink: 0, marginTop: 2 }} />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, color: '#f1f5f9', fontSize: '0.75rem' }}>
+                Resume after {isLogin ? 'signing in' : 'signing up'}
+              </div>
+              <div
+                style={{
+                  color: '#94a3b8',
+                  fontSize: '0.7rem',
+                  marginTop: 2,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {pendingAction.type === 'prompt' ? `"${pendingAction.prompt}"` : pendingAction.repoUrl}
+              </div>
+            </div>
+          </div>
         )}
 
         {isLogin ? (
@@ -458,7 +573,37 @@ export default function Component({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
+              <input
+                style={input}
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: '-0.2rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.history.pushState({}, '', '/forgot-password');
+                    onNavigate?.('forgot-password');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#777',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    padding: 0,
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
               <button
                 type="submit"
                 disabled={isLoading}
@@ -469,10 +614,11 @@ export default function Component({
                   border: 'none',
                   background: '#ededed',
                   color: '#000',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: '0.875rem',
                   cursor: isLoading ? 'wait' : 'pointer',
                   opacity: isLoading ? 0.7 : 1,
+                  transition: 'opacity 0.2s ease',
                 }}
               >
                 {isLoading ? 'Connecting...' : 'Continue with Email'}
@@ -494,10 +640,8 @@ export default function Component({
             <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: '#888' }}>
               Don't have an account?{' '}
               <button
-                onClick={() => {
-                  setIsLogin(false);
-                  setMessage(null);
-                }}
+                type="button"
+                onClick={() => handleToggleMode(false)}
                 style={{
                   color: '#fff',
                   fontWeight: 500,
@@ -566,6 +710,7 @@ export default function Component({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                autoComplete="name"
               />
               <input
                 style={input}
@@ -574,6 +719,16 @@ export default function Component({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
+              />
+              <input
+                style={input}
+                type="password"
+                placeholder="Create a password (min. 6 characters)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
               />
               <button
                 type="submit"
@@ -585,10 +740,11 @@ export default function Component({
                   border: 'none',
                   background: '#ededed',
                   color: '#000',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: '0.875rem',
                   cursor: isLoading ? 'wait' : 'pointer',
                   opacity: isLoading ? 0.7 : 1,
+                  transition: 'opacity 0.2s ease',
                 }}
               >
                 {isLoading ? 'Creating Account...' : 'Sign Up with Email'}
@@ -610,10 +766,8 @@ export default function Component({
             <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: '#888' }}>
               Already have an account?{' '}
               <button
-                onClick={() => {
-                  setIsLogin(true);
-                  setMessage(null);
-                }}
+                type="button"
+                onClick={() => handleToggleMode(true)}
                 style={{
                   color: '#fff',
                   fontWeight: 500,

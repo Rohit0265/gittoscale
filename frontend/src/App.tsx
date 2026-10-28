@@ -21,8 +21,6 @@ import { LandingPage } from './components/LandingPage';
 import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
 import { ProjectWorkspace } from './components/ProjectWorkspace/ProjectWorkspace';
 import ModernLoginSignup from './components/ui/modern-login-signup';
-import { SignUpPage } from './components/auth/SignUpPage';
-import { SignInPage } from './components/auth/SignInPage';
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { HistoryDashboard } from './components/history/HistoryDashboard';
@@ -1036,11 +1034,35 @@ export const App: React.FC = () => {
   const selectedNodeResult = selectedNodeId ? simulationResult?.nodeResults[selectedNodeId] : undefined;
 
   if (currentView === 'signup') {
-    return <SignUpPage onNavigate={handleNavigate} isDark={isDark} />;
+    return (
+      <ModernLoginSignup
+        initialMode="signup"
+        onClose={handleGoHome}
+        onNavigate={handleNavigate}
+        onSuccess={() => {
+          if (!pendingAction) {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }
+        }}
+      />
+    );
   }
 
   if (currentView === 'signin') {
-    return <SignInPage onNavigate={handleNavigate} isDark={isDark} />;
+    return (
+      <ModernLoginSignup
+        initialMode="signin"
+        onClose={handleGoHome}
+        onNavigate={handleNavigate}
+        onSuccess={() => {
+          if (!pendingAction) {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }
+        }}
+      />
+    );
   }
 
   if (currentView === 'forgot-password') {
