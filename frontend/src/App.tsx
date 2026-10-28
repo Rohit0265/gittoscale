@@ -19,11 +19,38 @@ import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
 import { LandingPage } from './components/LandingPage';
 import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
+import { ProjectWorkspace } from './components/ProjectWorkspace/ProjectWorkspace';
 import ModernLoginSignup from './components/ui/modern-login-signup';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
 const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
+
+export interface ProjectRouteInfo {
+  projectId: string;
+  prompt?: string;
+}
+
+const getProjectRouteInfo = (): ProjectRouteInfo | null => {
+  if (typeof window === 'undefined') return null;
+  const match = window.location.pathname.match(/\/project\/([a-zA-Z0-9_-]+)/);
+  const search = new URLSearchParams(window.location.search);
+  const promptQuery = search.get('prompt') || undefined;
+  if (match && match[1]) {
+    return {
+      projectId: match[1],
+      prompt: promptQuery,
+    };
+  }
+  const projectQuery = search.get('project');
+  if (projectQuery) {
+    return {
+      projectId: projectQuery,
+      prompt: promptQuery,
+    };
+  }
+  return null;
+};
 
 const isCustomDomain = () => {
   if (typeof window === 'undefined') return false;
@@ -68,8 +95,12 @@ const isAppDomain = () => {
 };
 
 export const App: React.FC = () => {
-  // Navigation mode: 'landing' | 'simulator' | 'recommender'
-  const [currentView, setCurrentView] = useState<'landing' | 'simulator' | 'recommender'>(() => {
+  const [activeProject, setActiveProject] = useState<ProjectRouteInfo | null>(() => getProjectRouteInfo());
+
+  // Navigation mode: 'landing' | 'simulator' | 'recommender' | 'projectWorkspace'
+  const [currentView, setCurrentView] = useState<'landing' | 'simulator' | 'recommender' | 'projectWorkspace'>(() => {
+    const route = getProjectRouteInfo();
+    if (route) return 'projectWorkspace';
     if (isRecommenderUrl()) return 'recommender';
     return isAppDomain() ? 'simulator' : 'landing';
   });
@@ -114,6 +145,41 @@ export const App: React.FC = () => {
       localStorage.setItem('gitoscale-theme', next ? 'dark' : 'light');
       return next;
     });
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = getProjectRouteInfo();
+      if (route) {
+        setActiveProject(route);
+        setCurrentView('projectWorkspace');
+      } else if (isRecommenderUrl()) {
+        setCurrentView('recommender');
+      } else if (isAppDomain()) {
+        setCurrentView('simulator');
+      } else {
+        setCurrentView('landing');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleStartProject = useCallback((promptText: string) => {
+    const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`gitoscale_project_${projectId}`, promptText);
+    }
+
+    if (isCustomDomain() && !isAppDomain()) {
+      window.location.href = `${APP_SUBDOMAIN_URL}/project/${projectId}?prompt=${encodeURIComponent(promptText)}`;
+      return;
+    }
+
+    const projectUrl = `/project/${projectId}?prompt=${encodeURIComponent(promptText)}`;
+    window.history.pushState({ projectId, prompt: promptText }, '', projectUrl);
+    setActiveProject({ projectId, prompt: promptText });
+    setCurrentView('projectWorkspace');
   }, []);
 
   // Sidebar collapse states - auto-collapse on smaller screens
@@ -640,6 +706,7 @@ export const App: React.FC = () => {
           onToggleTheme={handleToggleTheme}
           onOpenRecommender={() => setCurrentView('recommender')}
           onOpenAuth={() => setIsAuthOpen(true)}
+          onStartProject={handleStartProject}
           onSelectTestSite={() => {
             if (isCustomDomain() && !isAppDomain()) {
               window.location.href = `${APP_SUBDOMAIN_URL}/?demo=true`;
@@ -677,6 +744,42 @@ export const App: React.FC = () => {
           </div>
         )}
       </div>
+    );
+  }
+
+  if (currentView === 'projectWorkspace' && activeProject) {
+    return (
+      <ProjectWorkspace
+        projectId={activeProject.projectId}
+        initialPrompt={activeProject.prompt}
+        isDark={isDark}
+        onToggleTheme={handleToggleTheme}
+        onGoHome={() => {
+          if (typeof window !== 'undefined') {
+            window.history.pushState({}, '', '/');
+          }
+          if (isCustomDomain() && isAppDomain()) {
+            window.location.href = LANDING_DOMAIN_URL;
+            return;
+          }
+          setActiveProject(null);
+          setCurrentView('landing');
+        }}
+        onSimulate={(recNodes: ArchitectureNode[], recEdges: ArchitectureEdge[]) => {
+          const basicToUse = { nodes: recNodes, edges: recEdges };
+          baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
+          basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
+          baseDetailedGraphRef.current = null;
+          detailedGraphCacheRef.current = null;
+
+          setViewMode('basic');
+          setNodes(recNodes);
+          setEdges(recEdges);
+          setSelectedNodeId(null);
+          setCurrentView('simulator');
+          triggerSimulation(recNodes, recEdges, incomingTrafficRate, durationSeconds);
+        }}
+      />
     );
   }
 

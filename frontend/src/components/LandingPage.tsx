@@ -28,6 +28,7 @@ interface LandingPageProps {
   onSelectUseRepository: () => void;
   onOpenRecommender?: () => void;
   onOpenAuth?: () => void;
+  onStartProject?: (prompt: string) => void;
   children?: React.ReactNode;
   isDark?: boolean;
   onToggleTheme?: () => void;
@@ -406,6 +407,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectUseRepository,
   onOpenRecommender,
   onOpenAuth,
+  onStartProject,
   children,
   isDark = false,
   onToggleTheme,
@@ -608,6 +610,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           onSelectUseRepository={onSelectUseRepository}
           onOpenRecommender={onOpenRecommender}
           onOpenAuth={onOpenAuth}
+          onStartProject={onStartProject}
           isDark={isDark}
         />
 

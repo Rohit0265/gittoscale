@@ -7,12 +7,14 @@ export interface NewOneProps {
   onSelectUseRepository?: () => void;
   onOpenRecommender?: () => void;
   onOpenAuth?: () => void;
+  onStartProject?: (prompt: string) => void;
   isDark?: boolean;
 }
 
 export const NewOne: React.FC<NewOneProps> = ({
   onSelectUseRepository,
   onOpenRecommender,
+  onStartProject,
 }) => {
   const [query, setQuery] = useState('');
 
@@ -22,7 +24,10 @@ export const NewOne: React.FC<NewOneProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onOpenRecommender) {
+    const cleanPrompt = query.trim() || 'A scalable microservices architecture on cloud with high throughput';
+    if (onStartProject) {
+      onStartProject(cleanPrompt);
+    } else if (onOpenRecommender) {
       onOpenRecommender();
     }
   };
