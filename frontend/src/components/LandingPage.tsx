@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
+import NewOne from './newOne';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
@@ -556,6 +557,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           </div>
         </div>
+
+
+        {/* New UI Section */}
+        <NewOne
+          onSelectTestSite={onSelectTestSite}
+          onSelectUseRepository={onSelectUseRepository}
+          onOpenRecommender={onOpenRecommender}
+          onOpenAuth={onOpenAuth}
+          isDark={isDark}
+        />
 
         {/* Hero Body Grid */}
         <div className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-8 sm:gap-12 px-6 py-10 md:grid-cols-2 my-auto">
