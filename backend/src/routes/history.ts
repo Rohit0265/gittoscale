@@ -68,7 +68,7 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
   const offset = parseInt(req.query.offset as string, 10) || 0;
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured) {
+  if (isNeonConfigured()) {
     try {
       const { rows, total } = await queryArchitectureHistory(userId, {
         query,
@@ -179,7 +179,7 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
   };
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured) {
+  if (isNeonConfigured()) {
     try {
       const data = await insertArchitectureHistory(newRecord);
       res.status(201).json({ success: true, data });
@@ -333,7 +333,7 @@ router.get('/repositories', requireAuth, async (req: AuthenticatedRequest, res: 
   const offset = parseInt(req.query.offset as string, 10) || 0;
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured) {
+  if (isNeonConfigured()) {
     try {
       const { rows, total } = await queryRepositoryHistory(userId, {
         query,
@@ -471,7 +471,7 @@ router.post('/repositories', requireAuth, async (req: AuthenticatedRequest, res:
   };
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured) {
+  if (isNeonConfigured()) {
     try {
       const data = await insertRepositoryHistory(newRecord);
       res.status(201).json({ success: true, data });
