@@ -48,6 +48,13 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
+          if (window.opener && window.opener !== window) {
+            try {
+              window.opener.postMessage({ type: 'GTS_OAUTH_ERROR', error: error.message }, window.location.origin);
+            } catch {}
+            window.close();
+            return;
+          }
           if (mounted) {
             setStatus('error');
             setErrorMessage(error.message);
@@ -56,6 +63,17 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
         }
 
         if (session) {
+          if (window.opener && window.opener !== window) {
+            try {
+              window.opener.postMessage({
+                type: 'GTS_OAUTH_SUCCESS',
+                session: session,
+                user: session.user,
+              }, window.location.origin);
+            } catch {}
+            window.close();
+            return;
+          }
           if (mounted) {
             setStatus('success');
             setTimeout(() => {
@@ -69,6 +87,17 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
           const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
             if (newSession && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
               authListener.subscription.unsubscribe();
+              if (window.opener && window.opener !== window) {
+                try {
+                  window.opener.postMessage({
+                    type: 'GTS_OAUTH_SUCCESS',
+                    session: newSession,
+                    user: newSession.user,
+                  }, window.location.origin);
+                } catch {}
+                window.close();
+                return;
+              }
               if (mounted) {
                 setStatus('success');
                 setTimeout(() => {

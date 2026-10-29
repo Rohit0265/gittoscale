@@ -193,16 +193,20 @@ export default function Component({
     try {
       const { error } = await signInWithOAuth(provider);
       if (error) {
-        setMessage({ type: 'error', text: error.message || `Failed to sign in with ${providerName}` });
+        if (error.message !== 'Sign-in cancelled') {
+          setMessage({ type: 'error', text: error.message || `Failed to sign in with ${providerName}` });
+        }
         setIsLoading(false);
       } else {
-        setMessage({ type: 'success', text: `Signed in with ${providerName}!` });
-        onSuccess?.({
-          id: `usr_${provider}`,
-          email: `user@${provider}.com`,
-          name: `${providerName} Developer`,
-        });
-        setIsLoading(false);
+        setMessage({ type: 'success', text: `Signed in successfully!` });
+        setTimeout(() => {
+          setIsLoading(false);
+          onSuccess?.({
+            id: `usr_${provider}`,
+            email: `user@${provider}.com`,
+            name: `${providerName} User`,
+          });
+        }, 300);
       }
     } catch (err: any) {
       setMessage({ type: 'error', text: err?.message || `Failed to sign in with ${providerName}` });

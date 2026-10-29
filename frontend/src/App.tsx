@@ -238,6 +238,10 @@ export const App: React.FC = () => {
   // Route Protection: Unauthenticated visitors to /app, /history, /project, or app.gittoscale.tech are redirected to /signup
   useEffect(() => {
     if (isAuthLoading) return;
+    // Never redirect while we are already on an auth view (sign-in / sign-up)
+    // This prevents bouncing back to /signup right after the user logs in and
+    // onSuccess fires window.location.replace('/app').
+    if (currentView === 'signup' || currentView === 'signin') return;
     const path = window.location.pathname;
     const isAuthRoute =
       path === '/signup' ||
@@ -258,7 +262,7 @@ export const App: React.FC = () => {
       window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(destination)}`);
       setCurrentView('signup');
     }
-  }, [user, isAuthLoading]);
+  }, [user, isAuthLoading, currentView]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -1038,10 +1042,10 @@ export const App: React.FC = () => {
       <ModernLoginSignup
         onClose={handleGoHome}
         onSuccess={() => {
-          if (!pendingAction) {
-            window.history.pushState({}, '', '/app');
-            setCurrentView('simulator');
-          }
+          setIsAuthOpen(false);
+          const destination = pendingAction?.returnUrl || '/app';
+          window.history.pushState({}, '', destination);
+          setCurrentView('simulator');
         }}
       />
     );
@@ -1122,7 +1126,7 @@ export const App: React.FC = () => {
             <ModernLoginSignup
               onClose={() => setIsAuthOpen(false)}
               onSuccess={(_user) => {
-                setTimeout(() => setIsAuthOpen(false), 1200);
+                setIsAuthOpen(false);
               }}
             />
           </div>
@@ -1394,7 +1398,7 @@ export const App: React.FC = () => {
           <ModernLoginSignup
             onClose={() => setIsAuthOpen(false)}
             onSuccess={(_user) => {
-              setTimeout(() => setIsAuthOpen(false), 1200);
+              setIsAuthOpen(false);
             }}
           />
         </div>
