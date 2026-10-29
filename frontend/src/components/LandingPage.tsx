@@ -23,6 +23,7 @@ import {
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
 import NewOne from './newOne';
+import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
@@ -60,6 +61,7 @@ const PAGES = [
   'step-3',
   'step-4',
   'use-cases',
+  'faq',
   'footer',
 ];
 
@@ -71,8 +73,37 @@ const PAGE_LABELS: Record<string, string> = {
   'step-3': 'Step 03: Detect',
   'step-4': 'Step 04: Scale',
   'use-cases': 'Use Cases',
+  faq: 'FAQ',
   footer: 'Footer',
 };
+
+const GITOSCALE_FAQS = [
+  {
+    question: "How does GitToScale discover system architecture from a repository?",
+    answer:
+      "GitToScale statically analyzes your repository to identify services, databases, message queues, API gateways, and their communication protocols. It auto-generates a living interactive topology graph representing your entire distributed system.",
+  },
+  {
+    question: "Can I simulate high traffic spikes without deploying to production?",
+    answer:
+      "Yes! GitToScale lets you configure synthetic request rates, stress-test microservices, trace latency across every network hop, and pinpoint bottlenecks and single points of failure (SPOFs) before shipping to production.",
+  },
+  {
+    question: "How does the AI Architect generate scaling recommendations?",
+    answer:
+      "The AI Architect analyzes node resource utilization, saturated queues, and query latency under simulated load, providing concrete actionable scaling patterns—such as read-replicas, caching tiers, and event-driven decoupled queues.",
+  },
+  {
+    question: "What Git hosting providers and repositories are supported?",
+    answer:
+      "You can import public or private repositories from GitHub, GitLab, and Bitbucket, or enter a prompt directly to generate custom greenfield system architectures from scratch.",
+  },
+  {
+    question: "Is my repository source code stored or exposed?",
+    answer:
+      "No. GitToScale only parses configuration manifests and dependency graphs to extract topology. Your proprietary source code is never permanently stored or shared with third parties.",
+  },
+];
 
 const steps = [
   {
@@ -905,6 +936,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Optional Children */}
       {children}
+
+      {/* Section 11: Frequently Asked Questions (#faq) */}
+      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#070709]/50">
+        <FrequentlyAskedQuestions
+          title="Frequently Asked Questions"
+          description="Everything you need to know about GitToScale architecture scanning, distributed simulation, and AI recommendations."
+          data={GITOSCALE_FAQS}
+          supportEmail="support@gittoscale.tech"
+        />
+      </div>
 
       {/* Section 12: Global Footer (#footer) */}
       <div id="footer" className="relative w-full">
