@@ -1149,6 +1149,10 @@ export const App: React.FC = () => {
             window.history.pushState({}, '', '/signin?redirect=/');
             setCurrentView('signin');
           }}
+          onOpenSignUp={() => {
+            window.history.pushState({}, '', '/signup?redirect=/');
+            setCurrentView('signup');
+          }}
           onStartProject={handleStartProject}
           onSelectTestSite={() => {
             if (isCustomDomain() && !isAppDomain()) {

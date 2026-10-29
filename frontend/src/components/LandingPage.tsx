@@ -19,6 +19,9 @@ import {
   ChevronRight,
   Sparkles,
   LogOut,
+  User,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
@@ -30,6 +33,7 @@ interface LandingPageProps {
   onSelectUseRepository: () => void;
   onOpenRecommender?: () => void;
   onOpenAuth?: () => void;
+  onOpenSignUp?: () => void;
   onStartProject?: (prompt: string) => void;
   children?: React.ReactNode;
   isDark?: boolean;
@@ -441,6 +445,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectUseRepository,
   onOpenRecommender,
   onOpenAuth,
+  onOpenSignUp,
   onStartProject,
   children,
   isDark = false,
@@ -455,6 +460,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [scrollDir, setScrollDir] = useState<'forward' | 'backward'>('forward');
   const containerRef = useRef<HTMLDivElement>(null);
   const stepsSectionRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsProfileOpen(false);
+    };
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isProfileOpen]);
 
   const updateStep = useCallback((newStep: number) => {
     setCurrentStep((prev) => {
@@ -538,21 +564,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         id="top"
         className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-[#0A0A0A]"
       >
-        {/* Top Navbar: Shrunk compact pill on Landing, Full Size on app.gittoscale.tech */}
+        {/* Top Navbar Header */}
         <div
-          className={`w-full z-20 transition-all duration-300 ${
+          className={`w-full z-30 transition-all duration-300 ${
             isApp
-              ? 'border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur'
-              : 'pt-3 sm:pt-4 px-3 sm:px-6 flex justify-center'
+              ? 'border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-3 sm:px-6 md:px-8 h-16 flex items-center justify-between'
+              : 'pt-3 sm:pt-4 px-3 sm:px-6 flex items-center justify-center gap-2 sm:gap-3'
           }`}
         >
+          {/* Centered Floating Pill Navbar */}
           <div
             className={`flex items-center justify-between transition-all duration-300 ${
               isApp
-                ? 'h-16 w-full px-3 sm:px-6 md:px-8 shadow-xs'
-                : 'h-12 sm:h-13 w-full max-w-5xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
+                ? 'h-full flex-1 max-w-none'
+                : 'h-12 sm:h-13 w-full max-w-4xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
             }`}
           >
+            {/* Left: Brand Logo */}
             <div className="flex items-center gap-2 sm:gap-3">
               <img
                 src={isDark ? '/logo.png' : '/logo-light.png'}
@@ -562,7 +590,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }`}
               />
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5">
+
+            {/* Right: Actions inside Navbar */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5">
               {/* Test Demo Site */}
               <button
                 onClick={onSelectTestSite}
@@ -576,84 +606,157 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="sm:hidden">Demo</span>
               </button>
 
-              {/* AI Architecture Architect */}
-              {onOpenRecommender && (
-                <button
-                  onClick={onOpenRecommender}
-                  className={`flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/80 dark:bg-indigo-950/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors shadow-xs cursor-pointer shrink-0 ${
-                    isApp ? 'px-2.5 sm:px-3 py-1.5 rounded-lg' : 'px-2.5 sm:px-3 py-1 rounded-full'
-                  }`}
-                  title="AI Architecture Recommender"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                  <span className="hidden sm:inline">AI Architect</span>
-                  <span className="sm:hidden">AI</span>
-                </button>
-              )}
-
-              {/* Import Repository */}
-              <button
-                onClick={onSelectUseRepository}
-                className={`flex items-center gap-1.5 bg-slate-900 dark:bg-white text-xs font-semibold text-white dark:text-neutral-950 hover:opacity-90 transition-opacity shadow-xs cursor-pointer shrink-0 ${
-                  isApp ? 'px-2.5 sm:px-3.5 py-1.5 rounded-lg' : 'px-2.5 sm:px-3.5 py-1 rounded-full'
-                }`}
-                title="Import Repository"
-              >
-                <Github className="h-3.5 w-3.5 fill-current" />
-                <span className="hidden sm:inline">Import Repository</span>
-                <span className="sm:hidden">Import</span>
-              </button>
-
-              {/* User Session / Sign In Button */}
-              {user ? (
-                <div className="flex items-center gap-1.5 pl-1 shrink-0">
-                  <span
-                    className="text-xs font-semibold text-slate-800 dark:text-neutral-200 hidden sm:inline max-w-[120px] truncate"
-                    title={user.email}
-                  >
-                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                  </span>
-                  {onSignOut && (
-                    <button
-                      onClick={onSignOut}
-                      className="p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-                      title="Sign Out"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              ) : onOpenAuth ? (
-                <button
-                  onClick={onOpenAuth}
-                  className={`flex items-center gap-1.5 border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0 ${
-                    isApp ? 'px-2.5 sm:px-3 py-1.5 rounded-lg' : 'px-2.5 sm:px-3 py-1 rounded-full'
-                  }`}
-                  title="Sign in or Sign up"
-                >
-                  <span>Sign In</span>
-                </button>
-              ) : null}
-
               <GitHubStarButton className="hidden md:inline-flex" />
-
-              {onToggleTheme && (
-                <button
-                  onClick={onToggleTheme}
-                  aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                  title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                  className={`border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer flex items-center justify-center shrink-0 ${
-                    isApp ? 'p-1.5 sm:p-2 rounded-lg' : 'p-1.5 rounded-full'
-                  }`}
-                >
-                  {isDark ? (
-                    <Sun className="w-4 h-4 text-amber-400" />
-                  ) : (
-                    <Moon className="w-4 h-4 text-slate-600" />
-                  )}
-                </button>
-              )}
             </div>
+          </div>
+
+          {/* Standalone Profile Button & Dropdown Outside Navbar */}
+          <div ref={profileRef} className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+              aria-label="Profile, Authentication and Appearance settings"
+              title={user ? (user.user_metadata?.full_name || user.email || 'Profile') : 'Profile & Settings'}
+              className={`border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50 hover:bg-slate-100 dark:hover:bg-[#141416] text-slate-700 dark:text-neutral-200 transition-all cursor-pointer flex items-center justify-center shrink-0 relative ${
+                isApp ? 'p-2 rounded-lg h-10 w-10' : 'p-2.5 rounded-full h-12 w-12 sm:h-13 sm:w-13'
+              }`}
+            >
+              <User className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 dark:text-neutral-200" />
+              {user && (
+                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0A0A0A]" />
+              )}
+            </button>
+
+            {/* Profile Dropdown Menu */}
+            <AnimatePresence>
+              {isProfileOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl shadow-xl shadow-slate-300/40 dark:shadow-black/70 p-3.5 z-50 flex flex-col gap-3"
+                >
+                  {/* Account / User Section */}
+                  {user ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-100/70 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/60">
+                        <div className="w-10 h-10 rounded-full bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
+                          {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U').toUpperCase()}
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                            {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
+                            {user.email}
+                          </span>
+                        </div>
+                      </div>
+
+                      {onSignOut && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            onSignOut();
+                          }}
+                          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2 p-1">
+                      <div className="px-1 pb-1">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">Account</p>
+                        <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+                          Sign in to simulate load & save architectures
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Login Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            onOpenAuth?.();
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors cursor-pointer shadow-xs"
+                        >
+                          <LogIn className="w-3.5 h-3.5" />
+                          <span>Log In</span>
+                        </button>
+
+                        {/* Sign Up Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            if (onOpenSignUp) {
+                              onOpenSignUp();
+                            } else if (onOpenAuth) {
+                              onOpenAuth();
+                            }
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                          <span>Sign Up</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Theme Switcher Section */}
+                  {onToggleTheme && (
+                    <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1.5">
+                      <div className="px-1 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-600 dark:text-neutral-400">Appearance</span>
+                        <span className="text-[11px] font-medium text-slate-400 dark:text-neutral-500">
+                          {isDark ? 'Dark Theme' : 'Light Theme'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100/70 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/60">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isDark) onToggleTheme();
+                          }}
+                          className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                            !isDark
+                              ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                              : 'text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white'
+                          }`}
+                        >
+                          <Sun className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Light</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!isDark) onToggleTheme();
+                          }}
+                          className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                            isDark
+                              ? 'bg-[#1e1e22] text-white shadow-xs font-semibold'
+                              : 'text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white'
+                          }`}
+                        >
+                          <Moon className="w-3.5 h-3.5 text-blue-400" />
+                          <span>Dark</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
