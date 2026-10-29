@@ -33,7 +33,7 @@ export const NewOne: React.FC<NewOneProps> = ({
   };
 
   return (
-    <section className="relative w-full min-h-screen bg-black text-white flex flex-col items-center justify-start pt-20 sm:pt-24 md:pt-28 pb-16 px-4 sm:px-6 select-none overflow-hidden font-sans">
+    <section className="relative w-full min-h-screen bg-[#020202] text-white flex flex-col items-center justify-start pt-20 sm:pt-24 md:pt-28 pb-16 px-4 sm:px-6 select-none overflow-hidden font-sans">
       {/* Central Hero Content Container */}
       <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center w-full">
         {/* Main Headline */}

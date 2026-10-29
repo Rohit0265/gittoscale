@@ -17,7 +17,6 @@ import {
   Compass,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   LogOut,
   User,
   LogIn,
@@ -164,7 +163,7 @@ function PageDots({ active }: { active: number }) {
   );
 }
 
-function HeroDiagram() {
+export function HeroDiagram() {
   const services = [
     { Icon: Box, dot: 'bg-emerald-500', text: 'text-emerald-500 dark:text-emerald-400', y: 70 },
     { Icon: Database, dot: 'bg-amber-500', text: 'text-amber-500 dark:text-amber-400', y: 160 },
@@ -270,7 +269,7 @@ const DEMO_IMAGES = [
   },
 ];
 
-function Demo({ onLaunch }: { onLaunch: () => void }) {
+export function Demo({ onLaunch }: { onLaunch: () => void }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -555,20 +554,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full snap-y snap-proximity overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 transition-colors"
+      className="h-screen w-full snap-y snap-proximity overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#020202] text-slate-800 dark:text-slate-100 transition-colors"
     >
       <PageDots active={active} />
 
       {/* Section 1: Hero Header & Content (#top) */}
       <header
         id="top"
-        className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-black"
+        className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-[#020202]"
       >
         {/* Top Navbar Header */}
         <div
           className={`w-full z-30 transition-all duration-300 ${
             isApp
-              ? 'border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur px-3 sm:px-6 md:px-8 h-16 flex items-center justify-between'
+              ? 'border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#020202]/90 backdrop-blur px-3 sm:px-6 md:px-8 h-16 flex items-center justify-between'
               : 'pt-3 sm:pt-4 px-3 sm:px-6 flex items-center justify-center gap-2 sm:gap-3'
           }`}
         >
@@ -577,7 +576,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className={`flex items-center justify-between transition-all duration-300 ${
               isApp
                 ? 'h-full flex-1 max-w-none'
-                : 'h-12 sm:h-13 w-full max-w-4xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
+                : 'h-12 sm:h-13 w-full max-w-4xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#020202]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
             }`}
           >
             {/* Left: Brand Logo */}
@@ -998,7 +997,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {children}
 
       {/* Section 11: Frequently Asked Questions (#faq) */}
-      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#070709]/50">
+      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202]">
         <FrequentlyAskedQuestions
           title="Frequently Asked Questions"
           description="Everything you need to know about GitToScale architecture scanning, distributed simulation, and AI recommendations."

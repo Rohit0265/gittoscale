@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
 }) => {
   return (
-    <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] px-2.5 sm:px-4 flex items-center justify-between z-20 shrink-0 transition-colors w-full overflow-hidden">
+    <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-2.5 sm:px-4 flex items-center justify-between z-20 shrink-0 transition-colors w-full overflow-hidden">
       {/* Brand & Title */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
