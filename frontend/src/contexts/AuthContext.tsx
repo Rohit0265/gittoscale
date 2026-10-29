@@ -14,6 +14,7 @@ export type PendingAction =
   | {
       type: 'prompt';
       prompt: string;
+      projectId?: string;
       returnUrl: string;
       customAnswers?: any;
       createdAt: number;
@@ -21,6 +22,7 @@ export type PendingAction =
   | {
       type: 'repo';
       repoUrl: string;
+      projectId?: string;
       returnUrl: string;
       llmConfig?: any;
       createdAt: number;

@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
@@ -33,6 +34,8 @@ interface LandingPageProps {
   isDark?: boolean;
   onToggleTheme?: () => void;
   isAppDomain?: boolean;
+  user?: any;
+  onSignOut?: () => void;
 }
 
 const checkIsAppDomain = () => {
@@ -412,6 +415,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   isDark = false,
   onToggleTheme,
   isAppDomain: isAppDomainProp,
+  user,
+  onSignOut,
 }) => {
   const isApp = isAppDomainProp !== undefined ? isAppDomainProp : checkIsAppDomain();
   const [active, setActive] = useState(0);
@@ -568,8 +573,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="sm:hidden">Import</span>
               </button>
 
-              {/* Sign In Button */}
-              {onOpenAuth && (
+              {/* User Session / Sign In Button */}
+              {user ? (
+                <div className="flex items-center gap-1.5 pl-1 shrink-0">
+                  <span
+                    className="text-xs font-semibold text-slate-800 dark:text-neutral-200 hidden sm:inline max-w-[120px] truncate"
+                    title={user.email}
+                  >
+                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  </span>
+                  {onSignOut && (
+                    <button
+                      onClick={onSignOut}
+                      className="p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                      title="Sign Out"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              ) : onOpenAuth ? (
                 <button
                   onClick={onOpenAuth}
                   className={`flex items-center gap-1.5 border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0 ${
@@ -579,7 +602,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   <span>Sign In</span>
                 </button>
-              )}
+              ) : null}
 
               <GitHubStarButton className="hidden md:inline-flex" />
 

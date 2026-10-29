@@ -42,16 +42,18 @@ const getProjectRouteInfo = (): ProjectRouteInfo | null => {
   const search = new URLSearchParams(window.location.search);
   const promptQuery = search.get('prompt') || undefined;
   if (match && match[1]) {
+    const savedPrompt = promptQuery || (typeof window !== 'undefined' ? localStorage.getItem(`gitoscale_project_${match[1]}`) || undefined : undefined);
     return {
       projectId: match[1],
-      prompt: promptQuery,
+      prompt: savedPrompt,
     };
   }
   const projectQuery = search.get('project');
   if (projectQuery) {
+    const savedPrompt = promptQuery || (typeof window !== 'undefined' ? localStorage.getItem(`gitoscale_project_${projectQuery}`) || undefined : undefined);
     return {
       projectId: projectQuery,
-      prompt: promptQuery,
+      prompt: savedPrompt,
     };
   }
   return null;
@@ -93,6 +95,7 @@ const isAppDomain = () => {
     host === 'app.gittoscale.tech' ||
     host.startsWith('app.') ||
     window.location.pathname.startsWith('/app') ||
+    window.location.pathname.startsWith('/project') ||
     search.has('app') ||
     search.has('repo') ||
     search.has('demo')
@@ -422,7 +425,7 @@ export const App: React.FC = () => {
             const res = await api.analyzeRepository({ repoUrl: repoParam });
             const repoName =
               res.repoName || repoParam.split('/').pop()?.replace('.git', '') || 'Repository';
-            handleImportArchitecture(res.nodes, res.edges, repoName, res.basicGraph, res.detailedGraph);
+            handleImportArchitecture(res.nodes, res.edges, repoName, res.basicGraph, res.detailedGraph, repoParam);
             return;
           } catch (repoErr) {
             console.error('Failed to auto-load repo from URL parameter:', repoErr);
@@ -566,31 +569,36 @@ export const App: React.FC = () => {
   // Directly navigate to simulator and generate architecture on prompt submit
   const handleStartProject = useCallback(
     (promptText: string) => {
-      if (!user) {
-        savePendingAction({
-          type: 'prompt',
-          prompt: promptText,
-          returnUrl: '/app',
-          customAnswers: selectedAnswers,
-          createdAt: Date.now(),
-        });
-        window.history.pushState({}, '', '/signup?redirect=/app');
-        setCurrentView('signup');
-        return;
-      }
-
       const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gitoscale_project_${projectId}`, promptText);
       }
 
-      if (isCustomDomain() && !isAppDomain()) {
-        window.location.href = `${APP_SUBDOMAIN_URL}/app?prompt=${encodeURIComponent(promptText)}`;
+      const projectPath = `/project/${projectId}?prompt=${encodeURIComponent(promptText)}`;
+      const targetUrl = (isCustomDomain() && !isAppDomain())
+        ? `${APP_SUBDOMAIN_URL}${projectPath}`
+        : projectPath;
+
+      if (!user) {
+        savePendingAction({
+          type: 'prompt',
+          prompt: promptText,
+          projectId,
+          returnUrl: targetUrl,
+          customAnswers: selectedAnswers,
+          createdAt: Date.now(),
+        });
+        window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(targetUrl)}`);
+        setCurrentView('signup');
         return;
       }
 
-      const projectUrl = `/app?prompt=${encodeURIComponent(promptText)}`;
-      window.history.pushState({ projectId, prompt: promptText }, '', projectUrl);
+      if (isCustomDomain() && !isAppDomain()) {
+        window.location.href = targetUrl;
+        return;
+      }
+
+      window.history.pushState({ projectId, prompt: promptText }, '', projectPath);
       setActiveProject({ projectId, prompt: promptText });
       setCurrentView('simulator');
       handleGenerateFromPrompt(promptText);
@@ -600,14 +608,21 @@ export const App: React.FC = () => {
 
   const handleRequireAuthForRepo = useCallback(
     (repoUrl: string, llmConfig?: any) => {
+      const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+      const projectPath = `/project/${projectId}?repo=${encodeURIComponent(repoUrl)}`;
+      const targetUrl = (isCustomDomain() && !isAppDomain())
+        ? `${APP_SUBDOMAIN_URL}${projectPath}`
+        : projectPath;
+
       savePendingAction({
         type: 'repo',
         repoUrl,
-        returnUrl: '/app',
+        projectId,
+        returnUrl: targetUrl,
         llmConfig,
         createdAt: Date.now(),
       });
-      window.history.pushState({}, '', '/signup?redirect=/app');
+      window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(targetUrl)}`);
       setCurrentView('signup');
     },
     [savePendingAction]
@@ -954,14 +969,24 @@ export const App: React.FC = () => {
       const action = { ...pendingAction };
       clearPendingAction();
 
+      const dest = action.returnUrl || '/app';
+      if (isCustomDomain() && !isAppDomain() && dest.startsWith('http')) {
+        window.location.href = dest;
+        return;
+      }
+
       if (action.type === 'prompt') {
-        const dest = action.returnUrl || '/app';
-        window.history.pushState({}, '', dest);
+        window.history.pushState({ projectId: action.projectId, prompt: action.prompt }, '', dest);
+        if (action.projectId) {
+          setActiveProject({ projectId: action.projectId, prompt: action.prompt });
+        }
         setCurrentView('simulator');
         handleGenerateFromPrompt(action.prompt, action.customAnswers);
       } else if (action.type === 'repo') {
-        const dest = action.returnUrl || '/app';
-        window.history.pushState({}, '', dest);
+        window.history.pushState({ projectId: action.projectId }, '', dest);
+        if (action.projectId) {
+          setActiveProject({ projectId: action.projectId });
+        }
         setCurrentView('simulator');
         (async () => {
           try {
@@ -1043,9 +1068,41 @@ export const App: React.FC = () => {
         onClose={handleGoHome}
         onSuccess={() => {
           setIsAuthOpen(false);
-          const destination = pendingAction?.returnUrl || '/app';
-          window.history.pushState({}, '', destination);
-          setCurrentView('simulator');
+
+          if (pendingAction) {
+            // Handled automatically by the pendingAction useEffect
+            return;
+          }
+
+          const search = new URLSearchParams(window.location.search);
+          const redirectParam = search.get('redirect');
+
+          if (redirectParam) {
+            if (redirectParam.startsWith('http')) {
+              window.location.href = redirectParam;
+              return;
+            }
+            if (redirectParam === '/') {
+              window.history.pushState({}, '', '/');
+              setCurrentView('landing');
+              return;
+            }
+            window.history.pushState({}, '', redirectParam);
+            if (redirectParam.startsWith('/app') || redirectParam.startsWith('/project')) {
+              setCurrentView('simulator');
+            } else if (redirectParam.startsWith('/history')) {
+              setCurrentView('history');
+            } else if (redirectParam.startsWith('/recommender')) {
+              setCurrentView('recommender');
+            } else {
+              setCurrentView('landing');
+            }
+            return;
+          }
+
+          // Default: If user logged in from / (or without explicit redirect), stay on landing page
+          window.history.pushState({}, '', '/');
+          setCurrentView('landing');
         }}
       />
     );
@@ -1081,13 +1138,15 @@ export const App: React.FC = () => {
         <LandingPage
           isDark={isDark}
           isAppDomain={isAppDomain()}
+          user={user}
+          onSignOut={signOut}
           onToggleTheme={handleToggleTheme}
           onOpenRecommender={() => {
             window.history.pushState({}, '', '/recommender');
             setCurrentView('recommender');
           }}
           onOpenAuth={() => {
-            window.history.pushState({}, '', '/signin');
+            window.history.pushState({}, '', '/signin?redirect=/');
             setCurrentView('signin');
           }}
           onStartProject={handleStartProject}
@@ -1112,12 +1171,15 @@ export const App: React.FC = () => {
           isUserAuthenticated={Boolean(user)}
           onRequireAuth={handleRequireAuthForRepo}
           onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl) => {
+            const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+            const projectPath = `/project/${projectId}${repoUrl ? `?repo=${encodeURIComponent(repoUrl)}` : ''}`;
             if (isCustomDomain() && !isAppDomain() && repoUrl) {
-              window.location.href = `${APP_SUBDOMAIN_URL}/?repo=${encodeURIComponent(repoUrl)}`;
+              window.location.href = `${APP_SUBDOMAIN_URL}${projectPath}`;
               return;
             }
             handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl);
-            window.history.pushState({}, '', '/app');
+            window.history.pushState({ projectId }, '', projectPath);
+            setActiveProject({ projectId });
             setCurrentView('simulator');
           }}
         />
