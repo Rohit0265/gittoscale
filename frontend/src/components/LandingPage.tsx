@@ -772,57 +772,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
 
         {/* Hero Body Grid */}
-        <div className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-8 sm:gap-12 px-6 py-10 md:grid-cols-2 my-auto">
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={{ show: { transition: { staggerChildren: 0.1 } } }}
-          >
-            <motion.h1
-              variants={fadeUp}
-              className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.08] tracking-tight text-slate-900 dark:text-white"
-            >
-              Scale your system{' '}
-              <span className="block text-slate-500 dark:text-neutral-400 font-extrabold">
-                before disaster.
-              </span>
-            </motion.h1>
-
-            <motion.p
-              variants={fadeUp}
-              className="mt-5 max-w-md text-base sm:text-lg text-slate-600 dark:text-neutral-400 leading-relaxed"
-            >
-              Import your GitHub repository and instantly analyze your architecture, discover bottlenecks,
-              and understand how your system behaves under load.
-            </motion.p>
-
-            {onOpenRecommender && (
-              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3.5">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={onOpenRecommender}
-                  className="flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-5 sm:px-6 py-3 text-sm font-semibold text-white dark:text-neutral-950 transition-opacity hover:opacity-90 shadow-sm cursor-pointer group"
-                >
-                  <Sparkles className="h-4 w-4 text-indigo-400 dark:text-indigo-600 group-hover:rotate-12 transition-transform" />
-                  <span>Design Architecture with AI</span>
-                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-              </motion.div>
-            )}
-          </motion.div>
-
-          {/* Hero Architecture Visual */}
-          <div className="flex items-center justify-center">
-            <HeroDiagram />
-          </div>
-        </div>
+  
 
         {/* Subtle Bottom Spacer */}
         <div className="h-4" />
       </header>
 
       {/* Section 2: Project Overview (#demo) */}
-      <section
+      {/* <section
         id="demo"
         className="relative flex min-h-screen snap-start items-center justify-center px-3 sm:px-6 lg:px-10 py-10 sm:py-16 md:py-20"
       >
@@ -835,7 +792,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         >
           <Demo onLaunch={onSelectTestSite} />
         </motion.div>
-      </section>
+      </section> */}
 
 
       {/* Sections 3–6: Interactive Pinned Steps Journey */}
