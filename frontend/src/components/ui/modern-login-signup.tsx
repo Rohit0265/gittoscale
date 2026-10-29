@@ -298,7 +298,11 @@ export default function Component({
         border: '1px solid #333',
       }}
     >
-      {logoText}
+      <img
+        src="/logo-mark.png"
+        alt={logoText || brandName}
+        style={{ width: 26, height: 26, objectFit: 'contain' }}
+      />
     </div>
   );
 
