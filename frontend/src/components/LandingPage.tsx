@@ -555,14 +555,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full snap-y snap-proximity overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-100 transition-colors"
+      className="h-screen w-full snap-y snap-proximity overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 transition-colors"
     >
       <PageDots active={active} />
 
       {/* Section 1: Hero Header & Content (#top) */}
       <header
         id="top"
-        className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-[#0A0A0A]"
+        className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-black"
       >
         {/* Top Navbar Header */}
         <div

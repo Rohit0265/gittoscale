@@ -1134,7 +1134,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'landing') {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#0A0A0A]">
+      <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-black">
         <LandingPage
           isDark={isDark}
           isAppDomain={isAppDomain()}
