@@ -34,6 +34,7 @@ interface AuthContextType {
   isConfigured: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: AuthError | Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | Error | null }>;
   updatePassword: (password: string) => Promise<{ error: AuthError | Error | null }>;
@@ -62,6 +63,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     }
   });
+
+
+  const signInWithOAuth = useCallback(async (provider: 'google' | 'github') => {
+    if (!isSupabaseConfigured) {
+      // Sandbox / Mock simulation fallback
+      const mockUser = {
+        id: `usr_${provider}_${Date.now().toString(36)}`,
+        email: `user@${provider}.com`,
+        fullName: `${provider.toUpperCase()} Developer`,
+      };
+      setUser(mockUser as any);
+      try {
+        localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockUser));
+      } catch {
+        // ignore storage errors
+      }
+      return { error: null };
+    }
+
+    const redirectUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/auth/callback`
+      : undefined;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: redirectUrl,
+      },
+    });
+
+    return { error };
+  }, []);
+
+
+
+
+
+
+
 
   // Save pending action to both memory and localStorage
   const savePendingAction = useCallback((action: PendingAction) => {
@@ -405,6 +445,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isConfigured: isSupabaseConfigured,
         signUp,
         signIn,
+        signInWithOAuth,
         signOut,
         resetPassword,
         updatePassword,

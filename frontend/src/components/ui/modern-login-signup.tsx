@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { api } from '@/services/api';
 import { X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface ModernLoginSignupProps {
   onClose?: () => void;
@@ -17,10 +17,9 @@ export default function Component({
   logoText = "GS",
   brandName = "GitToScale",
 }: ModernLoginSignupProps = {}) {
+  const { signInWithOAuth } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -186,57 +185,29 @@ export default function Component({
     };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !email.includes('@')) {
-      setMessage({ type: 'error', text: 'Please enter a valid email address.' });
-      return;
-    }
-
+  const handleSocialClick = async (providerName: string) => {
+    const provider = providerName.toLowerCase() as 'google' | 'github';
     setIsLoading(true);
     setMessage(null);
 
     try {
-      if (isLogin) {
-        const res = await api.login({ email });
-        setMessage({ type: 'success', text: res.message || 'Signed in successfully! (mock)' });
-        if (res.user) {
-          onSuccess?.(res.user);
-        }
+      const { error } = await signInWithOAuth(provider);
+      if (error) {
+        setMessage({ type: 'error', text: error.message || `Failed to sign in with ${providerName}` });
+        setIsLoading(false);
       } else {
-        const res = await api.signup({ name, email });
-        setMessage({ type: 'success', text: res.message || 'Account created successfully! (mock)' });
-        if (res.user) {
-          onSuccess?.(res.user);
-        }
+        setMessage({ type: 'success', text: `Signed in with ${providerName}!` });
+        onSuccess?.({
+          id: `usr_${provider}`,
+          email: `user@${provider}.com`,
+          name: `${providerName} Developer`,
+        });
+        setIsLoading(false);
       }
     } catch (err: any) {
-      // Graceful fallback simulation if offline or error
-      const mockUser = {
-        id: 'usr_offline',
-        email,
-        name: name || email.split('@')[0],
-      };
-      setMessage({
-        type: 'success',
-        text: `${isLogin ? 'Signed in' : 'Registered'} with mock credentials!`,
-      });
-      onSuccess?.(mockUser);
-    } finally {
+      setMessage({ type: 'error', text: err?.message || `Failed to sign in with ${providerName}` });
       setIsLoading(false);
     }
-  };
-
-  const handleSocialClick = (provider: string) => {
-    setMessage({
-      type: 'success',
-      text: `${provider} authentication simulated (mock endpoint).`,
-    });
-    onSuccess?.({
-      id: `usr_${provider.toLowerCase()}`,
-      email: `user@${provider.toLowerCase()}.example`,
-      name: `${provider} User`,
-    });
   };
 
   /* ─── shared button styles ─── */
@@ -258,6 +229,7 @@ export default function Component({
     transition: 'background 0.15s ease',
   };
 
+  /*
   const input: React.CSSProperties = {
     width: '100%',
     padding: '0.65rem 0.85rem',
@@ -268,6 +240,7 @@ export default function Component({
     fontSize: '0.875rem',
     outline: 'none',
   };
+  */
 
   /* ─── Google / GitHub / Apple SVGs ─── */
   const GoogleIcon = (
@@ -297,11 +270,13 @@ export default function Component({
     </svg>
   );
 
+  /*
   const AppleIcon = (
     <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: 16, height: 16, flexShrink: 0 }}>
       <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.04 2.26-.79 3.59-.76 1.56.04 2.88.75 3.65 1.89-3.08 1.75-2.58 5.61.35 6.75-1.01 2.37-2.39 4.39-4.29 4.29zM12.03 7.25c-.15-2.23 1.66-4.07 3.72-4.25.36 2.38-1.92 4.34-3.72 4.25z" />
     </svg>
   );
+  */
 
   const Logo = (
     <div
@@ -450,7 +425,7 @@ export default function Component({
               </div>
             )}
 
-            <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            {/* <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               <input
                 style={input}
                 type="email"
@@ -477,19 +452,19 @@ export default function Component({
               >
                 {isLoading ? 'Connecting...' : 'Continue with Email'}
               </button>
-            </form>
+            </form> */}
 
             <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} />
 
-            <button type="button" onClick={() => handleSocialClick('Google')} style={socialBtn}>
+            <button type="button" disabled={isLoading} onClick={() => handleSocialClick('Google')} style={socialBtn}>
               {GoogleIcon}Continue with Google
             </button>
-            <button type="button" onClick={() => handleSocialClick('GitHub')} style={socialBtn}>
+            <button type="button" disabled={isLoading} onClick={() => handleSocialClick('GitHub')} style={socialBtn}>
               {GitHubIcon}Continue with GitHub
             </button>
-            <button type="button" onClick={() => handleSocialClick('Apple')} style={{ ...socialBtn, marginBottom: 0 }}>
+            {/* <button type="button" onClick={() => handleSocialClick('Apple')} style={{ ...socialBtn, marginBottom: 0 }}>
               {AppleIcon}Continue with Apple
-            </button>
+            </button> */}
 
             <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: '#888' }}>
               Don't have an account?{' '}
@@ -558,7 +533,7 @@ export default function Component({
               </div>
             )}
 
-            <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            {/* <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               <input
                 style={input}
                 type="text"
@@ -593,19 +568,19 @@ export default function Component({
               >
                 {isLoading ? 'Creating Account...' : 'Sign Up with Email'}
               </button>
-            </form>
+            </form> */}
 
-            <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} />
 
-            <button type="button" onClick={() => handleSocialClick('Google')} style={socialBtn}>
+            <button type="button" disabled={isLoading} onClick={() => handleSocialClick('Google')} style={socialBtn}>
               {GoogleIcon}Sign up with Google
             </button>
-            <button type="button" onClick={() => handleSocialClick('GitHub')} style={socialBtn}>
+            <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} />
+            <button type="button" disabled={isLoading} onClick={() => handleSocialClick('GitHub')} style={socialBtn}>
               {GitHubIcon}Sign up with GitHub
             </button>
-            <button type="button" onClick={() => handleSocialClick('Apple')} style={{ ...socialBtn, marginBottom: 0 }}>
+            {/* <button type="button" onClick={() => handleSocialClick('Apple')} style={{ ...socialBtn, marginBottom: 0 }}>
               {AppleIcon}Sign up with Apple
-            </button>
+            </button> */}
 
             <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: '#888' }}>
               Already have an account?{' '}
