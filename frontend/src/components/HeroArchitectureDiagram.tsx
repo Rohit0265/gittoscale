@@ -141,30 +141,30 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
       {/* Floating Badge 1 (Top Left): Telemetry / Activity */}
       <div
         style={{ left: '4.5%', top: '4.5%' }}
-        className="absolute w-[40px] h-[40px] sm:w-[44px] sm:h-[44px] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] flex items-center justify-center text-slate-700 dark:text-neutral-300 shadow-xs z-10"
+        className="group absolute w-[40px] h-[40px] sm:w-[44px] sm:h-[44px] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] flex items-center justify-center text-slate-700 dark:text-neutral-300 shadow-xs z-10"
       >
-        <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-neutral-400" />
+        <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />
       </div>
 
       {/* Floating Badge 2 (Top Right): Uptime / Trend */}
       <div
         style={{ right: '4.5%', top: '4.5%' }}
-        className="absolute w-[40px] h-[40px] sm:w-[44px] sm:h-[44px] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] flex items-center justify-center text-slate-700 dark:text-neutral-300 shadow-xs z-10"
+        className="group absolute w-[40px] h-[40px] sm:w-[44px] sm:h-[44px] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] flex items-center justify-center text-slate-700 dark:text-neutral-300 shadow-xs z-10"
       >
-        <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-neutral-400" />
+        <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-neutral-400 group-hover:text-emerald-500 transition-colors" />
       </div>
 
       {/* Center-Left: GitHub Repository Source Card */}
       <div
         style={{ left: '11%', top: '36.5%', width: '31.5%', height: '24.5%' }}
-        className="absolute rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] p-3 sm:p-3.5 flex items-center gap-3 shadow-xs z-10"
+        className="group absolute rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] p-3 sm:p-3.5 flex items-center gap-3 shadow-xs z-10"
       >
         {/* Left incoming wire port */}
         <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         {/* GitHub Logo */}
         <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shrink-0 shadow-xs">
-          <Github className="w-5 h-5 fill-current" />
+          <Github className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" />
         </div>
 
         {/* 2 Horizontal Skeleton Bars */}
@@ -181,13 +181,13 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
       {/* Service 1 (Top): Core / Box Service */}
       <div
         style={{ right: '9%', top: '24.5%', width: '31.5%', height: '17%' }}
-        className="absolute rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] px-3 py-2 flex items-center justify-between shadow-xs z-10"
+        className="group absolute rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] px-3 py-2 flex items-center justify-between shadow-xs z-10"
       >
         {/* Left incoming port */}
         <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 group-hover:bg-emerald-500/10 group-hover:text-emerald-500 transition-colors flex items-center justify-center shrink-0">
             <Box className="w-3.5 h-3.5" />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -206,13 +206,13 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
       {/* Service 2 (Middle): Database */}
       <div
         style={{ right: '9%', top: '46%', width: '31.5%', height: '17%' }}
-        className="absolute rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] px-3 py-2 flex items-center justify-between shadow-xs z-10"
+        className="group absolute rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] px-3 py-2 flex items-center justify-between shadow-xs z-10"
       >
         {/* Left incoming port */}
         <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 group-hover:bg-amber-500/10 group-hover:text-amber-500 transition-colors flex items-center justify-center shrink-0">
             <Database className="w-3.5 h-3.5" />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -228,13 +228,13 @@ export const HeroArchitectureDiagram: React.FC<HeroArchitectureDiagramProps> = (
       {/* Service 3 (Bottom): Settings / Worker */}
       <div
         style={{ right: '9%', top: '67.5%', width: '31.5%', height: '17%' }}
-        className="absolute rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] px-3 py-2 flex items-center justify-between shadow-xs z-10"
+        className="group absolute rounded-xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] px-3 py-2 flex items-center justify-between shadow-xs z-10"
       >
         {/* Left incoming port */}
         <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-white dark:border-[#0A0A0A] bg-black dark:bg-white" />
 
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 group-hover:bg-rose-500/10 group-hover:text-rose-500 transition-colors flex items-center justify-center shrink-0">
             <Settings className="w-3.5 h-3.5" />
           </div>
           <div className="flex flex-col gap-1.5">

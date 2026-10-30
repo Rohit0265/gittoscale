@@ -62,14 +62,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <button
               type="button"
               onClick={handleGoHome}
-              className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-2 text-xs font-semibold ${
+              className={`group p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-2 text-xs font-semibold ${
                 isDark
                   ? 'border-neutral-800 bg-[#0A0A0A] text-neutral-300 hover:text-white hover:border-neutral-700'
                   : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:border-slate-300 shadow-xs'
               }`}
               title="Return to home page"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 group-hover:text-indigo-500 transition-all" />
               <span className="hidden sm:inline">Back to Home</span>
             </button>
 
@@ -97,7 +97,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <button
               type="button"
               onClick={() => handleTabClick('cookie')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 type === 'cookie'
                   ? isDark
                     ? 'bg-blue-600 text-white shadow-xs'
@@ -107,14 +107,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Cookie className="w-3.5 h-3.5" />
+              <Cookie className="w-3.5 h-3.5 group-hover:text-amber-500 transition-colors" />
               <span>Cookie Policy</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleTabClick('privacy')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 type === 'privacy'
                   ? isDark
                     ? 'bg-blue-600 text-white shadow-xs'
@@ -124,14 +124,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Shield className="w-3.5 h-3.5" />
+              <Shield className="w-3.5 h-3.5 group-hover:text-emerald-500 transition-colors" />
               <span>Privacy Policy</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleTabClick('terms')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 type === 'terms'
                   ? isDark
                     ? 'bg-blue-600 text-white shadow-xs'
@@ -141,7 +141,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileText className="w-3.5 h-3.5" />
+              <FileText className="w-3.5 h-3.5 group-hover:text-blue-500 transition-colors" />
               <span>Terms of Service</span>
             </button>
           </div>
@@ -159,7 +159,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 }`}
                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
-                {isDark ? <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300" /> : <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300" />}
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-amber-400 transition-colors" />
+                ) : (
+                  <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-blue-400 transition-colors" />
+                )}
               </button>
             )}
           </div>
@@ -174,7 +178,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <button
             type="button"
             onClick={() => handleTabClick('cookie')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
               type === 'cookie'
                 ? isDark
                   ? 'bg-blue-600 text-white'
@@ -184,13 +188,13 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 : 'text-slate-600'
             }`}
           >
-            <Cookie className="w-3.5 h-3.5" />
+            <Cookie className="w-3.5 h-3.5 group-hover:text-amber-500 transition-colors" />
             <span>Cookies</span>
           </button>
           <button
             type="button"
             onClick={() => handleTabClick('privacy')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
               type === 'privacy'
                 ? isDark
                   ? 'bg-blue-600 text-white'
@@ -200,13 +204,13 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 : 'text-slate-600'
             }`}
           >
-            <Shield className="w-3.5 h-3.5" />
+            <Shield className="w-3.5 h-3.5 group-hover:text-emerald-500 transition-colors" />
             <span>Privacy</span>
           </button>
           <button
             type="button"
             onClick={() => handleTabClick('terms')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
               type === 'terms'
                 ? isDark
                   ? 'bg-blue-600 text-white'
@@ -216,7 +220,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 : 'text-slate-600'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-3.5 h-3.5 group-hover:text-blue-500 transition-colors" />
             <span>Terms</span>
           </button>
         </div>

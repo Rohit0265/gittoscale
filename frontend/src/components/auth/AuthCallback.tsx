@@ -196,7 +196,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
         {status === 'success' && (
           <div className="py-6 flex flex-col items-center">
-            <CheckCircle2 className="w-10 h-10 text-white mb-4" />
+            <CheckCircle2 className="w-10 h-10 text-white hover:text-emerald-400 transition-colors mb-4" />
             <h2 className="text-lg font-semibold text-white mb-1">
               Authentication Verified
             </h2>
@@ -208,7 +208,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
         {status === 'error' && (
           <div className="py-6 flex flex-col items-center">
-            <AlertCircle className="w-10 h-10 text-slate-300 mb-4" />
+            <AlertCircle className="w-10 h-10 text-slate-300 hover:text-rose-400 transition-colors mb-4" />
             <h2 className="text-lg font-semibold text-white mb-1">
               Authentication Failed
             </h2>

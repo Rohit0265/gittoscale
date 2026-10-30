@@ -645,10 +645,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           <button
             type="button"
             onClick={onGoHome}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white text-xs font-medium transition-colors cursor-pointer shrink-0"
+            className="group flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white text-xs font-medium transition-colors cursor-pointer shrink-0"
             title="Return to Landing Page"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 group-hover:text-indigo-500 transition-all" />
             <img
               src={isDark ? '/logo.png' : '/logo-light.png'}
               alt="GitToScale"
@@ -672,7 +672,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         {/* Action Controls */}
         <div className="flex items-center gap-2 shrink-0">
           {/* Basic View vs Detailed View Toggle */}
-          <div className="hidden sm:flex items-center p-0.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900 text-xs">
+          <div className="hidden sm:flex items-center p-0.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:neutral-900 text-xs">
             <button
               type="button"
               onClick={() => setViewMode('basic')}
@@ -683,7 +683,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               }`}
               title="High-level architecture overview"
             >
-              <Layers className="w-3 h-3" />
+              <Layers className="w-3 h-3 hover:text-indigo-500 transition-colors" />
               <span>Basic View</span>
             </button>
             <button
@@ -696,7 +696,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               }`}
               title="Decomposed architecture: controllers, pools, worker queues & replicas"
             >
-              <Network className="w-3 h-3" />
+              <Network className="w-3 h-3 hover:text-blue-500 transition-colors" />
               <span>Detailed View</span>
             </button>
           </div>
@@ -725,10 +725,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           <button
             type="button"
             onClick={handleExportJSON}
-            className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer hidden md:flex"
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 hover:text-indigo-500 transition-colors cursor-pointer hidden md:flex"
             title="Export architecture as JSON"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-4 h-4 hover:text-indigo-500 transition-colors" />
           </button>
 
           {/* Theme Toggle */}
@@ -739,9 +739,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             >
               {isDark ? (
-                <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
+                <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-amber-400 transition-colors" />
               ) : (
-                <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
+                <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-blue-400 transition-colors" />
               )}
             </button>
           )}

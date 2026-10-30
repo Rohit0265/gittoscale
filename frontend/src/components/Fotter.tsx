@@ -47,10 +47,10 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavi
             <button
               type="button"
               onClick={() => setIsFeedbackOpen(true)}
-              className="gts-feedback-pill"
+              className="gts-feedback-pill group"
               aria-label="Give feedback or report a bug"
             >
-              <MessageSquarePlus className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
+              <MessageSquarePlus className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-500 transition-colors" />
               <span>Feedback &amp; Bug Report</span>
               {/* <span className="gts-feedback-badge">Share idea</span> */}
             </button>
@@ -92,28 +92,28 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavi
               href="https://linkedin.com/in/rohitmathur95"
               target="_blank"
               rel="noreferrer"
-              className="gts-minimal-social-icon"
+              className="gts-minimal-social-icon group"
               aria-label="LinkedIn"
             >
-              <Linkedin className="w-5 h-5" />
+              <Linkedin className="w-5 h-5 text-slate-600 dark:text-neutral-400 group-hover:text-[#0A66C2] transition-colors" />
             </a>
             <a
               href="https://github.com/Rohit0265"
               target="_blank"
               rel="noreferrer"
-              className="gts-minimal-social-icon"
+              className="gts-minimal-social-icon group"
               aria-label="GitHub"
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-5 h-5 text-slate-600 dark:text-neutral-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
             </a>
             <a
               href="mailto:rohit@myportfolio-rsm.in"
               target="_blank"
               rel="noreferrer"
-              className="gts-minimal-social-icon"
+              className="gts-minimal-social-icon group"
               aria-label="Email"
             >
-              <Mail className="w-5 h-5" />
+              <Mail className="w-5 h-5 text-slate-600 dark:text-neutral-400 group-hover:text-rose-500 transition-colors" />
             </a>
           </div>
         </div>

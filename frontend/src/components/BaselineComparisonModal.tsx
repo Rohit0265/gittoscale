@@ -37,7 +37,11 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
           isGood ? 'text-slate-800 dark:text-neutral-200' : 'text-slate-500 dark:text-neutral-400'
         }`}
       >
-        {isPositive ? <TrendingUp className="w-3 h-3 text-slate-700 dark:text-neutral-300" /> : <TrendingDown className="w-3 h-3 text-slate-700 dark:text-neutral-300" />}
+        {isPositive ? (
+          <TrendingUp className="w-3 h-3 text-slate-700 dark:text-neutral-300 hover:text-emerald-500 transition-colors" />
+        ) : (
+          <TrendingDown className="w-3 h-3 text-slate-700 dark:text-neutral-300 hover:text-rose-500 transition-colors" />
+        )}
         {isPositive ? `+${diff.toLocaleString()}` : diff.toLocaleString()}
       </span>
     );
@@ -50,7 +54,7 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
         <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-300 shrink-0">
-              <GitCompare className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
+              <GitCompare className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-indigo-500 transition-colors" />
             </div>
             <div>
               <h2 className="font-bold text-sm text-slate-900 dark:text-slate-100">
@@ -65,7 +69,7 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
             onClick={onClose}
             className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 hover:text-rose-500 transition-colors" />
           </button>
         </div>
 

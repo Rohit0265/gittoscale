@@ -119,7 +119,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
               title="Collapse right sidebar"
               className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
-              <PanelRight className="w-4 h-4" />
+              <PanelRight className="w-4 h-4 hover:text-indigo-500 transition-colors" />
             </button>
           )}
           <button
@@ -127,7 +127,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
             title="Close inspector"
             className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 hover:text-rose-500 transition-colors" />
           </button>
         </div>
       </div>
@@ -218,7 +218,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300">
                 <span className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-slate-400" />
+                  <Users className="w-3.5 h-3.5 text-slate-400 hover:text-indigo-500 transition-colors" />
                   Worker Count
                 </span>
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
@@ -251,7 +251,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
             <div className="space-y-1">
               <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300">
                 <span className="flex items-center gap-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-slate-400" />
+                  <Cpu className="w-3.5 h-3.5 text-slate-400 hover:text-blue-500 transition-colors" />
                   Capacity per Worker
                 </span>
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
@@ -273,7 +273,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300">
               <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                <Clock className="w-3.5 h-3.5 text-slate-400 hover:text-amber-500 transition-colors" />
                 Baseline Latency
               </span>
               <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
@@ -294,7 +294,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300">
               <span className="flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-slate-400" />
+                <Layers className="w-3.5 h-3.5 text-slate-400 hover:text-purple-500 transition-colors" />
                 Queue Capacity
               </span>
               <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
@@ -351,10 +351,10 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
                     <button
                       type="button"
                       onClick={() => onDeleteEdge(edge.id)}
-                      className="p-1 rounded text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      className="group/del p-1 rounded text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                       title={`Delete connection from ${edge.source}`}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5 group-hover/del:text-red-500 transition-colors" />
                     </button>
                   )}
                 </div>
@@ -471,9 +471,9 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
               >
                 <div className="flex items-center gap-1.5 font-bold mb-1">
                   {result.status === 'overloaded' ? (
-                    <AlertOctagon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+                    <AlertOctagon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-rose-500 transition-colors" />
                   ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-amber-500 transition-colors" />
                   )}
                   <span>Bottleneck Diagnosis</span>
                 </div>

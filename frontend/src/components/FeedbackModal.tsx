@@ -135,8 +135,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 dark:border-neutral-800/80">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
-                  <MessageSquarePlus className="h-5 w-5" />
+                <div className="group flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
+                  <MessageSquarePlus className="h-5 w-5 group-hover:text-indigo-500 transition-colors" />
                 </div>
                 <div>
                   <h2
@@ -157,7 +157,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                 aria-label="Close feedback modal"
                 className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 hover:text-rose-500 transition-colors" />
               </button>
             </div>
 
@@ -169,7 +169,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                 className="p-8 text-center"
               >
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-800 dark:bg-neutral-800 dark:text-neutral-200">
-                  <CheckCircle2 className="h-8 w-8 text-slate-800 dark:text-neutral-200" />
+                  <CheckCircle2 className="h-8 w-8 text-slate-800 dark:text-neutral-200 hover:text-emerald-500 transition-colors" />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                   Thank You for Your Feedback!
@@ -199,26 +199,26 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setType('recommendation')}
-                      className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all ${
+                      className={`group flex items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all ${
                         type === 'recommendation'
                           ? 'border-slate-800 bg-slate-100 text-slate-900 shadow-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white'
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-neutral-300'
                       }`}
                     >
-                      <Lightbulb className={`h-4 w-4 ${type === 'recommendation' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-neutral-400'}`} />
+                      <Lightbulb className={`h-4 w-4 transition-colors ${type === 'recommendation' ? 'text-slate-900 dark:text-white group-hover:text-amber-500' : 'text-slate-500 dark:text-neutral-400 group-hover:text-amber-500'}`} />
                       <span>Recommendation</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setType('bug')}
-                      className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all ${
+                      className={`group flex items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all ${
                         type === 'bug'
                           ? 'border-slate-800 bg-slate-100 text-slate-900 shadow-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white'
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-neutral-300'
                       }`}
                     >
-                      <Bug className={`h-4 w-4 ${type === 'bug' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-neutral-400'}`} />
+                      <Bug className={`h-4 w-4 transition-colors ${type === 'bug' ? 'text-slate-900 dark:text-white group-hover:text-rose-500' : 'text-slate-500 dark:text-neutral-400 group-hover:text-rose-500'}`} />
                       <span>Bug Report</span>
                     </button>
                   </div>

@@ -94,53 +94,62 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
       return {
         icon: Monitor,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-sky-500',
       };
     }
     if (type === 'gateway' || nameLower.includes('gateway') || idLower.includes('gateway')) {
       return {
         icon: Cloud,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-purple-500',
       };
     }
     if (nameLower.includes('auth') || idLower.includes('auth')) {
       return {
         icon: Shield,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-emerald-500',
       };
     }
     if (nameLower.includes('agent') || idLower.includes('agent') || nameLower.includes('bot')) {
       return {
         icon: Bot,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-orange-500',
       };
     }
     if (nameLower.includes('billing') || nameLower.includes('payment') || idLower.includes('billing')) {
       return {
         icon: CreditCard,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-amber-500',
       };
     }
     if (type === 'cache' || nameLower.includes('cache') || nameLower.includes('redis')) {
       return {
         icon: Database,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-cyan-500',
       };
     }
     if (nameLower.includes('chat') || idLower.includes('chat') || nameLower.includes('message')) {
       return {
         icon: MessageSquare,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-fuchsia-500',
       };
     }
     if (type === 'database') {
       return {
         icon: Database,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-emerald-500',
       };
     }
     return {
       icon: Server,
       containerStyle: neutralContainerStyle,
+      hoverColor: 'group-hover:text-indigo-500',
     };
   };
 
@@ -194,9 +203,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                   onAddNode('service', `Custom Service ${nodes.length + 1}`);
                   setShowAddMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Server className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                <Server className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-sky-500 transition-colors" />
                 Service
               </button>
               <button
@@ -204,9 +213,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                   onAddNode('cache', `Redis Cache ${nodes.length + 1}`);
                   setShowAddMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-cyan-500 transition-colors" />
                 Cache
               </button>
               <button
@@ -214,9 +223,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                   onAddNode('database', `Database ${nodes.length + 1}`);
                   setShowAddMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Database className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                <Database className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-emerald-500 transition-colors" />
                 Database
               </button>
               <button
@@ -224,9 +233,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                   onAddNode('gateway', `API Gateway ${nodes.length + 1}`);
                   setShowAddMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Globe className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                <Globe className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-purple-500 transition-colors" />
                 Gateway
               </button>
             </div>
@@ -250,7 +259,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
             <div
               key={node.id}
               onClick={() => onSelectNode(isSelected ? null : node.id)}
-              className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+              className={`group p-2 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                 isSelected
                   ? 'bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-400 dark:border-indigo-500/50 shadow-none ring-1 ring-indigo-400/30'
                   : 'bg-white dark:bg-[#141414]/75 hover:bg-slate-50 dark:hover:bg-[#141414] border-slate-200 dark:border-neutral-800 shadow-none'
@@ -264,7 +273,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                 <div
                   className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${visual.containerStyle}`}
                 >
-                  <Icon className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <Icon className={`w-3.5 h-3.5 transition-colors ${visual.hoverColor}`} strokeWidth={1.75} />
                 </div>
 
                 {/* Text details */}
@@ -334,9 +343,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                         setRenameValue(node.name);
                         setOpenMenuNodeId(null);
                       }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
+                      className="group/item w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                     >
-                      <Pencil className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
+                      <Pencil className="w-3 h-3 text-slate-600 dark:text-neutral-400 group-hover/item:text-indigo-500 transition-colors" />
                       <span>Rename</span>
                     </button>
 
@@ -346,9 +355,13 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                           onToggleNode(node.id);
                           setOpenMenuNodeId(null);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
+                        className={`group/item w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 ${
+                          node.enabled ? 'hover:text-amber-500' : 'hover:text-emerald-500'
+                        } hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer`}
                       >
-                        <Power className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
+                        <Power className={`w-3 h-3 text-slate-600 dark:text-neutral-400 ${
+                          node.enabled ? 'group-hover/item:text-amber-500' : 'group-hover/item:text-emerald-500'
+                        } transition-colors`} />
                         <span>{node.enabled ? 'Disable' : 'Enable'}</span>
                       </button>
                     )}
@@ -359,9 +372,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                           onDeleteNode(node.id);
                           setOpenMenuNodeId(null);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
+                        className="group/item w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                       >
-                        <Trash2 className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
+                        <Trash2 className="w-3 h-3 text-slate-600 dark:text-neutral-400 group-hover/item:text-red-500 transition-colors" />
                         <span>Delete</span>
                       </button>
                     )}

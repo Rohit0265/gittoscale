@@ -114,7 +114,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
       {/* Title & Headline */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 text-xs font-semibold mb-3 shadow-2xs">
-          <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+          <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-amber-500 transition-colors" />
           <span>AI Architecture Architect</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -193,7 +193,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
             className="flex items-center justify-between w-full text-xs font-semibold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer py-1"
           >
             <span className="flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+              <Sliders className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-indigo-500 transition-colors" />
               <span>Tailor Constraints (Scale, Budget, Preferred Tech)</span>
             </span>
             {showAdvanced ? (
@@ -208,7 +208,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
               {/* Expected Scale */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <Clock className="w-3.5 h-3.5 text-slate-400 hover:text-amber-500 transition-colors" />
                   Expected Scale
                 </label>
                 <select
@@ -225,7 +225,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
               {/* Budget */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+                  <DollarSign className="w-3.5 h-3.5 text-slate-400 hover:text-emerald-500 transition-colors" />
                   Budget Constraint
                 </label>
                 <select
@@ -242,7 +242,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
               {/* Deployment Preference */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
-                  <Cloud className="w-3.5 h-3.5 text-slate-400" />
+                  <Cloud className="w-3.5 h-3.5 text-slate-400 hover:text-sky-500 transition-colors" />
                   Deployment Preference
                 </label>
                 <select
@@ -260,7 +260,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
               {/* Reliability Requirement */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
-                  <Shield className="w-3.5 h-3.5 text-slate-400" />
+                  <Shield className="w-3.5 h-3.5 text-slate-400 hover:text-purple-500 transition-colors" />
                   Availability Target
                 </label>
                 <select
@@ -277,7 +277,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
               {/* Security & Compliance Requirement */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
-                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  <Lock className="w-3.5 h-3.5 text-slate-400 hover:text-rose-500 transition-colors" />
                   Security & Compliance
                 </label>
                 <select
@@ -295,7 +295,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
               {/* Preferred Tech Tags */}
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1.5 flex items-center gap-1">
-                  <Cpu className="w-3.5 h-3.5 text-slate-400" />
+                  <Cpu className="w-3.5 h-3.5 text-slate-400 hover:text-blue-500 transition-colors" />
                   Preferred Stack & Technologies (Optional)
                 </label>
                 <div className="flex flex-wrap gap-1.5">

@@ -166,9 +166,9 @@ function PageDots({ active }: { active: number }) {
 
 export function HeroDiagram() {
   const services = [
-    { Icon: Box, dot: 'bg-slate-400 dark:bg-neutral-500', text: 'text-slate-700 dark:text-neutral-300', y: 70 },
-    { Icon: Database, dot: 'bg-slate-400 dark:bg-neutral-500', text: 'text-slate-700 dark:text-neutral-300', y: 160 },
-    { Icon: Hexagon, dot: 'bg-slate-400 dark:bg-neutral-500', text: 'text-slate-700 dark:text-neutral-300', y: 250 },
+    { Icon: Box, dot: 'bg-slate-400 dark:bg-neutral-500', text: 'text-slate-700 dark:text-neutral-300 group-hover:text-emerald-500 transition-colors', y: 70 },
+    { Icon: Database, dot: 'bg-slate-400 dark:bg-neutral-500', text: 'text-slate-700 dark:text-neutral-300 group-hover:text-amber-500 transition-colors', y: 160 },
+    { Icon: Hexagon, dot: 'bg-slate-400 dark:bg-neutral-500', text: 'text-slate-700 dark:text-neutral-300 group-hover:text-rose-500 transition-colors', y: 250 },
   ];
 
   return (
@@ -199,19 +199,19 @@ export function HeroDiagram() {
       </svg>
 
       {/* Top Left Telemetry Card */}
-      <div className="absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-slate-500 dark:text-neutral-400 shadow-xs">
-        <BarChart3 className="h-4 w-4" />
+      <div className="group absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-slate-500 dark:text-neutral-400 shadow-xs">
+        <BarChart3 className="h-4 w-4 group-hover:text-indigo-500 transition-colors" />
       </div>
 
       {/* Top Right Telemetry Card */}
-      <div className="absolute right-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-slate-500 dark:text-neutral-400 shadow-xs">
-        <TrendingUp className="h-4 w-4" />
+      <div className="group absolute right-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-slate-500 dark:text-neutral-400 shadow-xs">
+        <TrendingUp className="h-4 w-4 group-hover:text-emerald-500 transition-colors" />
       </div>
 
       {/* Center Left GitHub Card */}
-      <div className="absolute left-[7%] top-1/2 flex h-14 w-[32%] -translate-y-1/2 items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] px-3 shadow-xs">
+      <div className="group absolute left-[7%] top-1/2 flex h-14 w-[32%] -translate-y-1/2 items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] px-3 shadow-xs">
         <span className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900 dark:bg-white text-white dark:text-neutral-950 shrink-0">
-          <Github className="h-4 w-4 fill-current" />
+          <Github className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
         </span>
         <span className="flex-1 space-y-1.5">
           <span className="block h-1.5 w-full rounded bg-slate-200 dark:bg-neutral-800" />
@@ -227,7 +227,7 @@ export function HeroDiagram() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.9 + i * 0.15 }}
           style={{ top: `${(y / 320) * 100}%`, translateY: '-50%' }}
-          className="absolute right-[4%] flex h-11 w-[33%] items-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] px-3 shadow-xs"
+          className="group absolute right-[4%] flex h-11 w-[33%] items-center gap-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] px-3 shadow-xs"
         >
           <span
             className={`flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 dark:bg-neutral-800/80 ${text} shrink-0`}
@@ -355,7 +355,7 @@ export function Demo({ onLaunch }: { onLaunch: () => void }) {
           aria-label="Previous image"
           className="absolute sm:static left-2 sm:left-auto top-1/2 -translate-y-1/2 sm:translate-y-0 z-20 shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white/95 dark:bg-[#18181b]/95 hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-800 dark:text-neutral-100 border border-slate-200/90 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg backdrop-blur-sm cursor-pointer"
         >
-          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 hover:text-indigo-500 transition-colors" />
         </button>
 
         {/* Big High-Resolution Image Canvas Frame */}
@@ -383,7 +383,7 @@ export function Demo({ onLaunch }: { onLaunch: () => void }) {
           {/* Sleek Hover/Touch Badge to indicate clickability */}
           <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-medium border border-white/10 shadow-lg">
             <span>Explore live demo</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:text-amber-400 transition-all" />
           </div>
         </div>
 
@@ -399,7 +399,7 @@ export function Demo({ onLaunch }: { onLaunch: () => void }) {
           aria-label="Next image"
           className="absolute sm:static right-2 sm:right-auto top-1/2 -translate-y-1/2 sm:translate-y-0 z-20 shrink-0 flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-white/95 dark:bg-[#18181b]/95 hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-800 dark:text-neutral-100 border border-slate-200/90 dark:border-neutral-700/80 transition-all hover:scale-105 active:scale-95 shadow-lg backdrop-blur-sm cursor-pointer"
         >
-          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 hover:text-indigo-500 transition-colors" />
         </button>
       </div>
 
@@ -597,12 +597,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Test Demo Site */}
               <button
                 onClick={onSelectTestSite}
-                className={`flex items-center gap-1.5 border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0 ${
+                className={`group flex items-center gap-1.5 border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0 ${
                   isApp ? 'px-2.5 sm:px-3 py-1.5 rounded-lg' : 'px-2.5 sm:px-3 py-1 rounded-full'
                 }`}
                 title="Test Demo Site"
               >
-                <Play className="h-3 w-3 fill-current opacity-80" />
+                <Play className="h-3 w-3 fill-current opacity-80 group-hover:text-emerald-500 group-hover:opacity-100 transition-colors" />
                 <span className="hidden sm:inline">Test Demo Site</span>
                 <span className="sm:hidden">Demo</span>
               </button>
@@ -618,11 +618,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => setIsProfileOpen((prev) => !prev)}
               aria-label="Profile, Authentication and Appearance settings"
               title={user ? (user.user_metadata?.full_name || user.email || 'Profile') : 'Profile & Settings'}
-              className={`border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50 hover:bg-slate-100 dark:hover:bg-[#141416] text-slate-700 dark:text-neutral-200 transition-all cursor-pointer flex items-center justify-center shrink-0 relative ${
+              className={`group border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50 hover:bg-slate-100 dark:hover:bg-[#141416] text-slate-700 dark:text-neutral-200 transition-all cursor-pointer flex items-center justify-center shrink-0 relative ${
                 isApp ? 'p-2 rounded-lg h-10 w-10' : 'p-2.5 rounded-full h-12 w-12 sm:h-13 sm:w-13'
               }`}
             >
-              <User className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 dark:text-neutral-200" />
+              <User className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 dark:text-neutral-200 group-hover:text-indigo-500 transition-colors" />
               {user && (
                 <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0A0A0A]" />
               )}
@@ -662,9 +662,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                             setIsProfileOpen(false);
                             onSignOut();
                           }}
-                          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                          className="group flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                         >
-                          <LogOut className="w-4 h-4 text-slate-600 dark:text-neutral-400" />
+                          <LogOut className="w-4 h-4 text-slate-600 dark:text-neutral-400 group-hover:text-red-500 transition-colors" />
                           <span>Sign Out</span>
                         </button>
                       )}
@@ -686,9 +686,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                             setIsProfileOpen(false);
                             onOpenAuth?.();
                           }}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors cursor-pointer shadow-xs"
+                          className="group flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors cursor-pointer shadow-xs"
                         >
-                          <LogIn className="w-3.5 h-3.5" />
+                          <LogIn className="w-3.5 h-3.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
                           <span>Log In</span>
                         </button>
 
@@ -703,9 +703,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                               onOpenAuth();
                             }
                           }}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
+                          className="group flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
                         >
-                          <UserPlus className="w-3.5 h-3.5" />
+                          <UserPlus className="w-3.5 h-3.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
                           <span>Sign Up</span>
                         </button>
                       </div>
@@ -728,13 +728,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                           onClick={() => {
                             if (isDark) onToggleTheme();
                           }}
-                          className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                          className={`group flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                             !isDark
                               ? 'bg-white text-slate-900 shadow-xs font-semibold'
                               : 'text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white'
                           }`}
                         >
-                          <Sun className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+                          <Sun className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 group-hover:text-amber-500 transition-colors" />
                           <span>Light</span>
                         </button>
 
@@ -743,13 +743,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                           onClick={() => {
                             if (!isDark) onToggleTheme();
                           }}
-                          className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                          className={`group flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                             isDark
                               ? 'bg-[#1e1e22] text-white shadow-xs font-semibold'
                               : 'text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white'
                           }`}
                         >
-                          <Moon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+                          <Moon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 group-hover:text-blue-400 transition-colors" />
                           <span>Dark</span>
                         </button>
                       </div>
@@ -898,11 +898,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ amount: 0.2 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
+              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
-                  <Compass className="w-5 h-5 text-slate-700 dark:text-neutral-300" />
+                  <Compass className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-500 transition-colors" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                   System Architects
@@ -911,10 +911,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Validate proposed microservice topologies, database sharding strategies, and message broker backpressure before writing a single line of infrastructure code.
                 </p>
               </div>
-              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
-                <span>Outcome: Zero unexpected cascading faults</span>
-                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">Pre-production</span>
-              </div> */}
             </motion.div>
 
             {/* Card 2 */}
@@ -923,11 +919,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ amount: 0.2 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
+              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
-                  <Cpu className="w-5 h-5 text-slate-700 dark:text-neutral-300" />
+                  <Cpu className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-sky-500 transition-colors" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                   DevOps & Platform Teams
@@ -936,10 +932,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Diagnose whether downstream DB connection pools or queue worker threads saturate first during 10x traffic spikes, pinpointing root bottlenecks instantly.
                 </p>
               </div>
-              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
-                <span>Outcome: Queue & latency safety thresholds</span>
-                <span className="text-sky-600 dark:text-sky-400 font-semibold">Capacity Planning</span>
-              </div> */}
             </motion.div>
 
             {/* Card 3 */}
@@ -948,11 +940,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ amount: 0.2 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
+              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
-                  <ShieldCheck className="w-5 h-5 text-slate-700 dark:text-neutral-300" />
+                  <ShieldCheck className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-emerald-500 transition-colors" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                   Tech Leads & Engineering VPs
@@ -961,10 +953,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Make data-backed infrastructure budget decisions. Compare baseline vs. scaled configurations side-by-side to justify cloud spend and replica counts.
                 </p>
               </div>
-              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
-                <span>Outcome: Eliminate over-provisioning spend</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Cost Efficiency</span>
-              </div> */}
             </motion.div>
 
             {/* Card 4 */}
@@ -973,11 +961,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ amount: 0.2 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
+              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
-                  <Layers className="w-5 h-5 text-slate-700 dark:text-neutral-300" />
+                  <Layers className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-amber-500 transition-colors" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                   System Design Learners
@@ -986,10 +974,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Move beyond static whiteboard diagrams. Test caching layers, load balancers, rate limiters, and failover mechanics interactively under synthetic loads.
                 </p>
               </div>
-              {/* <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-neutral-400">
-                <span>Outcome: Hands-on distributed system mastery</span>
-                <span className="text-amber-600 dark:text-amber-400 font-semibold">Interactive Learning</span>
-              </div> */}
             </motion.div>
           </div>
         </div>

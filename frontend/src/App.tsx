@@ -1508,14 +1508,14 @@ export const App: React.FC = () => {
       {error && (
         <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/50 px-4 py-2 flex items-center justify-between text-xs text-red-700 dark:text-red-300 z-20">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-rose-500 transition-colors shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={() => triggerSimulation(nodes, edges, incomingTrafficRate, durationSeconds)}
             className="flex items-center gap-1 font-semibold text-red-800 dark:text-red-300 hover:underline cursor-pointer"
           >
-            <RefreshCw className="w-3 h-3" /> Retry
+            <RefreshCw className="w-3 h-3 hover:text-rose-500 transition-colors" /> Retry
           </button>
         </div>
       )}
@@ -1527,7 +1527,7 @@ export const App: React.FC = () => {
           {isGeneratingArchitecture && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 dark:bg-[#0A0A0A]/95 border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white shadow-lg backdrop-blur-md text-xs font-medium">
               <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-neutral-400 animate-ping" />
-              <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 animate-spin" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-amber-500 transition-colors animate-spin" />
               <span>Synthesizing system architecture from requirements...</span>
             </div>
           )}
@@ -1614,7 +1614,7 @@ export const App: React.FC = () => {
             className="absolute left-2 sm:left-3 top-1/4 -translate-y-1/2 z-30 p-2 sm:p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
             title="Expand AI Architect Chat"
           >
-            <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100" />
+            <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-emerald-500 transition-colors" />
           </button>
         )}
 
@@ -1625,7 +1625,7 @@ export const App: React.FC = () => {
             className="absolute right-2 sm:right-3 top-1/4 -translate-y-1/2 z-30 p-2 sm:p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
             title="Expand right sidebar"
           >
-            <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100" />
+            <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
           </button>
         )}
 

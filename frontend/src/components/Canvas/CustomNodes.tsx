@@ -34,16 +34,16 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
   const getTypeIcon = () => {
     switch (node.type) {
       case 'load_generator':
-        return <Radio className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
+        return <Radio className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />;
       case 'gateway':
-        return <Globe className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
+        return <Globe className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" />;
       case 'database':
-        return <Database className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
+        return <Database className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />;
       case 'cache':
-        return <Layers className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
+        return <Layers className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />;
       case 'service':
       default:
-        return <Server className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
+        return <Server className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />;
     }
   };
 
@@ -52,21 +52,21 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
       case 'overloaded':
         return (
           <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700">
-            <AlertOctagon className="w-3 h-3 text-slate-700 dark:text-neutral-300 animate-pulse" />
+            <AlertOctagon className="w-3 h-3 text-slate-700 dark:text-neutral-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors animate-pulse" />
             Overloaded
           </span>
         );
       case 'warning':
         return (
           <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700">
-            <AlertTriangle className="w-3 h-3 text-slate-700 dark:text-neutral-300" />
+            <AlertTriangle className="w-3 h-3 text-slate-700 dark:text-neutral-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
             Warning
           </span>
         );
       case 'disabled':
         return (
           <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border border-slate-200 dark:border-neutral-700">
-            <PowerOff className="w-3 h-3 text-slate-400 dark:text-neutral-500" />
+            <PowerOff className="w-3 h-3 text-slate-400 dark:text-neutral-500 transition-colors" />
             Disabled
           </span>
         );
@@ -74,7 +74,7 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
       default:
         return (
           <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700">
-            <CheckCircle2 className="w-3 h-3 text-slate-700 dark:text-neutral-300" />
+            <CheckCircle2 className="w-3 h-3 text-slate-700 dark:text-neutral-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
             Normal
           </span>
         );
@@ -128,7 +128,7 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
 
   return (
     <div
-      className={`relative rounded-xl border p-3.5 w-64 transition-all duration-200 cursor-pointer ${getCardBorder()}`}
+      className={`group relative rounded-xl border p-3.5 w-64 transition-all duration-200 cursor-pointer ${getCardBorder()}`}
     >
       {/* Target Handles (Top center, Left, and Right for tree routing) */}
       {!isSource && (

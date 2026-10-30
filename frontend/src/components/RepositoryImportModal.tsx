@@ -437,7 +437,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 dark:bg-neutral-800 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 flex items-center justify-center shrink-0 transition-colors">
-              <GitBranch className="w-5 h-5 text-slate-800 dark:text-white stroke-[2.2]" />
+              <GitBranch className="w-5 h-5 text-slate-800 dark:text-white stroke-[2.2] hover:text-indigo-500 transition-colors" />
             </div>
             <div className="ml-3.5 flex flex-col justify-center">
               <h2 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
@@ -453,7 +453,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
             aria-label="Close modal"
             className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/80 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 hover:text-rose-500 transition-colors" />
           </button>
         </div>
 
@@ -711,7 +711,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                       {testStatus.testing ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500 dark:text-neutral-400" />
                       ) : (
-                        <ShieldCheck className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-emerald-500 transition-colors" />
                       )}
                       <span>Test</span>
                     </button>
@@ -726,9 +726,9 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                       }`}
                     >
                       {testStatus.success ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-neutral-300" />
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-neutral-300 hover:text-emerald-500 transition-colors" />
                       ) : (
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-neutral-300" />
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-neutral-300 hover:text-rose-500 transition-colors" />
                       )}
                       <span>{testStatus.message}</span>
                     </div>
@@ -747,7 +747,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
           {/* Error Banner */}
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-slate-700 dark:text-neutral-300" />
+              <AlertCircle className="w-4 h-4 shrink-0 text-slate-700 dark:text-neutral-300 hover:text-rose-500 transition-colors" />
               <span>{error}</span>
             </div>
           )}

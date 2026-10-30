@@ -115,53 +115,62 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       return {
         icon: Monitor,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-sky-500',
       };
     }
     if (type === 'gateway' || nameLower.includes('gateway') || idLower.includes('gateway')) {
       return {
         icon: Cloud,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-purple-500',
       };
     }
     if (nameLower.includes('auth') || idLower.includes('auth')) {
       return {
         icon: Shield,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-emerald-500',
       };
     }
     if (nameLower.includes('agent') || idLower.includes('agent') || nameLower.includes('bot')) {
       return {
         icon: Bot,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-orange-500',
       };
     }
     if (nameLower.includes('billing') || nameLower.includes('payment') || idLower.includes('billing')) {
       return {
         icon: CreditCard,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-amber-500',
       };
     }
     if (type === 'cache' || nameLower.includes('cache') || nameLower.includes('redis')) {
       return {
         icon: Database,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-cyan-500',
       };
     }
     if (nameLower.includes('chat') || idLower.includes('chat') || nameLower.includes('message')) {
       return {
         icon: MessageSquare,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-fuchsia-500',
       };
     }
     if (type === 'database') {
       return {
         icon: Database,
         containerStyle: neutralContainerStyle,
+        hoverColor: 'group-hover:text-emerald-500',
       };
     }
     return {
       icon: Server,
       containerStyle: neutralContainerStyle,
+      hoverColor: 'group-hover:text-indigo-500',
     };
   };
 
@@ -189,8 +198,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         {/* 1. System Requirements Card */}
         <div className="bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+            <div className="flex items-center gap-1.5 group cursor-pointer">
+              <Sparkles className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-amber-500 transition-colors" />
               <span className="text-[11px] font-bold tracking-wider uppercase text-slate-700 dark:text-slate-200">
                 System Requirements
               </span>
@@ -254,9 +263,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       onAddNode('service', `Custom Service ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                    className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Server className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                    <Server className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-sky-500 transition-colors" />
                     Service
                   </button>
                   <button
@@ -264,9 +273,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       onAddNode('cache', `Redis Cache ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                    className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                    <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-cyan-500 transition-colors" />
                     Cache
                   </button>
                   <button
@@ -274,9 +283,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       onAddNode('database', `Database ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                    className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Database className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                    <Database className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-emerald-500 transition-colors" />
                     Database
                   </button>
                   <button
@@ -284,9 +293,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       onAddNode('gateway', `API Gateway ${nodes.length + 1}`);
                       setShowAddMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
+                    className="group w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
                   >
-                    <Globe className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                    <Globe className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-purple-500 transition-colors" />
                     Gateway
                   </button>
                 </div>
@@ -321,7 +330,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               <div
                 key={node.id}
                 onClick={() => onSelectNode(node.id)}
-                className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                className={`group p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                   isSelected
                     ? 'bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-400 dark:border-indigo-500/50 shadow-none ring-1 ring-indigo-400/30'
                     : 'bg-white dark:bg-[#141414]/75 hover:bg-slate-50 dark:hover:bg-[#141414] border-slate-200 dark:border-neutral-800 shadow-none'
@@ -335,7 +344,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${visual.containerStyle}`}
                   >
-                    <Icon className="w-4 h-4" strokeWidth={1.75} />
+                    <Icon className={`w-4 h-4 transition-colors ${visual.hoverColor}`} strokeWidth={1.75} />
                   </div>
 
                   {/* Text details */}
@@ -405,9 +414,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                           setRenameValue(node.name);
                           setOpenMenuNodeId(null);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
+                        className="group/item w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                       >
-                        <Pencil className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                        <Pencil className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover/item:text-indigo-500 transition-colors" />
                         <span>Rename</span>
                       </button>
 
@@ -417,9 +426,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             onToggleNode(node.id);
                             setOpenMenuNodeId(null);
                           }}
-                          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
+                          className={`group/item w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 ${
+                            node.enabled ? 'hover:text-amber-500' : 'hover:text-emerald-500'
+                          } hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer`}
                         >
-                          <Power className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                          <Power className={`w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 ${
+                            node.enabled ? 'group-hover/item:text-amber-500' : 'group-hover/item:text-emerald-500'
+                          } transition-colors`} />
                           <span>{node.enabled ? 'Power Off' : 'Power On'}</span>
                         </button>
                       )}
@@ -430,9 +443,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             onDeleteNode(node.id);
                             setOpenMenuNodeId(null);
                           }}
-                          className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
+                          className="group/item w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+                          <Trash2 className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover/item:text-red-500 transition-colors" />
                           <span>Delete</span>
                         </button>
                       )}
@@ -464,8 +477,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs p-4">
           <div className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-neutral-800 rounded-2xl shadow-xl max-w-md w-full p-5 text-slate-800 dark:text-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-neutral-800">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-slate-700 dark:text-neutral-300" strokeWidth={1.75} />
+              <div className="flex items-center gap-2 group cursor-pointer">
+                <HelpCircle className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" strokeWidth={1.75} />
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white tracking-tight">System Design Simulation Guide</h3>
               </div>
               <button
@@ -477,27 +490,27 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             </div>
 
             <div className="space-y-3.5 text-xs text-slate-700 dark:text-slate-300">
-              <div className="space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
-                <p className="font-semibold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+              <div className="group space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
+                <p className="font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-amber-500 transition-colors" />
                   <span>Arrival Rate (λ)</span>
                 </p>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                   Controls incoming user request velocity into the Frontend entrypoint. Increase it to simulate traffic surges and uncover queue backpressure thresholds.
                 </p>
               </div>
-              <div className="space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
-                <p className="font-semibold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+              <div className="group space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
+                <p className="font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                  <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />
                   <span>Component Scaling</span>
                 </p>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                   Click any service or cache to inspect analytical utilization ($M/M/m/K$). Scale workers or capacity to relieve overloaded nodes.
                 </p>
               </div>
-              <div className="space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
-                <p className="font-semibold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
+              <div className="group space-y-1 bg-slate-50 dark:bg-[#141414] p-3 rounded-xl border border-slate-200 dark:border-neutral-800">
+                <p className="font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-blue-500 transition-colors" />
                   <span>Backpressure & Flow Packets</span>
                 </p>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">

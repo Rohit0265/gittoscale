@@ -385,7 +385,7 @@ export default function Component({
               padding: '0.25rem',
             }}
           >
-            <X style={{ width: 18, height: 18 }} />
+            <X className="hover:text-rose-500 transition-colors" style={{ width: 18, height: 18 }} />
           </button>
         )}
 
@@ -425,9 +425,9 @@ export default function Component({
                 }}
               >
                 {message.type === 'success' ? (
-                  <CheckCircle2 style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <CheckCircle2 className="hover:text-emerald-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 ) : (
-                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <AlertCircle className="hover:text-rose-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 )}
                 <span>{message.text}</span>
               </div>
@@ -533,9 +533,9 @@ export default function Component({
                 }}
               >
                 {message.type === 'success' ? (
-                  <CheckCircle2 style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <CheckCircle2 className="hover:text-emerald-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 ) : (
-                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <AlertCircle className="hover:text-rose-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 )}
                 <span>{message.text}</span>
               </div>

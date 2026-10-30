@@ -42,7 +42,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
               title="Collapse right sidebar"
               className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
-              <PanelRight className="w-4 h-4" />
+              <PanelRight className="w-4 h-4 hover:text-indigo-500 transition-colors" />
             </button>
           )}
           <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
@@ -68,7 +68,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
             title="Collapse right sidebar"
             className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
           >
-            <PanelRight className="w-4 h-4" />
+            <PanelRight className="w-4 h-4 hover:text-indigo-500 transition-colors" />
           </button>
         )}
         <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
@@ -80,7 +80,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
       {mostConstrainedComponent && (
         <div className="bg-slate-100/70 dark:bg-neutral-900/60 border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-1">
           <div className="flex items-center gap-1.5 text-slate-700 dark:text-neutral-300 font-semibold text-xs">
-            <TrendingUp className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+            <TrendingUp className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-indigo-500 transition-colors" />
             <span className="tracking-tight">Primary Constrained Service</span>
           </div>
           <div className="flex items-center justify-between">
@@ -101,7 +101,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
       <div className="space-y-2 overflow-y-auto max-h-[50vh] pr-0.5">
         {bottlenecks.length === 0 ? (
           <div className="bg-slate-50 dark:bg-[#141414]/75 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 text-center space-y-2">
-            <CheckCircle2 className="w-8 h-8 text-slate-600 dark:text-neutral-400 mx-auto" />
+            <CheckCircle2 className="w-8 h-8 text-slate-600 dark:text-neutral-400 hover:text-emerald-500 transition-colors mx-auto" />
             <p className="font-semibold text-slate-900 dark:text-slate-100 text-xs">No Bottlenecks Detected</p>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
               All services have sufficient throughput and zero queue build-up under current traffic load.
@@ -128,9 +128,9 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
                       #{idx + 1}
                     </span>
                     {isCritical ? (
-                      <AlertOctagon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 shrink-0" />
+                      <AlertOctagon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 group-hover:text-rose-500 transition-colors shrink-0" />
                     ) : (
-                      <AlertTriangle className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 shrink-0" />
+                      <AlertTriangle className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 group-hover:text-amber-500 transition-colors shrink-0" />
                     )}
                     <span className="font-medium text-slate-900 dark:text-slate-100 text-[13px] tracking-tight truncate">
                       {b.nodeName}
@@ -155,7 +155,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
                   <span>Load: {Math.round(b.offeredLoad)} r/s</span>
                   <span>Cap: {Math.round(b.effectiveCapacity)} r/s</span>
                   <span className="text-slate-700 dark:text-neutral-300 group-hover:text-slate-900 dark:group-hover:text-white font-sans font-medium flex items-center gap-0.5 transition-colors">
-                    Inspect <ChevronRight className="w-3 h-3 text-slate-500 dark:text-neutral-400" />
+                    Inspect <ChevronRight className="w-3 h-3 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />
                   </span>
                 </div>
               </div>

@@ -326,7 +326,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                 className="p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
                 title="Close"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5 hover:text-rose-500 transition-colors" />
               </button>
             </div>
 
@@ -342,13 +342,13 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                 const renderIcon = () => {
                   switch (type.iconName) {
                     case 'arrow':
-                      return <ArrowRight className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                      return <ArrowRight className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />;
                     case 'zap':
-                      return <Zap className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                      return <Zap className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-amber-500 transition-colors" />;
                     case 'refresh':
-                      return <RefreshCw className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                      return <RefreshCw className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-blue-500 transition-colors" />;
                     case 'globe':
-                      return <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />;
+                      return <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-sky-500 transition-colors" />;
                   }
                 };
 
@@ -364,7 +364,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                       });
                       edgeData.onSelectEdge?.(null);
                     }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                    className={`group w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                       isCurrent
                         ? 'bg-slate-100 dark:bg-neutral-800 font-semibold text-slate-900 dark:text-white'
                         : 'hover:bg-slate-50 dark:hover:bg-neutral-900 text-slate-700 dark:text-neutral-300'
@@ -415,9 +415,9 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                     e.stopPropagation();
                     edgeData.onDelete?.();
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 border border-red-200 dark:border-red-900/40 transition-colors cursor-pointer"
+                  className="group w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 border border-red-200 dark:border-red-900/40 transition-colors cursor-pointer"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   <span>Delete Edge</span>
                 </button>
               </div>

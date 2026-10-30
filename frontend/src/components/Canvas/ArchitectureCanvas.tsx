@@ -379,26 +379,26 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
         <div className="flex items-center gap-1 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200 dark:border-neutral-800">
           <button
             onClick={() => onToggleViewMode?.('basic')}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
+            className={`group flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'basic'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-900'
             }`}
             title="Basic View: High-level overview of services, gateways, datastores, and external services"
           >
-            <Layers className="w-3.5 h-3.5" />
+            <Layers className="w-3.5 h-3.5 group-hover:text-indigo-400 transition-colors" />
             <span>Basic View</span>
           </button>
           <button
             onClick={() => onToggleViewMode?.('detailed')}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
+            className={`group flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
               viewMode === 'detailed'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-900'
             }`}
             title="Detailed View: Repository-derived architecture flow exposing controllers, middleware, models & external flow"
           >
-            <Network className="w-3.5 h-3.5" />
+            <Network className="w-3.5 h-3.5 group-hover:text-blue-400 transition-colors" />
             <span>Detailed View</span>
           </button>
 
