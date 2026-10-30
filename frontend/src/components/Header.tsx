@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-2.5 sm:px-4 flex items-center justify-between z-40 shrink-0 transition-colors w-full">
       {/* Brand & Title */}
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-        {/* {onToggleLeftSidebar && (
+        {onToggleLeftSidebar && (
           <button
             type="button"
             onClick={onToggleLeftSidebar}
@@ -107,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {isLeftCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
           </button>
-        )} */}
+        )}
 
         <button
           onClick={onGoHome}
