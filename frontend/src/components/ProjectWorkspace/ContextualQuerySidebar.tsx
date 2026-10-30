@@ -259,21 +259,9 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
               AI Architect
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             </p>
-            <p className="text-[10px] text-slate-400 dark:text-neutral-500">
-              Conversational requirements
-            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleRestart}
-            className="text-[11px] text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors cursor-pointer"
-            title="Reset conversation"
-          >
-            <RotateCcw className="w-3 h-3" />
-            Reset
-          </button>
           {onToggleCollapse && (
             <button
               type="button"

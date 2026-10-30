@@ -328,14 +328,6 @@ export const Header: React.FC<HeaderProps> = ({
                         <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                           <Sparkles className="w-4 h-4" />
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-                            AI Architect Wizard
-                          </span>
-                          <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
-                            Generate from custom prompt
-                          </span>
-                        </div>
                       </div>
                     </button>
                   )}
