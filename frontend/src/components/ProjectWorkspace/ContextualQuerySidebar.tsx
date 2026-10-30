@@ -419,15 +419,6 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
           <div className="group w-7 h-7 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 flex items-center justify-center font-bold">
             <Bot className="w-4 h-4 group-hover:text-indigo-500 transition-colors" />
           </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 flex items-center gap-1.5">
-              AI Architecture Agent
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            </p>
-            <p className="text-[10px] text-slate-400 dark:text-neutral-500">
-              Live Canvas Access · 200 Chat Memory
-            </p>
-          </div>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -448,39 +439,6 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             >
               <PanelLeftClose className="w-4 h-4 hover:text-emerald-500 transition-colors" />
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* Live Playground Status Strip */}
-      <div className="px-3.5 py-2 bg-slate-50/80 dark:bg-[#07080A] border-b border-slate-100 dark:border-neutral-800/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-neutral-400 shrink-0">
-        <div className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span>Active Playground</span>
-        </div>
-        <div className="flex items-center gap-2 font-mono text-[9.5px]">
-          <span className="flex items-center gap-1 bg-white dark:bg-neutral-900 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-neutral-800/60">
-            <Layers className="w-2.5 h-2.5 text-slate-600 dark:text-neutral-400 hover:text-indigo-500 transition-colors" />
-            {nodes.length} nodes
-          </span>
-          <span className="flex items-center gap-1 bg-white dark:bg-neutral-900 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-neutral-800/60">
-            <Activity className="w-2.5 h-2.5 text-slate-600 dark:text-neutral-400 hover:text-blue-500 transition-colors" />
-            {incomingTrafficRate.toLocaleString()} req/s
-          </span>
-          {simulationResult && (
-            <span
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded border ${
-                simulationResult.bottlenecks && simulationResult.bottlenecks.length > 0
-                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300'
-                  : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
-              }`}
-            >
-              {simulationResult.bottlenecks && simulationResult.bottlenecks.length > 0 ? (
-                <span>⚠️ {simulationResult.bottlenecks.length} issue</span>
-              ) : (
-                <span>✓ Healthy</span>
-              )}
-            </span>
           )}
         </div>
       </div>
