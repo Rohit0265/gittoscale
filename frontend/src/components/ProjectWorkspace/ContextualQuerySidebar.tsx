@@ -340,7 +340,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             ...filtered,
             {
               id: `custom-ai-${Date.now()}`,
-              sender: 'ai',
+              sender: 'ai' as const,
               text: replyText,
               actionDone: result?.actionDone,
               timestamp: new Date().toISOString(),
@@ -355,7 +355,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
               ...filtered,
               {
                 id: `custom-ai-${Date.now()}`,
-                sender: 'ai',
+                sender: 'ai' as const,
                 text: `Noted: "${text}" — I've incorporated this constraint into the configuration.`,
                 timestamp: new Date().toISOString(),
               },
@@ -372,7 +372,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
           ...filtered,
           {
             id: `custom-ai-${Date.now()}`,
-            sender: 'ai',
+            sender: 'ai' as const,
             text: `⚠️ Error executing instruction "${text}": ${err?.message || 'Action failed'}.`,
             timestamp: new Date().toISOString(),
           },
