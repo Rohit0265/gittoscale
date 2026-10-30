@@ -88,58 +88,59 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
     const nameLower = node.name.toLowerCase();
     const idLower = node.id.toLowerCase();
     const type = node.type;
+    const neutralContainerStyle = 'bg-slate-100 dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-300';
 
     if (type === 'load_generator' || nameLower.includes('frontend') || idLower.includes('client')) {
       return {
         icon: Monitor,
-        containerStyle: 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (type === 'gateway' || nameLower.includes('gateway') || idLower.includes('gateway')) {
       return {
         icon: Cloud,
-        containerStyle: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('auth') || idLower.includes('auth')) {
       return {
         icon: Shield,
-        containerStyle: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('agent') || idLower.includes('agent') || nameLower.includes('bot')) {
       return {
         icon: Bot,
-        containerStyle: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('billing') || nameLower.includes('payment') || idLower.includes('billing')) {
       return {
         icon: CreditCard,
-        containerStyle: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (type === 'cache' || nameLower.includes('cache') || nameLower.includes('redis')) {
       return {
         icon: Database,
-        containerStyle: 'bg-cyan-50 dark:bg-cyan-950/40 border-cyan-200 dark:border-cyan-800 text-cyan-600 dark:text-cyan-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('chat') || idLower.includes('chat') || nameLower.includes('message')) {
       return {
         icon: MessageSquare,
-        containerStyle: 'bg-fuchsia-50 dark:bg-fuchsia-950/40 border-fuchsia-200 dark:border-fuchsia-800 text-fuchsia-600 dark:text-fuchsia-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (type === 'database') {
       return {
         icon: Database,
-        containerStyle: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     return {
       icon: Server,
-      containerStyle: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400',
+      containerStyle: neutralContainerStyle,
     };
   };
 
@@ -195,7 +196,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                 }}
                 className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Server className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+                <Server className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
                 Service
               </button>
               <button
@@ -205,7 +206,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                 }}
                 className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Layers className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
+                <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
                 Cache
               </button>
               <button
@@ -215,7 +216,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                 }}
                 className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Database className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+                <Database className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
                 Database
               </button>
               <button
@@ -225,7 +226,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                 }}
                 className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141414] text-left text-xs cursor-pointer text-slate-700 dark:text-slate-200 transition-colors"
               >
-                <Globe className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
+                <Globe className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
                 Gateway
               </button>
             </div>
@@ -335,7 +336,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                       }}
                       className="w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                     >
-                      <Pencil className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
+                      <Pencil className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
                       <span>Rename</span>
                     </button>
 
@@ -345,13 +346,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                           onToggleNode(node.id);
                           setOpenMenuNodeId(null);
                         }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1 transition-colors text-left cursor-pointer ${
-                          node.enabled
-                            ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30'
-                            : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                        }`}
+                        className="w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                       >
-                        <Power className="w-3 h-3" />
+                        <Power className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
                         <span>{node.enabled ? 'Disable' : 'Enable'}</span>
                       </button>
                     )}
@@ -362,9 +359,9 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                           onDeleteNode(node.id);
                           setOpenMenuNodeId(null);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left cursor-pointer"
+                        className="w-full flex items-center gap-2 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors text-left cursor-pointer"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
                         <span>Delete</span>
                       </button>
                     )}

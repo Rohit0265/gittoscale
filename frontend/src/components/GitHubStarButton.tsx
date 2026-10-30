@@ -52,7 +52,7 @@ export const GitHubStarButton: React.FC<GitHubStarButtonProps> = ({
     >
       <Github className="w-4 h-4 fill-current shrink-0" />
       <span className="inline-flex items-center gap-1">
-        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0" />
+        <Star className="w-3.5 h-3.5 text-slate-500 fill-slate-500 dark:text-neutral-400 dark:fill-neutral-400 shrink-0" />
         {stars !== null && (
           <span className="font-semibold text-xs tabular-nums text-slate-800 dark:text-neutral-200">
             {stars}

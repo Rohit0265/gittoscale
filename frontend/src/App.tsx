@@ -1508,7 +1508,7 @@ export const App: React.FC = () => {
       {error && (
         <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/50 px-4 py-2 flex items-center justify-between text-xs text-red-700 dark:text-red-300 z-20">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0" />
             <span>{error}</span>
           </div>
           <button
@@ -1525,9 +1525,9 @@ export const App: React.FC = () => {
         {/* Full Canvas: Interactive Architecture Diagram */}
         <main className="w-full h-full absolute inset-0 overflow-hidden bg-slate-50 dark:bg-[#090B10]">
           {isGeneratingArchitecture && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 dark:bg-[#0A0A0A]/95 border border-indigo-500/30 dark:border-indigo-500/40 text-slate-900 dark:text-white shadow-lg backdrop-blur-md text-xs font-medium">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500 animate-spin" />
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 dark:bg-[#0A0A0A]/95 border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white shadow-lg backdrop-blur-md text-xs font-medium">
+              <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-neutral-400 animate-ping" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 animate-spin" />
               <span>Synthesizing system architecture from requirements...</span>
             </div>
           )}

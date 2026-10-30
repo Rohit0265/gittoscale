@@ -34,16 +34,16 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
   const getTypeIcon = () => {
     switch (node.type) {
       case 'load_generator':
-        return <Radio className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />;
+        return <Radio className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
       case 'gateway':
-        return <Globe className="w-4 h-4 text-sky-600 dark:text-sky-400" />;
+        return <Globe className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
       case 'database':
-        return <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />;
+        return <Database className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
       case 'cache':
-        return <Layers className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
+        return <Layers className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
       case 'service':
       default:
-        return <Server className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
+        return <Server className="w-4 h-4 text-slate-700 dark:text-neutral-300" />;
     }
   };
 
@@ -51,30 +51,30 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
     switch (status) {
       case 'overloaded':
         return (
-          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/70 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
-            <AlertOctagon className="w-3 h-3 text-red-600 dark:text-red-400 animate-pulse" />
+          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700">
+            <AlertOctagon className="w-3 h-3 text-slate-700 dark:text-neutral-300 animate-pulse" />
             Overloaded
           </span>
         );
       case 'warning':
         return (
-          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-            <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700">
+            <AlertTriangle className="w-3 h-3 text-slate-700 dark:text-neutral-300" />
             Warning
           </span>
         );
       case 'disabled':
         return (
-          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-            <PowerOff className="w-3 h-3 text-slate-400" />
+          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border border-slate-200 dark:border-neutral-700">
+            <PowerOff className="w-3 h-3 text-slate-400 dark:text-neutral-500" />
             Disabled
           </span>
         );
       case 'normal':
       default:
         return (
-          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700">
+            <CheckCircle2 className="w-3 h-3 text-slate-700 dark:text-neutral-300" />
             Normal
           </span>
         );
