@@ -1380,6 +1380,10 @@ export const App: React.FC = () => {
           window.history.pushState({}, '', '/signin');
           setCurrentView('signin');
         }}
+        onOpenSignUp={() => {
+          window.history.pushState({}, '', '/signup');
+          setCurrentView('signup');
+        }}
         onSignOut={signOut}
         hasBaseline={baseline !== null}
         onGoHome={handleGoHome}
