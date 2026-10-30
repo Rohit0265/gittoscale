@@ -399,6 +399,26 @@ export const App: React.FC = () => {
     return false;
   });
 
+  // Resizable left sidebar width (strictly capped at 2/5 = 40% of screen)
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('gitoscale_left_sidebar_width');
+        if (saved) {
+          const parsed = parseInt(saved, 10);
+          const max = Math.floor(window.innerWidth * (2 / 5));
+          const min = Math.min(280, max);
+          if (!isNaN(parsed) && parsed >= min && parsed <= max) {
+            return parsed;
+          }
+        }
+      } catch {}
+      return Math.min(340, Math.floor(window.innerWidth * (2 / 5)));
+    }
+    return 340;
+  });
+  const [isLeftDragging, setIsLeftDragging] = useState<boolean>(false);
+
   // Keep sidebars non-colliding on window resize
   useEffect(() => {
     const handleResize = () => {
@@ -1584,6 +1604,7 @@ export const App: React.FC = () => {
             isRunning={isRunning}
             isLeftCollapsed={isLeftCollapsed}
             isRightCollapsed={isRightCollapsed}
+            leftSidebarWidth={leftSidebarWidth}
           />
         </main>
 
@@ -1598,13 +1619,16 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* Left Floating Panel: Whole Left Sidebar for AI Chat */}
+        {/* Left Floating Panel: Whole Left Sidebar for AI Chat (Resizable up to 2/5 of screen) */}
         <div
-          className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
+          style={{ width: `${leftSidebarWidth}px`, maxWidth: '40vw' }}
+          className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none ${
+            isLeftDragging ? 'transition-none select-none' : 'transition-transform duration-300 ease-in-out'
+          } ${
             isLeftCollapsed ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
-          <div className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] h-full flex flex-col pointer-events-none py-2 sm:py-3.5 px-2 sm:px-3">
+          <div className="w-full h-full flex flex-col pointer-events-none">
             <div className="pointer-events-auto h-full flex flex-col">
               <ContextualQuerySidebar
                 activePrompt={activePromptText || 'Scalable distributed cloud architecture'}
@@ -1637,6 +1661,9 @@ export const App: React.FC = () => {
                 isHydrated={nodes.length > 0}
                 isDark={isDark}
                 onToggleCollapse={() => setIsLeftCollapsed(true)}
+                width={leftSidebarWidth}
+                onWidthChange={setLeftSidebarWidth}
+                onDragStateChange={setIsLeftDragging}
               />
             </div>
           </div>

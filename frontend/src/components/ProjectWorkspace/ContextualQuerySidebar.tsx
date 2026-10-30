@@ -66,6 +66,10 @@ export interface ContextualQuerySidebarProps {
   edges?: ArchitectureEdge[];
   incomingTrafficRate?: number;
   simulationResult?: SimulationResult | null;
+  width?: number;
+  onWidthChange?: (width: number) => void;
+  onDragStateChange?: (isDragging: boolean) => void;
+  isResizable?: boolean;
 }
 
 const CHAT_STORAGE_KEY = 'gitoscale_ai_chat_session_v2';
@@ -92,7 +96,117 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   edges = [],
   incomingTrafficRate = 1000,
   simulationResult,
+  width: widthProp,
+  onWidthChange,
+  onDragStateChange,
+  isResizable = true,
 }) => {
+  const asideRef = useRef<HTMLElement>(null);
+  const isDraggingRef = useRef<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // Initialize and clamp width (default 340px, strictly clamped to 2/5 = 40% of screen)
+  const [internalWidth, setInternalWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('gitoscale_left_sidebar_width');
+        if (saved) {
+          const parsed = parseInt(saved, 10);
+          const max = Math.floor(window.innerWidth * (2 / 5));
+          const min = Math.min(280, max);
+          if (!isNaN(parsed) && parsed >= min && parsed <= max) {
+            return parsed;
+          }
+        }
+      } catch {}
+      return Math.min(340, Math.floor(window.innerWidth * (2 / 5)));
+    }
+    return 340;
+  });
+
+  const currentWidth = widthProp !== undefined ? widthProp : internalWidth;
+
+  // Keep width clamped if window resizes
+  useEffect(() => {
+    const handleWindowResize = () => {
+      const max = Math.floor(window.innerWidth * (2 / 5));
+      const min = Math.min(280, max);
+      setInternalWidth((prev) => {
+        const clamped = Math.max(min, Math.min(prev, max));
+        if (clamped !== prev) {
+          onWidthChange?.(clamped);
+        }
+        return clamped;
+      });
+    };
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [onWidthChange]);
+
+  const startDragging = (clientX: number) => {
+    if (!isResizable) return;
+    isDraggingRef.current = true;
+    setIsDragging(true);
+    onDragStateChange?.(true);
+
+    const startX = clientX;
+    const startWidth = currentWidth;
+
+    const handlePointerMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      const currentX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const deltaX = currentX - startX;
+      const max = Math.floor(window.innerWidth * (2 / 5)); // strictly 2/5 of screen
+      const min = Math.min(280, max);
+      const nextWidth = Math.max(min, Math.min(startWidth + deltaX, max));
+
+      setInternalWidth(nextWidth);
+      onWidthChange?.(nextWidth);
+      try {
+        localStorage.setItem('gitoscale_left_sidebar_width', String(nextWidth));
+      } catch {}
+    };
+
+    const handlePointerUp = () => {
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      onDragStateChange?.(false);
+      document.removeEventListener('mousemove', handlePointerMove);
+      document.removeEventListener('mouseup', handlePointerUp);
+      document.removeEventListener('touchmove', handlePointerMove);
+      document.removeEventListener('touchend', handlePointerUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', handlePointerMove);
+    document.addEventListener('mouseup', handlePointerUp);
+    document.addEventListener('touchmove', handlePointerMove, { passive: false });
+    document.addEventListener('touchend', handlePointerUp);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    startDragging(e.clientX);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches[0]) {
+      startDragging(e.touches[0].clientX);
+    }
+  };
+
+  const handleResetWidth = () => {
+    const defaultWidth = Math.min(340, Math.floor(window.innerWidth * (2 / 5)));
+    setInternalWidth(defaultWidth);
+    onWidthChange?.(defaultWidth);
+    try {
+      localStorage.setItem('gitoscale_left_sidebar_width', String(defaultWidth));
+    } catch {}
+  };
   // Load existing session from localStorage to prevent re-asking on refresh
   const [messages, setMessages] = useState<ChatBubble[]>(() => {
     if (typeof window !== 'undefined') {
@@ -289,7 +403,16 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   };
 
   return (
-    <aside className="w-72 sm:w-84 h-full flex flex-col border-r border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-[#0A0B0E] select-none shrink-0 overflow-hidden font-sans">
+    <aside
+      ref={asideRef}
+      style={{
+        width: `${currentWidth}px`,
+        maxWidth: '40vw',
+      }}
+      className={`h-full flex flex-col border-r border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-[#0A0B0E] select-none shrink-0 overflow-hidden font-sans relative ${
+        isDragging ? 'transition-none select-none' : 'transition-[width] duration-150 ease-out'
+      }`}
+    >
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800/80 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
@@ -438,6 +561,33 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
           <Send className="w-3.5 h-3.5" />
         </button>
       </form>
+      {/* Right Edge Resize Handle */}
+      {isResizable && (
+        <div
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          onDoubleClick={handleResetWidth}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize left sidebar"
+          aria-valuenow={currentWidth}
+          aria-valuemin={Math.min(280, Math.floor((typeof window !== 'undefined' ? window.innerWidth : 1200) * 0.4))}
+          aria-valuemax={Math.floor((typeof window !== 'undefined' ? window.innerWidth : 1200) * 0.4)}
+          className={`absolute right-0 top-0 bottom-0 w-3 -mr-1.5 z-40 cursor-col-resize flex items-center justify-center group touch-none select-none transition-colors ${
+            isDragging ? 'bg-indigo-500/10 dark:bg-indigo-500/20' : 'hover:bg-indigo-500/10 dark:hover:bg-indigo-500/15'
+          }`}
+          title={`Drag to resize sidebar (max 2/5 of screen: ${Math.floor((typeof window !== 'undefined' ? window.innerWidth : 1200) * 0.4)}px) · Double-click to reset`}
+        >
+          {/* Visual grab pill */}
+          <div
+            className={`w-1 rounded-full transition-all ${
+              isDragging
+                ? 'h-16 bg-indigo-500 dark:bg-indigo-400 shadow-xs'
+                : 'h-8 bg-slate-300 dark:bg-neutral-700 group-hover:h-12 group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400'
+            }`}
+          />
+        </div>
+      )}
     </aside>
   );
 };

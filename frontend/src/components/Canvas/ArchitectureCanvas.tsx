@@ -39,6 +39,7 @@ interface ArchitectureCanvasProps {
   isRunning?: boolean;
   isLeftCollapsed?: boolean;
   isRightCollapsed?: boolean;
+  leftSidebarWidth?: number;
 }
 
 const NodeFocusController: React.FC<{
@@ -103,6 +104,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
   isRunning = true,
   isLeftCollapsed = false,
   isRightCollapsed = false,
+  leftSidebarWidth = 340,
 }) => {
   const [isLargeScreen, setIsLargeScreen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
@@ -116,7 +118,7 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const controlsShiftX = isLargeScreen ? (isLeftCollapsed ? 0 : 368) : 0;
+  const controlsShiftX = isLargeScreen ? (isLeftCollapsed ? 0 : leftSidebarWidth + 16) : 0;
   const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -368) : 0;
   const [internalSelectedEdgeId, setInternalSelectedEdgeId] = useState<string | null>(null);
   const activeSelectedEdgeId = selectedEdgeId !== undefined ? selectedEdgeId : internalSelectedEdgeId;
