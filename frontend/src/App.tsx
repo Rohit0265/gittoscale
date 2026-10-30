@@ -27,6 +27,7 @@ import { HistoryDashboard } from './components/history/HistoryDashboard';
 import { LegalPage } from './components/legal/LegalPage';
 import { useAuth } from './contexts/AuthContext';
 import { toVerticalTree } from './utils/treeLayout';
+import { executeArchitectureCommand } from './services/aiAgentExecutor';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
@@ -658,6 +659,101 @@ export const App: React.FC = () => {
       await handleGenerateFromPrompt(updatedPrompt);
     },
     [activePromptText, handleGenerateFromPrompt]
+  );
+
+  // Full-featured conversational AI command executor (Context of up to 200 chats & DB persistence)
+  const handleExecuteChatCommand = useCallback(
+    async (
+      command: string,
+      chatHistory: any[]
+    ): Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void> => {
+      // 1. Run local / client-side instant AI agent executor
+      const execResult = executeArchitectureCommand(
+        command,
+        nodes,
+        edges,
+        incomingTrafficRate,
+        simulationResult,
+        chatHistory
+      );
+
+      // If an actionable change occurred (e.g. node added/deleted, edge connected, traffic scaled)
+      if (execResult.executed) {
+        let nextNodes = nodes;
+        let nextEdges = edges;
+        let nextRate = incomingTrafficRate;
+
+        if (execResult.updatedNodes) {
+          nextNodes = execResult.updatedNodes;
+          setNodes(nextNodes);
+          baseBasicGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+          basicGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+        }
+        if (execResult.updatedEdges) {
+          nextEdges = execResult.updatedEdges;
+          setEdges(nextEdges);
+        }
+        if (execResult.updatedTrafficRate) {
+          nextRate = execResult.updatedTrafficRate;
+          setIncomingTrafficRate(nextRate);
+        }
+
+        // Trigger simulation with updated state
+        queueSimulation(nextNodes, nextEdges, nextRate, durationSeconds);
+
+        // If user is authenticated, persist the updated architecture + chat to DB
+        if (user) {
+          const token = getAuthToken();
+          api.saveChatHistory(token, {
+            prompt: activePromptText,
+            messages: chatHistory,
+            selectedAnswers,
+            architectureData: { nodes: nextNodes, edges: nextEdges },
+          }).catch((err) => console.warn('Could not sync chat history to DB:', err));
+        }
+
+        return {
+          reply: execResult.explanation,
+          actionDone: execResult.actionType,
+        };
+      }
+
+      // If it's a structural transformation prompt (e.g. "convert to microservices", "make it event-driven")
+      const lower = command.toLowerCase();
+      if (
+        lower.includes('microservice') ||
+        lower.includes('serverless') ||
+        lower.includes('event-driven') ||
+        lower.includes('event driven') ||
+        lower.includes('re-synthesize') ||
+        lower.includes('redesign')
+      ) {
+        const updatedPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
+        await handleGenerateFromPrompt(updatedPrompt);
+        return {
+          reply: `🔄 **Re-synthesised Architecture**: Updated architecture topology based on "${command}". Re-evaluated tiers, connections, and latency profiles.`,
+          actionDone: 'refine_architecture',
+        };
+      }
+
+      // Default explanation / guidance
+      return {
+        reply: execResult.explanation,
+      };
+    },
+    [
+      nodes,
+      edges,
+      incomingTrafficRate,
+      durationSeconds,
+      simulationResult,
+      queueSimulation,
+      user,
+      getAuthToken,
+      activePromptText,
+      selectedAnswers,
+      handleGenerateFromPrompt,
+    ]
   );
 
   // Directly navigate to simulator and generate architecture on prompt submit
@@ -1492,6 +1588,12 @@ export const App: React.FC = () => {
                 onSendCustomMessage={(msg) => {
                   handleRefinePrompt(msg);
                 }}
+                onExecuteChatCommand={handleExecuteChatCommand}
+                onRestoreSession={({ selectedAnswers: restored, activePrompt: restoredPrompt }) => {
+                  if (restored) setSelectedAnswers(restored);
+                  if (restoredPrompt) setActivePromptText(restoredPrompt);
+                }}
+                user={user}
                 isGenerating={isGeneratingArchitecture}
                 isHydrated={nodes.length > 0}
                 isDark={isDark}

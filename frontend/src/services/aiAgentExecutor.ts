@@ -171,7 +171,7 @@ export function executeArchitectureCommand(
   currentEdges: ArchitectureEdge[],
   currentTrafficRate: number,
   simulationResult: SimulationResult | null,
-  contextHistory: Array<{ text: string; sender: string }> = []
+  _contextHistory: Array<{ text: string; sender: string }> = []
 ): AgentCommandExecutionResult {
   const text = command.trim();
   const lower = text.toLowerCase();

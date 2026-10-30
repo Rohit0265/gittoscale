@@ -13,6 +13,7 @@ import { ContextualQuerySidebar } from './ContextualQuerySidebar';
 import { SkeletonCanvas } from './SkeletonCanvas';
 import { ArchitectureCanvas } from '../Canvas/ArchitectureCanvas';
 import { api } from '../../services/api';
+import { executeArchitectureCommand } from '../../services/aiAgentExecutor';
 import {
   ArchitectureNode,
   ArchitectureEdge,
@@ -581,6 +582,39 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     handleHydrateArchitecture(message);
   };
 
+  const handleExecuteWorkspaceChatCommand = async (
+    command: string,
+    chatHistory: any[]
+  ): Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void> => {
+    const execResult = executeArchitectureCommand(
+      command,
+      activeNodes,
+      activeEdges,
+      1000,
+      null,
+      chatHistory
+    );
+
+    if (execResult.executed) {
+      if (execResult.updatedNodes && execResult.updatedEdges) {
+        if (viewMode === 'detailed') {
+          setDetailedGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
+        } else {
+          setBasicGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
+        }
+      }
+      return {
+        reply: execResult.explanation,
+        actionDone: execResult.actionType,
+      };
+    }
+
+    handleCustomChatMessage(command);
+    return {
+      reply: `🔄 Updated blueprint with: "${command}". Re-synthesising system topology...`,
+    };
+  };
+
   const handleExportJSON = () => {
     const exportData = {
       projectId,
@@ -724,6 +758,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           onApplyRefinements={handleHydrateArchitecture}
           onResetQuestions={handleResetQuestions}
           onSendCustomMessage={handleCustomChatMessage}
+          onExecuteChatCommand={handleExecuteWorkspaceChatCommand}
           isGenerating={isGenerating}
           isHydrated={viewState === 'hydrated'}
           isDark={isDark}
