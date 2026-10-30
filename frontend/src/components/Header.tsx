@@ -257,44 +257,10 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 )}
 
-                {/* 2. Scenario Selection Section (Commented Out) */}
-                {/* <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1.5">
-                  <div className="px-1 flex items-center justify-between group cursor-pointer">
-                    <span className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-amber-500 transition-colors shrink-0" />
-                      <span>Scenario</span>
-                    </span>
-                    <span className="text-[11px] font-medium text-slate-700 dark:text-neutral-300 truncate max-w-[130px]">
-                      {activeScenario?.name || 'Default'}
-                    </span>
-                  </div>
-
-                  <div className="relative">
-                    <select
-                      value={_currentScenarioId}
-                      onChange={(e) => _onSelectScenario(e.target.value)}
-                      className="w-full h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-100/70 dark:bg-neutral-900/60 text-xs font-semibold text-slate-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-slate-400 dark:focus:ring-neutral-600 cursor-pointer appearance-none transition-colors"
-                    >
-                      {_scenarios.map((s) => (
-                        <option key={s.id} value={s.id} className="dark:bg-[#141416]">
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
-
-                  {activeScenario?.description && (
-                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 px-1 leading-snug line-clamp-2">
-                      {activeScenario.description}
-                    </p>
-                  )}
-                </div> */}
-
                 {/* 3. Workspace Actions: Import Repo & History */}
                 <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 px-1 uppercase tracking-wider">
-                    Tools &amp; Workspaces
+                    More Options
                   </span>
 
                   {/* AI Architect Recommender Wizard */}
@@ -307,19 +273,6 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900/70 transition-colors text-left cursor-pointer group"
                     >
-                      {/* <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/60 transition-colors flex items-center justify-center shrink-0">
-                          <Sparkles className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-                            AI Architect Wizard
-                          </span>
-                          <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
-                            Generate from custom prompt
-                          </span>
-                        </div>
-                      </div> */}
                     </button>
                   )}
 
@@ -373,35 +326,6 @@ export const Header: React.FC<HeaderProps> = ({
                     </button>
                   )}
 
-                  {/* Toggle Left Sidebar */}
-                  {/* {onToggleLeftSidebar && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onToggleLeftSidebar();
-                      }}
-                      className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900/70 transition-colors text-left cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-950/60 transition-colors flex items-center justify-center shrink-0">
-                          {isLeftCollapsed ? (
-                            <PanelLeftOpen className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
-                          ) : (
-                            <PanelLeftClose className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
-                          )}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                            {isLeftCollapsed ? 'Show AI Architect Sidebar' : 'Hide AI Architect Sidebar'}
-                          </span>
-                          <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
-                            {isLeftCollapsed ? 'Open contextual requirements panel' : 'Collapse contextual requirements panel'}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  )} */}
                 </div>
 
                 {/* 4. Appearance / Theme */}
