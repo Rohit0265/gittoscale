@@ -177,15 +177,208 @@ export function executeArchitectureCommand(
   const lower = text.toLowerCase();
 
   // ───────────────────────────────────────────────────────────────────────────
+  // 0. REQUIREMENT INTAKE ("add more requirement", "add requirement", "new requirement", "requirement: ...")
+  // ───────────────────────────────────────────────────────────────────────────
+  const reqMatch = lower.match(/(?:add\s+(?:more\s+)?requirements?|new\s+requirements?|requirements?\s*:?)\s*(.*)/i);
+  if (reqMatch) {
+    const rawReq = reqMatch[1]?.trim() || '';
+    const addedItems: string[] = [];
+    let updatedNodes = [...currentNodes];
+    let updatedEdges = [...currentEdges];
+    let updatedTraffic = currentTrafficRate;
+
+    // A. Throughput / Scale requirement
+    const scaleReqMatch = rawReq.match(/([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i);
+    if (scaleReqMatch || rawReq.includes('burst') || rawReq.includes('high traffic') || rawReq.includes('flash sale')) {
+      let targetRate = 10000;
+      if (scaleReqMatch) {
+        let val = parseFloat(scaleReqMatch[1]);
+        const unit = (scaleReqMatch[2] || '').toLowerCase();
+        if (unit === 'k') val *= 1000;
+        else if (unit === 'm') val *= 1000000;
+        targetRate = Math.min(Math.max(Math.round(val), 100), 100000);
+      } else if (rawReq.includes('50k') || rawReq.includes('burst') || rawReq.includes('flash sale')) {
+        targetRate = 50000;
+      }
+      updatedTraffic = targetRate;
+      addedItems.push(`⚡ **Scale Requirement**: Target throughput set to **${targetRate.toLocaleString()} req/s**`);
+
+      // Scale existing service instances to handle load
+      updatedNodes = updatedNodes.map((n) => {
+        if (n.type === 'service' || n.type === 'gateway') {
+          return { ...n, workerCount: Math.max(n.workerCount, targetRate >= 50000 ? 6 : 4) };
+        }
+        return n;
+      });
+    }
+
+    // B. Caching requirement
+    if (rawReq.includes('cache') || rawReq.includes('redis') || rawReq.includes('low latency') || (!rawReq && !updatedNodes.some((n) => n.type === 'cache'))) {
+      if (!updatedNodes.some((n) => n.type === 'cache')) {
+        const cacheId = `cache-${Date.now().toString().slice(-4)}`;
+        const cacheNode: ArchitectureNode = {
+          id: cacheId,
+          name: 'Redis In-Memory Cache',
+          type: 'cache',
+          position: { x: 0, y: 0 },
+          capacityPerSecond: 3500,
+          workerCount: 2,
+          enabled: true,
+          config: { baselineLatencyMs: 2, maxQueueSize: 3000, overflowPolicy: 'reject' },
+        };
+        const svcNode = updatedNodes.find((n) => n.type === 'service') || updatedNodes[0];
+        const dbNode = updatedNodes.find((n) => n.type === 'database');
+        if (svcNode && dbNode) {
+          updatedEdges = updatedEdges.filter((e) => !(e.source === svcNode.id && e.target === dbNode.id));
+          updatedEdges.push({
+            id: `e-${svcNode.id}-${cacheId}`,
+            source: svcNode.id,
+            target: cacheId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: true,
+          });
+          updatedEdges.push({
+            id: `e-${cacheId}-${dbNode.id}`,
+            source: cacheId,
+            target: dbNode.id,
+            requestsPerInput: 0.2, // 80% cache hit rate
+            enabled: true,
+            isBidirectional: true,
+            label: 'Cache Miss (20%)',
+          });
+        } else if (svcNode) {
+          updatedEdges.push({
+            id: `e-${svcNode.id}-${cacheId}`,
+            source: svcNode.id,
+            target: cacheId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: true,
+          });
+        }
+        updatedNodes.push(cacheNode);
+        addedItems.push('⚡ **Redis In-Memory Cache**: Spliced read-through caching to absorb 80% read queries');
+      }
+    }
+
+    // C. Queue / Async requirement
+    if (rawReq.includes('queue') || rawReq.includes('kafka') || rawReq.includes('async') || rawReq.includes('event')) {
+      if (!updatedNodes.some((n) => n.name.toLowerCase().includes('kafka') || n.name.toLowerCase().includes('queue'))) {
+        const queueId = `queue-${Date.now().toString().slice(-4)}`;
+        const queueNode: ArchitectureNode = {
+          id: queueId,
+          name: 'Kafka Event Broker',
+          type: 'service',
+          position: { x: 0, y: 0 },
+          capacityPerSecond: 3000,
+          workerCount: 2,
+          enabled: true,
+          config: { baselineLatencyMs: 4, maxQueueSize: 5000, overflowPolicy: 'reject' },
+        };
+        const parentNode = updatedNodes.find((n) => n.type === 'gateway') || updatedNodes.find((n) => n.type === 'service') || updatedNodes[0];
+        if (parentNode) {
+          updatedEdges.push({
+            id: `e-${parentNode.id}-${queueId}`,
+            source: parentNode.id,
+            target: queueId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: true,
+            label: 'Async Events',
+          });
+        }
+        updatedNodes.push(queueNode);
+        addedItems.push('📬 **Kafka Event Broker**: Added event stream buffer for decoupled asynchronous background tasks');
+      }
+    }
+
+    // D. Auth requirement
+    if (rawReq.includes('auth') || rawReq.includes('login') || rawReq.includes('security') || rawReq.includes('jwt')) {
+      if (!updatedNodes.some((n) => n.name.toLowerCase().includes('auth'))) {
+        const authId = `auth-${Date.now().toString().slice(-4)}`;
+        const authNode: ArchitectureNode = {
+          id: authId,
+          name: 'Auth Microservice',
+          type: 'service',
+          position: { x: 0, y: 0 },
+          capacityPerSecond: 2000,
+          workerCount: 2,
+          enabled: true,
+          config: { baselineLatencyMs: 8, maxQueueSize: 2000, overflowPolicy: 'reject' },
+        };
+        const gwNode = updatedNodes.find((n) => n.type === 'gateway') || updatedNodes[0];
+        if (gwNode) {
+          updatedEdges.push({
+            id: `e-${gwNode.id}-${authId}`,
+            source: gwNode.id,
+            target: authId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: true,
+            label: 'Token Auth',
+          });
+        }
+        updatedNodes.push(authNode);
+        addedItems.push('🔒 **Auth Microservice**: Provisioned identity & token validation service');
+      }
+    }
+
+    // E. Payment requirement
+    if (rawReq.includes('payment') || rawReq.includes('checkout') || rawReq.includes('billing')) {
+      if (!updatedNodes.some((n) => n.name.toLowerCase().includes('payment'))) {
+        const payId = `pay-${Date.now().toString().slice(-4)}`;
+        const payNode: ArchitectureNode = {
+          id: payId,
+          name: 'Payment Service',
+          type: 'service',
+          position: { x: 0, y: 0 },
+          capacityPerSecond: 1500,
+          workerCount: 2,
+          enabled: true,
+          config: { baselineLatencyMs: 20, maxQueueSize: 2000, overflowPolicy: 'reject' },
+        };
+        const svcNode = updatedNodes.find((n) => n.type === 'service') || updatedNodes[0];
+        if (svcNode) {
+          updatedEdges.push({
+            id: `e-${svcNode.id}-${payId}`,
+            source: svcNode.id,
+            target: payId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: true,
+            label: 'Checkout API',
+          });
+        }
+        updatedNodes.push(payNode);
+        addedItems.push('💳 **Payment Service**: Integrated transactional payment gateway processing');
+      }
+    }
+
+    if (addedItems.length > 0) {
+      const reorderedNodes = toVerticalTree(updatedNodes, updatedEdges);
+      return {
+        executed: true,
+        actionType: 'add_node',
+        updatedNodes: reorderedNodes,
+        updatedEdges,
+        updatedTrafficRate: updatedTraffic,
+        explanation: `🎯 **New Requirements Attached to Playground**:\n\n${addedItems.join('\n')}\n\n• Canvas re-aligned top-to-bottom and live simulation recalculated for ${updatedTraffic.toLocaleString()} req/s.`,
+      };
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
   // 1. ADD COMPONENT / NODE
   // Patterns:
   // - "add component redis cache after api gateway"
   // - "add redis cache between api gateway and database"
   // - "add a database"
   // - "add kafka queue"
+  // - "add components"
   // ───────────────────────────────────────────────────────────────────────────
   const addMatch = lower.match(
-    /(?:add|create|insert|attach|put)\s+(?:a\s+|an\s+|the\s+)?(?:new\s+)?(?:component|node|service|cache|database|queue)?\s*([a-z0-9_\-\s]+?)(?:\s+(?:between|after|before|in front of|to|connected to)\s+.*)?$/i
+    /(?:add|create|insert|attach|put)\s+(?:a\s+|an\s+|the\s+)?(?:new\s+)?(?:components?|nodes?|services?|cache|database|queue)?\s*([a-z0-9_\-\s]+?)(?:\s+(?:between|after|before|in front of|to|connected to)\s+.*)?$/i
   );
 
   if (addMatch && !lower.startsWith('scale') && !lower.startsWith('delete') && !lower.startsWith('remove')) {
@@ -202,11 +395,21 @@ export function executeArchitectureCommand(
     // Clean up raw component name if between/after/before was captured inside it
     rawCompName = rawCompName
       .replace(/\s+(between|after|before|in front of|to|connected to).*/i, '')
-      .replace(/^(a|an|the|new|component|node)\s+/i, '')
+      .replace(/^(a|an|the|new|components?|nodes?)\s+/i, '')
       .trim();
 
-    if (!rawCompName && betweenMatch) {
-      rawCompName = 'Redis Cache';
+    // If generic "components" or empty, pick the most needed missing component
+    if (!rawCompName || rawCompName === 'components' || rawCompName === 'component' || rawCompName === 'more components') {
+      const hasCache = currentNodes.some((n) => n.type === 'cache');
+      const hasDb = currentNodes.some((n) => n.type === 'database');
+      const hasQueue = currentNodes.some((n) => n.name.toLowerCase().includes('queue') || n.name.toLowerCase().includes('kafka'));
+      const hasAuth = currentNodes.some((n) => n.name.toLowerCase().includes('auth'));
+
+      if (!hasCache && hasDb) rawCompName = 'Redis Cache';
+      else if (!hasQueue) rawCompName = 'Kafka Event Broker';
+      else if (!hasAuth) rawCompName = 'Auth Microservice';
+      else if (!hasDb) rawCompName = 'PostgreSQL Database';
+      else rawCompName = 'Search & Analytics Engine';
     }
 
     if (rawCompName) {

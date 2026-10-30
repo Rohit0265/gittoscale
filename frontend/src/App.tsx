@@ -1594,6 +1594,10 @@ export const App: React.FC = () => {
                   if (restoredPrompt) setActivePromptText(restoredPrompt);
                 }}
                 user={user}
+                nodes={nodes}
+                edges={edges}
+                incomingTrafficRate={incomingTrafficRate}
+                simulationResult={simulationResult}
                 isGenerating={isGeneratingArchitecture}
                 isHydrated={nodes.length > 0}
                 isDark={isDark}

@@ -759,6 +759,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           onResetQuestions={handleResetQuestions}
           onSendCustomMessage={handleCustomChatMessage}
           onExecuteChatCommand={handleExecuteWorkspaceChatCommand}
+          nodes={activeNodes}
+          edges={activeEdges}
+          incomingTrafficRate={1000}
           isGenerating={isGenerating}
           isHydrated={viewState === 'hydrated'}
           isDark={isDark}
