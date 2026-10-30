@@ -71,6 +71,37 @@
   letter-spacing: 0.02em;
 }
 
+/* Legal / Policy Navigation Links */
+.gts-legal-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  margin: 2px 0;
+}
+
+.gts-legal-link {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+
+.gts-legal-link:hover {
+  color: #0f172a;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.gts-legal-dot {
+  color: #cbd5e1;
+  user-select: none;
+  font-size: 11px;
+}
+
 .gts-minimal-copyright {
   font-size: 15px;
   color: #64748b;
@@ -168,6 +199,18 @@
 
 .dark .gts-minimal-copyright {
   color: #71717a;
+}
+
+.dark .gts-legal-link {
+  color: #94a3b8;
+}
+
+.dark .gts-legal-link:hover {
+  color: #ffffff;
+}
+
+.dark .gts-legal-dot {
+  color: #3f3f46;
 }
 
 .dark .gts-minimal-social-icon {

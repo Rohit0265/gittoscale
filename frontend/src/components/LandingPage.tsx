@@ -40,6 +40,7 @@ interface LandingPageProps {
   isAppDomain?: boolean;
   user?: any;
   onSignOut?: () => void;
+  onNavigate?: (route: string) => void;
 }
 
 const checkIsAppDomain = () => {
@@ -452,6 +453,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   isAppDomain: isAppDomainProp,
   user,
   onSignOut,
+  onNavigate,
 }) => {
   const isApp = isAppDomainProp !== undefined ? isAppDomainProp : checkIsAppDomain();
   const [active, setActive] = useState(0);
@@ -1008,7 +1010,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Section 12: Global Footer (#footer) */}
       <div id="footer" className="relative w-full">
-        <Fotter brandName="GitToScale" isDark={isDark} />
+        <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
       </div>
     </div>
   );

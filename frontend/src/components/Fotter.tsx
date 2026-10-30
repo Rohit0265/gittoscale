@@ -11,6 +11,8 @@ export interface FotterProps {
   brandName?: string;
   /** Explicit dark mode flag */
   isDark?: boolean;
+  /** Navigation callback */
+  onNavigate?: (route: string) => void;
 }
 
 /**
@@ -18,17 +20,28 @@ export interface FotterProps {
  *
  * Features:
  * - Direct "Feedback & Bug Report" interactive modal launcher
+ * - Cookie, Privacy Policy, and Terms & Conditions legal links
  * - Social & professional links (LinkedIn, GitHub, Email)
  * - Responsive SVG typographic background watermark
  */
-export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
+export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavigate }) => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const viewBoxWidth = Math.max(600, (brandName || 'GitToScale').length * 115);
+
+  const handleLegalClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    e.preventDefault();
+    if (onNavigate) {
+      onNavigate(path);
+    } else {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  };
 
   return (
     <footer className="gts-footer-container">
       <div className="gts-footer-inner">
-        {/* Bottom Bar: Feedback Button, Copyright, and Social Links */}
+        {/* Bottom Bar: Feedback Button, Legal Links, Copyright, and Social Links */}
         <div className="gts-minimal-bottom">
           <div className="gts-feedback-row">
             <button
@@ -42,6 +55,33 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale' }) => {
               {/* <span className="gts-feedback-badge">Share idea</span> */}
             </button>
           </div>
+
+          {/* Legal / Policy Navigation Links */}
+          <nav className="gts-legal-links" aria-label="Legal & Policies">
+            <a
+              href="/cookie"
+              onClick={(e) => handleLegalClick(e, '/cookie')}
+              className="gts-legal-link"
+            >
+              Cookie Policy
+            </a>
+            <span className="gts-legal-dot" aria-hidden="true">&bull;</span>
+            <a
+              href="/privacy"
+              onClick={(e) => handleLegalClick(e, '/privacy')}
+              className="gts-legal-link"
+            >
+              Privacy Policy
+            </a>
+            <span className="gts-legal-dot" aria-hidden="true">&bull;</span>
+            <a
+              href="/terms"
+              onClick={(e) => handleLegalClick(e, '/terms')}
+              className="gts-legal-link"
+            >
+              Terms &amp; Conditions
+            </a>
+          </nav>
 
           <p className="gts-minimal-copyright">
             &copy; 2026 {brandName} LLC. All rights reserved.

@@ -24,6 +24,7 @@ import ModernLoginSignup from './components/ui/modern-login-signup';
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { HistoryDashboard } from './components/history/HistoryDashboard';
+import { LegalPage } from './components/legal/LegalPage';
 import { useAuth } from './contexts/AuthContext';
 import { toVerticalTree } from './utils/treeLayout';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
@@ -111,16 +112,46 @@ export type AppView =
   | 'signin'
   | 'forgot-password'
   | 'auth-callback'
-  | 'history';
+  | 'history'
+  | 'cookie-policy'
+  | 'privacy-policy'
+  | 'terms';
 
 const getInitialView = (): AppView => {
   if (typeof window === 'undefined') return 'landing';
-  const path = window.location.pathname;
+  const path = window.location.pathname.toLowerCase();
   if (path === '/signup') return 'signup';
   if (path === '/signin') return 'signin';
   if (path === '/forgot-password') return 'forgot-password';
   if (path.startsWith('/auth/callback')) return 'auth-callback';
   if (path === '/history') return 'history';
+  if (
+    path === '/cookie' ||
+    path === '/cookies' ||
+    path === '/cookie-policy' ||
+    path === '/cokkie' ||
+    path.startsWith('/cookie') ||
+    path.startsWith('/cokkie')
+  ) {
+    return 'cookie-policy';
+  }
+  if (
+    path === '/privacy' ||
+    path === '/privacy-policy' ||
+    path === '/provacy' ||
+    path.startsWith('/privacy') ||
+    path.startsWith('/provacy')
+  ) {
+    return 'privacy-policy';
+  }
+  if (
+    path === '/terms' ||
+    path === '/terms-and-conditions' ||
+    path === '/terms-of-service' ||
+    path.startsWith('/terms')
+  ) {
+    return 'terms';
+  }
   if (getProjectRouteInfo()) return 'simulator';
   if (isRecommenderUrl()) return 'recommender';
   if (isAppDomain()) return 'simulator';
@@ -216,21 +247,50 @@ export const App: React.FC = () => {
   }, []);
 
   const handleNavigate = useCallback((viewName: string) => {
-    if (viewName === 'signup') {
+    const cleanName = viewName.toLowerCase();
+    if (cleanName === 'signup' || cleanName === '/signup') {
       window.history.pushState({}, '', '/signup');
       setCurrentView('signup');
-    } else if (viewName === 'signin') {
+    } else if (cleanName === 'signin' || cleanName === '/signin') {
       window.history.pushState({}, '', '/signin');
       setCurrentView('signin');
-    } else if (viewName === 'forgot-password') {
+    } else if (cleanName === 'forgot-password' || cleanName === '/forgot-password') {
       window.history.pushState({}, '', '/forgot-password');
       setCurrentView('forgot-password');
-    } else if (viewName === 'history') {
+    } else if (cleanName === 'history' || cleanName === '/history') {
       window.history.pushState({}, '', '/history');
       setCurrentView('history');
-    } else if (viewName === 'simulator') {
+    } else if (cleanName === 'simulator' || cleanName === '/app') {
       window.history.pushState({}, '', '/app');
       setCurrentView('simulator');
+    } else if (
+      cleanName === 'cookie' ||
+      cleanName === 'cookies' ||
+      cleanName === 'cookie-policy' ||
+      cleanName === 'cokkie' ||
+      cleanName === '/cookie' ||
+      cleanName === '/cookies' ||
+      cleanName === '/cokkie'
+    ) {
+      window.history.pushState({}, '', '/cookie');
+      setCurrentView('cookie-policy');
+    } else if (
+      cleanName === 'privacy' ||
+      cleanName === 'privacy-policy' ||
+      cleanName === 'provacy' ||
+      cleanName === '/privacy' ||
+      cleanName === '/provacy'
+    ) {
+      window.history.pushState({}, '', '/privacy');
+      setCurrentView('privacy-policy');
+    } else if (
+      cleanName === 'terms' ||
+      cleanName === 'terms-and-conditions' ||
+      cleanName === 'terms-of-service' ||
+      cleanName === '/terms'
+    ) {
+      window.history.pushState({}, '', '/terms');
+      setCurrentView('terms');
     } else {
       window.history.pushState({}, '', '/');
       setActiveProject(null);
@@ -269,7 +329,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname;
+      const path = window.location.pathname.toLowerCase();
       if (path === '/signup') {
         setCurrentView('signup');
       } else if (path === '/signin') {
@@ -280,6 +340,30 @@ export const App: React.FC = () => {
         setCurrentView('auth-callback');
       } else if (path === '/history') {
         setCurrentView('history');
+      } else if (
+        path === '/cookie' ||
+        path === '/cookies' ||
+        path === '/cookie-policy' ||
+        path === '/cokkie' ||
+        path.startsWith('/cookie') ||
+        path.startsWith('/cokkie')
+      ) {
+        setCurrentView('cookie-policy');
+      } else if (
+        path === '/privacy' ||
+        path === '/privacy-policy' ||
+        path === '/provacy' ||
+        path.startsWith('/privacy') ||
+        path.startsWith('/provacy')
+      ) {
+        setCurrentView('privacy-policy');
+      } else if (
+        path === '/terms' ||
+        path === '/terms-and-conditions' ||
+        path === '/terms-of-service' ||
+        path.startsWith('/terms')
+      ) {
+        setCurrentView('terms');
       } else {
         const route = getProjectRouteInfo();
         if (route) {
@@ -1132,6 +1216,24 @@ export const App: React.FC = () => {
     );
   }
 
+  if (currentView === 'cookie-policy' || currentView === 'privacy-policy' || currentView === 'terms') {
+    return (
+      <LegalPage
+        type={
+          currentView === 'cookie-policy'
+            ? 'cookie'
+            : currentView === 'privacy-policy'
+            ? 'privacy'
+            : 'terms'
+        }
+        isDark={isDark}
+        onToggleTheme={handleToggleTheme}
+        onGoHome={handleGoHome}
+        onNavigate={handleNavigate}
+      />
+    );
+  }
+
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202]">
@@ -1141,6 +1243,7 @@ export const App: React.FC = () => {
           user={user}
           onSignOut={signOut}
           onToggleTheme={handleToggleTheme}
+          onNavigate={handleNavigate}
           onOpenRecommender={() => {
             window.history.pushState({}, '', '/recommender');
             setCurrentView('recommender');
