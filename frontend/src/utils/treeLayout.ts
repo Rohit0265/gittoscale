@@ -2,14 +2,14 @@ import { ArchitectureNode, ArchitectureEdge } from '../types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vertical Tree Auto-Layout
-// Takes a flat list of nodes + directed edges and computes top-to-bottom
-// BFS-level positions so the canvas renders as a proper tree (root → leaves).
-// NODE_W / NODE_H approximate the ReactFlow custom node size.
+// Computes top-to-bottom BFS-level positions so the canvas renders with clean,
+// generous spacing without shrinking or cramming nodes into narrow columns.
+// Node card on canvas is w-64 (256px wide) with ~100-140px height.
 // ─────────────────────────────────────────────────────────────────────────────
-const NODE_W = 220;
-const NODE_H = 80;
-const H_GAP  = 40;  // horizontal gap between sibling nodes
-const V_GAP  = 80;  // vertical gap between levels
+const NODE_W = 260; // Card width representation
+const NODE_H = 100; // Card base height
+const H_GAP  = 160; // Horizontal gap between sibling nodes (center-to-center = 420px)
+const V_GAP  = 140; // Vertical gap between levels (level step = NODE_H + V_GAP = 240px)
 
 export function toVerticalTree(
   nodes: ArchitectureNode[],
@@ -62,15 +62,24 @@ export function toVerticalTree(
     byLevel[lvl].push(n.id);
   });
 
-  // Assign x,y positions centred around x=0
+  // Determine anchor center X and start Y from existing node positions
+  const validXs = nodes
+    .map((n) => n.position?.x)
+    .filter((x): x is number => typeof x === 'number' && !isNaN(x) && x > 0);
+  const minX = validXs.length ? Math.min(...validXs) : 100;
+  const maxX = validXs.length ? Math.max(...validXs) : 1100;
+  const anchorCenterX = validXs.length ? Math.round((minX + maxX) / 2) : 600;
+  const startY = 40;
+
+  // Assign x,y positions centred around anchorCenterX and starting at startY (step = 240px)
   const posMap = new Map<string, { x: number; y: number }>();
   byLevel.forEach((levelNodes, lvl) => {
     const totalW = levelNodes.length * NODE_W + (levelNodes.length - 1) * H_GAP;
-    const startX = -totalW / 2;
+    const startX = Math.round(anchorCenterX - totalW / 2);
     levelNodes.forEach((id, i) => {
       posMap.set(id, {
         x: startX + i * (NODE_W + H_GAP),
-        y: lvl * (NODE_H + V_GAP),
+        y: startY + lvl * (NODE_H + V_GAP),
       });
     });
   });
@@ -80,4 +89,3 @@ export function toVerticalTree(
     position: posMap.get(n.id) ?? n.position,
   }));
 }
-

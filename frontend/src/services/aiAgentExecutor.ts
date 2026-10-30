@@ -1,5 +1,4 @@
 import { ArchitectureNode, ArchitectureEdge, ComponentType, SimulationResult } from '../types';
-import { toVerticalTree } from '../utils/treeLayout';
 
 export interface AgentCommandExecutionResult {
   executed: boolean;
@@ -17,6 +16,91 @@ export interface AgentCommandExecutionResult {
   updatedEdges?: ArchitectureEdge[];
   updatedTrafficRate?: number;
   updatedAnswers?: any;
+}
+
+/**
+ * Calculates an intelligent, non-destructive coordinate position for a newly added node.
+ * Crucially preserves existing node coordinates so the canvas tree structure does not shrink or shift!
+ */
+export function calculateSmartPositionForNewNode(
+  newNode: ArchitectureNode,
+  newEdges: ArchitectureEdge[],
+  existingNodes: ArchitectureNode[]
+): { x: number; y: number } {
+  if (existingNodes.length === 0) {
+    return { x: 600, y: 40 };
+  }
+
+  // Find incoming edges to newNode (parents)
+  const incoming = newEdges.filter((e) => e.target === newNode.id);
+  // Find outgoing edges from newNode (children)
+  const outgoing = newEdges.filter((e) => e.source === newNode.id);
+
+  // Case 1: Inserted between parent and child (e.g. cache between gateway/service and database)
+  if (incoming.length > 0 && outgoing.length > 0) {
+    const parent = existingNodes.find((n) => n.id === incoming[0].source);
+    const child = existingNodes.find((n) => n.id === outgoing[0].target);
+
+    if (parent && child) {
+      const midY = Math.round((parent.position.y + child.position.y) / 2);
+      let targetX = Math.round((parent.position.x + child.position.x) / 2);
+
+      // Check if another node occupies this spot
+      const occupied = existingNodes.some(
+        (n) => Math.abs(n.position.y - midY) < 120 && Math.abs(n.position.x - targetX) < 260
+      );
+      if (occupied) {
+        const tierNodes = existingNodes.filter((n) => Math.abs(n.position.y - midY) < 120);
+        const maxTierX = Math.max(...tierNodes.map((n) => n.position.x));
+        targetX = maxTierX + 380;
+      }
+      return { x: targetX, y: midY };
+    }
+  }
+
+  // Case 2: Placed downstream from parent
+  if (incoming.length > 0) {
+    const parent = existingNodes.find((n) => n.id === incoming[0].source);
+    if (parent) {
+      const targetY = parent.position.y + 240;
+      const tierNodes = existingNodes.filter((n) => Math.abs(n.position.y - targetY) < 120);
+      if (tierNodes.length > 0) {
+        const maxTierX = Math.max(...tierNodes.map((n) => n.position.x));
+        return { x: maxTierX + 380, y: targetY };
+      }
+      return { x: parent.position.x, y: targetY };
+    }
+  }
+
+  // Case 3: Placed upstream from child
+  if (outgoing.length > 0) {
+    const child = existingNodes.find((n) => n.id === outgoing[0].target);
+    if (child) {
+      const targetY = Math.max(40, child.position.y - 240);
+      const tierNodes = existingNodes.filter((n) => Math.abs(n.position.y - targetY) < 120);
+      if (tierNodes.length > 0) {
+        const maxTierX = Math.max(...tierNodes.map((n) => n.position.x));
+        return { x: maxTierX + 380, y: targetY };
+      }
+      return { x: child.position.x, y: targetY };
+    }
+  }
+
+  // Case 4: Default tier by component type
+  let defaultY = 520; // Default service level
+  if (newNode.type === 'load_generator') defaultY = 40;
+  else if (newNode.type === 'gateway') defaultY = 280;
+  else if (newNode.type === 'cache' || newNode.type === 'database') defaultY = 760;
+
+  const tierNodes = existingNodes.filter((n) => Math.abs(n.position.y - defaultY) < 120);
+  if (tierNodes.length > 0) {
+    const maxTierX = Math.max(...tierNodes.map((n) => n.position.x));
+    return { x: maxTierX + 380, y: defaultY };
+  }
+
+  const allXs = existingNodes.map((n) => n.position.x);
+  const avgX = allXs.length ? Math.round(allXs.reduce((a, b) => a + b, 0) / allXs.length) : 600;
+  return { x: avgX, y: defaultY };
 }
 
 /**
@@ -257,6 +341,7 @@ export function executeArchitectureCommand(
             isBidirectional: true,
           });
         }
+        cacheNode.position = calculateSmartPositionForNewNode(cacheNode, updatedEdges, updatedNodes);
         updatedNodes.push(cacheNode);
         addedItems.push('⚡ **Redis In-Memory Cache**: Spliced read-through caching to absorb 80% read queries');
       }
@@ -288,6 +373,7 @@ export function executeArchitectureCommand(
             label: 'Async Events',
           });
         }
+        queueNode.position = calculateSmartPositionForNewNode(queueNode, updatedEdges, updatedNodes);
         updatedNodes.push(queueNode);
         addedItems.push('📬 **Kafka Event Broker**: Added event stream buffer for decoupled asynchronous background tasks');
       }
@@ -319,6 +405,7 @@ export function executeArchitectureCommand(
             label: 'Token Auth',
           });
         }
+        authNode.position = calculateSmartPositionForNewNode(authNode, updatedEdges, updatedNodes);
         updatedNodes.push(authNode);
         addedItems.push('🔒 **Auth Microservice**: Provisioned identity & token validation service');
       }
@@ -350,20 +437,20 @@ export function executeArchitectureCommand(
             label: 'Checkout API',
           });
         }
+        payNode.position = calculateSmartPositionForNewNode(payNode, updatedEdges, updatedNodes);
         updatedNodes.push(payNode);
         addedItems.push('💳 **Payment Service**: Integrated transactional payment gateway processing');
       }
     }
 
     if (addedItems.length > 0) {
-      const reorderedNodes = toVerticalTree(updatedNodes, updatedEdges);
       return {
         executed: true,
         actionType: 'add_node',
-        updatedNodes: reorderedNodes,
+        updatedNodes,
         updatedEdges,
         updatedTrafficRate: updatedTraffic,
-        explanation: `🎯 **New Requirements Attached to Playground**:\n\n${addedItems.join('\n')}\n\n• Canvas re-aligned top-to-bottom and live simulation recalculated for ${updatedTraffic.toLocaleString()} req/s.`,
+        explanation: `🎯 **New Requirements Attached to Playground**:\n\n${addedItems.join('\n')}\n\n• Topology preserved without shrinking and live simulation recalculated for ${updatedTraffic.toLocaleString()} req/s.`,
       };
     }
   }
@@ -588,15 +675,15 @@ export function executeArchitectureCommand(
         }
       }
 
+      newNode.position = calculateSmartPositionForNewNode(newNode, newEdges, currentNodes);
       const allNodes = [...currentNodes, newNode];
-      const reorderedNodes = toVerticalTree(allNodes, newEdges);
 
       return {
         executed: true,
         actionType: 'add_node',
-        updatedNodes: reorderedNodes,
+        updatedNodes: allNodes,
         updatedEdges: newEdges,
-        explanation: `✅ **Added Component: ${newNode.name}**\n\n• **Type**: \`${newNode.type}\` (${newNode.capacityPerSecond.toLocaleString()} req/s nominal capacity, ${newNode.config.baselineLatencyMs}ms baseline latency)\n• **Connections**: ${placementExplanation || 'Integrated into canvas topology.'}\n• Auto-aligned architecture hierarchy and queued live simulation refresh.`,
+        explanation: `✅ **Added Component: ${newNode.name}**\n\n• **Type**: \`${newNode.type}\` (${newNode.capacityPerSecond.toLocaleString()} req/s nominal capacity, ${newNode.config.baselineLatencyMs}ms baseline latency)\n• **Connections**: ${placementExplanation || 'Integrated into canvas topology.'}\n• Preserved existing architecture scale and queued live simulation refresh.`,
       };
     }
   }
@@ -626,12 +713,11 @@ export function executeArchitectureCommand(
       const updatedEdges = currentEdges.filter(
         (e) => e.source !== targetNode.id && e.target !== targetNode.id
       );
-      const reorderedNodes = toVerticalTree(updatedNodes, updatedEdges);
 
       return {
         executed: true,
         actionType: 'delete_node',
-        updatedNodes: reorderedNodes,
+        updatedNodes: updatedNodes,
         updatedEdges: updatedEdges,
         explanation: `🗑️ **Removed Component: ${targetNode.name}** (\`${targetNode.id}\`)\n\n• Removed component from architecture topology\n• Pruned connected edges\n• Topology updated and re-simulated.`,
       };
@@ -679,14 +765,13 @@ export function executeArchitectureCommand(
       };
 
       const updatedEdges = [...currentEdges, newEdge];
-      const reorderedNodes = toVerticalTree(currentNodes, updatedEdges);
 
       return {
         executed: true,
         actionType: 'connect_nodes',
-        updatedNodes: reorderedNodes,
+        updatedNodes: currentNodes,
         updatedEdges: updatedEdges,
-        explanation: `🔗 **Connected: ${srcNode.name} → ${dstNode.name}**\n\n• Established active data route\n• Re-balanced graph layout and re-evaluated traffic distribution.`,
+        explanation: `🔗 **Connected: ${srcNode.name} → ${dstNode.name}**\n\n• Established active data route\n• Re-evaluated traffic distribution and simulation.`,
       };
     }
   }
