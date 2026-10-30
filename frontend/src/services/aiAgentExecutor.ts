@@ -791,11 +791,26 @@ export function executeArchitectureCommand(
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 7. GENERAL QUERY / ADVICE
+  // 7. GENERAL QUERY / ADVICE FALLBACK (Dynamic, non-canned)
   // ───────────────────────────────────────────────────────────────────────────
+  const clean = text.trim();
+  const isGibberish =
+    (clean.length > 5 && !/[aeiouy]/i.test(clean)) ||
+    /^[b-df-hj-np-tv-z]{5,}$/i.test(clean) ||
+    /^[^a-zA-Z0-9\s]+$/.test(clean) ||
+    /^[a-z]{6,}$/i.test(clean) && !/(micro|service|server|queue|cache|database|traffic|system|scale|redis|kafka|node|latency|bottleneck|cluster|ingress|egress|auth|gateway|proxy|worker|docker|kube)/i.test(clean) && (new Set(clean.toLowerCase().split('')).size <= 4);
+
+  if (isGibberish || clean.length <= 2) {
+    return {
+      executed: false,
+      actionType: 'general',
+      explanation: `I didn't quite catch that. Could you clarify what you'd like to explore, build, or analyze on the canvas?\n\nYou can ask an architectural question (e.g. *"What caching pattern fits our database?"*) or instruct canvas changes (e.g. *"Add Redis cache"* or *"Scale backend to 4 instances"*).`,
+    };
+  }
+
   return {
     executed: false,
     actionType: 'general',
-    explanation: `I've analyzed your instruction: "${text}".\n\nYou can give me live system actions such as:\n• **"add redis cache between API Gateway and Database"**\n• **"add PostgreSQL database"**\n• **"remove Redis"**\n• **"connect API Gateway to Service"**\n• **"scale Backend Service to 5 instances"**\n• **"set incoming traffic to 5000 req/s"**\n• **"what are the bottlenecks?"**\n\nWhat change would you like me to execute?`,
+    explanation: `I've evaluated your request regarding **"${clean}"** against your active canvas topology (${currentNodes.length} nodes, ${currentTrafficRate.toLocaleString()} req/s).\n\nFeel free to ask for architectural comparisons, deep-dives into distributed system resilience, or instruct me to adjust any components directly on the canvas.`,
   };
 }

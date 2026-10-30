@@ -5,7 +5,6 @@ import {
   Bot,
   User,
   PanelLeftClose,
-  Zap,
   Layers,
   Activity,
 } from 'lucide-react';
@@ -25,6 +24,8 @@ export interface ChatBubble {
   text: string;
   choices?: ChatChoice[];
   isThinking?: boolean;
+  thinkingText?: string;
+  isAction?: boolean;
   category?: 'scale' | 'budget' | 'consistency' | 'region';
   actionDone?: string;
   timestamp?: string;
@@ -75,16 +76,6 @@ I have direct real-time access to this canvas. Tell me what to build or change:
 • 🎯 **Add more requirements**: *"Add more requirement: must handle 50k req/s and include payment service"*
 • ⚙️ **Scale & modify**: *"Scale backend to 5 instances"* or *"Set traffic to 5000 req/s"*
 • 🔍 **Diagnose**: *"What are the bottlenecks right now?"*`;
-
-const QUICK_COMMANDS = [
-  { label: 'Add Redis Cache', prompt: 'Add redis cache between API Gateway and Database' },
-  { label: 'Add PostgreSQL DB', prompt: 'Add PostgreSQL database' },
-  { label: 'Add Kafka Queue', prompt: 'Add Kafka event queue' },
-  { label: 'Add Auth Service', prompt: 'Add Auth microservice' },
-  { label: 'Add 50k req/s Requirement', prompt: 'Add more requirement: must handle 50,000 req/s peak load with high availability' },
-  { label: 'Scale Traffic to 5,000', prompt: 'Set incoming traffic to 5000 req/s' },
-  { label: 'Diagnose Bottlenecks', prompt: 'What are the bottlenecks in my system?' },
-];
 
 export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   activePrompt = 'Scalable distributed cloud architecture',
@@ -205,12 +196,15 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       timestamp: new Date().toISOString(),
     };
 
+    const isAction = /^(add|create|insert|new|remove|delete|drop|connect|wire|link|scale|resize|set traffic|traffic to|change traffic|increase|decrease|update)/i.test(text.trim());
     const thinkId = `think-${Date.now()}`;
     const thinkBubble: ChatBubble = {
       id: thinkId,
       sender: 'ai',
       text: '',
       isThinking: true,
+      isAction,
+      thinkingText: isAction ? 'Making...' : 'Thinking...',
       timestamp: new Date().toISOString(),
     };
 
@@ -392,7 +386,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
                   ))}
                 </span>
                 <span className="text-[10.5px] text-slate-500 dark:text-neutral-400 font-medium">
-                  Modifying Playground Architecture…
+                  {msg.thinkingText || (msg.isAction ? 'Making...' : 'Thinking...')}
                 </span>
               </div>
             ) : (
@@ -408,27 +402,6 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             )}
           </div>
         ))}
-
-        {/* Dynamic Quick Action Chips (rendered when user wants instant playground actions) */}
-        <div className="pt-2 flex flex-col gap-1.5">
-          <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 px-0.5 uppercase tracking-wider flex items-center gap-1">
-            <Zap className="w-3 h-3 text-slate-600 dark:text-neutral-400 hover:text-amber-500 transition-colors" />
-            Quick Playground Actions
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {QUICK_COMMANDS.map((qc, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => executeCommand(qc.prompt)}
-                disabled={isProcessingCommand}
-                className="text-left px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121316] hover:bg-slate-50 dark:hover:bg-neutral-800 text-[11px] font-medium text-slate-700 dark:text-neutral-300 transition-all cursor-pointer shadow-2xs hover:border-indigo-400 dark:hover:border-indigo-500 disabled:opacity-50"
-              >
-                {qc.label}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <div ref={chatBottomRef} />
       </div>

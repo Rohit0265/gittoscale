@@ -609,9 +609,42 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       };
     }
 
-    handleCustomChatMessage(command);
+    const lower = command.toLowerCase();
+    if (
+      lower.includes('convert to microservice') ||
+      lower.includes('make it event-driven') ||
+      lower.includes('re-synthesize') ||
+      lower.includes('redesign')
+    ) {
+      handleCustomChatMessage(command);
+      return {
+        reply: `🔄 Updated blueprint with: "${command}". Re-synthesising system topology...`,
+      };
+    }
+
+    try {
+      const aiResponse = await api.sendChatMessage(null, {
+        message: command,
+        history: chatHistory,
+        architectureContext: {
+          nodes: activeNodes,
+          edges: activeEdges,
+          trafficRate: 1000,
+          bottlenecks: [],
+        },
+      });
+      if (aiResponse?.reply) {
+        return {
+          reply: aiResponse.reply,
+          actionDone: aiResponse.actionDone,
+        };
+      }
+    } catch (e) {
+      console.warn('[ProjectWorkspace] AI Chat failed:', e);
+    }
+
     return {
-      reply: `🔄 Updated blueprint with: "${command}". Re-synthesising system topology...`,
+      reply: execResult.explanation,
     };
   };
 

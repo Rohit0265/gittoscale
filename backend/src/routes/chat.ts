@@ -6,6 +6,7 @@ import {
   insertArchitectureHistory,
   queryArchitectureHistory,
 } from '../services/neon.js';
+import { generateAIChatReply } from '../services/aiChatService.js';
 
 const router = Router();
 
@@ -274,6 +275,44 @@ router.get('/history', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Chat API History Error]', err);
     return res.status(500).json({ error: 'Failed to retrieve chat history', message: err.message });
+  }
+});
+
+/**
+ * POST /api/chat/message
+ * Generates an authentic AI response with live playground architecture context
+ */
+router.post('/message', async (req: Request, res: Response) => {
+  try {
+    const {
+      message = '',
+      history = [],
+      architectureContext = {},
+      llmConfig = {},
+    } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const aiResult = await generateAIChatReply({
+      message: message.trim(),
+      history,
+      architectureContext,
+      llmConfig,
+    });
+
+    return res.json({
+      success: true,
+      reply: aiResult.reply,
+      actionDone: aiResult.actionDone,
+    });
+  } catch (err: any) {
+    console.error('[Chat API Message Error]', err);
+    return res.status(500).json({
+      error: 'Failed to generate AI response',
+      message: err.message || 'Unknown error',
+    });
   }
 });
 

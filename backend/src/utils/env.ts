@@ -27,7 +27,7 @@ export function loadEnvFiles() {
             if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
               value = value.substring(1, value.length - 1);
             }
-            if (!process.env[key]) {
+            if (value && (!process.env[key] || process.env[key]?.trim() === '')) {
               process.env[key] = value;
             }
           }

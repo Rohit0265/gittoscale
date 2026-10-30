@@ -736,7 +736,42 @@ export const App: React.FC = () => {
         };
       }
 
-      // Default explanation / guidance
+      // 2. Fetch real AI response with live playground architecture context
+      try {
+        const token = getAuthToken();
+        const aiResponse = await api.sendChatMessage(token, {
+          message: command,
+          history: chatHistory,
+          architectureContext: {
+            nodes,
+            edges,
+            trafficRate: incomingTrafficRate,
+            bottlenecks: simulationResult?.bottlenecks || [],
+          },
+        });
+
+        if (aiResponse?.reply) {
+          if (user) {
+            api.saveChatHistory(token, {
+              prompt: activePromptText,
+              messages: [
+                ...chatHistory,
+                { id: `ai-${Date.now()}`, sender: 'ai', text: aiResponse.reply },
+              ],
+              selectedAnswers,
+              architectureData: { nodes, edges },
+            }).catch((err) => console.warn('Could not sync chat history to DB:', err));
+          }
+          return {
+            reply: aiResponse.reply,
+            actionDone: aiResponse.actionDone,
+          };
+        }
+      } catch (err) {
+        console.warn('[AI Chat Agent] Backend chat request error, using conversational engine:', err);
+      }
+
+      // Contextual conversational fallback if backend is unreachable
       return {
         reply: execResult.explanation,
       };

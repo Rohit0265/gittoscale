@@ -236,5 +236,28 @@ export const api = {
     const res = await axios.get(`${API_BASE}/chat/history`, { headers, params });
     return res.data;
   },
+
+  async sendChatMessage(
+    token: string | null,
+    data: {
+      message: string;
+      history?: any[];
+      architectureContext?: {
+        nodes?: any[];
+        edges?: any[];
+        trafficRate?: number;
+        bottlenecks?: any[];
+      };
+      llmConfig?: any;
+    }
+  ): Promise<{
+    success: boolean;
+    reply: string;
+    actionDone?: string;
+  }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.post(`${API_BASE}/chat/message`, data, { headers });
+    return res.data;
+  },
 };
 
