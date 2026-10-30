@@ -348,6 +348,21 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             <Activity className="w-2.5 h-2.5 text-blue-500" />
             {incomingTrafficRate.toLocaleString()} req/s
           </span>
+          {simulationResult && (
+            <span
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded border ${
+                simulationResult.bottlenecks && simulationResult.bottlenecks.length > 0
+                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300'
+                  : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+              }`}
+            >
+              {simulationResult.bottlenecks && simulationResult.bottlenecks.length > 0 ? (
+                <span>⚠️ {simulationResult.bottlenecks.length} issue</span>
+              ) : (
+                <span>✓ Healthy</span>
+              )}
+            </span>
+          )}
         </div>
       </div>
 

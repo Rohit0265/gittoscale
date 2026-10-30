@@ -103,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shadow-xs ${
               isLeftCollapsed
                 ? 'border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-                : 'border-indigo-500/40 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 shadow-indigo-500/10'
+                : 'border-slate-300 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800 text-slate-900 dark:text-white'
             }`}
           >
             {isLeftCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -131,19 +131,19 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onToggleRun}
             className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer shrink-0 ${
               isRunning
-                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20'
-                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
+                ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black'
+                : 'bg-slate-800 hover:bg-slate-700 text-white dark:bg-neutral-200 dark:hover:bg-white dark:text-black'
             }`}
             title={isRunning ? 'Pause request flow simulation' : 'Play live request simulation'}
           >
             {isRunning ? (
               <>
-                <Pause className="w-3.5 h-3.5 fill-current" />
+                <Pause className="w-3.5 h-3.5 fill-current text-white dark:text-black" />
                 <span className="hidden xs:inline">Pause</span>
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 fill-current" />
+                <Play className="w-3.5 h-3.5 fill-current text-white dark:text-black" />
                 <span className="hidden xs:inline">Start</span>
               </>
             )}
@@ -156,7 +156,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm cursor-pointer shrink-0"
           title="Reset architecture to initial scenario values"
         >
-          <RotateCcw className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
+          <RotateCcw className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-300" />
           <span className="hidden sm:inline">Reset</span>
         </button>
 
@@ -173,13 +173,13 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-2 px-2 sm:px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141416] text-slate-700 dark:text-neutral-200 transition-all shadow-xs cursor-pointer shrink-0"
           >
             {user ? (
-              <div className="w-6 h-6 rounded-full bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 relative">
+              <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 flex items-center justify-center font-bold text-xs shrink-0 relative">
                 {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U').toUpperCase()}
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-[#0A0A0A]" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-slate-400 dark:bg-neutral-500 border border-white dark:border-[#0A0A0A]" />
               </div>
             ) : (
               <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-700 dark:text-neutral-300 shrink-0">
-                <User className="w-3.5 h-3.5" />
+                <User className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-300" />
               </div>
             )}
             <span className="text-xs font-semibold hidden md:inline max-w-[90px] truncate">
@@ -206,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({
                 {user ? (
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-100/70 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/60">
-                      <div className="w-10 h-10 rounded-full bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 flex items-center justify-center font-bold text-sm shrink-0">
                         {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U').toUpperCase()}
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
@@ -226,9 +226,9 @@ export const Header: React.FC<HeaderProps> = ({
                           setIsMenuOpen(false);
                           onSignOut();
                         }}
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                       >
-                        <LogOut className="w-4 h-4" />
+                        <LogOut className="w-4 h-4 text-slate-600 dark:text-neutral-400" />
                         <span>Sign Out</span>
                       </button>
                     )}
