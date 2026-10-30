@@ -93,6 +93,21 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-2.5 sm:px-4 flex items-center justify-between z-40 shrink-0 transition-colors w-full">
       {/* Brand & Title */}
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+        {onToggleLeftSidebar && (
+          <button
+            type="button"
+            onClick={onToggleLeftSidebar}
+            aria-label={isLeftCollapsed ? 'Expand AI Architect sidebar' : 'Collapse AI Architect sidebar'}
+            title={isLeftCollapsed ? 'Expand AI Architect sidebar' : 'Collapse AI Architect sidebar'}
+            className={`p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shadow-xs ${
+              isLeftCollapsed
+                ? 'border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+                : 'border-slate-300 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800 text-slate-900 dark:text-white'
+            }`}
+          >
+            {isLeftCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          </button>
+        )}
 
         <button
           onClick={onGoHome}
