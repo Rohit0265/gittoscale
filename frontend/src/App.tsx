@@ -460,6 +460,16 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  const handleToggleLeft = useCallback(() => {
+    setIsLeftCollapsed((prev) => {
+      const next = !prev;
+      if (!next && window.innerWidth < 768) {
+        setIsRightCollapsed(true);
+      }
+      return next;
+    });
+  }, []);
+
   const handleOpenRight = useCallback(() => {
     setIsRightCollapsed(false);
     if (window.innerWidth < 768) {
@@ -1391,6 +1401,8 @@ export const App: React.FC = () => {
         onToggleViewMode={handleToggleViewMode}
         isDark={isDark}
         onToggleTheme={handleToggleTheme}
+        isLeftCollapsed={isLeftCollapsed}
+        onToggleLeftSidebar={handleToggleLeft}
       />
 
       {/* 2. Top Metrics Strip */}
@@ -1483,6 +1495,7 @@ export const App: React.FC = () => {
                 isGenerating={isGeneratingArchitecture}
                 isHydrated={nodes.length > 0}
                 isDark={isDark}
+                onToggleCollapse={() => setIsLeftCollapsed(true)}
               />
             </div>
           </div>

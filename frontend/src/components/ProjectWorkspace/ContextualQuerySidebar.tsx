@@ -7,6 +7,7 @@ import {
   User,
   ArrowRight,
   Zap,
+  PanelLeftClose,
 } from 'lucide-react';
 
 export interface ContextualQuerySidebarProps {
@@ -28,6 +29,7 @@ export interface ContextualQuerySidebarProps {
   isGenerating: boolean;
   isHydrated: boolean;
   isDark?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface ChatChoice {
@@ -97,6 +99,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   onSendCustomMessage,
   isGenerating,
   isHydrated,
+  onToggleCollapse,
 }) => {
   const [messages, setMessages] = useState<ChatBubble[]>([]);
   const [customInput, setCustomInput] = useState('');
@@ -261,15 +264,28 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleRestart}
-          className="text-[11px] text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors cursor-pointer"
-          title="Reset"
-        >
-          <RotateCcw className="w-3 h-3" />
-          Reset
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleRestart}
+            className="text-[11px] text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors cursor-pointer"
+            title="Reset conversation"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Reset
+          </button>
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:text-neutral-500 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+              title="Collapse AI Architect"
+              aria-label="Collapse AI Architect"
+            >
+              <PanelLeftClose className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Chat Stream */}

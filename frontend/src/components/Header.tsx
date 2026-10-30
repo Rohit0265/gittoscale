@@ -93,7 +93,23 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-2.5 sm:px-4 flex items-center justify-between z-40 shrink-0 transition-colors w-full">
       {/* Brand & Title */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+        {onToggleLeftSidebar && (
+          <button
+            type="button"
+            onClick={onToggleLeftSidebar}
+            aria-label={isLeftCollapsed ? 'Expand AI Architect sidebar' : 'Collapse AI Architect sidebar'}
+            title={isLeftCollapsed ? 'Expand AI Architect sidebar' : 'Collapse AI Architect sidebar'}
+            className={`p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shadow-xs ${
+              isLeftCollapsed
+                ? 'border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+                : 'border-indigo-500/40 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 shadow-indigo-500/10'
+            }`}
+          >
+            {isLeftCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          </button>
+        )}
+
         <button
           onClick={onGoHome}
           className="flex items-center text-left group hover:opacity-85 transition-opacity cursor-pointer"
@@ -354,6 +370,36 @@ export const Header: React.FC<HeaderProps> = ({
                           </span>
                           <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
                             Saved systems &amp; snapshots
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* Toggle Left Sidebar */}
+                  {onToggleLeftSidebar && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onToggleLeftSidebar();
+                      }}
+                      className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900/70 transition-colors text-left cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                          {isLeftCollapsed ? (
+                            <PanelLeftOpen className="w-4 h-4" />
+                          ) : (
+                            <PanelLeftClose className="w-4 h-4" />
+                          )}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                            {isLeftCollapsed ? 'Show AI Architect Sidebar' : 'Hide AI Architect Sidebar'}
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
+                            {isLeftCollapsed ? 'Open contextual requirements panel' : 'Collapse contextual requirements panel'}
                           </span>
                         </div>
                       </div>
