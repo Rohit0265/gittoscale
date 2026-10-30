@@ -8,6 +8,8 @@ import {
   Layers,
   Activity,
 } from 'lucide-react';
+import { Streamdown } from 'streamdown';
+import 'streamdown/styles.css';
 import { ArchitectureNode, ArchitectureEdge, SimulationResult } from '../../types';
 import { api } from '../../services/api';
 
@@ -328,7 +330,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       </div>
 
       {/* Live Playground Status Strip */}
-      {/* <div className="px-3.5 py-2 bg-slate-50/80 dark:bg-[#07080A] border-b border-slate-100 dark:border-neutral-800/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-neutral-400 shrink-0">
+      <div className="px-3.5 py-2 bg-slate-50/80 dark:bg-[#07080A] border-b border-slate-100 dark:border-neutral-800/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-neutral-400 shrink-0">
         <div className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span>Active Playground</span>
@@ -358,7 +360,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             </span>
           )}
         </div>
-      </div> */}
+      </div>
 
       {/* Chat Stream */}
       <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5">
@@ -391,13 +393,19 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
               </div>
             ) : (
               <div
-                className={`max-w-[94%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${
+                className={`max-w-[94%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-slate-900 dark:bg-neutral-700 text-white rounded-br-sm font-medium'
-                    : 'bg-slate-100/90 dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 rounded-bl-sm shadow-xs'
+                    ? 'bg-slate-900 dark:bg-neutral-700 text-white rounded-br-sm font-medium streamdown-user whitespace-pre-wrap'
+                    : 'bg-slate-100/90 dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 rounded-bl-sm shadow-xs streamdown-ai'
                 }`}
               >
-                {msg.text}
+                {msg.sender === 'user' ? (
+                  msg.text
+                ) : (
+                  <div className="streamdown-chat-body">
+                    <Streamdown>{msg.text}</Streamdown>
+                  </div>
+                )}
               </div>
             )}
           </div>
