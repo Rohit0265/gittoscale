@@ -12,6 +12,7 @@ import feedbackRoute from './routes/feedback.js';
 import recommendRoute from './routes/recommend.js';
 import authRoute from './routes/auth.js';
 import historyRoute from './routes/history.js';
+import chatRoute from './routes/chat.js';
 
 import { loadEnvFiles } from './utils/env.js';
 
@@ -35,6 +36,7 @@ export function createApp() {
   app.use('/api/recommend', recommendRoute);
   app.use('/api/auth', authRoute);
   app.use('/api/history', historyRoute);
+  app.use('/api/chat', chatRoute);
 
   // Serve static frontend in production if built
   const frontendDistCandidates = [

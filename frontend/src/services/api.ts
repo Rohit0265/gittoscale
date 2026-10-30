@@ -202,5 +202,39 @@ export const api = {
     const res = await axios.delete(`${API_BASE}/history/repositories/${id}`, { headers });
     return res.data;
   },
+
+  // =========================================================================
+  // AI Agent Chat History & Persistence (Up to 200 Context Messages)
+  // =========================================================================
+
+  async saveChatHistory(
+    token: string | null,
+    data: {
+      sessionId?: string;
+      prompt: string;
+      messages: any[];
+      selectedAnswers?: any;
+      architectureData?: any;
+    }
+  ): Promise<{ success: boolean; id: string; count: number }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.post(`${API_BASE}/chat/save`, data, { headers });
+    return res.data;
+  },
+
+  async getChatHistory(
+    token: string | null,
+    params?: { sessionId?: string; userId?: string }
+  ): Promise<{
+    success: boolean;
+    messages: any[];
+    selectedAnswers?: any;
+    prompt?: string;
+    sessionId?: string;
+  }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.get(`${API_BASE}/chat/history`, { headers, params });
+    return res.data;
+  },
 };
 
