@@ -135,7 +135,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 dark:border-neutral-800/80">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
                   <MessageSquarePlus className="h-5 w-5" />
                 </div>
                 <div>
@@ -168,8 +168,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 className="p-8 text-center"
               >
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-                  <CheckCircle2 className="h-8 w-8" />
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-800 dark:bg-neutral-800 dark:text-neutral-200">
+                  <CheckCircle2 className="h-8 w-8 text-slate-800 dark:text-neutral-200" />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                   Thank You for Your Feedback!
@@ -201,11 +201,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                       onClick={() => setType('recommendation')}
                       className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all ${
                         type === 'recommendation'
-                          ? 'border-indigo-600 bg-indigo-50/60 text-indigo-700 shadow-sm dark:border-indigo-500 dark:bg-indigo-950/30 dark:text-indigo-300'
+                          ? 'border-slate-800 bg-slate-100 text-slate-900 shadow-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white'
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-neutral-300'
                       }`}
                     >
-                      <Lightbulb className={`h-4 w-4 ${type === 'recommendation' ? 'text-indigo-600 dark:text-indigo-400' : ''}`} />
+                      <Lightbulb className={`h-4 w-4 ${type === 'recommendation' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-neutral-400'}`} />
                       <span>Recommendation</span>
                     </button>
 
@@ -214,11 +214,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                       onClick={() => setType('bug')}
                       className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all ${
                         type === 'bug'
-                          ? 'border-rose-600 bg-rose-50/60 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-950/30 dark:text-rose-300'
+                          ? 'border-slate-800 bg-slate-100 text-slate-900 shadow-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-white'
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-neutral-300'
                       }`}
                     >
-                      <Bug className={`h-4 w-4 ${type === 'bug' ? 'text-rose-600 dark:text-rose-400' : ''}`} />
+                      <Bug className={`h-4 w-4 ${type === 'bug' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-neutral-400'}`} />
                       <span>Bug Report</span>
                     </button>
                   </div>
@@ -289,8 +289,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
                 {/* Error Banner */}
                 {errorMessage && (
-                  <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
+                  <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-3 text-xs text-slate-800 dark:bg-neutral-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-slate-700 dark:text-neutral-300" />
                     <span>{errorMessage}</span>
                   </div>
                 )}

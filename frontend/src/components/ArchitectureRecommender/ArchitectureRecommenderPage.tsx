@@ -92,7 +92,7 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
           </button>
           <div className="h-4 w-px bg-slate-200 dark:border-neutral-800 hidden sm:block" />
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-neutral-200">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+            <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
             <span className="hidden xs:inline">AI Architecture Recommender</span>
           </div>
         </div>
@@ -112,9 +112,9 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
               className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 transition-all shadow-xs cursor-pointer flex items-center justify-center"
             >
               {isDark ? (
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
               ) : (
-                <Moon className="w-4 h-4 text-slate-600" />
+                <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
               )}
             </button>
           )}
@@ -125,7 +125,7 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
       {error && (
         <div className="bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-900/50 px-4 py-2 flex items-center justify-between text-xs text-red-700 dark:text-red-300 z-30">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0" />
             <span>{error}</span>
           </div>
           <button

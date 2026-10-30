@@ -421,7 +421,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
             {dateFormat === "badge" ? (
               <div className="flex items-center mb-2">
                 {event.icon || (
-                  <Calendar className="h-4 w-4 mr-2 text-indigo-600 dark:text-indigo-400" />
+                  <Calendar className="h-4 w-4 mr-2 text-slate-700 dark:text-neutral-300" />
                 )}
                 <span
                   className={cn(

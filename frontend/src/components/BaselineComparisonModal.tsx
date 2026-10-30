@@ -34,10 +34,10 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
     return (
       <span
         className={`font-mono font-bold flex items-center justify-end gap-0.5 ${
-          isGood ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+          isGood ? 'text-slate-800 dark:text-neutral-200' : 'text-slate-500 dark:text-neutral-400'
         }`}
       >
-        {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+        {isPositive ? <TrendingUp className="w-3 h-3 text-slate-700 dark:text-neutral-300" /> : <TrendingDown className="w-3 h-3 text-slate-700 dark:text-neutral-300" />}
         {isPositive ? `+${diff.toLocaleString()}` : diff.toLocaleString()}
       </span>
     );
@@ -49,8 +49,8 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
         {/* Modal Header */}
         <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 shrink-0">
-              <GitCompare className="w-4 h-4" />
+            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-300 shrink-0">
+              <GitCompare className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
             </div>
             <div>
               <h2 className="font-bold text-sm text-slate-900 dark:text-slate-100">

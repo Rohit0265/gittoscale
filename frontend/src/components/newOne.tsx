@@ -55,8 +55,8 @@ export const NewOne: React.FC<NewOneProps> = ({
           >
             <div className="relative flex items-center justify-between w-full rounded-full px-4 sm:px-5 py-2 sm:py-2.5 gap-2 sm:gap-3">
               {/* Left: Refined Sparkles Icon Badge */}
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-950/50 border border-cyan-500/30 shrink-0 text-cyan-400">
-                <Sparkles className="w-4 h-4" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-700 shrink-0 text-white">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
 
               {/* Center: Two-Line Text Area */}

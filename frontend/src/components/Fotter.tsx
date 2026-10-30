@@ -50,7 +50,7 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavi
               className="gts-feedback-pill"
               aria-label="Give feedback or report a bug"
             >
-              <MessageSquarePlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <MessageSquarePlus className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
               <span>Feedback &amp; Bug Report</span>
               {/* <span className="gts-feedback-badge">Share idea</span> */}
             </button>

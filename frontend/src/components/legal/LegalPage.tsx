@@ -159,7 +159,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 }`}
                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
-                {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-500" />}
+                {isDark ? <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300" /> : <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300" />}
               </button>
             )}
           </div>

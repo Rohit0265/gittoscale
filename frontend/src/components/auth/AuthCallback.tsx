@@ -184,7 +184,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
       <div className="w-full max-w-md bg-[#0D0E15]/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl z-10 text-center">
         {status === 'verifying' && (
           <div className="py-6 flex flex-col items-center">
-            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+            <Loader2 className="w-10 h-10 text-slate-400 animate-spin mb-4" />
             <h2 className="text-lg font-semibold text-white mb-1">
               Verifying credentials...
             </h2>
@@ -196,7 +196,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
         {status === 'success' && (
           <div className="py-6 flex flex-col items-center">
-            <CheckCircle2 className="w-10 h-10 text-emerald-400 mb-4" />
+            <CheckCircle2 className="w-10 h-10 text-white mb-4" />
             <h2 className="text-lg font-semibold text-white mb-1">
               Authentication Verified
             </h2>
@@ -208,7 +208,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
         {status === 'error' && (
           <div className="py-6 flex flex-col items-center">
-            <AlertCircle className="w-10 h-10 text-red-400 mb-4" />
+            <AlertCircle className="w-10 h-10 text-slate-300 mb-4" />
             <h2 className="text-lg font-semibold text-white mb-1">
               Authentication Failed
             </h2>
@@ -238,7 +238,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
             {errorMessage && (
               <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-800/50 text-red-300 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-slate-300" />
                 <span>{errorMessage}</span>
               </div>
             )}

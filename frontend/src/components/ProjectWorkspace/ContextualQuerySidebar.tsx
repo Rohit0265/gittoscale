@@ -297,7 +297,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800/80 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 flex items-center justify-center font-bold">
             <Bot className="w-4 h-4" />
           </div>
           <div>
@@ -341,11 +341,11 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         </div>
         <div className="flex items-center gap-2 font-mono text-[9.5px]">
           <span className="flex items-center gap-1 bg-white dark:bg-neutral-900 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-neutral-800/60">
-            <Layers className="w-2.5 h-2.5 text-indigo-500" />
+            <Layers className="w-2.5 h-2.5 text-slate-600 dark:text-neutral-400" />
             {nodes.length} nodes
           </span>
           <span className="flex items-center gap-1 bg-white dark:bg-neutral-900 px-1.5 py-0.5 rounded border border-slate-200/60 dark:border-neutral-800/60">
-            <Activity className="w-2.5 h-2.5 text-blue-500" />
+            <Activity className="w-2.5 h-2.5 text-slate-600 dark:text-neutral-400" />
             {incomingTrafficRate.toLocaleString()} req/s
           </span>
           {simulationResult && (
@@ -373,7 +373,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             {/* Sender label */}
             <span className="text-[10px] text-slate-400 dark:text-neutral-500 mb-1 px-0.5 flex items-center gap-1">
               {msg.sender === 'ai' ? (
-                <><Bot className="w-2.5 h-2.5 text-indigo-500" /> AI Agent</>
+                <><Bot className="w-2.5 h-2.5 text-slate-600 dark:text-neutral-400" /> AI Agent</>
               ) : (
                 <><User className="w-2.5 h-2.5 text-slate-400" /> You</>
               )}
@@ -386,7 +386,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
                   {[0, 0.2, 0.4].map((delay, i) => (
                     <span
                       key={i}
-                      className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce"
+                      className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-neutral-400 animate-bounce"
                       style={{ animationDelay: `${delay}s`, animationDuration: '1s' }}
                     />
                   ))}
@@ -412,7 +412,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         {/* Dynamic Quick Action Chips (rendered when user wants instant playground actions) */}
         <div className="pt-2 flex flex-col gap-1.5">
           <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 px-0.5 uppercase tracking-wider flex items-center gap-1">
-            <Zap className="w-3 h-3 text-amber-500" />
+            <Zap className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
             Quick Playground Actions
           </span>
           <div className="flex flex-wrap gap-1.5">

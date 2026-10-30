@@ -46,13 +46,13 @@ export const GitHubStarButton: React.FC<GitHubStarButtonProps> = ({
       href={`https://github.com/${repo}`}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs text-xs font-semibold cursor-pointer ${className}`}
+      className={`group inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white transition-all shadow-xs text-xs font-semibold cursor-pointer ${className}`}
       title="Star repository on GitHub"
       aria-label="Star repository on GitHub"
     >
       <Github className="w-4 h-4 fill-current shrink-0" />
       <span className="inline-flex items-center gap-1">
-        <Star className="w-3.5 h-3.5 text-slate-500 fill-slate-500 dark:text-neutral-400 dark:fill-neutral-400 shrink-0" />
+        <Star className="w-3.5 h-3.5 text-slate-500 fill-slate-500 dark:text-neutral-400 dark:fill-neutral-400 group-hover:text-amber-400 group-hover:fill-amber-400 transition-colors shrink-0" />
         {stars !== null && (
           <span className="font-semibold text-xs tabular-nums text-slate-800 dark:text-neutral-200">
             {stars}

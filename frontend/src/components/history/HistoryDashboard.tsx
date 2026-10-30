@@ -183,7 +183,7 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
               className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0E] text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+              {isDark ? <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300" /> : <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300" />}
             </button>
           )}
 
@@ -199,7 +199,7 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
             </div>
             <button
               onClick={signOut}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
@@ -305,7 +305,7 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
         {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0" />
               <span>{error}</span>
             </div>
             <button
@@ -341,8 +341,8 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
           <div>
             {architectures.length === 0 ? (
               <div className="text-center py-16 px-4 bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 rounded-2xl flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 flex items-center justify-center text-blue-500 mb-3">
-                  <Sparkles className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 flex items-center justify-center text-slate-700 dark:text-neutral-300 mb-3">
+                  <Sparkles className="w-6 h-6 text-slate-700 dark:text-neutral-300" />
                 </div>
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-neutral-200 mb-1">
                   No architecture history found
@@ -403,7 +403,7 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
                       <div>
                         <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-500 mb-3 pt-3 border-t border-slate-100 dark:border-neutral-800/60">
                           <div className="flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-blue-500" />
+                            <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
                             <span>{nodeCount} Components</span>
                           </div>
                           <div className="flex items-center gap-1.5">
@@ -445,8 +445,8 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
           <div>
             {repositories.length === 0 ? (
               <div className="text-center py-16 px-4 bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 rounded-2xl flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/50 flex items-center justify-center text-cyan-500 mb-3">
-                  <FolderGit2 className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 flex items-center justify-center text-slate-700 dark:text-neutral-300 mb-3">
+                  <FolderGit2 className="w-6 h-6 text-slate-700 dark:text-neutral-300" />
                 </div>
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-neutral-200 mb-1">
                   No repository scan history found
@@ -525,7 +525,7 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
                       <div>
                         <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-500 mb-3 pt-3 border-t border-slate-100 dark:border-neutral-800/60">
                           <div className="flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-cyan-500" />
+                            <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
                             <span>{nodeCount} Nodes Detected</span>
                           </div>
                           <div className="flex items-center gap-1.5">

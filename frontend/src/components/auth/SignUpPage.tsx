@@ -83,9 +83,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate, isDark = tru
         {pendingAction && (
           <div className="mb-6 p-3.5 rounded-xl bg-gradient-to-r from-blue-950/60 to-indigo-950/60 border border-blue-500/30 text-xs text-blue-200 flex items-start gap-3">
             {pendingAction.type === 'prompt' ? (
-              <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <Sparkles className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />
             ) : (
-              <FolderGit2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+              <FolderGit2 className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />
             )}
             <div className="flex-1">
               <span className="font-semibold text-white block mb-0.5">
@@ -114,14 +114,14 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate, isDark = tru
         {/* Status Alerts */}
         {error && (
           <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-800/50 text-red-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+            <AlertCircle className="w-4 h-4 shrink-0 text-slate-300" />
             <span>{error}</span>
           </div>
         )}
 
         {successMessage && (
           <div className="mb-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-white" />
             <span>{successMessage}</span>
           </div>
         )}

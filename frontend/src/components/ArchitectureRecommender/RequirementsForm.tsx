@@ -113,8 +113,8 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
     <div className="w-full max-w-4xl mx-auto px-4 py-8 sm:py-12">
       {/* Title & Headline */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-3 shadow-2xs">
-          <Sparkles className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 text-xs font-semibold mb-3 shadow-2xs">
+          <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
           <span>AI Architecture Architect</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -193,7 +193,7 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
             className="flex items-center justify-between w-full text-xs font-semibold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer py-1"
           >
             <span className="flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-indigo-500" />
+              <Sliders className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
               <span>Tailor Constraints (Scale, Budget, Preferred Tech)</span>
             </span>
             {showAdvanced ? (

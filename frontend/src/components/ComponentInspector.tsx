@@ -351,7 +351,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
                     <button
                       type="button"
                       onClick={() => onDeleteEdge(edge.id)}
-                      className="p-1 rounded text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      className="p-1 rounded text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                       title={`Delete connection from ${edge.source}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -471,9 +471,9 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
               >
                 <div className="flex items-center gap-1.5 font-bold mb-1">
                   {result.status === 'overloaded' ? (
-                    <AlertOctagon className="w-3.5 h-3.5 text-rose-500" />
+                    <AlertOctagon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
                   ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
                   )}
                   <span>Bottleneck Diagnosis</span>
                 </div>

@@ -78,9 +78,9 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
 
       {/* 2. Most Constrained Component Banner (if present) */}
       {mostConstrainedComponent && (
-        <div className="bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 space-y-1">
-          <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold text-xs">
-            <TrendingUp className="w-3.5 h-3.5" />
+        <div className="bg-slate-100/70 dark:bg-neutral-900/60 border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-slate-700 dark:text-neutral-300 font-semibold text-xs">
+            <TrendingUp className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
             <span className="tracking-tight">Primary Constrained Service</span>
           </div>
           <div className="flex items-center justify-between">
@@ -101,7 +101,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
       <div className="space-y-2 overflow-y-auto max-h-[50vh] pr-0.5">
         {bottlenecks.length === 0 ? (
           <div className="bg-slate-50 dark:bg-[#141414]/75 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 text-center space-y-2">
-            <CheckCircle2 className="w-8 h-8 text-emerald-500 dark:text-emerald-400 mx-auto" />
+            <CheckCircle2 className="w-8 h-8 text-slate-600 dark:text-neutral-400 mx-auto" />
             <p className="font-semibold text-slate-900 dark:text-slate-100 text-xs">No Bottlenecks Detected</p>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
               All services have sufficient throughput and zero queue build-up under current traffic load.
@@ -128,9 +128,9 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
                       #{idx + 1}
                     </span>
                     {isCritical ? (
-                      <AlertOctagon className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                      <AlertOctagon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 shrink-0" />
                     ) : (
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <AlertTriangle className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 shrink-0" />
                     )}
                     <span className="font-medium text-slate-900 dark:text-slate-100 text-[13px] tracking-tight truncate">
                       {b.nodeName}
@@ -154,8 +154,8 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
                 <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono border-t border-slate-100 dark:border-neutral-800/80 pt-2">
                   <span>Load: {Math.round(b.offeredLoad)} r/s</span>
                   <span>Cap: {Math.round(b.effectiveCapacity)} r/s</span>
-                  <span className="text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 font-sans font-medium flex items-center gap-0.5 transition-colors">
-                    Inspect <ChevronRight className="w-3 h-3" />
+                  <span className="text-slate-700 dark:text-neutral-300 group-hover:text-slate-900 dark:group-hover:text-white font-sans font-medium flex items-center gap-0.5 transition-colors">
+                    Inspect <ChevronRight className="w-3 h-3 text-slate-500 dark:text-neutral-400" />
                   </span>
                 </div>
               </div>

@@ -313,7 +313,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                     className="rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0C] p-5 shadow-sm"
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+                      <Zap className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0" />
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                         {flow.name}
                       </h3>
@@ -346,7 +346,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
               {/* Security Section */}
               <div className="rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0C] p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <Shield className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <Shield className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     Security & Data Protection Architecture
                   </h3>
@@ -354,7 +354,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                 <ul className="space-y-2">
                   {recommendation.securityConsiderations.map((sec, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-xs text-slate-700 dark:text-neutral-300">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0 mt-0.5" />
                       <span>{sec}</span>
                     </li>
                   ))}
@@ -364,7 +364,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
               {/* Scalability Section */}
               <div className="rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0C] p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <TrendingUp className="w-4 h-4 text-slate-700 dark:text-neutral-300 shrink-0" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     Evolutionary Scaling Roadmap
                   </h3>

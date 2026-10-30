@@ -118,7 +118,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <Cpu className="w-3.5 h-3.5" />
             <span>Inspector</span>
             {selectedNode && (
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-600 dark:bg-neutral-300 shrink-0" />
             )}
           </button>
 

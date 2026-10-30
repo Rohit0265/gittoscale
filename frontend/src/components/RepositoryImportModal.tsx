@@ -396,39 +396,35 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
     switch (providerId) {
       case 'gemini':
         return (
-          <svg className={className} viewBox="0 0 24 24">
+          <svg className={`${className} text-slate-800 dark:text-neutral-200`} viewBox="0 0 24 24" fill="currentColor">
             <path
-              fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             />
             <path
-              fill="#34A853"
               d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
             />
             <path
-              fill="#FBBC05"
               d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
             />
             <path
-              fill="#EA4335"
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
         );
       case 'openai':
         return (
-          <svg className={`${className} text-[#10A37F]`} viewBox="0 0 24 24" fill="currentColor">
+          <svg className={`${className} text-slate-800 dark:text-neutral-200`} viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.259 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7466-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1683a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4947zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1683a.0757.0757 0 0 1-.071 0l-4.8303-2.7866A4.504 4.504 0 0 1 2.3408 7.8956zm16.0993 3.8558L12.5973 8.3829l2.02-1.1636a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.402-.6862zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.6627zM8.3065 12.863l-2.02-1.1635a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813v6.7227zm1.1449-2.0742l3.4443-1.9871 3.4442 1.9871v3.9742l-3.4442 1.9871-3.4443-1.9871z" />
           </svg>
         );
       case 'anthropic':
         return (
-          <svg className={`${className} text-[#D97757]`} viewBox="0 0 24 24" fill="currentColor">
+          <svg className={`${className} text-slate-800 dark:text-neutral-200`} viewBox="0 0 24 24" fill="currentColor">
             <path d="M17.472 4.095a.732.732 0 0 0-.693-.495H13.67a.732.732 0 0 0-.693.495L7.26 19.905a.732.732 0 0 0 .693.972h3.109a.732.732 0 0 0 .693-.495l1.096-3.147h3.987l1.096 3.147a.732.732 0 0 0 .693.495h3.109a.732.732 0 0 0 .693-.972L17.472 4.095zm-3.567 10.428l1.396-4.008 1.396 4.008h-2.792z" />
           </svg>
         );
       case 'other':
-        return <Server className={`${className} text-indigo-500 dark:text-indigo-400`} />;
+        return <Server className={`${className} text-slate-600 dark:text-neutral-400`} />;
       default:
         return <Cpu className={`${className} text-slate-400`} />;
     }
@@ -440,8 +436,8 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 dark:bg-[#524bf7] dark:border-transparent dark:text-white flex items-center justify-center shadow-xs dark:shadow-md dark:shadow-indigo-500/25 shrink-0 transition-colors">
-              <GitBranch className="w-5 h-5 text-indigo-600 dark:text-white stroke-[2.2]" />
+            <div className="w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 dark:bg-neutral-800 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 flex items-center justify-center shrink-0 transition-colors">
+              <GitBranch className="w-5 h-5 text-slate-800 dark:text-white stroke-[2.2]" />
             </div>
             <div className="ml-3.5 flex flex-col justify-center">
               <h2 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
@@ -713,9 +709,9 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                       className="h-10 px-3.5 rounded-xl border border-slate-200 dark:border-[#262833] bg-white dark:bg-[#181922] hover:bg-slate-100 dark:hover:bg-[#20212d] text-xs font-semibold text-slate-700 dark:text-neutral-200 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-50"
                     >
                       {testStatus.testing ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500 dark:text-neutral-400" />
                       ) : (
-                        <ShieldCheck className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
                       )}
                       <span>Test</span>
                     </button>
@@ -725,14 +721,14 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                     <div
                       className={`mt-2 p-2 rounded-xl text-[11px] flex items-center gap-2 ${
                         testStatus.success
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
-                          : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/60'
+                          ? 'bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700'
+                          : 'bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700'
                       }`}
                     >
                       {testStatus.success ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-neutral-300" />
                       ) : (
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-neutral-300" />
                       )}
                       <span>{testStatus.message}</span>
                     </div>
@@ -751,7 +747,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
           {/* Error Banner */}
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+              <AlertCircle className="w-4 h-4 shrink-0 text-slate-700 dark:text-neutral-300" />
               <span>{error}</span>
             </div>
           )}
@@ -827,7 +823,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
                   {renderProviderLogo(option.id)}
                   <span className="truncate">{option.name}</span>
                   {isSelected && (
-                    <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0 ml-auto" />
+                    <Check className="w-3.5 h-3.5 text-slate-900 dark:text-white shrink-0 ml-auto" />
                   )}
                 </div>
               );

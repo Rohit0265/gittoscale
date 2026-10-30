@@ -739,9 +739,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             >
               {isDark ? (
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
               ) : (
-                <Moon className="w-4 h-4 text-slate-600" />
+                <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
               )}
             </button>
           )}

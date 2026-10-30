@@ -425,9 +425,9 @@ export default function Component({
                 }}
               >
                 {message.type === 'success' ? (
-                  <CheckCircle2 style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <CheckCircle2 style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 ) : (
-                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 )}
                 <span>{message.text}</span>
               </div>
@@ -533,9 +533,9 @@ export default function Component({
                 }}
               >
                 {message.type === 'success' ? (
-                  <CheckCircle2 style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <CheckCircle2 style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 ) : (
-                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
                 )}
                 <span>{message.text}</span>
               </div>
