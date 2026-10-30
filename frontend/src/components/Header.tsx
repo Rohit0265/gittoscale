@@ -13,6 +13,8 @@ import {
   LogIn,
   UserPlus,
   ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture } from '../types';
@@ -39,6 +41,8 @@ interface HeaderProps {
   onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
   isDark?: boolean;
   onToggleTheme?: () => void;
+  isLeftCollapsed?: boolean;
+  onToggleLeftSidebar?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -58,6 +62,8 @@ export const Header: React.FC<HeaderProps> = ({
   onGoHome,
   isDark = false,
   onToggleTheme,
+  isLeftCollapsed = false,
+  onToggleLeftSidebar,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -139,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* AI Architecture Recommender button */}
-        {onOpenRecommender && (
+        {/* {onOpenRecommender && (
           <button
             onClick={onOpenRecommender}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
@@ -148,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
             <Sparkles className="w-3.5 h-3.5" />
             <span className="hidden md:inline">AI Architect</span>
           </button>
-        )}
+        )} */}
 
         {/* GitHub Star Button */}
         <GitHubStarButton className="hidden sm:inline-flex" />
