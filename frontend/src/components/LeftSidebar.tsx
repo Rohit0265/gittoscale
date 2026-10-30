@@ -109,58 +109,59 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     const nameLower = node.name.toLowerCase();
     const idLower = node.id.toLowerCase();
     const type = node.type;
+    const neutralContainerStyle = 'bg-slate-100 dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-300';
 
     if (type === 'load_generator' || nameLower.includes('frontend') || idLower.includes('client')) {
       return {
         icon: Monitor,
-        containerStyle: 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (type === 'gateway' || nameLower.includes('gateway') || idLower.includes('gateway')) {
       return {
         icon: Cloud,
-        containerStyle: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('auth') || idLower.includes('auth')) {
       return {
         icon: Shield,
-        containerStyle: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('agent') || idLower.includes('agent') || nameLower.includes('bot')) {
       return {
         icon: Bot,
-        containerStyle: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('billing') || nameLower.includes('payment') || idLower.includes('billing')) {
       return {
         icon: CreditCard,
-        containerStyle: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (type === 'cache' || nameLower.includes('cache') || nameLower.includes('redis')) {
       return {
         icon: Database,
-        containerStyle: 'bg-cyan-50 dark:bg-cyan-950/40 border-cyan-200 dark:border-cyan-800 text-cyan-600 dark:text-cyan-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (nameLower.includes('chat') || idLower.includes('chat') || nameLower.includes('message')) {
       return {
         icon: MessageSquare,
-        containerStyle: 'bg-fuchsia-50 dark:bg-fuchsia-950/40 border-fuchsia-200 dark:border-fuchsia-800 text-fuchsia-600 dark:text-fuchsia-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     if (type === 'database') {
       return {
         icon: Database,
-        containerStyle: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
+        containerStyle: neutralContainerStyle,
       };
     }
     return {
       icon: Server,
-      containerStyle: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400',
+      containerStyle: neutralContainerStyle,
     };
   };
 
@@ -189,14 +190,14 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <div className="bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400" />
               <span className="text-[11px] font-bold tracking-wider uppercase text-slate-700 dark:text-slate-200">
                 System Requirements
               </span>
             </div>
             {isGenerating && (
-              <span className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400 font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping" />
+              <span className="flex items-center gap-1 text-[10px] text-slate-600 dark:text-neutral-400 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-neutral-400 animate-ping" />
                 Refining...
               </span>
             )}
