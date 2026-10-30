@@ -330,7 +330,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       </div>
 
       {/* Live Playground Status Strip */}
-      {/* <div className="px-3.5 py-2 bg-slate-50/80 dark:bg-[#07080A] border-b border-slate-100 dark:border-neutral-800/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-neutral-400 shrink-0">
+      <div className="px-3.5 py-2 bg-slate-50/80 dark:bg-[#07080A] border-b border-slate-100 dark:border-neutral-800/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-neutral-400 shrink-0">
         <div className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span>Active Playground</span>
@@ -360,7 +360,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             </span>
           )}
         </div>
-      </div> */}
+      </div>
 
       {/* Chat Stream */}
       <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5">

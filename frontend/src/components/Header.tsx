@@ -3,7 +3,6 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Sparkles,
   FolderGit2,
   Sun,
   Moon,
@@ -46,9 +45,9 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  scenarios,
-  currentScenarioId,
-  onSelectScenario,
+  scenarios: _scenarios,
+  currentScenarioId: _currentScenarioId,
+  onSelectScenario: _onSelectScenario,
   isRunning = true,
   onToggleRun,
   onReset,
@@ -88,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, [isMenuOpen]);
 
-  const activeScenario = scenarios.find((s) => s.id === currentScenarioId);
+  // const activeScenario = _scenarios.find((s) => s.id === _currentScenarioId);
 
   return (
     <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-2.5 sm:px-4 flex items-center justify-between z-40 shrink-0 transition-colors w-full">
@@ -274,8 +273,8 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 )}
 
-                {/* 2. Scenario Selection Section */}
-                <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1.5">
+                {/* 2. Scenario Selection Section (Commented Out) */}
+                {/* <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1.5">
                   <div className="px-1 flex items-center justify-between group cursor-pointer">
                     <span className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-amber-500 transition-colors shrink-0" />
@@ -288,11 +287,11 @@ export const Header: React.FC<HeaderProps> = ({
 
                   <div className="relative">
                     <select
-                      value={currentScenarioId}
-                      onChange={(e) => onSelectScenario(e.target.value)}
+                      value={_currentScenarioId}
+                      onChange={(e) => _onSelectScenario(e.target.value)}
                       className="w-full h-9 pl-3 pr-8 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-100/70 dark:bg-neutral-900/60 text-xs font-semibold text-slate-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-slate-400 dark:focus:ring-neutral-600 cursor-pointer appearance-none transition-colors"
                     >
-                      {scenarios.map((s) => (
+                      {_scenarios.map((s) => (
                         <option key={s.id} value={s.id} className="dark:bg-[#141416]">
                           {s.name}
                         </option>
@@ -306,7 +305,7 @@ export const Header: React.FC<HeaderProps> = ({
                       {activeScenario.description}
                     </p>
                   )}
-                </div>
+                </div> */}
 
                 {/* 3. Workspace Actions: Import Repo & History */}
                 <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1">
