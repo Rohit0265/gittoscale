@@ -9,6 +9,25 @@ import {
   Zap,
   PanelLeftClose,
 } from 'lucide-react';
+import { api } from '../../services/api';
+
+export interface ChatChoice {
+  id: string;
+  category: 'scale' | 'budget' | 'consistency' | 'region';
+  label: string;
+  detail: string;
+}
+
+export interface ChatBubble {
+  id: string;
+  sender: 'ai' | 'user';
+  text: string;
+  choices?: ChatChoice[];
+  isThinking?: boolean;
+  category?: 'scale' | 'budget' | 'consistency' | 'region';
+  actionDone?: string;
+  timestamp?: string;
+}
 
 export interface ContextualQuerySidebarProps {
   activePrompt: string;
@@ -26,25 +45,19 @@ export interface ContextualQuerySidebarProps {
   onApplyRefinements: () => void;
   onResetQuestions: () => void;
   onSendCustomMessage?: (message: string) => void;
+  onExecuteChatCommand?: (
+    message: string,
+    history: ChatBubble[]
+  ) => Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void>;
+  onRestoreSession?: (session: {
+    selectedAnswers: Record<string, string>;
+    activePrompt?: string;
+  }) => void;
   isGenerating: boolean;
   isHydrated: boolean;
   isDark?: boolean;
   onToggleCollapse?: () => void;
-}
-
-interface ChatChoice {
-  id: string;
-  category: 'scale' | 'budget' | 'consistency' | 'region';
-  label: string;
-  detail: string;
-}
-
-interface ChatBubble {
-  id: string;
-  sender: 'ai' | 'user';
-  text: string;
-  choices?: ChatChoice[];
-  isThinking?: boolean;
+  user?: any;
 }
 
 const QUESTION_STEPS: Array<{
@@ -88,7 +101,9 @@ const QUESTION_STEPS: Array<{
   },
 ];
 
-const THINKING_DURATION_MS = 1400;
+const THINKING_DURATION_MS = 1000;
+const CHAT_STORAGE_KEY = 'gitoscale_ai_chat_session_v2';
+const MAX_CONTEXT_MESSAGES = 200;
 
 export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   activePrompt,
@@ -97,16 +112,53 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   onApplyRefinements,
   onResetQuestions,
   onSendCustomMessage,
+  onExecuteChatCommand,
+  onRestoreSession,
   isGenerating,
   isHydrated,
   onToggleCollapse,
+  user,
 }) => {
-  const [messages, setMessages] = useState<ChatBubble[]>([]);
-  const [customInput, setCustomInput] = useState('');
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
+  // Load existing session from localStorage to prevent re-asking on refresh
+  const [messages, setMessages] = useState<ChatBubble[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+            return parsed.messages.slice(-MAX_CONTEXT_MESSAGES);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse cached chat session:', e);
+      }
+    }
+    return [];
+  });
 
-  // Post a "thinking" bubble, then after THINKING_DURATION_MS replace it with the real bubble
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (typeof parsed.currentStepIndex === 'number') {
+            return parsed.currentStepIndex;
+          }
+        }
+      } catch (e) {}
+    }
+    return 0;
+  });
+
+  const [customInput, setCustomInput] = useState('');
+  const [isProcessingCommand, setIsProcessingCommand] = useState(false);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const saveDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const hasRestoredRef = useRef<boolean>(messages.length > 0);
+
+  // Post a thinking bubble then replace with final bubble
   const postWithThinking = (buildBubble: () => ChatBubble) => {
     const thinkId = `think-${Date.now()}`;
     setMessages((prev) => [
@@ -116,46 +168,101 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
     setTimeout(() => {
       setMessages((prev) => {
         const filtered = prev.filter((m) => m.id !== thinkId);
-        return [...filtered, buildBubble()];
+        return [...filtered, buildBubble()].slice(-MAX_CONTEXT_MESSAGES);
       });
     }, THINKING_DURATION_MS);
   };
 
-  // Initialise the chat
+  // Initialise chat: only if NO prior messages exist in storage
   useEffect(() => {
-    const step = QUESTION_STEPS[0];
+    if (hasRestoredRef.current && messages.length > 0) {
+      hasRestoredRef.current = false;
+      // Sync stored answers up to parent if present
+      try {
+        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.selectedAnswers && onRestoreSession) {
+            onRestoreSession({
+              selectedAnswers: parsed.selectedAnswers,
+              activePrompt: parsed.activePrompt,
+            });
+          }
+        }
+      } catch (e) {}
+      return;
+    }
 
-    const welcome: ChatBubble = {
-      id: 'msg-welcome',
-      sender: 'ai',
-      text: `Initialised a blueprint for:\n"${activePrompt}"\n\nI'll ask a few targeted questions to configure the topology.`,
-    };
+    if (messages.length === 0) {
+      const step = QUESTION_STEPS[0];
+      const welcome: ChatBubble = {
+        id: 'msg-welcome',
+        sender: 'ai',
+        text: `Initialised blueprint for:\n"${activePrompt}"\n\nI'll ask a few targeted questions to configure the topology, or you can give me direct architecture instructions anytime.`,
+        timestamp: new Date().toISOString(),
+      };
 
-    // Think, then post first question
-    setMessages([welcome]);
-    setCurrentStepIndex(0);
+      setMessages([welcome]);
+      setCurrentStepIndex(0);
 
-    const thinkId = 'think-initial';
-    setMessages((prev) => [
-      ...prev,
-      { id: thinkId, sender: 'ai', text: '', isThinking: true } as ChatBubble,
-    ]);
-    setTimeout(() => {
-      setMessages((prev) => {
-        const filtered = prev.filter((m) => m.id !== thinkId);
-        return [
-          ...filtered,
-          {
-            id: `msg-q-${step.category}`,
-            sender: 'ai',
-            text: step.questionText,
-            choices: step.choices,
-            category: step.category,
-          } as ChatBubble,
-        ];
-      });
-    }, THINKING_DURATION_MS);
+      const thinkId = 'think-initial';
+      setMessages((prev) => [
+        ...prev,
+        { id: thinkId, sender: 'ai', text: '', isThinking: true } as ChatBubble,
+      ]);
+      setTimeout(() => {
+        setMessages((prev) => {
+          const filtered = prev.filter((m) => m.id !== thinkId);
+          return [
+            ...filtered,
+            {
+              id: `msg-q-${step.category}`,
+              sender: 'ai',
+              text: step.questionText,
+              choices: step.choices,
+              category: step.category,
+              timestamp: new Date().toISOString(),
+            } as ChatBubble,
+          ].slice(-MAX_CONTEXT_MESSAGES);
+        });
+      }, THINKING_DURATION_MS);
+    }
   }, [activePrompt]);
+
+  // Persist conversation to localStorage & database (capped at 200 messages)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && messages.length > 0) {
+      const session = {
+        version: 2,
+        activePrompt,
+        selectedAnswers,
+        currentStepIndex,
+        messages: messages.slice(-MAX_CONTEXT_MESSAGES),
+        lastUpdated: new Date().toISOString(),
+      };
+
+      try {
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(session));
+      } catch (e) {
+        console.warn('LocalStorage save error:', e);
+      }
+
+      // Debounce sync to PostgreSQL if user is authenticated
+      if (user) {
+        if (saveDebounceTimer.current) clearTimeout(saveDebounceTimer.current);
+        saveDebounceTimer.current = setTimeout(() => {
+          const token = localStorage.getItem('sb-access-token') || null;
+          api.saveChatHistory(token, {
+            prompt: activePrompt,
+            messages: messages.slice(-MAX_CONTEXT_MESSAGES),
+            selectedAnswers,
+          }).catch((err) => {
+            console.warn('[ContextualQuerySidebar] Background DB sync note:', err.message);
+          });
+        }, 1500);
+      }
+    }
+  }, [messages, selectedAnswers, currentStepIndex, activePrompt, user]);
 
   // Auto-scroll
   useEffect(() => {
@@ -169,11 +276,12 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       id: `user-ans-${Date.now()}`,
       sender: 'user',
       text: choice.label,
+      timestamp: new Date().toISOString(),
     };
 
     const nextIndex = currentStepIndex + 1;
     setCurrentStepIndex(nextIndex);
-    setMessages((prev) => [...prev, userBubble]);
+    setMessages((prev) => [...prev, userBubble].slice(-MAX_CONTEXT_MESSAGES));
 
     if (nextIndex < QUESTION_STEPS.length) {
       const nextStep = QUESTION_STEPS[nextIndex];
@@ -183,44 +291,110 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         text: nextStep.questionText,
         choices: nextStep.choices,
         category: nextStep.category,
+        timestamp: new Date().toISOString(),
       }));
     } else {
       postWithThinking(() => ({
         id: 'msg-complete',
         sender: 'ai',
-        text: 'All parameters captured. Ready to synthesise your production topology.',
+        text: 'All parameters captured. Ready to synthesise your production topology, or give me live instructions like **"add redis cache after API gateway"**.',
+        timestamp: new Date().toISOString(),
       }));
     }
   };
 
-  const handleSendCustomInput = (e: React.FormEvent) => {
+  const handleSendCustomInput = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = customInput.trim();
-    if (!text) return;
+    if (!text || isProcessingCommand) return;
 
-    setMessages((prev) => [
-      ...prev,
-      { id: `custom-user-${Date.now()}`, sender: 'user', text } as ChatBubble,
-    ]);
-    setCustomInput('');
+    const userBubble: ChatBubble = {
+      id: `custom-user-${Date.now()}`,
+      sender: 'user',
+      text,
+      timestamp: new Date().toISOString(),
+    };
 
-    postWithThinking(() => ({
-      id: `custom-ai-${Date.now()}`,
+    const thinkId = `think-${Date.now()}`;
+    const thinkBubble: ChatBubble = {
+      id: thinkId,
       sender: 'ai',
-      text: `Noted: "${text}" — I've incorporated this constraint into the configuration.`,
-    }));
+      text: '',
+      isThinking: true,
+      timestamp: new Date().toISOString(),
+    };
 
-    onSendCustomMessage?.(text);
+    const currentContext = [...messages, userBubble].slice(-MAX_CONTEXT_MESSAGES);
+    setMessages([...currentContext, thinkBubble]);
+    setCustomInput('');
+    setIsProcessingCommand(true);
+
+    try {
+      if (onExecuteChatCommand) {
+        const result = await onExecuteChatCommand(text, currentContext);
+        const replyText = result?.reply || `Executed instruction for: "${text}".`;
+
+        setMessages((prev) => {
+          const filtered = prev.filter((m) => m.id !== thinkId);
+          return [
+            ...filtered,
+            {
+              id: `custom-ai-${Date.now()}`,
+              sender: 'ai',
+              text: replyText,
+              actionDone: result?.actionDone,
+              timestamp: new Date().toISOString(),
+            },
+          ].slice(-MAX_CONTEXT_MESSAGES);
+        });
+      } else {
+        setTimeout(() => {
+          setMessages((prev) => {
+            const filtered = prev.filter((m) => m.id !== thinkId);
+            return [
+              ...filtered,
+              {
+                id: `custom-ai-${Date.now()}`,
+                sender: 'ai',
+                text: `Noted: "${text}" — I've incorporated this constraint into the configuration.`,
+                timestamp: new Date().toISOString(),
+              },
+            ].slice(-MAX_CONTEXT_MESSAGES);
+          });
+        }, THINKING_DURATION_MS);
+
+        onSendCustomMessage?.(text);
+      }
+    } catch (err: any) {
+      setMessages((prev) => {
+        const filtered = prev.filter((m) => m.id !== thinkId);
+        return [
+          ...filtered,
+          {
+            id: `custom-ai-${Date.now()}`,
+            sender: 'ai',
+            text: `⚠️ Error executing instruction "${text}": ${err?.message || 'Action failed'}.`,
+            timestamp: new Date().toISOString(),
+          },
+        ].slice(-MAX_CONTEXT_MESSAGES);
+      });
+    } finally {
+      setIsProcessingCommand(false);
+    }
   };
 
   const handleRestart = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+    }
     onResetQuestions();
     setCurrentStepIndex(0);
     const step = QUESTION_STEPS[0];
     const resetMsg: ChatBubble = {
       id: 'msg-reset',
       sender: 'ai',
-      text: `Conversation reset.\n"${activePrompt}"`,
+      text: `Conversation reset.\n"${activePrompt}"\n\nI'll ask a few targeted questions, or you can give me direct instructions anytime.`,
+      timestamp: new Date().toISOString(),
     };
     setMessages([resetMsg]);
     const thinkId = 'think-reset';
@@ -238,8 +412,10 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
             sender: 'ai',
             text: step.questionText,
             choices: step.choices,
+            category: step.category,
+            timestamp: new Date().toISOString(),
           } as ChatBubble,
-        ];
+        ].slice(-MAX_CONTEXT_MESSAGES);
       });
     }, THINKING_DURATION_MS);
   };
@@ -259,9 +435,21 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
               AI Architect
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             </p>
+            <p className="text-[10px] text-slate-400 dark:text-neutral-500">
+              Interactive Agent · 200 Chat Memory
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleRestart}
+            className="text-[11px] text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 flex items-center gap-1 transition-colors cursor-pointer"
+            title="Reset conversation and start fresh"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Reset
+          </button>
           {onToggleCollapse && (
             <button
               type="button"
@@ -302,7 +490,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
                   ))}
                 </span>
                 <span className="text-[10px] text-slate-400 dark:text-neutral-400 font-medium">
-                  Analysing…
+                  Analysing &amp; Executing…
                 </span>
               </div>
             ) : (
@@ -383,7 +571,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         {isHydrated && (
           <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-[11px]">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-500" />
-            <span>Topology synthesised. Switch to Detailed View or run a load simulation.</span>
+            <span>Topology active. You can give commands like <strong>"add redis cache after API gateway"</strong> or <strong>"set traffic to 5000"</strong>.</span>
           </div>
         )}
 
@@ -399,13 +587,15 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
           type="text"
           value={customInput}
           onChange={(e) => setCustomInput(e.target.value)}
-          placeholder="Add a constraint or ask a question…"
-          className="flex-1 px-3 py-2 rounded-lg text-xs bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700/50 text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-hidden focus:border-slate-400 dark:focus:border-neutral-500 transition-colors"
+          placeholder='e.g. "add redis cache between API and DB"…'
+          disabled={isProcessingCommand}
+          className="flex-1 px-3 py-2 rounded-lg text-xs bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700/50 text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-hidden focus:border-slate-400 dark:focus:border-neutral-500 transition-colors disabled:opacity-60"
         />
         <button
           type="submit"
-          disabled={!customInput.trim()}
+          disabled={!customInput.trim() || isProcessingCommand}
           className="p-2 rounded-lg bg-slate-800 dark:bg-neutral-100 hover:bg-slate-700 dark:hover:bg-white text-white dark:text-slate-900 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+          title="Send command to AI Architect"
         >
           <Send className="w-3.5 h-3.5" />
         </button>
