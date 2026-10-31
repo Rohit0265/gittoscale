@@ -25,6 +25,7 @@ import {
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
 import NewOne from './newOne';
+import WorkflowSteps from './WorkflowSteps';
 import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
 
 interface LandingPageProps {
@@ -59,11 +60,9 @@ const checkIsAppDomain = () => {
 
 const PAGES = [
   'top',
-  'demo',
   'step-1',
   'step-2',
   'step-3',
-  'step-4',
   'use-cases',
   'faq',
   'footer',
@@ -71,11 +70,9 @@ const PAGES = [
 
 const PAGE_LABELS: Record<string, string> = {
   top: 'Overview',
-  demo: 'Project Overview',
-  'step-1': 'Step 01: Discover',
-  'step-2': 'Step 02: Simulate',
-  'step-3': 'Step 03: Detect',
-  'step-4': 'Step 04: Scale',
+  'step-1': '01: Discover',
+  'step-2': '02: Simulate',
+  'step-3': '03: Detect',
   'use-cases': 'Use Cases',
   faq: 'FAQ',
   footer: 'Footer',
@@ -109,28 +106,6 @@ const GITOSCALE_FAQS = [
   },
 ];
 
-const steps = [
-  {
-    tag: 'Automatic Codebase Scanning',
-    title: 'Discover Architecture',
-    body: 'Deeply inspect repository structures, microservices, databases, and message queues to auto-construct accurate topology.',
-  },
-  {
-    tag: 'High-Throughput Synthetic Load',
-    title: 'Simulate Distributed Traffic',
-    body: 'Stress-test services with realistic user requests, spike traffic, and multi-tier network dependencies in real time.',
-  },
-  {
-    tag: 'Latency & Failure Analysis',
-    title: 'Pinpoint Bottlenecks',
-    body: 'Trace every hop to surface slow queries, saturated queues and single points of failure before they hit production.',
-  },
-  {
-    tag: 'Actionable Recommendations',
-    title: 'Scale With Confidence',
-    body: 'Get concrete suggestions — caching, sharding, replicas — and validate each change against the same simulated load.',
-  },
-];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -457,10 +432,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const isApp = isAppDomainProp !== undefined ? isAppDomainProp : checkIsAppDomain();
   const [active, setActive] = useState(0);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [scrollDir, setScrollDir] = useState<'forward' | 'backward'>('forward');
   const containerRef = useRef<HTMLDivElement>(null);
-  const stepsSectionRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -483,38 +455,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
   }, [isProfileOpen]);
 
-  const updateStep = useCallback((newStep: number) => {
-    setCurrentStep((prev) => {
-      if (newStep !== prev) {
-        setScrollDir(newStep >= prev ? 'forward' : 'backward');
-        return newStep;
-      }
-      return prev;
-    });
-  }, []);
-
   // Scroll position observer to update active step in sync
   const handleScroll = useCallback(() => {
-    if (!stepsSectionRef.current || !containerRef.current) return;
+    if (!containerRef.current) return;
     const container = containerRef.current;
-    const stepsRect = stepsSectionRef.current.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-
-    const relativeTop = stepsRect.top - containerRect.top;
-    const scrollableRange = stepsRect.height - containerRect.height;
-
-    if (scrollableRange > 0 && relativeTop <= 20 && relativeTop >= -scrollableRange) {
-      const progress = Math.max(0, Math.min(0.999, -relativeTop / scrollableRange));
-      const stepIdx = Math.min(3, Math.floor(progress * 4));
-      updateStep(stepIdx);
-      setActive(2 + stepIdx);
-    }
 
     // Activate footer dot when user scrolls to the bottom
     if (container.scrollHeight - container.scrollTop - container.clientHeight < 80) {
       setActive(PAGES.indexOf('footer'));
     }
-  }, [updateStep]);
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -527,12 +477,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             const idx = PAGES.indexOf(e.target.id);
             if (idx !== -1) {
               setActive(idx);
-              if (e.target.id.startsWith('step-')) {
-                const stepNum = parseInt(e.target.id.replace('step-', ''), 10) - 1;
-                if (!isNaN(stepNum) && stepNum >= 0 && stepNum < steps.length) {
-                  updateStep(stepNum);
-                }
-              }
             }
           }
         });
@@ -551,7 +495,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       obs.disconnect();
       container.removeEventListener('scroll', handleScroll);
     };
-  }, [handleScroll, updateStep]);
+  }, [handleScroll]);
 
   return (
     <div
@@ -796,75 +740,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section> */}
 
 
-      {/* Sections 3–6: Interactive Pinned Steps Journey */}
-      <div ref={stepsSectionRef} id="steps-section" className="relative h-[400vh]">
-        {/* Invisible snap targets for the 4 steps */}
-        <div id="step-1" className="absolute top-0 h-screen w-full pointer-events-none snap-start" />
-        <div id="step-2" className="absolute top-[100vh] h-screen w-full pointer-events-none snap-start" />
-        <div id="step-3" className="absolute top-[200vh] h-screen w-full pointer-events-none snap-start" />
-        <div id="step-4" className="absolute top-[300vh] h-screen w-full pointer-events-none snap-start" />
-
-        {/* Pinned Sticky Stage */}
-        <div className="sticky top-0 h-screen w-full flex items-center justify-center px-6 sm:px-10 py-12">
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-8 md:gap-14 md:grid-cols-[1fr_auto_1fr]">
-            {/* Stationary Giant Number with in-place transition */}
-            <div className="relative h-[24vw] md:h-[15vw] flex items-center justify-center md:justify-start overflow-hidden">
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={currentStep}
-                  initial={{ y: scrollDir === 'forward' ? 50 : -50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: scrollDir === 'forward' ? -50 : 50, opacity: 0 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="outline-text select-none text-[26vw] md:text-[16vw] font-black leading-none block text-center md:text-left"
-                >
-                  0{currentStep + 1}
-                </motion.span>
-              </AnimatePresence>
-            </div>
-
-            {/* Vertical Animated Progress Divider */}
-            <div className="relative hidden h-64 w-px bg-slate-200 dark:bg-neutral-800 md:block">
-              <motion.div
-                className="absolute top-0 w-px bg-slate-900 dark:bg-white"
-                animate={{ height: `${((currentStep + 1) / steps.length) * 100}%` }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              />
-            </div>
-
-            {/* Only the Text in Front Re-renders and Transitions */}
-            <div className="max-w-md mx-auto md:mx-0 min-h-[240px] flex flex-col justify-center">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentStep}
-                  initial={{
-                    opacity: 0,
-                    y: scrollDir === 'forward' ? 20 : -20,
-                    filter: 'blur(4px)',
-                  }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{
-                    opacity: 0,
-                    y: scrollDir === 'forward' ? -20 : 20,
-                    filter: 'blur(4px)',
-                  }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    {steps[currentStep].title}
-                  </h2>
-                  <p className="mt-2 font-mono text-xs uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                    {steps[currentStep].tag}
-                  </p>
-                  <p className="mt-6 text-base sm:text-lg leading-relaxed text-slate-600 dark:text-neutral-400">
-                    {steps[currentStep].body}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Sections 3–5: Interactive Workflow Steps Journey (01 Discover, 02 Simulate, 03 Detect) */}
+      <WorkflowSteps
+        onSelectTestSite={onSelectTestSite}
+        onSelectUseRepository={onSelectUseRepository}
+        onOpenRecommender={onOpenRecommender}
+        isDark={isDark}
+      />
 
       {/* Section 7: Use Cases (#use-cases) */}
       <section
