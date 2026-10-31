@@ -242,6 +242,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             options: {
               redirectTo: redirectUrl,
               skipBrowserRedirect: true,
+              scopes: provider === 'github' ? 'repo read:user' : undefined,
               queryParams: { prompt: 'select_account' },
             },
           });

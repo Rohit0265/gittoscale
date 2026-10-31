@@ -63,6 +63,11 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
         }
 
         if (session) {
+          if ((session as any).provider_token) {
+            try {
+              localStorage.setItem('gts_github_token', (session as any).provider_token);
+            } catch {}
+          }
           if (window.opener && window.opener !== window) {
             try {
               window.opener.postMessage({
