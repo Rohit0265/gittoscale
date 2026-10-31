@@ -123,9 +123,9 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
             <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
               <span
                 aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
               />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 See the architecture hiding in your repo.
               </span>
             </h3>
@@ -148,9 +148,9 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
             <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
               <span
                 aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
               />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 Stress-test before production does.
               </span>
             </h3>
@@ -199,9 +199,9 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
             <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
               <span
                 aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
               />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 Find the bottleneck before the outage.
               </span>
             </h3>
@@ -224,9 +224,9 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
             <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
               <span
                 aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
               />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
                 Use AI to complete, scale, and heal your flow.
               </span>
             </h3>

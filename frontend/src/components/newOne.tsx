@@ -219,15 +219,8 @@ export const NewOne: React.FC<NewOneProps> = ({
               <div className="flex items-center justify-between pb-5 mb-5 border-b border-neutral-800/80">
                 {/* Window Control Dots & Title */}
                 <div className="flex items-center space-x-3.5">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
-                    <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
-                  </div>
-                  <div className="h-4 w-[1px] bg-neutral-800" />
                   <div className="flex items-center space-x-2 text-neutral-200 font-medium tracking-tight text-sm sm:text-base">
-                    <Sparkles className="text-neutral-400 text-xs w-3.5 h-3.5" />
-                    <span>Architect AI</span>
+                    <span>Cook what's in your mind</span>
                   </div>
                 </div>
 
