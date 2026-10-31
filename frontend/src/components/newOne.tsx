@@ -193,15 +193,7 @@ export const NewOne: React.FC<NewOneProps> = ({
         {/* Right Column: Architect AI Card Component */}
         <div className="lg:col-span-5 flex flex-col items-center lg:items-end w-full relative">
           {/* Circuit Connector & Node (Visible on md+) */}
-          <div className="absolute -left-12 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-2 pointer-events-none z-0">
-            <div className="relative flex items-center justify-center">
-              <span className="absolute w-5 h-5 rounded-md bg-cyan-500/20 animate-ping" />
-              <div className="w-4 h-4 rounded-md border border-cyan-500/40 bg-white dark:bg-[#0c101d] shadow-xs flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-              </div>
-            </div>
-            <div className="w-8 h-px bg-gradient-to-r from-cyan-500/50 to-neutral-700" />
-          </div>
+     
 
           <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
             {/* Architect AI Card Component */}
