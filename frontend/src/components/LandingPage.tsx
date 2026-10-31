@@ -20,6 +20,7 @@ import {
   User,
   LogIn,
   UserPlus,
+  History,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
 import { GitHubStarButton } from './GitHubStarButton';
@@ -41,6 +42,7 @@ interface LandingPageProps {
   user?: any;
   onSignOut?: () => void;
   onNavigate?: (route: string) => void;
+  onOpenHistory?: () => void;
 }
 
 const checkIsAppDomain = () => {
@@ -430,6 +432,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   user,
   onSignOut,
   onNavigate,
+  onOpenHistory,
 }) => {
   const isApp = isAppDomainProp !== undefined ? isAppDomainProp : checkIsAppDomain();
   const [active, setActive] = useState(0);
