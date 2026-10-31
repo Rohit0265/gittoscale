@@ -92,11 +92,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           <div className="lg:col-span-8 flex flex-col items-start text-left">
             <h2 className="font-['Arial','Helvetica',sans-serif] text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-[-0.04em] leading-[1.08] select-none">
               <span className="block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent drop-shadow-xs">
-                How it's
-              </span>
-              <span className="relative inline-block bg-gradient-to-r from-slate-500 via-slate-600 to-slate-400 dark:from-slate-400 dark:via-slate-300 dark:to-slate-500 bg-clip-text text-transparent font-bold">
-                Work ?
-                <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full bg-gradient-to-r from-transparent via-cyan-500/40 dark:via-cyan-400/50 to-transparent" />
+                Features
               </span>
             </h2>
           </div>
