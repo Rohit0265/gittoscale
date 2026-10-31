@@ -12,8 +12,6 @@ import {
   LogIn,
   UserPlus,
   ChevronDown,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture } from '../types';
@@ -61,8 +59,8 @@ export const Header: React.FC<HeaderProps> = ({
   onGoHome,
   isDark = false,
   onToggleTheme,
-  isLeftCollapsed = false,
-  onToggleLeftSidebar,
+  isLeftCollapsed: _isLeftCollapsed = false,
+  onToggleLeftSidebar: _onToggleLeftSidebar,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

@@ -563,7 +563,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Section 1: Hero Header & Content (#top) */}
       <header
         id="top"
-        className="relative flex min-h-screen snap-start flex-col justify-between bg-slate-50 dark:bg-[#020202]"
+        className="relative flex min-h-screen snap-start flex-col justify-between bg-white dark:bg-[#060709]"
       >
         {/* Top Navbar Header */}
         <div

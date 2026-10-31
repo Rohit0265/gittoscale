@@ -1,16 +1,8 @@
 import React from 'react';
-import { ScrollTimeline, TimelineEvent } from './lightswind/scroll-timeline';
+import { NewOne, NewOneProps } from './newOne';
 
-interface HeroSectionProps {
-  events?: TimelineEvent[];
-}
-
-export const HeroSection: React.FC<HeroSectionProps> = ({ events }) => {
-  return (
-    <div className="w-full">
-      <ScrollTimeline events={events} />
-    </div>
-  );
+export const HeroSection: React.FC<NewOneProps> = (props) => {
+  return <NewOne {...props} />;
 };
 
 export default HeroSection;

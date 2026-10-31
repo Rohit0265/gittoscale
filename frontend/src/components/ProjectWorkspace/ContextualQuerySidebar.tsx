@@ -5,8 +5,6 @@ import {
   Bot,
   User,
   PanelLeftClose,
-  Layers,
-  Activity,
 } from 'lucide-react';
 import { Streamdown } from 'streamdown';
 import 'streamdown/styles.css';
