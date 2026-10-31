@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  CheckCircle2,
   Key,
   Lock,
   GitBranch,
