@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowUpRight,
   Play,
-  Sparkles,
   Github,
   ArrowUp,
   Zap,
@@ -208,15 +207,12 @@ export const NewOne: React.FC<NewOneProps> = ({
               }}
             >
               {/* Header Bar */}
-              <div className="flex items-center justify-between pb-5 mb-5 border-b border-neutral-800/80">
-                {/* Window Control Dots & Title */}
-                <div className="flex items-center space-x-3.5">
-                  <div className="flex items-center space-x-2 text-neutral-200 font-medium tracking-tight text-sm sm:text-base">
-                    <span>Cook what's in your mind</span>
-                  </div>
+              <div className="flex items-center justify-between pb-4 mb-5 border-b border-neutral-800/70">
+                <div className="flex items-center">
+                  <span className="relative font-lora text-sm sm:text-base font-medium tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(255,255,255,0.12)] select-none">
+                    Cook what&apos;s in your mind
+                  </span>
                 </div>
-
-              
               </div>
 
               {/* Input Prompt Box */}
