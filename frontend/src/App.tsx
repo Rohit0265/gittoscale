@@ -1476,6 +1476,10 @@ export const App: React.FC = () => {
           onSignOut={signOut}
           onToggleTheme={handleToggleTheme}
           onNavigate={handleNavigate}
+          onOpenHistory={() => {
+            window.history.pushState({}, '', '/history');
+            setCurrentView('history');
+          }}
           onOpenRecommender={() => {
             window.history.pushState({}, '', '/recommender');
             setCurrentView('recommender');
