@@ -77,114 +77,6 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSelectProvider = (newProvider: ProviderId) => {
-    setLlmProvider(newProvider);
-    setIsDropdownOpen(false);
-    setBaseUrlError(null);
-    setModelError(null);
-    setTestStatus({ testing: false });
-
-    if (newProvider === 'gemini') {
-      setLlmModel('gemini-3.1-flash-lite');
-    } else if (newProvider === 'openai') {
-      setLlmModel('gpt-4o-mini');
-    } else if (newProvider === 'anthropic') {
-      setLlmModel('claude-3-5-sonnet-20241022');
-    } else if (newProvider === 'other') {
-      if (
-        !llmModel ||
-        llmModel.startsWith('gemini') ||
-        llmModel.startsWith('gpt') ||
-        llmModel.startsWith('claude')
-      ) {
-        setLlmModel('meta-llama/Llama-3-70b-chat-hf');
-      }
-      if (!llmBaseUrl) {
-        setLlmBaseUrl('https://api.together.xyz/v1');
-      }
-    }
-    triggerRef.current?.focus();
-  };
-
-  const handleResetToDefault = () => {
-    setLlmProvider('gemini');
-    setLlmModel('gemini-3.1-flash-lite');
-    setLlmApiKey('');
-    setLlmBaseUrl('');
-    setBaseUrlError(null);
-    setModelError(null);
-    setTestStatus({ testing: false });
-  };
-
-  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setIsDropdownOpen(true);
-      const currentIndex = PROVIDER_OPTIONS.findIndex((p) => p.id === llmProvider);
-      setFocusedOptionIndex(currentIndex >= 0 ? currentIndex : 0);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setIsDropdownOpen(true);
-      const currentIndex = PROVIDER_OPTIONS.findIndex((p) => p.id === llmProvider);
-      setFocusedOptionIndex(currentIndex >= 0 ? currentIndex : PROVIDER_OPTIONS.length - 1);
-    }
-  };
-
-  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setFocusedOptionIndex((prev) => (prev + 1) % PROVIDER_OPTIONS.length);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setFocusedOptionIndex((prev) => (prev - 1 + PROVIDER_OPTIONS.length) % PROVIDER_OPTIONS.length);
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      if (focusedOptionIndex >= 0 && focusedOptionIndex < PROVIDER_OPTIONS.length) {
-        handleSelectProvider(PROVIDER_OPTIONS[focusedOptionIndex].id);
-      }
-    } else if (e.key === 'Escape' || e.key === 'Tab') {
-      setIsDropdownOpen(false);
-      triggerRef.current?.focus();
-    }
-  };
-
-  const handleTestLLM = async () => {
-    // Validate custom provider requirements before testing
-    if (llmProvider === 'other') {
-      const trimmedUrl = llmBaseUrl.trim();
-      if (!trimmedUrl) {
-        setBaseUrlError('Base URL is required to test custom LLM.');
-        return;
-      }
-      if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
-        setBaseUrlError('Please enter a valid HTTP or HTTPS base URL.');
-        return;
-      }
-    }
-
-    setTestStatus({ testing: true });
-    try {
-      const res = await api.testLLM({
-        provider: llmProvider,
-        apiKey: llmApiKey.trim() || undefined,
-        baseUrl: llmProvider === 'other' ? llmBaseUrl.trim() : undefined,
-        model: llmModel.trim() || undefined,
-      });
-      setTestStatus({
-        testing: false,
-        message: res.message || 'LLM connection verified successfully!',
-        success: res.success,
-      });
-    } catch (err: any) {
-      setTestStatus({
-        testing: false,
-        message:
-          err.response?.data?.message || err.message || 'Failed to connect to LLM provider',
-        success: false,
-      });
-    }
-  };
-
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = repoUrl.trim();
@@ -194,34 +86,9 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
     }
 
     if (!isUserAuthenticated && onRequireAuth) {
-      const hasCustomConfig =
-        Boolean(llmApiKey.trim()) ||
-        (llmProvider === 'other' && Boolean(llmBaseUrl.trim()));
-      const customConfig = hasCustomConfig
-        ? {
-            provider: llmProvider,
-            apiKey: llmApiKey.trim() || undefined,
-            model: llmModel.trim() || undefined,
-            baseUrl: llmProvider === 'other' ? llmBaseUrl.trim() : undefined,
-          }
-        : undefined;
-
       onClose();
-      onRequireAuth(trimmed, customConfig);
+      onRequireAuth(trimmed);
       return;
-    }
-
-    // Validate fields if custom provider is chosen and populated
-    if (llmProvider === 'other' && (llmBaseUrl.trim() || llmApiKey.trim())) {
-      const trimmedUrl = llmBaseUrl.trim();
-      if (trimmedUrl && !trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
-        setBaseUrlError('Please enter a valid HTTP or HTTPS base URL (e.g. http://localhost:11434/v1).');
-        return;
-      }
-      if (trimmedUrl && !llmModel.trim()) {
-        setModelError('Model name is required for custom LLM.');
-        return;
-      }
     }
 
     setLoading(true);
@@ -237,21 +104,6 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
         payload.localPath = trimmed;
       } else {
         payload.repoUrl = trimmed;
-      }
-
-      // AI Configuration is completely optional.
-      // Only attach llmConfig if user actually configured an API key or custom endpoint!
-      const hasCustomConfig =
-        Boolean(llmApiKey.trim()) ||
-        (llmProvider === 'other' && Boolean(llmBaseUrl.trim()));
-
-      if (hasCustomConfig) {
-        payload.llmConfig = {
-          provider: llmProvider,
-          apiKey: llmApiKey.trim() || undefined,
-          model: llmModel.trim() || undefined,
-          baseUrl: llmProvider === 'other' ? llmBaseUrl.trim() : undefined,
-        };
       }
 
       if (githubToken.trim()) {
@@ -288,45 +140,6 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Provider logo rendering
-  const renderProviderLogo = (providerId: string, className = 'w-4 h-4 shrink-0') => {
-    switch (providerId) {
-      case 'gemini':
-        return (
-          <svg className={`${className} text-slate-800 dark:text-neutral-200`} viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-            />
-            <path
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-            />
-          </svg>
-        );
-      case 'openai':
-        return (
-          <svg className={`${className} text-slate-800 dark:text-neutral-200`} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.259 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7466-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1683a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4947zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1683a.0757.0757 0 0 1-.071 0l-4.8303-2.7866A4.504 4.504 0 0 1 2.3408 7.8956zm16.0993 3.8558L12.5973 8.3829l2.02-1.1636a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.402-.6862zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.6627zM8.3065 12.863l-2.02-1.1635a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813v6.7227zm1.1449-2.0742l3.4443-1.9871 3.4442 1.9871v3.9742l-3.4442 1.9871-3.4443-1.9871z" />
-          </svg>
-        );
-      case 'anthropic':
-        return (
-          <svg className={`${className} text-slate-800 dark:text-neutral-200`} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 4.095a.732.732 0 0 0-.693-.495H13.67a.732.732 0 0 0-.693.495L7.26 19.905a.732.732 0 0 0 .693.972h3.109a.732.732 0 0 0 .693-.495l1.096-3.147h3.987l1.096 3.147a.732.732 0 0 0 .693.495h3.109a.732.732 0 0 0 .693-.972L17.472 4.095zm-3.567 10.428l1.396-4.008 1.396 4.008h-2.792z" />
-          </svg>
-        );
-      case 'other':
-        return <Server className={`${className} text-slate-600 dark:text-neutral-400`} />;
-      default:
-        return <Cpu className={`${className} text-slate-400`} />;
     }
   };
 
