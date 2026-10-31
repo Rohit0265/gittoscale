@@ -263,7 +263,7 @@ export const NewOne: React.FC<NewOneProps> = ({
               {/* Quick Architecture Scenario Chips */}
               <div className="mt-5 pt-1">
                 <div className="flex items-center justify-between text-xs text-neutral-400 mb-3 font-mono">
-                  <span className="text-neutral-500">Quick architecture scenarios:</span>
+                  <span className="text-neutral-500">Quick scenarios:</span>
                   <span className="hidden sm:inline text-neutral-600">
                     Press{' '}
                     <kbd className="px-1.5 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-neutral-300 font-mono text-[10px]">
