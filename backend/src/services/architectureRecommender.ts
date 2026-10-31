@@ -14,6 +14,8 @@ export interface LLMConfig {
   apiKey?: string;
   model?: string;
   baseUrl?: string;
+  groqApiKey?: string;
+  groqModel?: string;
 }
 
 /**

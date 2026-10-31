@@ -371,7 +371,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
           {
             id: `custom-ai-${Date.now()}`,
             sender: 'ai' as const,
-            text: `⚠️ Error executing instruction "${text}": ${err?.message || 'Action failed'}.`,
+            text: 'Traffic is more than expected. Please retry later.',
             timestamp: new Date().toISOString(),
           },
         ].slice(-MAX_CONTEXT_MESSAGES);

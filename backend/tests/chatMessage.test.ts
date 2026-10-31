@@ -45,5 +45,90 @@ describe('AI Chat Message API (/api/chat/message)', () => {
     expect(res.body.reply).not.toContain("I've analyzed your instruction");
     expect(res.body.reply.toLowerCase()).toContain("cache");
   });
+
+  it('seamlessly transfers to Groq in background when Gemini hits 429 rate limit', async () => {
+    const originalFetch = global.fetch;
+
+    global.fetch = async (url: any, opts: any) => {
+      const urlStr = String(url);
+      if (urlStr.includes('generativelanguage.googleapis.com')) {
+        return new Response(JSON.stringify({ error: { message: 'RESOURCE_EXHAUSTED: Quota exceeded' } }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (urlStr.includes('api.groq.com')) {
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: 'Groq successfully handled request in background.' } }],
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      return originalFetch(url, opts);
+    };
+
+    try {
+      const res = await request(app)
+        .post('/api/chat/message')
+        .send({
+          message: 'How should I optimize database read queries?',
+          llmConfig: {
+            provider: 'gemini',
+            apiKey: 'mock-gemini-key',
+            groqApiKey: 'mock-groq-key',
+          },
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.reply).toBe('Groq successfully handled request in background.');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('displays "Traffic is more than expected. Please retry later." when both Gemini and Groq fail', async () => {
+    const originalFetch = global.fetch;
+
+    global.fetch = async (url: any, opts: any) => {
+      const urlStr = String(url);
+      if (urlStr.includes('generativelanguage.googleapis.com')) {
+        return new Response(JSON.stringify({ error: { message: 'Quota exceeded 429' } }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (urlStr.includes('api.groq.com')) {
+        return new Response(JSON.stringify({ error: { message: 'Groq rate limit 429' } }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return originalFetch(url, opts);
+    };
+
+    try {
+      const res = await request(app)
+        .post('/api/chat/message')
+        .send({
+          message: 'Can you scale the Kafka workers?',
+          llmConfig: {
+            provider: 'gemini',
+            apiKey: 'mock-gemini-key',
+            groqApiKey: 'mock-groq-key',
+          },
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.reply).toBe('Traffic is more than expected. Please retry later.');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
 });
 

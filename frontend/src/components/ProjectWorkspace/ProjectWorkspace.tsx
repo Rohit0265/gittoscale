@@ -561,10 +561,13 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       }
     } catch (e) {
       console.warn('[ProjectWorkspace] AI Chat failed:', e);
+      return {
+        reply: 'Traffic is more than expected. Please retry later.',
+      };
     }
 
     return {
-      reply: execResult.explanation,
+      reply: 'Traffic is more than expected. Please retry later.',
     };
   };
 

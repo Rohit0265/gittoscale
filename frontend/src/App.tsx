@@ -788,12 +788,14 @@ export const App: React.FC = () => {
           };
         }
       } catch (err) {
-        console.warn('[AI Chat Agent] Backend chat request error, using conversational engine:', err);
+        console.warn('[AI Chat Agent] Backend chat request error:', err);
+        return {
+          reply: 'Traffic is more than expected. Please retry later.',
+        };
       }
 
-      // Contextual conversational fallback if backend is unreachable
       return {
-        reply: execResult.explanation,
+        reply: 'Traffic is more than expected. Please retry later.',
       };
     },
     [

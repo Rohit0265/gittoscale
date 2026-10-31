@@ -177,19 +177,113 @@ In a modern distributed architecture:
 }
 
 /**
- * Handles LLM API calls with graceful fallback
+ * Calls Groq Cloud API (OpenAI-compatible) in the background with low latency
+ */
+async function callGroqChat(
+  input: ArchitectureChatInput,
+  systemPrompt: string
+): Promise<{ ok: boolean; reply?: string; isRateLimited?: boolean; error?: string }> {
+  const groqApiKey =
+    input.llmConfig?.groqApiKey ||
+    process.env.GROQ_API_KEY ||
+    (input.llmConfig?.provider === 'groq' ? input.llmConfig?.apiKey : undefined) ||
+    (process.env.LLM_PROVIDER === 'groq' ? process.env.LLM_API_KEY : undefined);
+
+  if (!groqApiKey) {
+    console.warn('[AI Chat Service] Groq failover requested but GROQ_API_KEY is not configured');
+    return { ok: false, error: 'GROQ_API_KEY not configured' };
+  }
+
+  const groqModel =
+    input.llmConfig?.groqModel ||
+    process.env.GROQ_MODEL ||
+    'llama-3.3-70b-versatile';
+
+  try {
+    const messages: any[] = [{ role: 'system', content: systemPrompt }];
+
+    if (Array.isArray(input.history)) {
+      for (const msg of input.history.slice(-10)) {
+        if (msg.text && !msg.isThinking) {
+          messages.push({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text,
+          });
+        }
+      }
+    }
+
+    messages.push({ role: 'user', content: input.message });
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${groqApiKey}`,
+      },
+      body: JSON.stringify({
+        model: groqModel,
+        messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data: any = await res.json();
+      const replyText = data.choices?.[0]?.message?.content;
+      if (replyText && replyText.trim().length > 0) {
+        return { ok: true, reply: replyText.trim() };
+      }
+      return { ok: false, error: 'Empty content from Groq' };
+    }
+
+    const errBody = await res.text().catch(() => '');
+    const isRateLimited = res.status === 429 || errBody.toLowerCase().includes('rate limit');
+    return {
+      ok: false,
+      isRateLimited,
+      error: `Groq HTTP ${res.status}: ${errBody.slice(0, 150)}`,
+    };
+  } catch (err: any) {
+    const isAbort = err?.name === 'AbortError';
+    return {
+      ok: false,
+      error: isAbort ? 'Groq request timed out' : (err?.message || 'Groq network error'),
+    };
+  }
+}
+
+/**
+ * Handles LLM API calls with graceful fallback and seamless Gemini -> Groq failover
  */
 export async function generateAIChatReply(input: ArchitectureChatInput): Promise<ArchitectureChatOutput> {
   const provider =
     input.llmConfig?.provider ||
     process.env.LLM_PROVIDER ||
-    (process.env.GEMINI_API_KEY ? 'gemini' : process.env.OPENAI_API_KEY ? 'openai' : process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'gemini');
+    (process.env.GEMINI_API_KEY
+      ? 'gemini'
+      : process.env.GROQ_API_KEY
+      ? 'groq'
+      : process.env.OPENAI_API_KEY
+      ? 'openai'
+      : process.env.ANTHROPIC_API_KEY
+      ? 'anthropic'
+      : 'gemini');
 
   const apiKey =
     input.llmConfig?.apiKey ||
     process.env.LLM_API_KEY ||
     (provider === 'gemini'
       ? process.env.GEMINI_API_KEY
+      : provider === 'groq'
+      ? process.env.GROQ_API_KEY
       : provider === 'anthropic'
       ? process.env.ANTHROPIC_API_KEY
       : process.env.OPENAI_API_KEY);
@@ -199,13 +293,15 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
     process.env.LLM_MODEL ||
     (provider === 'gemini'
       ? 'gemini-1.5-flash'
+      : provider === 'groq'
+      ? (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile')
       : provider === 'anthropic'
       ? 'claude-3-5-sonnet-20241022'
       : 'gpt-4o-mini');
 
   const systemPrompt = buildSystemPrompt(input.architectureContext);
 
-  if (apiKey || (provider === 'other' && input.llmConfig?.baseUrl)) {
+  if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {
       if (provider === 'gemini') {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -251,6 +347,44 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
             return { reply: replyText.trim() };
           }
         }
+
+        // Check if rate limited (429 / 503 / RESOURCE_EXHAUSTED / quota / overloaded)
+        const status = res.status;
+        const errText = await res.text().catch(() => '');
+        const isRateLimit =
+          status === 429 ||
+          status === 503 ||
+          errText.toLowerCase().includes('resource_exhausted') ||
+          errText.toLowerCase().includes('rate limit') ||
+          errText.toLowerCase().includes('quota') ||
+          errText.toLowerCase().includes('too many requests') ||
+          errText.toLowerCase().includes('overloaded');
+
+        if (isRateLimit) {
+          console.info(
+            `[AI Chat Service] Gemini rate limit (HTTP ${status} / quota) detected. Seamlessly transferring request to Groq in background...`
+          );
+
+          // Failover to Groq in background without notifying frontend
+          const groqRes = await callGroqChat(input, systemPrompt);
+          if (groqRes.ok && groqRes.reply) {
+            console.info('[AI Chat Service] Request successfully completed by Groq in background.');
+            return { reply: groqRes.reply };
+          }
+
+          // If Groq also failed (or rate limited / unavailable)
+          console.warn(
+            '[AI Chat Service] Groq failover also failed. Returning traffic overload message:',
+            groqRes.error
+          );
+          return { reply: 'Traffic is more than expected. Please retry later.' };
+        }
+      } else if (provider === 'groq') {
+        const groqRes = await callGroqChat(input, systemPrompt);
+        if (groqRes.ok && groqRes.reply) {
+          return { reply: groqRes.reply };
+        }
+        return { reply: 'Traffic is more than expected. Please retry later.' };
       } else if (provider === 'anthropic') {
         const messages: any[] = [];
         if (Array.isArray(input.history)) {
@@ -334,6 +468,25 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
       }
     } catch (err: any) {
       console.warn(`[AI Chat Service] LLM call error (${provider}):`, err?.message || err);
+      const errMsg = String(err?.message || err).toLowerCase();
+      const isRateLimit =
+        errMsg.includes('429') ||
+        errMsg.includes('503') ||
+        errMsg.includes('rate limit') ||
+        errMsg.includes('resource_exhausted') ||
+        errMsg.includes('quota');
+
+      if (provider === 'gemini' && isRateLimit) {
+        console.info(
+          '[AI Chat Service] Gemini rate limit exception. Seamlessly transferring request to Groq in background...'
+        );
+        const groqRes = await callGroqChat(input, systemPrompt);
+        if (groqRes.ok && groqRes.reply) {
+          console.info('[AI Chat Service] Request successfully completed by Groq in background.');
+          return { reply: groqRes.reply };
+        }
+        return { reply: 'Traffic is more than expected. Please retry later.' };
+      }
     }
   }
 
