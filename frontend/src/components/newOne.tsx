@@ -233,9 +233,7 @@ export const NewOne: React.FC<NewOneProps> = ({
                   className="relative flex items-center bg-neutral-900/90 border border-neutral-800 rounded-xl p-1.5 focus-within:border-neutral-700 transition-all duration-200"
                   style={{ outline: 'none', boxShadow: 'none' }}
                 >
-                  <div className="pl-3.5 pr-2 text-neutral-400 group-focus-within:text-white transition-colors">
-                    <Sparkles className="w-4 h-4 text-base" />
-                  </div>
+              
 
                   <input
                     ref={inputRef}
