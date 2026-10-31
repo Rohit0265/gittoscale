@@ -99,9 +99,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end">
           {/* Left Column: Eyebrow + Main Headline */}
           <div className="lg:col-span-8 flex flex-col items-start text-left">
-            <span className="text-[11px] sm:text-xs font-mono font-bold tracking-[0.2em] uppercase text-sky-600 dark:text-sky-400 mb-4 sm:mb-5">
-              A CLEARER PATH TO SCALE
-            </span>
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-bold tracking-[-0.035em] leading-[1.08] text-slate-950 dark:text-white">
               From codebase <br />
               <span className="text-slate-500 dark:text-slate-400">
