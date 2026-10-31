@@ -224,16 +224,7 @@ export const NewOne: React.FC<NewOneProps> = ({
                   </div>
                 </div>
 
-                {/* Status Badge */}
-                <div className="flex items-center space-x-2 bg-neutral-900/90 border border-neutral-800 px-3 py-1 rounded-full">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  <span className="text-xs font-mono font-medium text-emerald-400 tracking-wide">
-                    AI Ready
-                  </span>
-                </div>
+              
               </div>
 
               {/* Input Prompt Box */}
