@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, Play, Sparkles, Github } from 'lucide-react';
-import { VideoCarousel } from './VideoCarousel';
 
 export interface NewOneProps {
   onSelectTestSite?: () => void;

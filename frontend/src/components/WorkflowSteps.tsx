@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, GitBranch, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Sparkles } from 'lucide-react';
 
 export interface WorkflowStepsProps {
   onSelectTestSite?: () => void;
@@ -15,9 +15,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
   onOpenRecommender,
   isDark: _isDark,
 }) => {
-  // Interactive state for Step 01 (active node)
-  const [selectedNode, setSelectedNode] = useState<string | null>('gateway');
-
   // Interactive state for Step 02 (traffic multiplier toggle)
   const [trafficMultiplier, setTrafficMultiplier] = useState<'1x' | '10x'>('10x');
 
@@ -89,153 +86,37 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           id="step-1"
           className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center"
         >
-          {/* Left Column: Visual Card (Repository Map) */}
+          {/* Left Column: Visual Card (Architecture Map Image) */}
           <div className="lg:col-span-7 w-full">
-            <div className="group relative w-full h-[300px] sm:h-[340px] md:h-[360px] bg-white dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-5 sm:p-6 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
-              {/* Card Header */}
-              <div className="flex items-center justify-between z-10">
-                <span className="text-xs font-mono text-slate-500 dark:text-neutral-400 font-medium">
-                  Repository map
-                </span>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span>live scan</span>
-                </div>
-              </div>
-
-              {/* Card Graph Canvas */}
-              <div className="relative flex-1 w-full my-2">
-                {/* SVG Connecting Mesh Lines */}
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  viewBox="0 0 520 200"
-                  fill="none"
-                  preserveAspectRatio="none"
-                >
-                  {/* Background Diamond/Isometric Grid Lines */}
-                  <g className="stroke-slate-200/90 dark:stroke-neutral-800/90" strokeWidth="1">
-                    <line x1="20" y1="100" x2="140" y2="40" />
-                    <line x1="140" y1="40" x2="260" y2="100" />
-                    <line x1="260" y1="100" x2="380" y2="40" />
-                    <line x1="380" y1="40" x2="500" y2="100" />
-
-                    <line x1="20" y1="100" x2="140" y2="160" />
-                    <line x1="140" y1="160" x2="260" y2="100" />
-                    <line x1="260" y1="100" x2="380" y2="160" />
-                    <line x1="380" y1="160" x2="500" y2="100" />
-
-                    <line x1="140" y1="40" x2="260" y2="40" strokeDasharray="3 3" opacity="0.6" />
-                    <line x1="260" y1="40" x2="380" y2="40" strokeDasharray="3 3" opacity="0.6" />
-                    <line x1="140" y1="160" x2="260" y2="160" strokeDasharray="3 3" opacity="0.6" />
-                    <line x1="260" y1="160" x2="380" y2="160" strokeDasharray="3 3" opacity="0.6" />
-                  </g>
-
-                  {/* Active Topology Connectors between Nodes */}
-                  <g className="stroke-sky-400/70 dark:stroke-sky-500/60" strokeWidth="1.5">
-                    {/* users db (85, 140) to gateway (260, 50) */}
-                    <line x1="105" y1="130" x2="240" y2="60" />
-                    {/* gateway (260, 50) to queue (455, 70) */}
-                    <line x1="280" y1="60" x2="435" y2="70" />
-                    {/* gateway (260, 50) to workers (205, 150) */}
-                    <line x1="250" y1="65" x2="215" y2="135" />
-                    {/* workers (205, 150) to payments (365, 150) */}
-                    <line x1="230" y1="145" x2="345" y2="145" />
-                    {/* payments (365, 150) to queue (455, 70) */}
-                    <line x1="380" y1="135" x2="440" y2="80" />
-                  </g>
-                </svg>
-
-                {/* Node Pills Placed on Graph */}
-                {/* 1. gateway (Top Center) */}
-                <div
-                  style={{ left: '46%', top: '20%' }}
-                  onClick={() => setSelectedNode('gateway')}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 px-3 sm:px-3.5 py-1.5 rounded-lg border text-xs sm:text-[13px] font-mono font-medium shadow-xs transition-all duration-200 cursor-pointer select-none ${
-                    selectedNode === 'gateway'
-                      ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-400 dark:border-sky-500 ring-2 ring-sky-400/20 shadow-md'
-                      : 'bg-white dark:bg-[#1a1b20] text-slate-800 dark:text-neutral-200 border-slate-200 dark:border-neutral-700 hover:border-slate-400 dark:hover:border-neutral-500'
-                  }`}
-                >
-                  gateway
-                </div>
-
-                {/* 2. users db (Lower Left) */}
-                <div
-                  style={{ left: '16%', top: '65%' }}
-                  onClick={() => setSelectedNode('users db')}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 px-3 sm:px-3.5 py-1.5 rounded-lg border text-xs sm:text-[13px] font-mono font-medium shadow-xs transition-all duration-200 cursor-pointer select-none ${
-                    selectedNode === 'users db'
-                      ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-400 dark:border-sky-500 ring-2 ring-sky-400/20 shadow-md'
-                      : 'bg-white dark:bg-[#1a1b20] text-slate-800 dark:text-neutral-200 border-slate-200 dark:border-neutral-700 hover:border-slate-400 dark:hover:border-neutral-500'
-                  }`}
-                >
-                  users db
-                </div>
-
-                {/* 3. workers (Lower Middle) */}
-                <div
-                  style={{ left: '40%', top: '74%' }}
-                  onClick={() => setSelectedNode('workers')}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 px-3 sm:px-3.5 py-1.5 rounded-lg border text-xs sm:text-[13px] font-mono font-medium shadow-xs transition-all duration-200 cursor-pointer select-none ${
-                    selectedNode === 'workers'
-                      ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-400 dark:border-sky-500 ring-2 ring-sky-400/20 shadow-md'
-                      : 'bg-white dark:bg-[#1a1b20] text-slate-800 dark:text-neutral-200 border-slate-200 dark:border-neutral-700 hover:border-slate-400 dark:hover:border-neutral-500'
-                  }`}
-                >
-                  workers
-                </div>
-
-                {/* 4. payments (Lower Right-Center) */}
-                <div
-                  style={{ left: '71%', top: '74%' }}
-                  onClick={() => setSelectedNode('payments')}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 px-3 sm:px-3.5 py-1.5 rounded-lg border text-xs sm:text-[13px] font-mono font-medium shadow-xs transition-all duration-200 cursor-pointer select-none ${
-                    selectedNode === 'payments'
-                      ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-400 dark:border-sky-500 ring-2 ring-sky-400/20 shadow-md'
-                      : 'bg-white dark:bg-[#1a1b20] text-slate-800 dark:text-neutral-200 border-slate-200 dark:border-neutral-700 hover:border-slate-400 dark:hover:border-neutral-500'
-                  }`}
-                >
-                  payments
-                </div>
-
-                {/* 5. queue (Upper Right) */}
-                <div
-                  style={{ left: '88%', top: '35%' }}
-                  onClick={() => setSelectedNode('queue')}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 px-3 sm:px-3.5 py-1.5 rounded-lg border text-xs sm:text-[13px] font-mono font-medium shadow-xs transition-all duration-200 cursor-pointer select-none ${
-                    selectedNode === 'queue'
-                      ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-400 dark:border-sky-500 ring-2 ring-sky-400/20 shadow-md'
-                      : 'bg-white dark:bg-[#1a1b20] text-slate-800 dark:text-neutral-200 border-slate-200 dark:border-neutral-700 hover:border-slate-400 dark:hover:border-neutral-500'
-                  }`}
-                >
-                  queue
-                </div>
-              </div>
-
-              {/* Card Footer */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-neutral-800/80 z-10">
-                <div className="inline-flex items-center gap-1.5 text-xs font-mono text-slate-500 dark:text-neutral-400">
-                  <GitBranch className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-500 group-hover:text-sky-500 transition-colors" />
-                  <span>main</span>
-                </div>
-                <span className="text-xs font-mono text-slate-500 dark:text-neutral-400">
-                  42 services
-                </span>
-              </div>
+            <div className="group relative w-full bg-[#0a0b0e] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-4 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
+              <img
+                src="/architecture-map.png"
+                alt="GitToScale Architecture Map"
+                className="w-full h-auto object-contain rounded-xl select-none"
+                loading="eager"
+              />
             </div>
           </div>
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
+            <span className="text-xs font-mono font-bold tracking-wider uppercase text-sky-600 dark:text-sky-400">
+              01 / DISCOVER
+            </span>
             <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
               See the architecture hiding in your repo.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Import a GitHub repository and let GitToScale map services, queues, data stores, and the traffic between them.
             </p>
+            <button
+              type="button"
+              onClick={handleExploreWorkflow}
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors mt-6 cursor-pointer"
+            >
+              <span>Explore the workflow</span>
+              <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </button>
           </div>
         </div>
 
@@ -246,12 +127,23 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
+            <span className="text-xs font-mono font-bold tracking-wider uppercase text-sky-600 dark:text-sky-400">
+              02 / SIMULATE
+            </span>
             <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
               Stress-test before production does.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Model traffic spikes, cache misses, database saturation, and failure paths with a clear, interactive view of what happens next.
             </p>
+            <button
+              type="button"
+              onClick={handleExploreWorkflow}
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors mt-6 cursor-pointer"
+            >
+              <span>Explore the workflow</span>
+              <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </button>
           </div>
 
           {/* Right Column: Visual Card (Load simulation Chart) */}
@@ -492,12 +384,23 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
+            <span className="text-xs font-mono font-bold tracking-wider uppercase text-sky-600 dark:text-sky-400">
+              03 / DETECT
+            </span>
             <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
               Find the bottleneck before the outage.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Turn invisible coupling into a prioritized list of risks your team can understand, discuss, and fix.
             </p>
+            <button
+              type="button"
+              onClick={handleExploreWorkflow}
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors mt-6 cursor-pointer"
+            >
+              <span>Explore the workflow</span>
+              <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </button>
           </div>
         </div>
       </div>
