@@ -407,6 +407,17 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
         };
       }
 
+      if (githubToken.trim()) {
+        payload.githubToken = githubToken.trim();
+        try {
+          localStorage.setItem('gts_github_token', githubToken.trim());
+        } catch {}
+      } else if (isPrivateRepo) {
+        setError("Please authorize GitHub or enter a Personal Access Token with 'repo' scope to scan private repositories.");
+        setLoading(false);
+        return;
+      }
+
       const res = await api.analyzeRepository(payload);
 
       const repoName =
@@ -417,9 +428,17 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
       onImportArchitecture(res.nodes, res.edges, repoName, res.basicGraph, res.detailedGraph, trimmed);
       onClose();
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || err.message || 'Failed to scan repository.'
-      );
+      const msg = err.response?.data?.message || err.message || 'Failed to scan repository.';
+      setError(msg);
+      if (
+        msg.toLowerCase().includes('private') ||
+        msg.toLowerCase().includes('not found') ||
+        msg.toLowerCase().includes('denied') ||
+        msg.toLowerCase().includes('scope') ||
+        msg.toLowerCase().includes('404')
+      ) {
+        setIsPrivateRepo(true);
+      }
     } finally {
       setLoading(false);
     }
