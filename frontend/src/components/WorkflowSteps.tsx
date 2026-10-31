@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowUpRight,
-  Sparkles,
   Bot,
   Zap,
   CheckCircle2,
@@ -62,12 +61,9 @@ const AI_COMPLETION_SCENARIOS = [
 export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
   onSelectTestSite,
   onSelectUseRepository,
-  onOpenRecommender,
+  onOpenRecommender: _onOpenRecommender,
   isDark: _isDark,
 }) => {
-  // Interactive state for Step 03 (hovered risk)
-  const [hoveredRisk, setHoveredRisk] = useState<string | null>(null);
-
   // Interactive state for Step 04 (AI flow completion scenario)
   const [activeScenario, setActiveScenario] = useState<number>(0);
 
@@ -76,14 +72,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
       onSelectTestSite();
     } else if (onSelectUseRepository) {
       onSelectUseRepository();
-    }
-  };
-
-  const handleOpenRecommendation = () => {
-    if (onOpenRecommender) {
-      onOpenRecommender();
-    } else if (onSelectTestSite) {
-      onSelectTestSite();
     }
   };
 
@@ -218,112 +206,15 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           id="step-3"
           className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center"
         >
-          {/* Left Column: Visual Card (Risk Signals Telemetry) */}
+          {/* Left Column: Visual Card (Bottleneck Detection Image) */}
           <div className="lg:col-span-7 w-full">
-            <div className="group relative w-full h-[300px] sm:h-[340px] md:h-[360px] bg-white dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-5 sm:p-6 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
-              {/* Card Header */}
-              <div className="flex items-center justify-between z-10">
-                <span className="text-xs font-mono text-slate-500 dark:text-neutral-400 font-medium">
-                  Risk signals
-                </span>
-                <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900/60 shadow-2xs">
-                  3 detected
-                </div>
-              </div>
-
-              {/* Card Telemetry Bars Area */}
-              <div className="my-auto flex flex-col gap-5 sm:gap-6 w-full">
-                {/* Metric 1: Database connection pool (92% Red) */}
-                <div
-                  onMouseEnter={() => setHoveredRisk('db')}
-                  onMouseLeave={() => setHoveredRisk(null)}
-                  className="group/item flex flex-col gap-1.5 cursor-pointer"
-                >
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <div className="inline-flex items-center gap-2 text-slate-700 dark:text-neutral-200 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                      <span>Database connection pool</span>
-                    </div>
-                    <span className="font-bold text-rose-600 dark:text-rose-400">92%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-rose-500 rounded-full"
-                      initial={{ width: '0%' }}
-                      whileInView={{ width: '92%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Metric 2: Queue consumer lag (68% Amber) */}
-                <div
-                  onMouseEnter={() => setHoveredRisk('queue')}
-                  onMouseLeave={() => setHoveredRisk(null)}
-                  className="group/item flex flex-col gap-1.5 cursor-pointer"
-                >
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <div className="inline-flex items-center gap-2 text-slate-700 dark:text-neutral-200 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                      <span>Queue consumer lag</span>
-                    </div>
-                    <span className="font-bold text-amber-600 dark:text-amber-400">68%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-amber-500 rounded-full"
-                      initial={{ width: '0%' }}
-                      whileInView={{ width: '68%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.8, delay: 0.1, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Metric 3: Cache hit rate (97% Emerald) */}
-                <div
-                  onMouseEnter={() => setHoveredRisk('cache')}
-                  onMouseLeave={() => setHoveredRisk(null)}
-                  className="group/item flex flex-col gap-1.5 cursor-pointer"
-                >
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <div className="inline-flex items-center gap-2 text-slate-700 dark:text-neutral-200 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                      <span>Cache hit rate</span>
-                    </div>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">97%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-emerald-500 rounded-full"
-                      initial={{ width: '0%' }}
-                      whileInView={{ width: '97%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Footer: recommendation ready */}
-              <button
-                type="button"
-                onClick={handleOpenRecommendation}
-                className="group/rec flex items-center justify-between w-full pt-3 border-t border-slate-100 dark:border-neutral-800/80 z-10 text-xs font-mono text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer"
-              >
-                <div className="inline-flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-sky-500 group-hover/rec:rotate-12 transition-transform" />
-                  <span className="font-medium">
-                    {hoveredRisk === 'db'
-                      ? 'Add PgBouncer pooler or replica'
-                      : hoveredRisk === 'queue'
-                      ? 'Scale Celery/Kafka consumers'
-                      : 'recommendation ready'}
-                  </span>
-                </div>
-                <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover/rec:translate-x-0.5 group-hover/rec:-translate-y-0.5" />
-              </button>
+            <div className="group relative w-full bg-[#08090d] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-3 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
+              <img
+                src="/detect-bottleneck.png"
+                alt="GitToScale Bottleneck Detection & Inspector"
+                className="w-full h-auto object-contain rounded-xl select-none"
+                loading="eager"
+              />
             </div>
           </div>
 
