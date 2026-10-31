@@ -261,6 +261,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (ev.data.session) {
                   setSession(ev.data.session);
                   setUser(ev.data.session.user);
+                  if (ev.data.session.provider_token) {
+                    try {
+                      localStorage.setItem('gts_github_token', ev.data.session.provider_token);
+                    } catch {}
+                  }
                   await loadProfile(
                     ev.data.session.user.id,
                     ev.data.session.user.email || '',
@@ -271,6 +276,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   if (curSession?.user) {
                     setSession(curSession);
                     setUser(curSession.user);
+                    if (curSession.provider_token) {
+                      try {
+                        localStorage.setItem('gts_github_token', curSession.provider_token);
+                      } catch {}
+                    }
                     await loadProfile(
                       curSession.user.id,
                       curSession.user.email || '',
