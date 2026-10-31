@@ -17,8 +17,21 @@ const ROTATING_PROMPTS = [
   'Will our database connection pool exhaust during a spike?',
 ];
 
+const FONT_OPTIONS = [
+  { id: 'arial', label: 'Arial', className: "font-['Arial','Helvetica',sans-serif]" },
+  { id: 'grotesk', label: 'Grotesk', className: "font-['Arial_Black','Arial',sans-serif]" },
+  { id: 'inter', label: 'Inter', className: 'font-sans' },
+  { id: 'mono', label: 'Mono', className: 'font-mono' },
+];
+
+const EFFECT_OPTIONS = [
+  { id: 'metallic', label: 'Metallic' },
+  { id: 'glow', label: 'Cyber Glow' },
+  { id: 'editorial', label: 'Editorial' },
+];
+
 export const NewOne: React.FC<NewOneProps> = ({
-  onSelectTestSite,
+  onSelectTestSite: _onSelectTestSite,
   onSelectUseRepository,
   onOpenRecommender,
   onStartProject,
@@ -26,6 +39,8 @@ export const NewOne: React.FC<NewOneProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [activeFont, setActiveFont] = useState<string>('arial');
+  const [activeEffect, setActiveEffect] = useState<string>('metallic');
 
   // Rotate sample architecture questions smoothly
   useEffect(() => {
@@ -36,6 +51,7 @@ export const NewOne: React.FC<NewOneProps> = ({
   }, []);
 
   const activePlaceholder = ROTATING_PROMPTS[placeholderIndex];
+  const selectedFont = FONT_OPTIONS.find((f) => f.id === activeFont) || FONT_OPTIONS[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,15 +87,101 @@ export const NewOne: React.FC<NewOneProps> = ({
       {/* Main 2-Column Split Hero Layout */}
       <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center my-auto">
         {/* Left Column: Heading, Subtitle & Primary Actions */}
-        <div className="lg:col-span-7 flex flex-col items-start text-left">
-          {/* Main Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-bold tracking-[-0.035em] text-slate-950 dark:text-white leading-[1.08]">
-            Scale your <br />
-            system <br />
-            before{' '}
-            <span className="text-slate-500 dark:text-slate-400 font-bold">
-              disaster.
+        <div className="lg:col-span-7 flex flex-col items-start text-left relative">
+          {/* Ambient Lighting Glow Behind Headline */}
+          <div className="absolute -top-14 -left-12 w-80 h-80 bg-gradient-to-br from-sky-400/15 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+
+          {/* Interactive Font & Effect Selector Pill Bar */}
+          <div className="inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-100/90 dark:bg-neutral-900/80 border border-slate-200/80 dark:border-neutral-800 mb-6 text-xs backdrop-blur-sm">
+            <span className="text-[11px] font-mono text-slate-500 dark:text-neutral-400 px-2 font-medium">
+              Font:
             </span>
+            {FONT_OPTIONS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setActiveFont(f.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer ${
+                  activeFont === f.id
+                    ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white font-bold shadow-xs border border-slate-200/80 dark:border-neutral-700'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+            <span className="text-slate-300 dark:text-neutral-700 mx-0.5">|</span>
+            <button
+              type="button"
+              onClick={() =>
+                setActiveEffect((prev) =>
+                  prev === 'metallic' ? 'glow' : prev === 'glow' ? 'editorial' : 'metallic'
+                )
+              }
+              className="px-2 py-1 rounded-lg text-[11px] font-mono font-medium text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer"
+              title="Click to cycle heading text effects"
+            >
+              Effect: {EFFECT_OPTIONS.find((e) => e.id === activeEffect)?.label} ↻
+            </button>
+          </div>
+
+          {/* Main Headline */}
+          <h1
+            className={`${selectedFont.className} text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-black tracking-[-0.04em] leading-[1.06] select-none`}
+          >
+            {activeEffect === 'metallic' && (
+              <>
+                <span className="block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent drop-shadow-xs">
+                  Scale your <br />
+                  system
+                </span>
+                <span className="block mt-1">
+                  <span className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-700 dark:from-slate-200 dark:via-slate-300 dark:to-slate-400 bg-clip-text text-transparent">
+                    before{' '}
+                  </span>
+                  <span className="relative inline-block">
+                    <span className="bg-gradient-to-r from-slate-500 via-slate-600 to-slate-400 dark:from-slate-400 dark:via-slate-300 dark:to-slate-500 bg-clip-text text-transparent font-bold">
+                      disaster.
+                    </span>
+                    <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full bg-gradient-to-r from-transparent via-cyan-500/50 dark:via-cyan-400/60 to-transparent" />
+                  </span>
+                </span>
+              </>
+            )}
+
+            {activeEffect === 'glow' && (
+              <>
+                <span className="block text-slate-950 dark:text-white drop-shadow-[0_0_24px_rgba(56,189,248,0.22)]">
+                  Scale your <br />
+                  system
+                </span>
+                <span className="block mt-1">
+                  <span className="text-slate-900 dark:text-slate-200">
+                    before{' '}
+                  </span>
+                  <span className="bg-gradient-to-r from-sky-500 via-indigo-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(56,189,248,0.45)]">
+                    disaster.
+                  </span>
+                </span>
+              </>
+            )}
+
+            {activeEffect === 'editorial' && (
+              <>
+                <span className="block text-slate-950 dark:text-white tracking-[-0.05em]">
+                  Scale your <br />
+                  system
+                </span>
+                <span className="block mt-1">
+                  <span className="text-slate-900 dark:text-slate-300">
+                    before{' '}
+                  </span>
+                  <span className="text-slate-500 dark:text-slate-400 italic">
+                    disaster.
+                  </span>
+                </span>
+              </>
+            )}
           </h1>
 
           {/* Subheading / Explainer */}

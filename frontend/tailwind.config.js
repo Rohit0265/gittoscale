@@ -20,6 +20,8 @@ export default {
           'Arial',
           'sans-serif',
         ],
+        arial: ['Arial', 'Helvetica', '"Helvetica Neue"', 'sans-serif'],
+        grotesk: ['"Arial Black"', 'Arial', 'Helvetica', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {

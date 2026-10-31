@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowUpRight,
   Bot,
   Zap,
   CheckCircle2,
@@ -59,21 +58,13 @@ const AI_COMPLETION_SCENARIOS = [
 ];
 
 export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
-  onSelectTestSite,
-  onSelectUseRepository,
+  onSelectTestSite: _onSelectTestSite,
+  onSelectUseRepository: _onSelectUseRepository,
   onOpenRecommender: _onOpenRecommender,
   isDark: _isDark,
 }) => {
   // Interactive state for Step 04 (AI flow completion scenario)
   const [activeScenario, setActiveScenario] = useState<number>(0);
-
-  const handleExploreWorkflow = () => {
-    if (onSelectTestSite) {
-      onSelectTestSite();
-    } else if (onSelectUseRepository) {
-      onSelectUseRepository();
-    }
-  };
 
   const currentScenario = AI_COMPLETION_SCENARIOS[activeScenario];
 
@@ -99,10 +90,13 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end">
           {/* Left Column: Eyebrow + Main Headline */}
           <div className="lg:col-span-8 flex flex-col items-start text-left">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-bold tracking-[-0.035em] leading-[1.08] text-slate-950 dark:text-white">
-              From codebase <br />
-              <span className="text-slate-500 dark:text-slate-400">
-                to confidence.
+            <h2 className="font-['Arial','Helvetica',sans-serif] text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-[-0.04em] leading-[1.08] select-none">
+              <span className="block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent drop-shadow-xs">
+                How it's
+              </span>
+              <span className="relative inline-block bg-gradient-to-r from-slate-500 via-slate-600 to-slate-400 dark:from-slate-400 dark:via-slate-300 dark:to-slate-500 bg-clip-text text-transparent font-bold">
+                Work ?
+                <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full bg-gradient-to-r from-transparent via-cyan-500/40 dark:via-cyan-400/50 to-transparent" />
               </span>
             </h2>
           </div>
@@ -130,7 +124,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
+            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
               See the architecture hiding in your repo.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
@@ -149,7 +143,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
+            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
               Stress-test before production does.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
@@ -194,7 +188,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
+            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
               Find the bottleneck before the outage.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
@@ -213,7 +207,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
+            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
               Use AI to complete, scale, and heal your flow.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
