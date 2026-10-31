@@ -17,6 +17,7 @@ import { ArchitectureCanvas } from './components/Canvas/ArchitectureCanvas';
 import { RightSidebar } from './components/RightSidebar';
 import { BaselineComparisonModal } from './components/BaselineComparisonModal';
 import { RepositoryImportModal } from './components/RepositoryImportModal';
+import { StartProjectModal } from './components/StartProjectModal';
 import { LandingPage } from './components/LandingPage';
 import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
 import { ProjectWorkspace } from './components/ProjectWorkspace/ProjectWorkspace';

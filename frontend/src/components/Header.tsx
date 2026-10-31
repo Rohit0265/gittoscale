@@ -12,6 +12,7 @@ import {
   LogIn,
   UserPlus,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture } from '../types';
@@ -26,6 +27,7 @@ interface HeaderProps {
   onReset: () => void;
   onOpenCompare?: () => void;
   onOpenImportRepo: () => void;
+  onOpenNewProject?: () => void;
   onOpenRecommender?: () => void;
   onOpenHistory?: () => void;
   user?: any;
@@ -50,6 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleRun,
   onReset,
   onOpenImportRepo,
+  onOpenNewProject,
   onOpenRecommender,
   onOpenHistory,
   user,
@@ -140,6 +143,18 @@ export const Header: React.FC<HeaderProps> = ({
           <RotateCcw className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-300" />
           <span className="hidden sm:inline">Reset</span>
         </button>
+
+        {/* Start New Project / Enter Idea or Import Repo */}
+        {onOpenNewProject && (
+          <button
+            onClick={onOpenNewProject}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 dark:bg-white text-white dark:text-neutral-950 hover:bg-slate-800 dark:hover:bg-neutral-100 transition-all shadow-xs cursor-pointer shrink-0"
+            title="Enter an architecture idea or import repository"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 dark:text-amber-500" />
+            <span className="hidden sm:inline">New Idea</span>
+          </button>
+        )}
 
         {/* GitHub Star Button */}
         <GitHubStarButton className="hidden sm:inline-flex" />
