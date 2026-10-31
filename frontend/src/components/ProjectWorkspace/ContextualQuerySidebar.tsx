@@ -32,6 +32,7 @@ export interface ChatBubble {
 }
 
 export interface ContextualQuerySidebarProps {
+  projectId?: string;
   activePrompt?: string;
   selectedAnswers?: {
     scale?: string;
@@ -71,6 +72,9 @@ export interface ContextualQuerySidebarProps {
 }
 
 const CHAT_STORAGE_KEY = 'gitoscale_ai_chat_session_v2';
+const getChatStorageKey = (projectId?: string) => {
+  return projectId ? `gitoscale_ai_chat_session_${projectId}` : CHAT_STORAGE_KEY;
+};
 const MAX_CONTEXT_MESSAGES = 200;
 
 const DEFAULT_GREETING = `👋 **Hello! I'm your Playground AI Architect Agent.**
@@ -82,6 +86,7 @@ I have direct real-time access to this canvas. Tell me what to build or change:
 • 🔍 **Diagnose**: *"What are the bottlenecks right now?"*`;
 
 export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
+  projectId,
   activePrompt = 'Scalable distributed cloud architecture',
   selectedAnswers = {},
   onResetQuestions,
@@ -209,7 +214,8 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   const [messages, setMessages] = useState<ChatBubble[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        const storageKey = getChatStorageKey(projectId);
+        const raw = localStorage.getItem(storageKey);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
@@ -229,12 +235,44 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   const saveDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   const hasRestoredRef = useRef<boolean>(messages.length > 0);
 
+  // When projectId changes, reload or reset session for this project
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storageKey = getChatStorageKey(projectId);
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+          setMessages(parsed.messages.slice(-MAX_CONTEXT_MESSAGES));
+          if (parsed.selectedAnswers && onRestoreSession) {
+            onRestoreSession({
+              selectedAnswers: parsed.selectedAnswers,
+              activePrompt: parsed.activePrompt,
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // Clean session for new project
+    const welcome: ChatBubble = {
+      id: 'msg-welcome',
+      sender: 'ai',
+      text: DEFAULT_GREETING,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages([welcome]);
+  }, [projectId]);
+
   // Initialise greeting only if NO prior messages exist in storage
   useEffect(() => {
     if (hasRestoredRef.current && messages.length > 0) {
       hasRestoredRef.current = false;
       try {
-        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+        const storageKey = getChatStorageKey(projectId);
+        const raw = localStorage.getItem(storageKey);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed.selectedAnswers && onRestoreSession) {
@@ -257,7 +295,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       };
       setMessages([welcome]);
     }
-  }, [activePrompt]);
+  }, [activePrompt, projectId]);
 
   // Persist conversation to localStorage & database (capped at 200 messages)
   useEffect(() => {
@@ -271,7 +309,8 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       };
 
       try {
-        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(session));
+        const storageKey = getChatStorageKey(projectId);
+        localStorage.setItem(storageKey, JSON.stringify(session));
       } catch (e) {
         console.warn('LocalStorage save error:', e);
       }
@@ -292,7 +331,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         }, 1500);
       }
     }
-  }, [messages, selectedAnswers, activePrompt, user, nodes, edges]);
+  }, [messages, selectedAnswers, activePrompt, user, nodes, edges, projectId]);
 
   // Auto-scroll
   useEffect(() => {
@@ -388,7 +427,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
 
   const handleRestart = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(CHAT_STORAGE_KEY);
+      localStorage.removeItem(getChatStorageKey(projectId));
     }
     onResetQuestions?.();
     const resetMsg: ChatBubble = {
