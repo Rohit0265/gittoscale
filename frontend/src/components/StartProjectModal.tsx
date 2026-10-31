@@ -274,3 +274,4 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
     </AnimatePresence>
   );
 };
+
