@@ -22,6 +22,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { ArchitectureNode, ArchitectureEdge } from '../types';
 
 interface RepositoryImportModalProps {
@@ -61,9 +62,42 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
   isUserAuthenticated = true,
   onRequireAuth,
 }) => {
+  const { signInWithOAuth } = useAuth();
   const [repoUrl, setRepoUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Private repository & GitHub token authorization state
+  const [isPrivateRepo, setIsPrivateRepo] = useState(false);
+  const [githubToken, setGithubToken] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('gts_github_token') || '';
+    }
+    return '';
+  });
+  const [showGithubToken, setShowGithubToken] = useState(false);
+  const [isAuthorizingGithub, setIsAuthorizingGithub] = useState(false);
+
+  const handleAuthorizeGitHub = async () => {
+    setIsAuthorizingGithub(true);
+    setError(null);
+    try {
+      const { error: authErr } = await signInWithOAuth('github');
+      if (authErr) {
+        setError(`GitHub authorization failed: ${authErr.message}`);
+      } else {
+        const token = localStorage.getItem('gts_github_token') || '';
+        if (token) {
+          setGithubToken(token);
+          setIsPrivateRepo(true);
+        }
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to authorize GitHub');
+    } finally {
+      setIsAuthorizingGithub(false);
+    }
+  };
 
   // LLM Configuration state
   const [showLLMSettings, setShowLLMSettings] = useState(true);
