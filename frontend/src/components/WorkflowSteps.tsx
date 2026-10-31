@@ -80,7 +80,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
   return (
     <section
       id="steps-section"
-      className="relative w-full bg-transparent text-slate-900 dark:text-white py-20 sm:py-28 md:py-36 lg:py-44 px-4 sm:px-6 md:px-10 lg:px-14 overflow-hidden font-sans"
+      className="relative w-full bg-transparent text-slate-900 dark:text-white py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-10 lg:px-14 overflow-hidden font-sans"
     >
       {/* Background Subtle Blueprint Grid Pattern matching hero */}
       <div
@@ -95,7 +95,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
       />
 
       {/* 1. SECTION HEADER: "From codebase to confidence." */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto mb-20 sm:mb-28 md:mb-36 lg:mb-44">
+      <div className="relative z-10 w-full max-w-7xl mx-auto mb-10 sm:mb-14 md:mb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end">
           {/* Left Column: Eyebrow + Main Headline */}
           <div className="lg:col-span-8 flex flex-col items-start text-left">
@@ -109,12 +109,12 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         </div>
       </div>
 
-      {/* 2. STEPS CONTAINER - 4 Workflow Sections with generous breathing space */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col gap-32 sm:gap-44 md:gap-56 lg:gap-64 xl:gap-72">
+      {/* 2. STEPS CONTAINER */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col gap-12 sm:gap-16 md:gap-20">
         {/* STEP 01: DISCOVER */}
         <div
           id="step-1"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 xl:gap-20 items-center"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
         >
           {/* Left Column: Visual Card (Architecture Map Image) */}
           <div className="lg:col-span-7 w-full">
@@ -139,10 +139,13 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           </div>
         </div>
 
+        {/* Line of Separation after Step 1 */}
+        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
+
         {/* STEP 02: SIMULATE (Reversed Layout) */}
         <div
           id="step-2"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 xl:gap-20 items-center"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
@@ -169,10 +172,13 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           </div>
         </div>
 
+        {/* Line of Separation after Step 2 */}
+        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
+
         {/* STEP 03: DETECT */}
         <div
           id="step-3"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 xl:gap-20 items-center"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
         >
           {/* Left Column: Visual Card (Bottleneck Detection Image) */}
           <div className="lg:col-span-7 w-full">
@@ -197,10 +203,13 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           </div>
         </div>
 
+        {/* Line of Separation after Step 3 */}
+        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
+
         {/* STEP 04: COMPLETE WITH AI (Reversed Layout) */}
         <div
           id="step-4"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 xl:gap-20 items-center"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
@@ -339,6 +348,9 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Line of Separation after Step 4 */}
+        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
       </div>
     </section>
   );
