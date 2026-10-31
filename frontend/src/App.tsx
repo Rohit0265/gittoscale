@@ -244,6 +244,9 @@ export const App: React.FC = () => {
     }
     window.history.pushState({}, '', '/');
     setActiveProject(null);
+    setActivePromptText('');
+    setSelectedNodeId(null);
+    setSimulationResult(null);
     setCurrentView('landing');
   }, []);
 
@@ -767,6 +770,8 @@ export const App: React.FC = () => {
             edges,
             trafficRate: incomingTrafficRate,
             bottlenecks: simulationResult?.bottlenecks || [],
+            projectDescription: activePromptText || undefined,
+            activePrompt: activePromptText || undefined,
           },
         });
 
@@ -848,6 +853,15 @@ export const App: React.FC = () => {
       window.history.pushState({ projectId, prompt: promptText }, '', projectPath);
       setActiveProject({ projectId, prompt: promptText });
       setCurrentView('simulator');
+      setNodes([]);
+      setEdges([]);
+      setSelectedNodeId(null);
+      setSimulationResult(null);
+      baseBasicGraphRef.current = null;
+      basicGraphCacheRef.current = null;
+      baseDetailedGraphRef.current = null;
+      detailedGraphCacheRef.current = null;
+      setActivePromptText(promptText);
       handleGenerateFromPrompt(promptText);
     },
     [user, savePendingAction, selectedAnswers, handleGenerateFromPrompt]
@@ -1173,7 +1187,7 @@ export const App: React.FC = () => {
     (
       newNodes: ArchitectureNode[],
       newEdges: ArchitectureEdge[],
-      _repoName: string,
+      repoName: string,
       basicGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
       detailedGraph?: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
       repoUrl?: string
@@ -1190,10 +1204,19 @@ export const App: React.FC = () => {
         detailedGraphCacheRef.current = null;
       }
 
+      const promptLabel = repoName ? `Repository: ${repoName}` : 'Imported Repository Architecture';
+      const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+      const projectPath = `/project/${projectId}${repoUrl ? `?repo=${encodeURIComponent(repoUrl)}` : ''}`;
+
+      window.history.pushState({ projectId, prompt: promptLabel }, '', projectPath);
+      setActiveProject({ projectId, prompt: promptLabel });
+      setActivePromptText(promptLabel);
+      setSelectedNodeId(null);
+      setSimulationResult(null);
+
       setViewMode('basic');
       setNodes(basicToUse.nodes);
       setEdges(basicToUse.edges);
-      setSelectedNodeId(null);
       triggerSimulation(basicToUse.nodes, basicToUse.edges, incomingTrafficRate, durationSeconds);
 
       // Persist to repository history if user is authenticated and repoUrl provided
@@ -1201,7 +1224,7 @@ export const App: React.FC = () => {
         const token = getAuthToken();
         api.saveRepositoryHistory(token, {
           repositoryUrl: repoUrl,
-          repositoryName: _repoName,
+          repositoryName: repoName,
           architectureData: { nodes: newNodes, edges: newEdges },
           status: 'completed',
         }).catch((err) => console.warn('Failed to persist repository history:', err));
@@ -1441,15 +1464,13 @@ export const App: React.FC = () => {
           isUserAuthenticated={Boolean(user)}
           onRequireAuth={handleRequireAuthForRepo}
           onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl) => {
-            const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
-            const projectPath = `/project/${projectId}${repoUrl ? `?repo=${encodeURIComponent(repoUrl)}` : ''}`;
             if (isCustomDomain() && !isAppDomain() && repoUrl) {
+              const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+              const projectPath = `/project/${projectId}?repo=${encodeURIComponent(repoUrl)}`;
               window.location.href = `${APP_SUBDOMAIN_URL}${projectPath}`;
               return;
             }
             handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl);
-            window.history.pushState({ projectId }, '', projectPath);
-            setActiveProject({ projectId });
             setCurrentView('simulator');
           }}
         />
@@ -1633,6 +1654,7 @@ export const App: React.FC = () => {
           <div className="w-full h-full flex flex-col pointer-events-none">
             <div className="pointer-events-auto h-full flex flex-col">
               <ContextualQuerySidebar
+                projectId={activeProject?.projectId}
                 activePrompt={activePromptText || 'Scalable distributed cloud architecture'}
                 selectedAnswers={selectedAnswers}
                 onAnswerSelected={(category, optionId) => {

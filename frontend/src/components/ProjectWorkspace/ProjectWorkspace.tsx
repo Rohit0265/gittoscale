@@ -551,6 +551,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           edges: activeEdges,
           trafficRate: 1000,
           bottlenecks: [],
+          projectDescription: prompt || projectId || undefined,
+          activePrompt: prompt || undefined,
         },
       });
       if (aiResponse?.reply) {
@@ -708,6 +710,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       <div className="flex-1 flex w-full overflow-hidden">
         {/* Left Sidebar: ChatGPT-style Conversational Assistant */}
         <ContextualQuerySidebar
+          projectId={projectId}
           activePrompt={prompt}
           selectedAnswers={selectedAnswers}
           onAnswerSelected={handleAnswerSelected}

@@ -91,6 +91,76 @@ describe('AI Chat Message API (/api/chat/message)', () => {
     }
   });
 
+  it('transfers full project goal and past conversation history to Groq upon failover', async () => {
+    const originalFetch = global.fetch;
+    let groqPayload: any = null;
+
+    global.fetch = async (url: any, opts: any) => {
+      const urlStr = String(url);
+      if (urlStr.includes('generativelanguage.googleapis.com')) {
+        return new Response(JSON.stringify({ error: { message: 'RESOURCE_EXHAUSTED' } }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (urlStr.includes('api.groq.com')) {
+        groqPayload = JSON.parse(opts.body);
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: 'Groq context validated successfully.' } }],
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      return originalFetch(url, opts);
+    };
+
+    try {
+      const res = await request(app)
+        .post('/api/chat/message')
+        .send({
+          message: 'What should we do about database connection pooling?',
+          history: [
+            { sender: 'user', text: 'We are building a real-time ride-sharing dispatch backend' },
+            { sender: 'ai', text: 'Understood. We need high-throughput geospatial caching and async queuing.' },
+          ],
+          architectureContext: {
+            projectDescription: 'Real-time Ride-Sharing Platform with 100k GPS pings/sec',
+            nodes: [
+              { id: 'api-gw', name: 'API Gateway', type: 'gateway' },
+              { id: 'redis-cache', name: 'Redis Cache', type: 'cache' },
+            ],
+            trafficRate: 50000,
+          },
+          llmConfig: {
+            provider: 'gemini',
+            apiKey: 'mock-gemini-key',
+            groqApiKey: 'mock-groq-key',
+          },
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(groqPayload).not.toBeNull();
+      // Verify system prompt received what they are building
+      const systemContent = groqPayload.messages.find((m: any) => m.role === 'system')?.content || '';
+      expect(systemContent).toContain('Real-time Ride-Sharing Platform with 100k GPS pings/sec');
+      expect(systemContent).toContain('API Gateway');
+      expect(systemContent).toContain('Redis Cache');
+
+      // Verify Groq received previous conversation turns
+      const userHistoryMsg = groqPayload.messages.find(
+        (m: any) => m.role === 'user' && m.content.includes('ride-sharing dispatch')
+      );
+      expect(userHistoryMsg).toBeDefined();
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
   it('displays "Traffic is more than expected. Please retry later." when both Gemini and Groq fail', async () => {
     const originalFetch = global.fetch;
 

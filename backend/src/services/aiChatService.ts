@@ -13,6 +13,8 @@ export interface ArchitectureChatInput {
     edges?: any[];
     trafficRate?: number;
     bottlenecks?: any[];
+    projectDescription?: string;
+    activePrompt?: string;
   };
   llmConfig?: LLMConfig;
 }
@@ -30,6 +32,10 @@ function buildSystemPrompt(architectureContext?: ArchitectureChatInput['architec
   const edges = architectureContext?.edges || [];
   const trafficRate = architectureContext?.trafficRate ?? 1000;
   const bottlenecks = architectureContext?.bottlenecks || [];
+  const projectGoal =
+    architectureContext?.projectDescription ||
+    architectureContext?.activePrompt ||
+    'Custom Distributed Scalable Architecture';
 
   const nodesSummary = nodes.length > 0
     ? nodes.map((n: any) => `  - [${n.type || 'service'}] "${n.name}" (ID: ${n.id}, ${n.workerCount || 1} workers, capacity: ${n.capacityPerSecond || 1000} req/s)`).join('\n')
@@ -46,14 +52,20 @@ function buildSystemPrompt(architectureContext?: ArchitectureChatInput['architec
   return `You are GitToScale's AI Principal Systems Architect and Live Playground Copilot.
 You have direct, real-time access and control over the user's interactive architecture canvas.
 
-### Current Live Architecture Canvas State:
+### What the User Is Building:
+- Overall Project Goal / Vision: "${projectGoal}"
 - Incoming Traffic Simulation Rate: ${trafficRate.toLocaleString()} req/s
-- Active Components (${nodes.length} nodes):
+- Active System Components (${nodes.length} nodes):
 ${nodesSummary}
-- Active Data Connections (${edges.length} edges):
+- Active Data Connections & Communication Flow (${edges.length} edges):
 ${edgesSummary}
 - Health & Bottleneck Status:
 ${bottleneckSummary}
+
+### Cross-Model Memory & Continuity:
+- If this session transfers or switches between different AI providers (e.g. from Gemini to Groq, or vice-versa), maintain full continuity.
+- Always retain awareness of the user's primary project goal ("${projectGoal}") and their current ${nodes.length} components.
+- Never reset the conversation context or ask the user to re-explain what they are building.
 
 ### Behavior Guidelines:
 1. Provide authentic, deeply technical, and conversational AI answers in clean GitHub-flavored Markdown.
@@ -177,6 +189,24 @@ In a modern distributed architecture:
 }
 
 /**
+ * Extracts and formats the last 25 turns of conversation history so models
+ * retain complete memory of what is being built, user preferences, and prior decisions.
+ */
+function extractRelevantConversationHistory(history?: any[]): { role: 'user' | 'assistant'; content: string }[] {
+  if (!Array.isArray(history)) return [];
+  const result: { role: 'user' | 'assistant'; content: string }[] = [];
+  for (const msg of history.slice(-25)) {
+    if (msg.text && !msg.isThinking) {
+      result.push({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text,
+      });
+    }
+  }
+  return result;
+}
+
+/**
  * Calls Groq Cloud API (OpenAI-compatible) in the background with low latency
  */
 async function callGroqChat(
@@ -202,15 +232,13 @@ async function callGroqChat(
   try {
     const messages: any[] = [{ role: 'system', content: systemPrompt }];
 
-    if (Array.isArray(input.history)) {
-      for (const msg of input.history.slice(-10)) {
-        if (msg.text && !msg.isThinking) {
-          messages.push({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.text,
-          });
-        }
-      }
+    // Inject complete conversation history so Groq understands the prior design discussion
+    const priorHistory = extractRelevantConversationHistory(input.history);
+    for (const msg of priorHistory) {
+      messages.push({
+        role: msg.role,
+        content: msg.content,
+      });
     }
 
     messages.push({ role: 'user', content: input.message });
@@ -307,16 +335,12 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const chatContents: any[] = [];
 
-        // Add history (up to last 10 messages for prompt efficiency)
-        if (Array.isArray(input.history)) {
-          for (const msg of input.history.slice(-10)) {
-            if (msg.text && !msg.isThinking) {
-              chatContents.push({
-                role: msg.sender === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.text }],
-              });
-            }
-          }
+        const priorHistory = extractRelevantConversationHistory(input.history);
+        for (const msg of priorHistory) {
+          chatContents.push({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }],
+          });
         }
 
         // Add current user message
@@ -387,15 +411,12 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
         return { reply: 'Traffic is more than expected. Please retry later.' };
       } else if (provider === 'anthropic') {
         const messages: any[] = [];
-        if (Array.isArray(input.history)) {
-          for (const msg of input.history.slice(-10)) {
-            if (msg.text && !msg.isThinking) {
-              messages.push({
-                role: msg.sender === 'user' ? 'user' : 'assistant',
-                content: msg.text,
-              });
-            }
-          }
+        const priorHistory = extractRelevantConversationHistory(input.history);
+        for (const msg of priorHistory) {
+          messages.push({
+            role: msg.role,
+            content: msg.content,
+          });
         }
         messages.push({ role: 'user', content: input.message });
 
@@ -432,15 +453,12 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
         }
 
         const messages: any[] = [{ role: 'system', content: systemPrompt }];
-        if (Array.isArray(input.history)) {
-          for (const msg of input.history.slice(-10)) {
-            if (msg.text && !msg.isThinking) {
-              messages.push({
-                role: msg.sender === 'user' ? 'user' : 'assistant',
-                content: msg.text,
-              });
-            }
-          }
+        const priorHistory = extractRelevantConversationHistory(input.history);
+        for (const msg of priorHistory) {
+          messages.push({
+            role: msg.role,
+            content: msg.content,
+          });
         }
         messages.push({ role: 'user', content: input.message });
 

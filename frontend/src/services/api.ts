@@ -247,6 +247,8 @@ export const api = {
         edges?: any[];
         trafficRate?: number;
         bottlenecks?: any[];
+        projectDescription?: string;
+        activePrompt?: string;
       };
       llmConfig?: any;
     }
