@@ -198,9 +198,9 @@ export const NewOne: React.FC<NewOneProps> = ({
       </div>
 
       {/* Connected Bottom Video Section Carousel Showcase */}
-      <div className="relative z-10 w-full max-w-6xl mt-8 sm:mt-12 px-2 sm:px-4 flex flex-col items-center select-none">
+      {/* <div className="relative z-10 w-full max-w-6xl mt-8 sm:mt-12 px-2 sm:px-4 flex flex-col items-center select-none">
         <VideoCarousel />
-      </div>
+      </div> */}
     </section>
   );
 };
