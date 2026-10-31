@@ -188,23 +188,12 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <span className="text-xs font-mono font-bold tracking-wider uppercase text-sky-600 dark:text-sky-400">
-              03 / DETECT
-            </span>
             <h3 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-slate-950 dark:text-white leading-[1.12] tracking-tight mt-3">
               Find the bottleneck before the outage.
             </h3>
             <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Turn invisible coupling into a prioritized list of risks your team can understand, discuss, and fix.
             </p>
-            <button
-              type="button"
-              onClick={handleExploreWorkflow}
-              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors mt-6 cursor-pointer"
-            >
-              <span>Explore the workflow</span>
-              <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </button>
           </div>
         </div>
 
