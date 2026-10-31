@@ -335,15 +335,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                   <span className="hidden sm:inline text-neutral-500">·</span>
                   <span className="hidden sm:inline text-neutral-300">{currentScenario.latency}</span>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleExploreWorkflow}
-                  className="inline-flex items-center gap-1 text-sky-400 hover:text-sky-300 font-medium transition-colors cursor-pointer"
-                >
-                  <span>Apply in Playground</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </button>
               </div>
             </div>
           </div>
