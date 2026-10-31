@@ -72,11 +72,6 @@ export const NewOne: React.FC<NewOneProps> = ({
       <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center my-auto">
         {/* Left Column: Heading, Subtitle & Primary Actions */}
         <div className="lg:col-span-7 flex flex-col items-start text-left">
-          {/* Eyebrow Tag */}
-          <div className="inline-flex items-center gap-2 mb-4 sm:mb-5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 ring-4 ring-cyan-400/20" />
-          </div>
-
           {/* Main Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-bold tracking-[-0.035em] text-slate-950 dark:text-white leading-[1.08]">
             Scale your <br />
