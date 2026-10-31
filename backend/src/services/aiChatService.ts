@@ -272,32 +272,36 @@ async function callGroqChat(
       return { ok: false, error: 'Empty content from Groq' };
     }
 
-    // Auto-fallback if the specified Groq model is deprecated or not found (404)
-    if (res.status === 404 && groqModel !== 'llama-3.3-70b-versatile') {
-      console.warn(`[AI Chat Service] Groq model "${groqModel}" returned 404 (model not found). Retrying with active model "llama-3.3-70b-versatile"...`);
-      try {
-        const fallbackRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${groqApiKey}`,
-          },
-          body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
-            messages,
-            temperature: 0.7,
-            max_tokens: 1024,
-          }),
-        });
-        if (fallbackRes.ok) {
-          const data: any = await fallbackRes.json();
-          const replyText = data.choices?.[0]?.message?.content;
-          if (replyText && replyText.trim().length > 0) {
-            return { ok: true, reply: replyText.trim() };
+    // Auto-fallback if the specified Groq model is deprecated or not accessible (404)
+    if (res.status === 404) {
+      const candidates = ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'llama3-70b-8192'];
+      for (const candidate of candidates) {
+        if (candidate === groqModel) continue;
+        console.warn(`[AI Chat Service] Groq model "${groqModel}" returned 404. Retrying with alternative model "${candidate}"...`);
+        try {
+          const fallbackRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${groqApiKey}`,
+            },
+            body: JSON.stringify({
+              model: candidate,
+              messages,
+              temperature: 0.7,
+              max_tokens: 1024,
+            }),
+          });
+          if (fallbackRes.ok) {
+            const data: any = await fallbackRes.json();
+            const replyText = data.choices?.[0]?.message?.content;
+            if (replyText && replyText.trim().length > 0) {
+              return { ok: true, reply: replyText.trim() };
+            }
           }
+        } catch (retryErr: any) {
+          console.warn(`[AI Chat Service] Groq candidate "${candidate}" failed:`, retryErr?.message);
         }
-      } catch (retryErr: any) {
-        console.warn('[AI Chat Service] Groq 404 fallback retry failed:', retryErr?.message);
       }
     }
 
