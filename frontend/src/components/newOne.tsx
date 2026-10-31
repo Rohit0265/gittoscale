@@ -90,16 +90,7 @@ export const NewOne: React.FC<NewOneProps> = ({
 
           {/* Action Button Row */}
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-8 sm:mt-9">
-            {/* Primary Action: Explore the workspace */}
-            <button
-              type="button"
-              onClick={onSelectTestSite}
-              className="px-5 sm:px-6 py-3 rounded-xl bg-slate-950 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 text-xs sm:text-sm font-semibold shadow-md shadow-slate-950/10 dark:shadow-none transition-all flex items-center gap-2 cursor-pointer group"
-              title="Explore the live simulation playground"
-            >
-              <span>Explore the workspace</span>
-              <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-white dark:text-slate-600 dark:group-hover:text-slate-950 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-            </button>
+            
 
             {/* Secondary Action: See how it works */}
             <button
