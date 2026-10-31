@@ -502,10 +502,20 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Baseline comparison
+  // Baseline comparison & project modals
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
   const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
   const [isImportRepoOpen, setIsImportRepoOpen] = useState<boolean>(false);
+  const [isStartProjectModalOpen, setIsStartProjectModalOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const search = new URLSearchParams(window.location.search);
+    const route = getProjectRouteInfo();
+    if (route?.prompt || route?.projectId || search.has('repo') || search.has('demo')) {
+      return false;
+    }
+    return path.startsWith('/app') || path === '/simulator' || (isAppDomain() && path === '/');
+  });
 
   // Debounce ref for sliders
   const simulateDebounceTimer = useRef<NodeJS.Timeout | null>(null);
