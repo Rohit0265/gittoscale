@@ -1,25 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState } from 'react';
 import {
   X,
   Github,
   ArrowRight,
   Loader2,
   AlertCircle,
-  CheckCircle2,
-  Cpu,
-  ShieldCheck,
-  ChevronUp,
-  ChevronDown,
   Key,
   Lock,
   GitBranch,
-  Check,
   Eye,
   EyeOff,
-  Server,
   Globe,
-  RotateCcw,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -39,21 +30,6 @@ interface RepositoryImportModalProps {
   isUserAuthenticated?: boolean;
   onRequireAuth?: (repoUrl: string, llmConfig?: any) => void;
 }
-
-type ProviderId = 'gemini' | 'openai' | 'anthropic' | 'other';
-
-interface ProviderOption {
-  id: ProviderId;
-  name: string;
-  defaultModel: string;
-}
-
-const PROVIDER_OPTIONS: ProviderOption[] = [
-  { id: 'gemini', name: 'Google Gemini', defaultModel: 'gemini-3.1-flash-lite' },
-  { id: 'openai', name: 'OpenAI', defaultModel: 'gpt-4o-mini' },
-  { id: 'anthropic', name: 'Anthropic', defaultModel: 'claude-3-5-sonnet-20241022' },
-  { id: 'other', name: 'Other LLM', defaultModel: '' },
-];
 
 export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
   isOpen,
@@ -98,135 +74,6 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
       setIsAuthorizingGithub(false);
     }
   };
-
-  // LLM Configuration state
-  const [showLLMSettings, setShowLLMSettings] = useState(true);
-  const [llmProvider, setLlmProvider] = useState<ProviderId>('gemini');
-  const [llmApiKey, setLlmApiKey] = useState('');
-  const [llmModel, setLlmModel] = useState('gemini-3.1-flash-lite');
-  const [llmBaseUrl, setLlmBaseUrl] = useState('');
-  const [showApiKey, setShowApiKey] = useState(false);
-
-  // Validation states
-  const [baseUrlError, setBaseUrlError] = useState<string | null>(null);
-  const [modelError, setModelError] = useState<string | null>(null);
-
-  // Tooltip & Dropdown states
-  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [focusedOptionIndex, setFocusedOptionIndex] = useState(-1);
-
-  // Dropdown Portal positioning refs
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const infoButtonRef = useRef<HTMLButtonElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-
-  const [menuCoords, setMenuCoords] = useState<{
-    top: number;
-    left: number;
-    width: number;
-    openUpwards: boolean;
-  } | null>(null);
-
-  const [envKeyConfigured, setEnvKeyConfigured] = useState(false);
-  const [testStatus, setTestStatus] = useState<{
-    testing: boolean;
-    message?: string;
-    success?: boolean;
-  }>({ testing: false });
-
-  // Calculate dynamic dropdown placement
-  const updateMenuPosition = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const dropdownHeight = 180;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    const openUpwards = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
-
-    const left = Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8));
-    const width = Math.min(rect.width, window.innerWidth - 16);
-
-    setMenuCoords({
-      left,
-      width,
-      top: openUpwards ? Math.max(10, rect.top - dropdownHeight - 6) : rect.bottom + 6,
-      openUpwards,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (isDropdownOpen) {
-      updateMenuPosition();
-      const handleScrollOrResize = () => updateMenuPosition();
-      window.addEventListener('resize', handleScrollOrResize);
-      window.addEventListener('scroll', handleScrollOrResize, true);
-      return () => {
-        window.removeEventListener('resize', handleScrollOrResize);
-        window.removeEventListener('scroll', handleScrollOrResize, true);
-      };
-    }
-  }, [isDropdownOpen, updateMenuPosition]);
-
-  // Click outside listener for dropdown and tooltip
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (
-        isDropdownOpen &&
-        triggerRef.current &&
-        !triggerRef.current.contains(target) &&
-        menuRef.current &&
-        !menuRef.current.contains(target)
-      ) {
-        setIsDropdownOpen(false);
-      }
-
-      if (
-        showInfoTooltip &&
-        infoButtonRef.current &&
-        !infoButtonRef.current.contains(target) &&
-        tooltipRef.current &&
-        !tooltipRef.current.contains(target)
-      ) {
-        setShowInfoTooltip(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('touchstart', handleOutsideClick);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('touchstart', handleOutsideClick);
-    };
-  }, [isDropdownOpen, showInfoTooltip]);
-
-  // Fetch initial LLM status
-  useEffect(() => {
-    if (isOpen) {
-      api
-        .getLLMStatus()
-        .then((status) => {
-          if (status.hasKey) {
-            setEnvKeyConfigured(true);
-            if (
-              status.provider &&
-              status.provider !== 'none' &&
-              ['gemini', 'openai', 'anthropic', 'other'].includes(status.provider)
-            ) {
-              setLlmProvider(status.provider as ProviderId);
-            }
-            if (status.model) {
-              setLlmModel(status.model);
-            }
-          }
-        })
-        .catch(() => {
-          // Fallback silently if status endpoint fails
-        });
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
