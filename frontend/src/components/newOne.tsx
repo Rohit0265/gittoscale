@@ -245,7 +245,10 @@ export const NewOne: React.FC<NewOneProps> = ({
 
               {/* Input Prompt Box */}
               <form onSubmit={handleSubmit} className="relative group">
-                <div className="relative flex items-center bg-neutral-900/90 border border-neutral-800 rounded-xl p-1.5 focus-within:border-neutral-600 focus-within:ring-1 focus-within:ring-neutral-600 transition-all duration-200">
+                <div
+                  className="relative flex items-center bg-neutral-900/90 border border-neutral-800 rounded-xl p-1.5 focus-within:border-neutral-700 transition-all duration-200"
+                  style={{ outline: 'none', boxShadow: 'none' }}
+                >
                   <div className="pl-3.5 pr-2 text-neutral-400 group-focus-within:text-white transition-colors">
                     <Sparkles className="w-4 h-4 text-base" />
                   </div>
@@ -265,7 +268,8 @@ export const NewOne: React.FC<NewOneProps> = ({
                         setIsUserInteracting(false);
                       }
                     }}
-                    className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-neutral-100 placeholder-neutral-500 focus:outline-hidden"
+                    className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-neutral-100 placeholder-neutral-500 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none shadow-none"
+                    style={{ outline: 'none', boxShadow: 'none' }}
                     placeholder={placeholder || 'Share your architecture idea or cook a concept...'}
                     autoComplete="off"
                   />

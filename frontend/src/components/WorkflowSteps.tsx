@@ -120,8 +120,14 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
-              See the architecture hiding in your repo.
+            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
+              <span
+                aria-hidden="true"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+              />
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+                See the architecture hiding in your repo.
+              </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Import a GitHub repository and let GitToScale map services, queues, data stores, and the traffic between them.
@@ -139,8 +145,14 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
-              Stress-test before production does.
+            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
+              <span
+                aria-hidden="true"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+              />
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+                Stress-test before production does.
+              </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Model traffic spikes, cache misses, database saturation, and failure paths with a clear, interactive view of what happens next.
@@ -184,8 +196,14 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
-              Find the bottleneck before the outage.
+            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
+              <span
+                aria-hidden="true"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+              />
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+                Find the bottleneck before the outage.
+              </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Turn invisible coupling into a prioritized list of risks your team can understand, discuss, and fix.
@@ -203,8 +221,14 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
-              Use AI to complete, scale, and heal your flow.
+            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
+              <span
+                aria-hidden="true"
+                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-cyan-500/15 via-sky-500/20 to-indigo-500/15 dark:from-cyan-400/25 dark:via-sky-400/25 dark:to-indigo-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
+              />
+              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-cyan-500/25 via-sky-400/30 to-blue-500/25 dark:from-cyan-400/30 dark:via-sky-400/35 dark:to-indigo-400/30 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_12px_rgba(56,189,248,0.25)]">
+                Use AI to complete, scale, and heal your flow.
+              </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Prompt the AI Architect to heal bottlenecks, inject cache layers, decouple asynchronous workers, or generate complete production topologies with real-time canvas execution.
