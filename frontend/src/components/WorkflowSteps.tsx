@@ -90,7 +90,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end">
           {/* Left Column: Eyebrow + Main Headline */}
           <div className="lg:col-span-8 flex flex-col items-start text-left">
-            <h2 className="font-['Arial','Helvetica',sans-serif] text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-[-0.04em] leading-[1.08] select-none">
+            <h2 className="font-lora text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-bold tracking-[-0.025em] leading-[1.08] select-none">
               <span className="block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent drop-shadow-xs">
                 Features
               </span>
@@ -120,10 +120,10 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
+            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
               See the architecture hiding in your repo.
             </h3>
-            <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
+            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Import a GitHub repository and let GitToScale map services, queues, data stores, and the traffic between them.
             </p>
           </div>
@@ -139,10 +139,10 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
+            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
               Stress-test before production does.
             </h3>
-            <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
+            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Model traffic spikes, cache misses, database saturation, and failure paths with a clear, interactive view of what happens next.
             </p>
           </div>
@@ -184,10 +184,10 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Right Column: Step Copy */}
           <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
+            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
               Find the bottleneck before the outage.
             </h3>
-            <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
+            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Turn invisible coupling into a prioritized list of risks your team can understand, discuss, and fix.
             </p>
           </div>
@@ -203,10 +203,10 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
           <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="font-['Arial','Helvetica',sans-serif] text-2xl sm:text-3xl md:text-[38px] font-bold text-slate-950 dark:text-white leading-[1.14] tracking-tight mt-3">
+            <h3 className="font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3">
               Use AI to complete, scale, and heal your flow.
             </h3>
-            <p className="text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
+            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
               Prompt the AI Architect to heal bottlenecks, inject cache layers, decouple asynchronous workers, or generate complete production topologies with real-time canvas execution.
             </p>
           </div>

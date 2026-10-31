@@ -22,6 +22,9 @@ export default {
         ],
         arial: ['Arial', 'Helvetica', '"Helvetica Neue"', 'sans-serif'],
         grotesk: ['"Arial Black"', 'Arial', 'Helvetica', 'sans-serif'],
+        aleo: ['Aleo', 'Georgia', 'serif'],
+        lora: ['Lora', 'Georgia', 'serif'],
+        heading: ['Lora', 'Georgia', 'serif'],
       },
       keyframes: {
         "accordion-down": {

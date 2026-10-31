@@ -76,7 +76,7 @@ export const NewOne: React.FC<NewOneProps> = ({
           <div className="absolute -top-14 -left-12 w-80 h-80 bg-gradient-to-br from-sky-400/15 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
           {/* Main Headline */}
-          <h1 className="font-grotesk text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-black tracking-[-0.04em] leading-[1.06] select-none">
+          <h1 className="font-lora text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-bold tracking-[-0.025em] leading-[1.08] select-none">
             <span className="block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent drop-shadow-xs">
               Scale your <br />
               system
@@ -95,7 +95,7 @@ export const NewOne: React.FC<NewOneProps> = ({
           </h1>
 
           {/* Subheading / Explainer */}
-          <p className="mt-5 sm:mt-6 text-base sm:text-lg text-slate-600 dark:text-neutral-400 leading-relaxed max-w-xl font-normal">
+          <p className="font-aleo mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-slate-600 dark:text-neutral-400 leading-relaxed max-w-xl font-normal">
             Import your GitHub repository, ask better questions, and see exactly
             how your system behaves under load.
           </p>
