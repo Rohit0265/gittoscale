@@ -15,9 +15,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
   onOpenRecommender,
   isDark: _isDark,
 }) => {
-  // Interactive state for Step 02 (traffic multiplier toggle)
-  const [trafficMultiplier, setTrafficMultiplier] = useState<'1x' | '10x'>('10x');
-
   // Interactive state for Step 03 (hovered risk)
   const [hoveredRisk, setHoveredRisk] = useState<string | null>(null);
 
@@ -146,124 +143,17 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
             </button>
           </div>
 
-          {/* Right Column: Visual Card (Load simulation Chart) */}
+          {/* Right Column: Visual Card (Simulation Demo Video) */}
           <div className="lg:col-span-7 w-full order-1 lg:order-2">
-            <div className="group relative w-full h-[300px] sm:h-[340px] md:h-[360px] bg-white dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-5 sm:p-6 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
-              {/* Card Header */}
-              <div className="flex items-center justify-between z-10">
-                <span className="text-xs font-mono text-slate-500 dark:text-neutral-400 font-medium">
-                  Load simulation
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setTrafficMultiplier((prev) => (prev === '10x' ? '1x' : '10x'))
-                  }
-                  title="Click to toggle simulated traffic spike"
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 border border-sky-200/80 dark:border-sky-800/60 shadow-2xs cursor-pointer hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
-                >
-                  {trafficMultiplier} traffic
-                </button>
-              </div>
-
-              {/* Card Chart Canvas */}
-              <div className="relative flex-1 w-full flex flex-col justify-center my-2">
-                <div className="text-[11px] font-mono text-slate-400 dark:text-neutral-500 mb-1">
-                  requests / sec
-                </div>
-
-                <div className="relative w-full h-[140px] sm:h-[160px]">
-                  <svg
-                    className="w-full h-full overflow-visible"
-                    viewBox="0 0 500 160"
-                    fill="none"
-                    preserveAspectRatio="none"
-                  >
-                    <defs>
-                      <linearGradient id="spikeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
-                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Subtle Horizontal Reference Grid Line */}
-                    <line
-                      x1="0"
-                      y1="90"
-                      x2="500"
-                      y2="90"
-                      className="stroke-slate-100 dark:stroke-neutral-800/80"
-                      strokeWidth="1"
-                    />
-
-                    {/* Green Dashed Baseline / Saturation Threshold Curve */}
-                    <path
-                      d="M 10 142 C 140 138 270 128 440 114 L 490 110"
-                      stroke="#10b981"
-                      strokeWidth="1.5"
-                      strokeDasharray="4 4"
-                      className="opacity-80"
-                    />
-
-                    {/* Blue Traffic Spike Curve Area Fill */}
-                    <motion.path
-                      d={
-                        trafficMultiplier === '10x'
-                          ? 'M 10 132 C 70 130 110 125 150 120 C 180 116 200 98 220 102 C 245 106 265 82 290 86 C 320 90 345 42 380 32 C 410 24 450 20 490 18 L 490 150 L 10 150 Z'
-                          : 'M 10 132 C 80 130 160 128 240 125 C 320 122 400 120 490 118 L 490 150 L 10 150 Z'
-                      }
-                      fill="url(#spikeGradient)"
-                      animate={{
-                        d:
-                          trafficMultiplier === '10x'
-                            ? 'M 10 132 C 70 130 110 125 150 120 C 180 116 200 98 220 102 C 245 106 265 82 290 86 C 320 90 345 42 380 32 C 410 24 450 20 490 18 L 490 150 L 10 150 Z'
-                            : 'M 10 132 C 80 130 160 128 240 125 C 320 122 400 120 490 118 L 490 150 L 10 150 Z',
-                      }}
-                      transition={{ duration: 0.6, ease: 'easeInOut' }}
-                    />
-
-                    {/* Solid Blue Traffic Curve */}
-                    <motion.path
-                      d={
-                        trafficMultiplier === '10x'
-                          ? 'M 10 132 C 70 130 110 125 150 120 C 180 116 200 98 220 102 C 245 106 265 82 290 86 C 320 90 345 42 380 32 C 410 24 450 20 490 18'
-                          : 'M 10 132 C 80 130 160 128 240 125 C 320 122 400 120 490 118'
-                      }
-                      stroke="#3b82f6"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      animate={{
-                        d:
-                          trafficMultiplier === '10x'
-                            ? 'M 10 132 C 70 130 110 125 150 120 C 180 116 200 98 220 102 C 245 106 265 82 290 86 C 320 90 345 42 380 32 C 410 24 450 20 490 18'
-                            : 'M 10 132 C 80 130 160 128 240 125 C 320 122 400 120 490 118',
-                      }}
-                      transition={{ duration: 0.6, ease: 'easeInOut' }}
-                    />
-                  </svg>
-
-                  {/* Saturation Label next to dashed green line */}
-                  <div className="absolute right-0 bottom-7 text-[10px] font-mono text-slate-400 dark:text-neutral-500">
-                    saturation
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Footer */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-neutral-800/80 z-10">
-                <div className="text-xs font-mono text-slate-500 dark:text-neutral-400">
-                  p95 latency{' '}
-                  <span className="font-bold text-slate-900 dark:text-white ml-1">
-                    {trafficMultiplier === '10x' ? '184ms' : '28ms'}
-                  </span>
-                </div>
-                <div className="text-xs font-mono text-slate-500 dark:text-neutral-400">
-                  capacity{' '}
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400 ml-1">
-                    {trafficMultiplier === '10x' ? '82%' : '14%'}
-                  </span>
-                </div>
-              </div>
+            <div className="group relative w-full bg-[#08090d] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-3 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
+              <video
+                src="/simulation-demo.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-auto object-contain rounded-xl select-none"
+              />
             </div>
           </div>
         </div>
