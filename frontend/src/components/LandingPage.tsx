@@ -541,18 +541,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Right: Actions inside Navbar */}
             <div className="flex items-center gap-1.5 sm:gap-2.5">
               {/* Test Demo Site */}
-              <button
-                onClick={onSelectTestSite}
-                className={`group flex items-center gap-1.5 border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors shadow-xs cursor-pointer shrink-0 ${
-                  isApp ? 'px-2.5 sm:px-3 py-1.5 rounded-lg' : 'px-2.5 sm:px-3 py-1 rounded-full'
-                }`}
-                title="Test Demo Site"
-              >
-                <Play className="h-3 w-3 fill-current opacity-80 group-hover:text-emerald-500 group-hover:opacity-100 transition-colors" />
-                <span className="hidden sm:inline">Test Demo Site</span>
-                <span className="sm:hidden">Demo</span>
-              </button>
-
               <GitHubStarButton className="hidden md:inline-flex" />
             </div>
           </div>
