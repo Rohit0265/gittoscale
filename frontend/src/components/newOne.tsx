@@ -75,9 +75,6 @@ export const NewOne: React.FC<NewOneProps> = ({
           {/* Eyebrow Tag */}
           <div className="inline-flex items-center gap-2 mb-4 sm:mb-5">
             <span className="w-2 h-2 rounded-full bg-cyan-400 ring-4 ring-cyan-400/20" />
-            <span className="text-[11px] sm:text-xs font-bold tracking-[0.18em] uppercase text-sky-600 dark:text-sky-400 font-mono">
-              Architecture intelligence for teams that scale
-            </span>
           </div>
 
           {/* Main Headline */}

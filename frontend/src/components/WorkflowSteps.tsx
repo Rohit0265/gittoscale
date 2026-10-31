@@ -88,9 +88,9 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         >
           {/* Left Column: Visual Card (Architecture Map Image) */}
           <div className="lg:col-span-7 w-full">
-            <div className="group relative w-full bg-[#0a0b0e] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-4 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
+            <div className="group relative w-full bg-[#08090d] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-3 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
               <img
-                src="/architecture-map.png"
+                src="/architecture-map.jpg"
                 alt="GitToScale Architecture Map"
                 className="w-full h-auto object-contain rounded-xl select-none"
                 loading="eager"
