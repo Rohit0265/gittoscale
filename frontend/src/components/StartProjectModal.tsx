@@ -17,6 +17,7 @@ export interface StartProjectModalProps {
   onClose: () => void;
   onSubmitPrompt: (prompt: string) => void;
   onOpenImportRepo: () => void;
+  onGoHome?: () => void;
   isDark?: boolean;
 }
 
@@ -56,6 +57,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
   onClose,
   onSubmitPrompt,
   onOpenImportRepo,
+  onGoHome,
   isDark: _isDark,
 }) => {
   const [query, setQuery] = useState('');
@@ -162,7 +164,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                 <div className="h-4 w-[1px] bg-neutral-800"></div>
                 <div className="flex items-center space-x-2 text-neutral-200 font-medium tracking-tight text-sm sm:text-base">
                   <Wand2 className="w-4 h-4 text-neutral-400" />
-                  <span className="font-lora">Start Your Architecture</span>
+                  <span className="font-lora">Enter Idea or Import Repository</span>
                 </div>
               </div>
 
@@ -180,7 +182,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                  className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
                   title="Close"
                 >
                   <X className="w-4 h-4" />
@@ -190,7 +192,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
 
             {/* Description Subtext */}
             <p className="text-xs sm:text-sm text-neutral-400 mb-4 font-sans leading-relaxed">
-              Enter your system concept or load an existing GitHub repo to run live load and failure simulations.
+              Enter a prompt for your system idea or import an existing repository to start simulating load and bottlenecks.
             </p>
 
             {/* Input Prompt Box */}
@@ -269,6 +271,19 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
               <span className="text-neutral-400 group-hover:text-white transition-colors">→</span>
             </button>
           </div>
+
+          {/* Return to Home Option */}
+          {onGoHome && (
+            <div className="mt-3.5 text-center">
+              <button
+                type="button"
+                onClick={onGoHome}
+                className="text-xs text-neutral-400 hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
+              >
+                ← Return to Home Page
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
     </AnimatePresence>

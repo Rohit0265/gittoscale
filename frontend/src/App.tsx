@@ -523,6 +523,21 @@ export const App: React.FC = () => {
     return path.startsWith('/app') || path === '/simulator' || (isAppDomain() && path === '/');
   });
 
+  // Automatically prompt any user who arrives on /app or simulator without an active project or prompt
+  useEffect(() => {
+    if (currentView === 'simulator') {
+      const search = new URLSearchParams(window.location.search);
+      const hasActiveContext =
+        Boolean(activePromptText) ||
+        Boolean(activeProject?.prompt) ||
+        search.has('repo') ||
+        search.has('demo');
+      if (!hasActiveContext && nodes.length === 0) {
+        setIsStartProjectModalOpen(true);
+      }
+    }
+  }, [currentView, activePromptText, activeProject, nodes.length]);
+
   // Debounce ref for sliders
   const simulateDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -1843,6 +1858,7 @@ export const App: React.FC = () => {
           setIsStartProjectModalOpen(false);
           setIsImportRepoOpen(true);
         }}
+        onGoHome={handleGoHome}
         isDark={isDark}
       />
 
