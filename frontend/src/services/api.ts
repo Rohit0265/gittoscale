@@ -48,6 +48,7 @@ export const api = {
   async analyzeRepository(params: {
     repoUrl?: string;
     localPath?: string;
+    githubToken?: string;
     viewMode?: 'basic' | 'detailed';
     llmConfig?: {
       provider?: string;

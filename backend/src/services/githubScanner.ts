@@ -6,7 +6,10 @@ import path from 'node:path';
  * directory paths, manifests, and package setups.
  * Captures repository metadata (defaultBranch, commitSha, README summary).
  */
-export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<RepositoryInventory> {
+export async function buildGitHubRepositoryInventory(
+  repoUrl: string,
+  userGithubToken?: string
+): Promise<RepositoryInventory> {
   const cleanUrl = repoUrl.trim().replace(/\.git$/, '').replace(/\/$/, '');
   const match = cleanUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
   if (!match) {
@@ -17,14 +20,16 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
   let treeData: any = null;
   let resolvedBranch = 'main';
   let commitSha: string | undefined;
+  let lastErrorStatus: number | null = null;
+  let lastErrorMessage: string | null = null;
 
   const reqHeaders: Record<string, string> = {
     'User-Agent': 'System-Design-Playground',
     Accept: 'application/vnd.github.v3+json',
   };
-  const githubToken = process.env.GITHUB_TOKEN?.trim();
-  if (githubToken) {
-    reqHeaders['Authorization'] = `Bearer ${githubToken}`;
+  const effectiveToken = userGithubToken?.trim() || process.env.GITHUB_TOKEN?.trim();
+  if (effectiveToken) {
+    reqHeaders['Authorization'] = `Bearer ${effectiveToken}`;
   }
 
   // 1. Fetch repo metadata (default branch)
@@ -37,9 +42,13 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
       if (meta.default_branch) {
         resolvedBranch = meta.default_branch;
       }
+    } else {
+      lastErrorStatus = metaResp.status;
+      const errJson: any = await metaResp.json().catch(() => ({}));
+      lastErrorMessage = errJson.message || metaResp.statusText;
     }
-  } catch {
-    // fallback to main
+  } catch (err: any) {
+    lastErrorMessage = err?.message;
   }
 
   // 2. Fetch recursive tree
@@ -57,9 +66,15 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
         commitSha = treeData.sha;
         resolvedBranch = b;
         break;
+      } else {
+        if (!lastErrorStatus) {
+          lastErrorStatus = resp.status;
+          const errJson: any = await resp.json().catch(() => ({}));
+          lastErrorMessage = errJson.message || resp.statusText;
+        }
       }
-    } catch {
-      // ignore
+    } catch (err: any) {
+      lastErrorMessage = err?.message;
     }
   }
 
@@ -68,31 +83,58 @@ export async function buildGitHubRepositoryInventory(repoUrl: string): Promise<R
   const items: InventoryItem[] = [];
 
   if (!treeData || !Array.isArray(treeData.tree)) {
-    return {
-      repoName: repo,
-      defaultBranch: resolvedBranch,
-      frameworks: [],
-      analyzedFiles: [],
-      skippedFiles: [],
-      items: [],
-      connections: [],
-    };
+    if (lastErrorStatus === 404) {
+      if (!effectiveToken) {
+        throw new Error(
+          `Repository "${owner}/${repo}" was not found or is private. If this is a private repository, please authorize your GitHub account or provide a Personal Access Token with "repo" scope.`
+        );
+      } else {
+        throw new Error(
+          `Repository "${owner}/${repo}" was not found or access was denied. Please verify your token has "repo" scope permissions for this repository.`
+        );
+      }
+    } else if (lastErrorStatus === 401 || lastErrorStatus === 403) {
+      throw new Error(
+        `GitHub API returned ${lastErrorStatus}: ${lastErrorMessage || 'Authorization failed or rate limit exceeded'}. Please verify your GitHub token has "repo" scope.`
+      );
+    }
+    throw new Error(
+      `Could not retrieve repository files for "${owner}/${repo}". ${lastErrorMessage ? `(${lastErrorMessage})` : 'Please verify the repository URL and your token permissions.'}`
+    );
   }
 
   const allPaths: string[] = treeData.tree.map((t: any) => t.path);
 
-  // 3. Fetch README summary if present
+  // 3. Fetch README summary if present (supports both public and private repos)
   let readmeSummary: string | undefined;
   const readmePath = allPaths.find((p) => /readme\.md$/i.test(p));
   if (readmePath) {
     try {
+      // Query contents API with raw Accept header and Authorization
       const readmeResp = await fetch(
-        `https://raw.githubusercontent.com/${owner}/${repo}/${resolvedBranch}/${readmePath}`
+        `https://api.github.com/repos/${owner}/${repo}/contents/${readmePath}?ref=${resolvedBranch}`,
+        {
+          headers: {
+            ...reqHeaders,
+            Accept: 'application/vnd.github.raw',
+          },
+        }
       );
       if (readmeResp.ok) {
         const text = await readmeResp.text();
         readmeSummary = text.slice(0, 800);
         analyzedFiles.push(readmePath);
+      } else {
+        // Fallback to raw.githubusercontent.com
+        const fallbackResp = await fetch(
+          `https://raw.githubusercontent.com/${owner}/${repo}/${resolvedBranch}/${readmePath}`,
+          { headers: reqHeaders }
+        );
+        if (fallbackResp.ok) {
+          const text = await fallbackResp.text();
+          readmeSummary = text.slice(0, 800);
+          analyzedFiles.push(readmePath);
+        }
       }
     } catch {
       // ignore

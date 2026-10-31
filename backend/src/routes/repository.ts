@@ -10,6 +10,7 @@ const router = Router();
 const analyzeSchema = z.object({
   localPath: z.string().optional(),
   repoUrl: z.string().optional(),
+  githubToken: z.string().optional(),
   viewMode: z.enum(['basic', 'detailed']).optional().default('basic'),
   llmConfig: z
     .object({
@@ -35,7 +36,7 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
       });
     }
 
-    const { localPath, repoUrl, viewMode, llmConfig } = parseResult.data;
+    const { localPath, repoUrl, githubToken, viewMode, llmConfig } = parseResult.data;
 
     if (!localPath && !repoUrl) {
       return res.status(400).json({
@@ -50,14 +51,14 @@ router.post('/analyze', async (req: Request, res: Response, next: NextFunction) 
     let inventory;
     if (repoUrl) {
       const { buildGitHubRepositoryInventory } = await import('../services/githubScanner.js');
-      inventory = await buildGitHubRepositoryInventory(repoUrl);
+      inventory = await buildGitHubRepositoryInventory(repoUrl, githubToken);
     } else {
       const targetPath = localPath || process.cwd();
       inventory = buildStaticRepositoryInventory(targetPath);
     }
 
     const revision = inventory.commitSha || 'local-rev';
-    const cacheKey = `${localPath || repoUrl}@${revision}-${ANALYZER_VERSION}-${llmConfig?.provider || 'default'}-${viewMode}`;
+    const cacheKey = `${localPath || repoUrl}@${revision}-${ANALYZER_VERSION}-${llmConfig?.provider || 'default'}-${viewMode}-${githubToken ? 'auth' : 'pub'}`;
     if (analysisCache.has(cacheKey)) {
       const cached = analysisCache.get(cacheKey);
       if (cached && cached.detailedGraph && cached.detailedGraph.nodes.length > 10) {
