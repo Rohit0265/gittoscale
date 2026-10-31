@@ -106,13 +106,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
               </span>
             </h2>
           </div>
-
-          {/* Right Column: Subtitle */}
-          <div className="lg:col-span-4 lg:text-left flex flex-col justify-end pb-1 sm:pb-2">
-            <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm">
-              GitToScale turns distributed systems into something your whole team can reason about.
-            </p>
-          </div>
         </div>
       </div>
 
