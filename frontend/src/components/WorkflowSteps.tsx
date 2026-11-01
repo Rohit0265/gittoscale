@@ -480,10 +480,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
       <div className="relative mx-auto max-w-7xl">
         {/* Top Header Section */}
         <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-[#121217] text-neutral-400 font-mono text-[11px] uppercase tracking-widest mb-4 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
-            <span>Workflow Builder &amp; Simulation Engine</span>
-          </div>
+
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-[-0.04em] text-white leading-[1.08]">
             Design, simulate, and scale with visual control.
           </h2>
