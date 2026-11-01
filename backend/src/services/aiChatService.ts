@@ -227,7 +227,7 @@ async function callGroqChat(
   const groqModel =
     input.llmConfig?.groqModel ||
     process.env.GROQ_MODEL ||
-    'llama-3.3-70b-versatile';
+    'llama-3.1-8b-instant';
 
   try {
     const messages: any[] = [{ role: 'system', content: systemPrompt }];
@@ -272,12 +272,12 @@ async function callGroqChat(
       return { ok: false, error: 'Empty content from Groq' };
     }
 
-    // Auto-fallback if the specified Groq model is deprecated or not accessible (404)
-    if (res.status === 404) {
-      const candidates = ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'llama3-70b-8192'];
+    // Auto-fallback if the specified Groq model is deprecated, inaccessible, or rate-limited (404, 400, 429)
+    if (!res.ok) {
+      const candidates = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'qwen-2.5-32b'];
       for (const candidate of candidates) {
         if (candidate === groqModel) continue;
-        console.warn(`[AI Chat Service] Groq model "${groqModel}" returned 404. Retrying with alternative model "${candidate}"...`);
+        console.warn(`[AI Chat Service] Groq model "${groqModel}" failed (${res.status}). Retrying with alternative model "${candidate}"...`);
         try {
           const fallbackRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -353,9 +353,9 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
     input.llmConfig?.model ||
     process.env.LLM_MODEL ||
     (provider === 'gemini'
-      ? 'gemini-1.5-flash'
+      ? 'gemini-2.0-flash'
       : provider === 'groq'
-      ? (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile')
+      ? (process.env.GROQ_MODEL || 'llama-3.1-8b-instant')
       : provider === 'anthropic'
       ? 'claude-3-5-sonnet-20241022'
       : 'gpt-4o-mini');
@@ -365,9 +365,24 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
   if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {
       if (provider === 'gemini') {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const chatContents: any[] = [];
+        const geminiModels = Array.from(
+          new Set(
+            [
+              model,
+              'gemini-2.0-flash',
+              'gemini-1.5-flash',
+              'gemini-2.5-flash',
+              'gemini-1.5-flash-8b',
+            ].filter(Boolean) as string[]
+          )
+        );
 
+        let lastStatus = 500;
+        let lastErrText = '';
+        let geminiSuccess = false;
+        let geminiReply = '';
+
+        const chatContents: any[] = [];
         const priorHistory = extractRelevantConversationHistory(input.history);
         for (const msg of priorHistory) {
           chatContents.push({
@@ -375,67 +390,75 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
             parts: [{ text: msg.content }],
           });
         }
-
-        // Add current user message
         chatContents.push({
           role: 'user',
           parts: [{ text: input.message }],
         });
 
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: systemPrompt }],
-            },
-            contents: chatContents,
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 1024,
-            },
-          }),
-        });
+        for (const gModel of geminiModels) {
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:generateContent?key=${apiKey}`;
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                systemInstruction: {
+                  parts: [{ text: systemPrompt }],
+                },
+                contents: chatContents,
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 1024,
+                },
+              }),
+            });
 
-        if (res.ok) {
-          const data: any = await res.json();
-          const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (replyText && replyText.trim().length > 0) {
-            return { reply: replyText.trim() };
+            if (res.ok) {
+              const data: any = await res.json();
+              const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (replyText && replyText.trim().length > 0) {
+                geminiSuccess = true;
+                geminiReply = replyText.trim();
+                break;
+              }
+            }
+
+            lastStatus = res.status;
+            lastErrText = await res.text().catch(() => '');
+
+            if (lastStatus === 503 || lastStatus === 404 || lastStatus === 429) {
+              console.warn(
+                `[AI Chat Service] Gemini model "${gModel}" returned HTTP ${lastStatus}. Retrying with alternative model...`
+              );
+              continue;
+            }
+            break;
+          } catch (gErr: any) {
+            console.warn(`[AI Chat Service] Gemini request error on "${gModel}":`, gErr?.message);
           }
         }
 
-        // Check if rate limited (429 / 503 / RESOURCE_EXHAUSTED / quota / overloaded)
-        const status = res.status;
-        const errText = await res.text().catch(() => '');
-        const isRateLimit =
-          status === 429 ||
-          status === 503 ||
-          errText.toLowerCase().includes('resource_exhausted') ||
-          errText.toLowerCase().includes('rate limit') ||
-          errText.toLowerCase().includes('quota') ||
-          errText.toLowerCase().includes('too many requests') ||
-          errText.toLowerCase().includes('overloaded');
-
-        if (isRateLimit) {
-          console.info(
-            `[AI Chat Service] Gemini rate limit (HTTP ${status} / quota) detected. Seamlessly transferring request to Groq in background...`
-          );
-
-          // Failover to Groq in background without notifying frontend
-          const groqRes = await callGroqChat(input, systemPrompt);
-          if (groqRes.ok && groqRes.reply) {
-            console.info('[AI Chat Service] Request successfully completed by Groq in background.');
-            return { reply: groqRes.reply };
-          }
-
-          // If Groq also failed (or rate limited / unavailable)
-          console.warn(
-            '[AI Chat Service] Groq failover also failed. Returning traffic overload message:',
-            groqRes.error
-          );
-          return { reply: 'Traffic is more than expected. Please retry later.' };
+        if (geminiSuccess && geminiReply) {
+          return { reply: geminiReply };
         }
+
+        console.info(
+          `[AI Chat Service] Gemini unavailable or experiencing high demand (HTTP ${lastStatus}). Seamlessly transferring request to Groq in background...`
+        );
+
+        // Failover to Groq in background without notifying frontend
+        const groqRes = await callGroqChat(input, systemPrompt);
+        if (groqRes.ok && groqRes.reply) {
+          console.info('[AI Chat Service] Request successfully completed by Groq in background.');
+          return { reply: groqRes.reply };
+        }
+
+        // If Groq also failed (or rate limited / unavailable)
+        console.warn(
+          '[AI Chat Service] Groq failover also failed. Returning traffic overload message:',
+          groqRes.error
+        );
+        return { reply: 'Traffic is more than expected. Please retry later.' };
       } else if (provider === 'groq') {
         const groqRes = await callGroqChat(input, systemPrompt);
         if (groqRes.ok && groqRes.reply) {

@@ -1260,27 +1260,57 @@ async function callGeminiProvider(
   viewMode: 'basic' | 'detailed' = 'basic'
 ): Promise<LLMAnalysisResult> {
   const prompt = buildPrompt(inventory, viewMode);
-  const model = config.model || 'gemini-1.5-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
+  const preferredModel = config.model || 'gemini-2.0-flash';
+  const models = Array.from(
+    new Set(
+      [
+        preferredModel,
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash-8b',
+      ].filter(Boolean) as string[]
+    )
+  );
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json' },
-    }),
-  });
+  let lastError: any = null;
 
-  if (!res.ok) {
-    throw new Error(`Gemini API failed with status ${res.status}: ${await res.text()}`);
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+      });
+
+      if (!res.ok) {
+        const status = res.status;
+        const errText = await res.text().catch(() => '');
+        lastError = new Error(`Gemini API failed with status ${status} on model ${model}: ${errText}`);
+        if (status === 503 || status === 404 || status === 429) {
+          console.warn(
+            `[Architecture Analyzer] Gemini model "${model}" returned ${status}. Retrying with alternative model...`
+          );
+          continue;
+        }
+        throw lastError;
+      }
+
+      const data: any = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error(`Empty response from Gemini API on model "${model}"`);
+      const parsed = JSON.parse(rawText);
+      return llmAnalysisResultSchema.parse(normalizeLLMResponse(parsed));
+    } catch (err: any) {
+      lastError = err;
+    }
   }
 
-  const data: any = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error('Empty response from Gemini API');
-  const parsed = JSON.parse(rawText);
-  return llmAnalysisResultSchema.parse(normalizeLLMResponse(parsed));
+  throw lastError || new Error('All Gemini candidate models failed');
 }
 
 async function callAnthropicProvider(

@@ -29,13 +29,15 @@ export async function recommendArchitecture(
   const provider =
     input.llmConfig?.provider ||
     process.env.LLM_PROVIDER ||
-    (process.env.OPENAI_API_KEY
-      ? 'openai'
-      : process.env.GEMINI_API_KEY
+    (process.env.GEMINI_API_KEY
       ? 'gemini'
+      : process.env.GROQ_API_KEY
+      ? 'groq'
+      : process.env.OPENAI_API_KEY
+      ? 'openai'
       : process.env.ANTHROPIC_API_KEY
       ? 'anthropic'
-      : 'openai');
+      : 'gemini');
 
   const apiKey =
     input.llmConfig?.apiKey ||
@@ -44,13 +46,17 @@ export async function recommendArchitecture(
       ? process.env.OPENAI_API_KEY
       : provider === 'gemini'
       ? process.env.GEMINI_API_KEY
+      : provider === 'groq'
+      ? process.env.GROQ_API_KEY
       : process.env.ANTHROPIC_API_KEY);
 
   const model =
     input.llmConfig?.model ||
     process.env.LLM_MODEL ||
     (provider === 'gemini'
-      ? 'gemini-1.5-flash'
+      ? 'gemini-2.0-flash'
+      : provider === 'groq'
+      ? (process.env.GROQ_MODEL || 'llama-3.1-8b-instant')
       : provider === 'anthropic'
       ? 'claude-3-5-sonnet-20241022'
       : 'gpt-4o-mini');
@@ -67,7 +73,18 @@ export async function recommendArchitecture(
     try {
       let llmResult: any = null;
       if (provider === 'gemini') {
-        llmResult = await callGeminiRecommender(input, config);
+        try {
+          llmResult = await callGeminiRecommender(input, config);
+        } catch (geminiErr) {
+          if (process.env.GROQ_API_KEY) {
+            console.info('[Architecture Recommender] Gemini failed or high demand detected. Seamlessly failing over to Groq...');
+            llmResult = await callGroqRecommender(input, process.env.GROQ_API_KEY, process.env.GROQ_MODEL);
+          } else {
+            throw geminiErr;
+          }
+        }
+      } else if (provider === 'groq') {
+        llmResult = await callGroqRecommender(input, config.apiKey || process.env.GROQ_API_KEY || '', config.model);
       } else if (provider === 'anthropic') {
         llmResult = await callAnthropicRecommender(input, config);
       } else {
@@ -239,28 +256,118 @@ async function callOpenAIRecommender(input: RecommenderInput, config: LLMConfig)
   return JSON.parse(rawText);
 }
 
-async function callGeminiRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
+async function callGroqRecommender(
+  input: RecommenderInput,
+  apiKey: string,
+  preferredModel?: string
+): Promise<any> {
   const prompt = buildRecommenderPrompt(input);
-  const model = config.model || 'gemini-1.5-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
+  const models = Array.from(
+    new Set(
+      [
+        preferredModel,
+        process.env.GROQ_MODEL,
+        'llama-3.1-8b-instant',
+        'llama-3.3-70b-versatile',
+        'llama-3.1-70b-versatile',
+      ].filter(Boolean) as string[]
+    )
+  );
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json' },
-    }),
-  });
+  let lastError: any = null;
+  for (const model of models) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+          temperature: 0.2,
+        }),
+      });
 
-  if (!res.ok) {
-    throw new Error(`Gemini API failed: ${res.status} ${await res.text()}`);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        lastError = new Error(`Groq model "${model}" failed (${res.status}): ${errText.slice(0, 150)}`);
+        if (res.status === 404 || res.status === 400 || res.status === 429) {
+          console.warn(
+            `[Architecture Recommender] Groq model "${model}" returned ${res.status}. Retrying with next model...`
+          );
+          continue;
+        }
+        throw lastError;
+      }
+
+      const data: any = await res.json();
+      const rawText = data.choices?.[0]?.message?.content;
+      if (!rawText) continue;
+      return JSON.parse(rawText);
+    } catch (err: any) {
+      lastError = err;
+    }
   }
 
-  const data: any = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error('Empty response from Gemini');
-  return JSON.parse(rawText);
+  throw lastError || new Error('All Groq candidate models failed');
+}
+
+async function callGeminiRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
+  const prompt = buildRecommenderPrompt(input);
+  const preferredModel = config.model || 'gemini-2.0-flash';
+  const models = Array.from(
+    new Set(
+      [
+        preferredModel,
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash-8b',
+        'gemini-1.5-pro',
+      ].filter(Boolean) as string[]
+    )
+  );
+
+  let lastError: any = null;
+
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+      });
+
+      if (!res.ok) {
+        const status = res.status;
+        const errText = await res.text().catch(() => '');
+        lastError = new Error(`Gemini API failed: ${status} ${errText}`);
+        if (status === 503 || status === 404 || status === 429) {
+          console.warn(
+            `[Architecture Recommender] Gemini model "${model}" returned ${status} (${errText.slice(0, 100)}). Retrying with next model candidate...`
+          );
+          continue;
+        }
+        throw lastError;
+      }
+
+      const data: any = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error(`Empty response from Gemini model "${model}"`);
+      return JSON.parse(rawText);
+    } catch (err: any) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('All Gemini candidate models failed');
 }
 
 async function callAnthropicRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
