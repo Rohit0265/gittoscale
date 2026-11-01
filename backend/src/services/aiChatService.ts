@@ -447,7 +447,6 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
         );
 
         let lastStatus = 500;
-        let lastErrText = '';
         let geminiSuccess = false;
         let geminiReply = '';
 
@@ -493,7 +492,6 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
             }
 
             lastStatus = res.status;
-            lastErrText = await res.text().catch(() => '');
 
             if (lastStatus === 503 || lastStatus === 404 || lastStatus === 429) {
               console.warn(

@@ -171,7 +171,6 @@ export function autoHealArchitectureFlow(
   edges: ArchitectureEdge[]
 ): ArchitectureEdge[] {
   const edgeList = [...edges];
-  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
   const inDegree = new Map<string, number>();
   const outDegree = new Map<string, number>();
