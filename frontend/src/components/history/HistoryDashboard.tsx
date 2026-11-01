@@ -20,8 +20,8 @@ import {
 
 interface HistoryDashboardProps {
   onGoHome: () => void;
-  onOpenArchitecture: (architectureData: any, prompt: string, title?: string) => void;
-  onOpenRepository: (architectureData: any, repoName: string, repoUrl: string) => void;
+  onOpenArchitecture: (architectureData: any, prompt: string, title?: string, id?: string) => void;
+  onOpenRepository: (architectureData: any, repoName: string, repoUrl: string, id?: string) => void;
   onNavigateToSimulator: () => void;
   isDark?: boolean;
   onToggleTheme?: () => void;
@@ -382,14 +382,17 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
                     <div
                       key={arch.id}
                       onClick={() =>
-                        onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title)
+                        onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title, arch.id)
                       }
-                      className="group relative bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 hover:border-slate-400 dark:hover:border-neutral-600 rounded-xl p-4.5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                      className="group relative bg-white dark:bg-[#0c0d14] border border-slate-200/90 dark:border-neutral-800/90 hover:border-slate-300 dark:hover:border-neutral-700 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-4 overflow-hidden"
                     >
+                      {/* Subtle ambient hairline highlight */}
+                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-neutral-700/60 to-transparent pointer-events-none" />
+
                       <div>
-                        {/* Header: Title only (status badge and subheading removed) */}
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white line-clamp-1 group-hover:text-slate-700 dark:group-hover:text-neutral-200 transition-colors">
+                        {/* Header: Title only (3-4 words, status badge and subheading removed) */}
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
                             {cardHeading}
                           </h3>
                         </div>
@@ -397,31 +400,35 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
 
                       {/* Footer & Meta */}
                       <div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-500 mb-3 pt-3 border-t border-slate-100 dark:border-neutral-800/60">
-                          <div className="flex items-center gap-1.5">
+                        <div className="flex items-center justify-between text-[11px] mb-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800/80">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 text-[11px] font-medium text-slate-700 dark:text-neutral-300">
                             <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
                             <span>{nodeCount} Components</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
+                          <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 font-mono text-[11px]">
+                            <Calendar className="w-3.5 h-3.5 opacity-70" />
                             <span>{formatDate(arch.created_at)}</span>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2.5">
                           <button
                             type="button"
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-slate-100 dark:bg-neutral-800/90 hover:bg-slate-200 dark:hover:bg-neutral-700/90 border border-slate-200 dark:border-neutral-700/80 text-slate-800 dark:text-neutral-200 text-xs font-semibold transition-all cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title, arch.id);
+                            }}
+                            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-slate-900 hover:bg-black dark:bg-[#161722] dark:hover:bg-[#202230] border border-slate-800 dark:border-neutral-700/80 text-white dark:text-neutral-200 text-xs font-medium transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
                           >
                             <span>Continue</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            <ExternalLink className="w-3.5 h-3.5 opacity-80 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                           </button>
 
                           <button
                             type="button"
                             onClick={(e) => handleDeleteArchitecture(e, arch.id)}
                             disabled={deletingId === arch.id}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-400 dark:text-neutral-500 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                            className="p-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 text-slate-400 dark:text-neutral-500 hover:text-red-500 hover:border-red-300 dark:hover:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer"
                             title="Delete architecture"
                           >
                             <Trash2 className="w-3.5 h-3.5 hover:text-red-500 transition-colors" />
