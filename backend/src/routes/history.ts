@@ -10,7 +10,6 @@ import {
   deleteArchitectureById as deleteArchByIdNeon,
   insertRepositoryHistory,
   queryRepositoryHistory,
-  getRepositoryById as getRepoByIdNeon,
   deleteRepositoryById as deleteRepoByIdNeon,
 } from '../services/neon.js';
 

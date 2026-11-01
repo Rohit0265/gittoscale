@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { recommenderInputSchema } from '../services/recommenderTypes.js';
 import { recommendArchitecture } from '../services/architectureRecommender.js';
 
@@ -7,7 +7,7 @@ const router = Router();
 // In-memory cache for fast repeated prompts
 const recommendationCache = new Map<string, any>();
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const parseResult = recommenderInputSchema.safeParse(req.body);
     if (!parseResult.success) {

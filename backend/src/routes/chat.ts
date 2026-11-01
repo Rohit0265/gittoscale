@@ -4,7 +4,6 @@ import {
   isNeonConfigured,
   getSql,
   insertArchitectureHistory,
-  queryArchitectureHistory,
 } from '../services/neon.js';
 import { generateAIChatReply } from '../services/aiChatService.js';
 

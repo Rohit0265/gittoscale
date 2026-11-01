@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { buildStaticRepositoryInventory } from '../services/staticScanner.js';
 import { analyzeArchitectureWithLLM } from '../services/architectureAnalyzer.js';
@@ -25,7 +25,7 @@ const analyzeSchema = z.object({
 // Cache for analyzed repositories
 const analysisCache = new Map<string, any>();
 
-router.post('/analyze', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/analyze', async (req: Request, res: Response) => {
   try {
     const parseResult = analyzeSchema.safeParse(req.body);
     if (!parseResult.success) {
