@@ -139,7 +139,6 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   projectId,
   activePrompt = 'Scalable distributed cloud architecture',
   selectedAnswers = {},
-  onResetQuestions,
   onSendCustomMessage,
   onExecuteChatCommand,
   onRestoreSession,
