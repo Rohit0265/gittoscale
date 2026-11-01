@@ -59,26 +59,13 @@ const checkIsAppDomain = () => {
   );
 };
 
-const PAGES = [
-  'top',
-  'step-1',
-  'step-2',
-  'step-3',
-  'step-4',
-  'use-cases',
-  'faq',
-  'footer',
-];
+const PAGES = ['top', 'features', 'use-cases', 'faq'];
 
 const PAGE_LABELS: Record<string, string> = {
-  top: 'Overview',
-  'step-1': '01: Text & Repo Design',
-  'step-2': '02: Simulate',
-  'step-3': '03: Detect',
-  'step-4': '04: Complete with AI',
+  top: 'Home',
+  features: 'Features',
   'use-cases': 'Use Cases',
   faq: 'FAQ',
-  footer: 'Footer',
 };
 
 const GITOSCALE_FAQS = [
@@ -110,7 +97,13 @@ const GITOSCALE_FAQS = [
 ];
 
 
-function PageDots({ active }: { active: number }) {
+function PageDots({
+  active,
+  onSelect,
+}: {
+  active: number;
+  onSelect: (id: string) => void;
+}) {
   return (
     <div className="fixed right-4 sm:right-6 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-2.5 md:flex">
       {PAGES.map((id, i) => (
@@ -119,8 +112,9 @@ function PageDots({ active }: { active: number }) {
             {PAGE_LABELS[id] || id}
           </div>
           <button
+            type="button"
             aria-label={`Go to ${PAGE_LABELS[id] || id}`}
-            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => onSelect(id)}
             className={`w-2 rounded-full transition-all cursor-pointer ${
               i === active
                 ? 'h-6 bg-slate-900 dark:bg-white'
@@ -450,44 +444,65 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
   }, [isProfileOpen]);
 
-  // Scroll position observer to update active step in sync
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
+  // Programmatic smooth scroll to align target section below sticky header
+  const scrollToSection = useCallback((id: string) => {
     const container = containerRef.current;
+    if (!container) return;
 
-    // Activate footer dot when user scrolls to the bottom
-    if (container.scrollHeight - container.scrollTop - container.clientHeight < 80) {
-      setActive(PAGES.indexOf('footer'));
+    if (id === 'top') {
+      container.scrollTo({ top: 0, behavior: 'smooth' });
+      setActive(0);
+      return;
     }
+
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const targetScrollTop = elRect.top - containerRect.top + container.scrollTop - 76;
+
+    container.scrollTo({
+      top: Math.max(0, targetScrollTop),
+      behavior: 'smooth',
+    });
+  }, []);
+
+  // Scroll position observer to update active section in header in sync
+  const handleScroll = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Check if user scrolled near bottom
+    if (container.scrollHeight - container.scrollTop - container.clientHeight < 80) {
+      setActive(PAGES.length - 1);
+      return;
+    }
+
+    const containerTop = container.getBoundingClientRect().top;
+    const headerOffset = 130; // sticky header + cushion
+
+    let currentActive = 0;
+    for (let i = 0; i < PAGES.length; i++) {
+      const id = PAGES[i];
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      const relativeTop = rect.top - containerTop;
+      if (relativeTop <= headerOffset) {
+        currentActive = i;
+      }
+    }
+    setActive(currentActive);
   }, []);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            const idx = PAGES.indexOf(e.target.id);
-            if (idx !== -1) {
-              setActive(idx);
-            }
-          }
-        });
-      },
-      { root: container, threshold: 0.2 }
-    );
-
-    PAGES.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) obs.observe(el);
-    });
-
+    handleScroll();
     container.addEventListener('scroll', handleScroll, { passive: true });
-
     return () => {
-      obs.disconnect();
       container.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
@@ -495,9 +510,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full snap-y snap-proximity overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#020202] text-slate-800 dark:text-slate-100 transition-colors"
+      className="h-screen w-full overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#020202] text-slate-800 dark:text-slate-100 transition-colors"
     >
-      <PageDots active={active} />
+      <PageDots active={active} onSelect={scrollToSection} />
 
       {/* Sticky Top Navbar Header */}
       <header
@@ -515,81 +530,66 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               : 'h-12 sm:h-13 w-full max-w-4xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#020202]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
           }`}
         >
-            {/* Left: Brand Logo */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <img
-                src={isDark ? '/logo.png' : '/logo-light.png'}
-                alt="GitToScale"
-                onClick={() => {
-                  const el = document.getElementById('top');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`w-auto object-contain cursor-pointer transition-all ${
-                  isApp ? 'h-8 sm:h-9 md:h-10' : 'h-6 sm:h-7'
-                }`}
-              />
-            </div>
-
-            {/* Middle: Navigation Links */}
-            <nav className="flex items-center gap-0.5 sm:gap-1.5 md:gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById('top');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
-                  active === 0
-                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
-                }`}
-              >
-                Home
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById('features') || document.getElementById('step-1');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
-                  active >= 1 && active <= 4
-                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
-                }`}
-              >
-                Features
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById('use-cases');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
-                  active === PAGES.indexOf('use-cases')
-                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
-                }`}
-              >
-                Use Cases
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById('faq');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
-                  active === PAGES.indexOf('faq')
-                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
-                }`}
-              >
-                FAQ
-              </button>
-            </nav>
+          {/* Left: Brand Logo */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <img
+              src={isDark ? '/logo.png' : '/logo-light.png'}
+              alt="GitToScale"
+              onClick={() => scrollToSection('top')}
+              className={`w-auto object-contain cursor-pointer transition-all ${
+                isApp ? 'h-8 sm:h-9 md:h-10' : 'h-6 sm:h-7'
+              }`}
+            />
           </div>
+
+          {/* Middle: Navigation Links */}
+          <nav className="flex items-center gap-0.5 sm:gap-1.5 md:gap-2">
+            <button
+              type="button"
+              onClick={() => scrollToSection('top')}
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                active === 0
+                  ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+              }`}
+            >
+              Home
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('features')}
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                active === 1
+                  ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+              }`}
+            >
+              Features
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('use-cases')}
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                active === 2
+                  ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+              }`}
+            >
+              Use Cases
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('faq')}
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                active === 3
+                  ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+              }`}
+            >
+              FAQ
+            </button>
+          </nav>
+        </div>
 
           {/* Standalone Profile Button & Dropdown Outside Navbar */}
           <div ref={profileRef} className="pointer-events-auto relative shrink-0">
@@ -768,7 +768,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Section 1: Hero Header & Content (#top) */}
         <section
           id="top"
-          className="relative flex min-h-screen snap-start flex-col justify-between bg-white dark:bg-[#060709] pt-16 sm:pt-20"
+          className="relative flex min-h-screen flex-col justify-between bg-white dark:bg-[#060709] pt-16 sm:pt-20"
         >
           {/* New UI Section */}
           <NewOne
@@ -805,7 +805,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
       {/* Sections 3–5: Interactive Workflow Steps Journey (01 Discover, 02 Simulate, 03 Detect) */}
-      <div id="features" className="scroll-mt-20">
+      <div id="features">
         <WorkflowSteps
           onSelectTestSite={onSelectTestSite}
           onSelectUseRepository={onSelectUseRepository}
@@ -817,7 +817,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Section 7: Use Cases (#use-cases) */}
       <section
         id="use-cases"
-        className="relative flex min-h-screen snap-start flex-col justify-center px-6 sm:px-10 py-20 scroll-mt-20"
+        className="relative flex min-h-screen flex-col justify-center px-6 sm:px-10 py-20"
       >
         <div className="mx-auto w-full max-w-6xl">
           <div className="mb-12 max-w-2xl">
@@ -906,7 +906,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {children}
 
       {/* Section 11: Frequently Asked Questions (#faq) */}
-      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202] scroll-mt-20">
+      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202]">
         <FrequentlyAskedQuestions
           title="Frequently Asked Questions"
           description="Everything you need to know about GitToScale text-to-system design, repository architecture scanning, and distributed load simulation."
