@@ -175,16 +175,6 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
         </span>
 
         <div className="flex items-center gap-1.5">
-          {onRestoreOriginal && (
-            <button
-              onClick={onRestoreOriginal}
-              className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors cursor-pointer"
-              title="Restore baseline architecture"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          )}
-
           {/* Add Component Menu */}
           <div className="relative">
           <button
