@@ -594,17 +594,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 FAQ
               </button>
             </nav>
-
-            {/* Right: Studio CTA */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={onSelectTestSite}
-                className="hidden sm:inline-flex items-center justify-center px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 transition-all shadow-xs cursor-pointer active:scale-95"
-              >
-                Studio
-              </button>
-            </div>
           </div>
 
           {/* Standalone Profile Button & Dropdown Outside Navbar */}
