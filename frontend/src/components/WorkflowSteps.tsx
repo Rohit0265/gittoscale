@@ -7,7 +7,6 @@ import {
   Database,
   GitBranch,
   Layers,
-  RefreshCw,
   Server,
   Zap,
 } from 'lucide-react';
@@ -419,28 +418,14 @@ const WORKFLOW_STEPS: CanvasStepData[] = [
 ];
 
 export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
-  onSelectTestSite,
+  onSelectTestSite: _onSelectTestSite,
   onSelectUseRepository: _onSelectUseRepository,
   onOpenRecommender: _onOpenRecommender,
 }) => {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [isSimulating, setIsSimulating] = useState(false);
 
   const currentStep = WORKFLOW_STEPS[activeStepIndex];
-
-  const handleTriggerSim = () => {
-    setIsSimulating(true);
-    if (onSelectTestSite) {
-      setTimeout(() => {
-        onSelectTestSite();
-      }, 700);
-    } else {
-      setTimeout(() => {
-        setIsSimulating(false);
-      }, 1800);
-    }
-  };
 
   // Helper to compute smooth horizontal tree S-curve paths between nodes
   const getPathCoordinates = (
@@ -549,8 +534,8 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                     const isStressed = conn.flowStatus === 'stressed';
                     const isHealed = conn.flowStatus === 'rerouted';
 
-                    const speed = isSimulating ? '0.6s' : isStressed ? '0.8s' : isHealed ? '1.4s' : '1.8s';
-                    const delay2 = isSimulating ? '0.3s' : isStressed ? '0.4s' : isHealed ? '0.7s' : '0.9s';
+                    const speed = isStressed ? '0.8s' : isHealed ? '1.4s' : '1.8s';
+                    const delay2 = isStressed ? '0.4s' : isHealed ? '0.7s' : '0.9s';
 
                     const baseStroke = isStressed
                       ? 'rgba(244, 63, 94, 0.3)'

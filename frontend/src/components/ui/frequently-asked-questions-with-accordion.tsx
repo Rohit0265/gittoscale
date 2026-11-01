@@ -60,7 +60,6 @@ export default function FrequentlyAskedQuestions({
   description = "We are here to help you with any questions you may have. If you don't find what you need, please contact us.",
   data = defaultFAQs,
   className,
-  supportEmail = "support@example.com",
 }: FrequentlyAskedQuestionsProps) {
   const words = title.split(" ");
   const firstLineWords = words.slice(0, 1);
