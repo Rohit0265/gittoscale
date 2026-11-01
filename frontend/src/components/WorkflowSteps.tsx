@@ -479,9 +479,13 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         {/* Top Header Section */}
         <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto flex flex-col items-center">
 
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-[-0.04em] text-white leading-[1.08]">
-            <span>Design, simulate, and </span>
-            <PenHighlight highlightClassName="bg-neutral-700/75">scale with visual control.</PenHighlight>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[0.96] tracking-[-0.04em] text-white">
+            <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-neutral-500/85">
+              Design, simulate, and
+            </PenHighlight>
+            <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-neutral-500/85">
+              scale with visual control.
+            </PenHighlight>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-neutral-400 max-w-2xl leading-relaxed">
             A unified visual canvas for drafting distributed architectures from natural language or code,

@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { PenShadowLine } from "./PenShadowLine";
+import { PenHighlight } from "./PenShadowLine";
 import {
   Accordion,
   AccordionItem,
@@ -64,32 +64,49 @@ export default function FrequentlyAskedQuestions({
   supportEmail = "support@example.com",
 }: FrequentlyAskedQuestionsProps) {
   const words = title.split(" ");
+  const firstLineWords = words.slice(0, 1);
+  const secondLineWords = words.slice(1);
 
   return (
     <section className={cn("relative w-full overflow-hidden py-24", className)}>
       <div className="mx-auto max-w-3xl px-6">
-        <h1 className="relative z-10 mx-auto max-w-4xl text-center text-3xl font-bold tracking-tight text-zinc-800 md:text-5xl lg:text-6xl dark:text-zinc-100">
-          <span className="relative inline-block">
-            <span className="relative z-10">
-              {words.map((word, index) => (
-                <motion.span
-                  key={`${word}-${index}`}
-                  initial={{ opacity: 0, filter: "blur(6px)", y: 12 }}
-                  whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{
-                    duration: 0.4,
-                    delay: index * 0.08,
-                    ease: "easeInOut",
-                  }}
-                  className="mr-2 inline-block"
-                >
-                  {word}
-                </motion.span>
-              ))}
-            </span>
-            <PenShadowLine color="stroke-zinc-500/60 dark:stroke-neutral-400/70" delay={0.35} />
-          </span>
+        <h1 className="relative z-10 mx-auto max-w-4xl text-center text-3xl font-bold leading-[0.94] tracking-tight text-zinc-800 md:text-5xl lg:text-6xl dark:text-zinc-100">
+          <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+            {firstLineWords.map((word, index) => (
+              <motion.span
+                key={`${word}-${index}`}
+                initial={{ opacity: 0, filter: "blur(6px)", y: 12 }}
+                whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.4,
+                  delay: index * 0.08,
+                  ease: "easeInOut",
+                }}
+                className="mr-2 inline-block"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </PenHighlight>
+          <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+            {secondLineWords.map((word, index) => (
+              <motion.span
+                key={`${word}-${index + firstLineWords.length}`}
+                initial={{ opacity: 0, filter: "blur(6px)", y: 12 }}
+                whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.4,
+                  delay: (index + firstLineWords.length) * 0.08,
+                  ease: "easeInOut",
+                }}
+                className="mr-2 inline-block"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </PenHighlight>
         </h1>
 
         <motion.p

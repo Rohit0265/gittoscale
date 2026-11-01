@@ -782,9 +782,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Sparkles className="w-3.5 h-3.5" />
               <span>Target Audiences</span>
             </div> */}
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-              <PenHighlight highlightClassName="bg-slate-300/80 dark:bg-neutral-700/75">
-                Who benefits from GitToScale
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-[0.94] tracking-tight text-slate-900 dark:text-white">
+              <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                Who benefits from
+              </PenHighlight>
+              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                GitToScale
               </PenHighlight>
             </h2>
             <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-neutral-400">
