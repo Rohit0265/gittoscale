@@ -826,22 +826,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 className="relative z-10 mt-4 p-3.5 sm:p-4 rounded-xl border border-emerald-800/60 bg-[#0d1612]/90 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono shadow-xl"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold block">
-                      AI Architect Remediation
-                    </span>
-                    <p className="text-neutral-200 mt-0.5 leading-relaxed font-sans text-xs">
-                      {currentStep.aiRecommendation.action}
-                    </p>
-                    <span className="text-[11px] text-neutral-400 block mt-0.5">
-                      {currentStep.aiRecommendation.impact}
-                    </span>
-                  </div>
-                </div>
+               
 
                 <div className="shrink-0 flex items-center gap-2 self-end md:self-center">
                   <span className="px-2.5 py-1 rounded-md bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 font-bold text-[11px]">
