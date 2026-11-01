@@ -289,19 +289,6 @@ export const Header: React.FC<HeaderProps> = ({
                     </button>
                   </div>
                 </div>
-
-                {/* Preview / Inspection Action */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsExportOpen(false);
-                    setIsPreviewModalOpen(true);
-                  }}
-                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Preview Code & Diagrams</span>
-                </button>
               </motion.div>
             )}
           </AnimatePresence>
