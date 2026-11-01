@@ -620,7 +620,15 @@ export const App: React.FC = () => {
           applyScenario('normal-traffic', arch, scens, 'basic');
         } else {
           // Do NOT show pre-canned playground on /app by default: prompt user for idea or repo
-          setIsStartProjectModalOpen(true);
+          const currentPath = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
+          const currentRoute = getProjectRouteInfo();
+          if (
+            (currentPath === '/app' || currentPath === '/simulator') &&
+            !currentRoute?.projectId &&
+            !currentRoute?.prompt
+          ) {
+            setIsStartProjectModalOpen(true);
+          }
         }
       } catch (err: unknown) {
         console.error('Failed to load initial fixtures:', err);
@@ -905,7 +913,7 @@ export const App: React.FC = () => {
         localStorage.setItem(`gitoscale_project_${projectId}`, promptText);
       }
 
-      const projectPath = `/project/${projectId}?prompt=${encodeURIComponent(promptText)}`;
+      const projectPath = `/product/${projectId}?prompt=${encodeURIComponent(promptText)}`;
       const targetUrl = (isCustomDomain() && !isAppDomain())
         ? `${APP_SUBDOMAIN_URL}${projectPath}`
         : projectPath;
@@ -929,6 +937,7 @@ export const App: React.FC = () => {
         return;
       }
 
+      setIsStartProjectModalOpen(false);
       lastGeneratedPromptRef.current = promptText;
       window.history.pushState({ projectId, prompt: promptText }, '', projectPath);
       setActiveProject({ projectId, prompt: promptText });
