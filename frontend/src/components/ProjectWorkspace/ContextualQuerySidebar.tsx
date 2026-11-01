@@ -544,7 +544,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
               title="Collapse sidebar"
               aria-label="Collapse sidebar"
             >
-              <PanelLeftClose className="w-4 h-4 hover:text-emerald-500 transition-colors" />
+              <PanelLeftClose className="w-4 h-4 hover:text-gray-500 transition-colors" />
             </button>
           )}
         </div>
