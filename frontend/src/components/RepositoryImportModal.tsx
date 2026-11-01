@@ -91,7 +91,6 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
         <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100 dark:border-neutral-800/80">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-              <GitBranch className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
               <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
