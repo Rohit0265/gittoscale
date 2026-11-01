@@ -154,7 +154,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
             }}
           >
             {/* Header Bar */}
-            <div className="flex items-end  pb-4 mb-5 border-b border-neutral-800/80">
+            <div className="flex items-end pb-4 mb-5 border-b border-neutral-800/80">
               <div className="space-x-2.5">
                 <button
                   type="button"
@@ -176,7 +176,6 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
             <form onSubmit={handleSubmit} className="relative group">
               <div className="relative flex items-center bg-neutral-900/95 border border-neutral-800 rounded-xl p-1.5 focus-within:border-neutral-600 focus-within:ring-1 focus-within:ring-neutral-600 transition-all duration-200">
                 <div className="pl-3.5 pr-2 text-neutral-400 group-focus-within:text-white transition-colors">
-                  <Sparkles className="w-4 h-4" />
                 </div>
 
                 <input
