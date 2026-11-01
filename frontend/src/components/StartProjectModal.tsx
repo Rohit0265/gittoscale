@@ -247,19 +247,6 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
               <span className="text-neutral-400 group-hover:text-white transition-colors">→</span>
             </button>
           </div>
-
-          {/* Return to Home Option */}
-          {onGoHome && (
-            <div className="mt-3.5 text-center">
-              <button
-                type="button"
-                onClick={onGoHome}
-                className="text-xs text-neutral-400 hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
-              >
-                ← Return to Home Page
-              </button>
-            </div>
-          )}
         </motion.div>
       </div>
     </AnimatePresence>
