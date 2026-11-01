@@ -151,8 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 dark:bg-white text-white dark:text-neutral-950 hover:bg-slate-800 dark:hover:bg-neutral-100 transition-all shadow-xs cursor-pointer shrink-0"
             title="Enter an architecture idea or import repository"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 dark:text-amber-500" />
-            <span className="hidden sm:inline">New Idea</span>
+            <span className="hidden sm:inline">New Project</span>
           </button>
         )}
 
