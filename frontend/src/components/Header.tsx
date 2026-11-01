@@ -271,9 +271,6 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Option 2: JSON Architecture */}
                 <div className="p-2.5 rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                      <Code2 className="w-3.5 h-3.5" />
-                    </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-slate-900 dark:text-white">JSON Design</p>
                     </div>
