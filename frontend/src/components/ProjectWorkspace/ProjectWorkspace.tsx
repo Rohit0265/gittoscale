@@ -516,8 +516,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     );
 
     if (execResult.executed) {
+      if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
+        setViewMode(execResult.targetViewMode);
+      }
+
       if (execResult.updatedNodes && execResult.updatedEdges) {
-        if (viewMode === 'detailed') {
+        if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
           setDetailedGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
         } else {
           setBasicGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });

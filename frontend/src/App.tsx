@@ -743,8 +743,12 @@ export const App: React.FC = () => {
         chatHistory
       );
 
-      // If an actionable change occurred (e.g. node added/deleted, edge connected, traffic scaled)
+      // If an actionable change occurred (e.g. node added/deleted, edge connected, traffic scaled, detailed view)
       if (execResult.executed) {
+        if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
+          setViewMode(execResult.targetViewMode);
+        }
+
         let nextNodes = nodes;
         let nextEdges = edges;
         let nextRate = incomingTrafficRate;
@@ -752,8 +756,13 @@ export const App: React.FC = () => {
         if (execResult.updatedNodes) {
           nextNodes = execResult.updatedNodes;
           setNodes(nextNodes);
-          baseBasicGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
-          basicGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+          if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
+            detailedGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+            baseDetailedGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+          } else {
+            baseBasicGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+            basicGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+          }
         }
         if (execResult.updatedEdges) {
           nextEdges = execResult.updatedEdges;

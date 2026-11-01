@@ -9,6 +9,8 @@ export interface AgentCommandExecutionResult {
     | 'disconnect_nodes'
     | 'update_traffic'
     | 'scale_node'
+    | 'change_capacity'
+    | 'detailed_view'
     | 'analyze'
     | 'general';
   explanation: string;
@@ -16,6 +18,7 @@ export interface AgentCommandExecutionResult {
   updatedEdges?: ArchitectureEdge[];
   updatedTrafficRate?: number;
   updatedAnswers?: any;
+  targetViewMode?: 'basic' | 'detailed';
 }
 
 /**
@@ -456,6 +459,206 @@ export function executeArchitectureCommand(
   }
 
   // ───────────────────────────────────────────────────────────────────────────
+  // 0.5. DETAILED VIEW / ADVANCED ARCHITECTURE ("make design in detailed view", "detailed view", "advanced architect")
+  // ───────────────────────────────────────────────────────────────────────────
+  if (
+    lower.includes('detailed view') ||
+    lower.includes('detailed architect') ||
+    lower.includes('advanced design') ||
+    lower.includes('advanced architect') ||
+    lower.includes('detailed design') ||
+    (lower.includes('detailed') && (lower.includes('make') || lower.includes('architect') || lower.includes('design') || lower.includes('switch') || lower.includes('view') || lower.includes('show')))
+  ) {
+    const detailedNodes: ArchitectureNode[] = [
+      {
+        id: 'client-edge',
+        name: 'Client Ingress & Anycast CDN',
+        type: 'load_generator',
+        position: { x: 80, y: 320 },
+        capacityPerSecond: 25000,
+        workerCount: 1,
+        enabled: true,
+        config: { baselineLatencyMs: 2, maxQueueSize: 20000, overflowPolicy: 'reject', isSource: true },
+      },
+      {
+        id: 'api-gateway',
+        name: 'Envoy API Gateway & WAF',
+        type: 'gateway',
+        position: { x: 420, y: 320 },
+        capacityPerSecond: 8000,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 4, maxQueueSize: 10000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'core-service',
+        name: 'Core Application Service',
+        type: 'service',
+        position: { x: 780, y: 220 },
+        capacityPerSecond: 3000,
+        workerCount: 6,
+        enabled: true,
+        config: { baselineLatencyMs: 12, maxQueueSize: 5000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'kafka-broker',
+        name: 'Kafka Event Stream Buffer',
+        type: 'service',
+        position: { x: 780, y: 460 },
+        capacityPerSecond: 6000,
+        workerCount: 3,
+        enabled: true,
+        config: { baselineLatencyMs: 3, maxQueueSize: 25000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'worker-fleet',
+        name: 'Async Background Worker Fleet',
+        type: 'service',
+        position: { x: 1140, y: 460 },
+        capacityPerSecond: 2500,
+        workerCount: 8,
+        enabled: true,
+        config: { baselineLatencyMs: 20, maxQueueSize: 8000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'redis-cache',
+        name: 'Redis Cluster (Cache-Aside)',
+        type: 'cache',
+        position: { x: 1140, y: 140 },
+        capacityPerSecond: 10000,
+        workerCount: 3,
+        enabled: true,
+        config: { baselineLatencyMs: 1, maxQueueSize: 15000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'db-primary',
+        name: 'PostgreSQL Primary (PgBouncer)',
+        type: 'database',
+        position: { x: 1480, y: 240 },
+        capacityPerSecond: 2000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 22, maxQueueSize: 4000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'db-replica',
+        name: 'PostgreSQL Read Replicas (Multi-AZ)',
+        type: 'database',
+        position: { x: 1480, y: 400 },
+        capacityPerSecond: 3500,
+        workerCount: 3,
+        enabled: true,
+        config: { baselineLatencyMs: 15, maxQueueSize: 6000, overflowPolicy: 'reject' },
+      },
+    ];
+
+    const detailedEdges: ArchitectureEdge[] = [
+      {
+        id: 'e-edge-gw',
+        source: 'client-edge',
+        target: 'api-gateway',
+        requestsPerInput: 1.0,
+        enabled: true,
+        isBidirectional: true,
+        label: 'HTTPS / TLS 1.3',
+        communicationType: 'http',
+      },
+      {
+        id: 'e-gw-core',
+        source: 'api-gateway',
+        target: 'core-service',
+        requestsPerInput: 1.0,
+        enabled: true,
+        isBidirectional: true,
+        label: 'gRPC mTLS (Sync)',
+        communicationType: 'grpc',
+      },
+      {
+        id: 'e-gw-kafka',
+        source: 'api-gateway',
+        target: 'kafka-broker',
+        requestsPerInput: 0.4,
+        enabled: true,
+        isBidirectional: false,
+        label: 'Async Events (Write Spikes)',
+        communicationType: 'queue',
+      },
+      {
+        id: 'e-kafka-workers',
+        source: 'kafka-broker',
+        target: 'worker-fleet',
+        requestsPerInput: 1.0,
+        enabled: true,
+        isBidirectional: true,
+        label: 'Consumer Groups',
+        communicationType: 'queue',
+      },
+      {
+        id: 'e-core-redis',
+        source: 'core-service',
+        target: 'redis-cache',
+        requestsPerInput: 0.85,
+        enabled: true,
+        isBidirectional: true,
+        label: 'Cache Hit (85%)',
+        communicationType: 'cache',
+      },
+      {
+        id: 'e-core-replica',
+        source: 'core-service',
+        target: 'db-replica',
+        requestsPerInput: 0.15,
+        enabled: true,
+        isBidirectional: true,
+        label: 'Cache Miss Reads (15%)',
+        communicationType: 'db',
+      },
+      {
+        id: 'e-core-primary',
+        source: 'core-service',
+        target: 'db-primary',
+        requestsPerInput: 0.2,
+        enabled: true,
+        isBidirectional: true,
+        label: 'ACID Writes (WAL)',
+        communicationType: 'db',
+      },
+      {
+        id: 'e-workers-primary',
+        source: 'worker-fleet',
+        target: 'db-primary',
+        requestsPerInput: 0.8,
+        enabled: true,
+        isBidirectional: true,
+        label: 'Batch Mutations',
+        communicationType: 'db',
+      },
+      {
+        id: 'e-primary-replica',
+        source: 'db-primary',
+        target: 'db-replica',
+        requestsPerInput: 1.0,
+        enabled: true,
+        isBidirectional: false,
+        label: 'Sync Replication WAL',
+        communicationType: 'db',
+      },
+    ];
+
+    const targetLoad = Math.max(currentTrafficRate, 20000);
+
+    return {
+      executed: true,
+      actionType: 'detailed_view',
+      targetViewMode: 'detailed',
+      updatedNodes: detailedNodes,
+      updatedEdges: detailedEdges,
+      updatedTrafficRate: targetLoad,
+      explanation: `🏛️ **Detailed Architecture Mode Generated with Advanced Topics**:\n\n• **Multi-Region Anycast Edge**: Ingress CDN with GeoDNS routing & WAF protection (25,000 req/s capacity).\n• **API Gateway & Traffic Shaping**: Envoy proxy with Token Bucket rate-limiting & circuit breakers (4 workers @ 8,000 req/s = 32k req/s capacity).\n• **gRPC Internal Service Mesh**: Core Application Service cluster (6 workers @ 3,000 req/s = 18k req/s capacity).\n• **Decoupled Event Streaming**: Kafka partitioned broker (3 workers @ 6,000 req/s = 18k req/s buffer).\n• **Async Worker Fleet**: Autoscaled background consumers (8 workers @ 2,500 req/s = 20k req/s capacity).\n• **Cache-Aside Tier**: Redis Cluster with XFetch probabilistic stampede prevention (3 nodes @ 10,000 req/s = 30k req/s capacity).\n• **Resilient Storage**: PostgreSQL Primary with PgBouncer connection pooling (2 instances @ 2,000 req/s) + Multi-AZ Read Replicas (3 instances @ 3,500 req/s).\n\n⚡ **AI-Managed Load & Capacity**: Total incoming load configured to **${targetLoad.toLocaleString()} req/s** with healthy p99 latency across all 8 tiers.`,
+    };
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
   // 1. ADD COMPONENT / NODE
   // Patterns:
   // - "add component redis cache after api gateway"
@@ -777,14 +980,15 @@ export function executeArchitectureCommand(
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // 4. UPDATE TRAFFIC / LOAD RATE
+  // 4. UPDATE TRAFFIC / TOTAL LOAD RATE
   // Patterns:
   // - "set traffic to 5000"
   // - "increase traffic to 10k"
+  // - "change total load to 50k"
   // - "simulate 2500 req/s"
   // ───────────────────────────────────────────────────────────────────────────
   const trafficMatch = lower.match(
-    /(?:set|increase|change|scale|simulate|run)\s+(?:incoming\s+)?(?:traffic|load|rate|rps|requests)?\s*(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
+    /(?:set|increase|decrease|change|manage|tune|scale|simulate|run)\s+(?:the\s+)?(?:incoming\s+)?(?:total\s+)?(?:traffic|load|rate|rps|requests)?\s*(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
   );
 
   if (trafficMatch && (lower.includes('traffic') || lower.includes('load') || lower.includes('rps') || lower.includes('req/s'))) {
@@ -794,12 +998,48 @@ export function executeArchitectureCommand(
     else if (unit === 'm') val *= 1000000;
 
     if (!isNaN(val) && val > 0) {
-      const clamped = Math.min(Math.max(Math.round(val), 10), 100000);
+      const clamped = Math.min(Math.max(Math.round(val), 10), 200000);
       return {
         executed: true,
         actionType: 'update_traffic',
         updatedTrafficRate: clamped,
-        explanation: `⚡ **Traffic Scaled: ${clamped.toLocaleString()} req/s**\n\n• Updated incoming request simulation rate\n• Live metrics recalculating throughput, p99 latency, and bottleneck flags.`,
+        explanation: `⚡ **Total Load Re-Configured: ${clamped.toLocaleString()} req/s**\n\n• AI adjusted total incoming simulation load rate\n• Live metrics re-evaluated across all tiers (throughput, p99 latency, queue depth, and health status).`,
+      };
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 4.5. COMBINED SCALE WORKERS & CAPACITY ("scale backend to 6 workers with capacity 3000")
+  // ───────────────────────────────────────────────────────────────────────────
+  const combinedMatch = lower.match(
+    /(?:scale|set|configure)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|replicas)?\s*(?:with|and|at)\s*(?:capacity\s+)?([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|capacity)?/i
+  );
+  if (combinedMatch) {
+    const targetNode = findNodeByFuzzyName(combinedMatch[1], currentNodes);
+    const count = parseInt(combinedMatch[2], 10);
+    let cap = parseFloat(combinedMatch[3]);
+    const unit = (combinedMatch[4] || '').toLowerCase();
+    if (unit === 'k') cap *= 1000;
+    else if (unit === 'm') cap *= 1000000;
+
+    if (targetNode && !isNaN(count) && count >= 1 && count <= 50 && !isNaN(cap) && cap > 0) {
+      const clampedCap = Math.min(Math.max(Math.round(cap), 100), 200000);
+      const updatedNodes = currentNodes.map((n) => {
+        if (n.id === targetNode.id) {
+          return {
+            ...n,
+            workerCount: count,
+            capacityPerSecond: clampedCap,
+          };
+        }
+        return n;
+      });
+
+      return {
+        executed: true,
+        actionType: 'scale_node',
+        updatedNodes,
+        explanation: `⚙️ **AI Re-Configured ${targetNode.name}**:\n\n• Worker count: **${count} instances**\n• Single worker capacity: **${clampedCap.toLocaleString()} req/s**\n• Total effective capacity: **${(count * clampedCap).toLocaleString()} req/s**\n• Simulation re-computed live.`,
       };
     }
   }
@@ -809,10 +1049,10 @@ export function executeArchitectureCommand(
   // Pattern: "scale backend to 5 instances" or "set database workers to 4"
   // ───────────────────────────────────────────────────────────────────────────
   const scaleMatch = lower.match(
-    /(?:scale|set)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|pods|replicas)?/i
+    /(?:scale|set|increase|decrease)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|pods|replicas)?/i
   );
 
-  if (scaleMatch) {
+  if (scaleMatch && !lower.includes('capacity')) {
     const targetNode = findNodeByFuzzyName(scaleMatch[1], currentNodes);
     const count = parseInt(scaleMatch[2], 10);
 
@@ -832,6 +1072,49 @@ export function executeArchitectureCommand(
         actionType: 'scale_node',
         updatedNodes,
         explanation: `⚙️ **Scaled Component: ${targetNode.name}**\n\n• Worker count set to **${count} instances**\n• Total effective capacity: **${(targetNode.capacityPerSecond * count).toLocaleString()} req/s**\n• Simulation re-evaluated.`,
+      };
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 5.5. WORKER CAPACITY MANAGEMENT ("set worker capacity of backend to 3000 req/s", "change capacity of redis to 8000")
+  // ───────────────────────────────────────────────────────────────────────────
+  const capacityMatch =
+    lower.match(
+      /(?:set|change|increase|decrease|update|configure|tune)\s+(?:the\s+)?(?:worker\s+)?capacity\s+(?:of\s+)?([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
+    ) ||
+    lower.match(
+      /(?:set|change|increase|decrease|update|configure|tune)\s+([a-z0-9_\-\s]+?)\s+(?:worker\s+)?capacity\s+(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
+    );
+
+  if (capacityMatch) {
+    const targetQuery = capacityMatch[1].trim();
+    const targetNode = findNodeByFuzzyName(targetQuery, currentNodes);
+
+    let val = parseFloat(capacityMatch[2]);
+    const unit = (capacityMatch[3] || '').toLowerCase();
+    if (unit === 'k') val *= 1000;
+    else if (unit === 'm') val *= 1000000;
+
+    if (targetNode && !isNaN(val) && val > 0) {
+      const clampedCap = Math.min(Math.max(Math.round(val), 100), 200000);
+      const updatedNodes = currentNodes.map((n) => {
+        if (n.id === targetNode.id) {
+          return {
+            ...n,
+            capacityPerSecond: clampedCap,
+          };
+        }
+        return n;
+      });
+
+      const totalCap = clampedCap * targetNode.workerCount;
+
+      return {
+        executed: true,
+        actionType: 'change_capacity',
+        updatedNodes,
+        explanation: `⚡ **AI Managed Worker Capacity: ${targetNode.name}**\n\n• Single worker capacity set to **${clampedCap.toLocaleString()} req/s**\n• Active instances: **${targetNode.workerCount} workers**\n• Total effective node capacity: **${totalCap.toLocaleString()} req/s**\n• Recalculated live simulation utilization and queue dynamics.`,
       };
     }
   }
