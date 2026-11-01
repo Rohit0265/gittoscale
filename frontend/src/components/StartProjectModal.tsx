@@ -155,19 +155,6 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
           >
             {/* Header Bar */}
             <div className="flex items-center justify-between pb-4 mb-5 border-b border-neutral-800/80">
-              <div className="flex items-center space-x-3.5">
-                <div className="flex items-center space-x-2">
-                  <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
-                  <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
-                  <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
-                </div>
-                <div className="h-4 w-[1px] bg-neutral-800"></div>
-                <div className="flex items-center space-x-2 text-neutral-200 font-medium tracking-tight text-sm sm:text-base">
-                  <Wand2 className="w-4 h-4 text-neutral-400" />
-                  <span className="font-lora">Enter Idea or Import Repository</span>
-                </div>
-              </div>
-
               <div className="flex items-center space-x-2.5">
                 <div className="flex items-center space-x-2 bg-neutral-900/90 border border-neutral-800 px-2.5 py-1 rounded-full">
                   <span className="relative flex h-2 w-2">
