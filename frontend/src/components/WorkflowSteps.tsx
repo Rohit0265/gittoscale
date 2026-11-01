@@ -562,22 +562,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
           <div className="relative bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '580px' }}>
   
-            {/* Horizontal Hierarchy Flow Stages Ribbon */}
-            <div className="relative z-10 hidden md:flex items-center justify-between text-[10px] font-mono text-neutral-500 uppercase tracking-widest px-6 pb-2 border-b border-neutral-800/50 mb-2 select-none">
-              <div className="flex items-center gap-2 text-neutral-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                <span>01 · Ingress (Left)</span>
-              </div>
-              <ArrowRight className="w-3 h-3 text-neutral-600" />
-              <div className="text-neutral-400">02 · Routing &amp; Load Balancing</div>
-              <ArrowRight className="w-3 h-3 text-neutral-600" />
-              <div className="text-neutral-400">03 · Services, Caches &amp; Buffers</div>
-              <ArrowRight className="w-3 h-3 text-neutral-600" />
-              <div className="flex items-center gap-2 text-neutral-300">
-                <span>04 · Persistent Store (Right)</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              </div>
-            </div>
 
             {/* Horizontal Tree Canvas: sending traffic from left to right */}
             <div className="relative z-10 w-full overflow-x-auto py-2" style={{ minHeight: '480px' }}>
