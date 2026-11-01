@@ -250,7 +250,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowAddMenu(!showAddMenu)}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-medium text-xs transition-colors shadow-none cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 active:scale-95 text-white dark:text-neutral-200 font-medium text-xs transition-colors shadow-none cursor-pointer border border-slate-600 dark:border-neutral-700"
                 title="Add component to architecture"
               >
                 <Plus className="w-3.5 h-3.5" />

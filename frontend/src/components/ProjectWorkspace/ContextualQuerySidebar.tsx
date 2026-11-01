@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Send,
+  ArrowUp,
   RotateCcw,
   Bot,
   User,
@@ -628,10 +628,10 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         <button
           type="submit"
           disabled={!customInput.trim() || isProcessingCommand}
-          className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shrink-0 shadow-xs"
+          className="p-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shrink-0 shadow-xs"
           title="Execute instruction on playground"
         >
-          <Send className="w-3.5 h-3.5" />
+          <ArrowUp className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
         </button>
       </form>
       {/* Right Edge Resize Handle */}
