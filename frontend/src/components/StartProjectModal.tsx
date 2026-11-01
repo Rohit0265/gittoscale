@@ -145,28 +145,24 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
           transition={{ duration: 0.2, ease: 'easeOut' }}
           className="relative w-full max-w-2xl mx-auto flex flex-col items-center"
         >
+          {/* Close button outside */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute -top-9 right-0 p-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            title="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
           {/* Main Card */}
           <div
-            className="w-full rounded-2xl p-6 sm:p-7 border border-neutral-800/80 bg-[#12141a]/95 text-gray-200 backdrop-blur-xl shadow-2xl relative"
+            className="w-full rounded-2xl pt-5 pb-6 px-6 sm:pt-6 sm:pb-7 sm:px-7 border border-neutral-800/80 bg-[#12141a]/95 text-gray-200 backdrop-blur-xl shadow-2xl relative"
             style={{
               boxShadow:
                 '0 0 0 1px rgba(255, 255, 255, 0.08), 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 40px rgba(255, 255, 255, 0.02)',
             }}
           >
-            {/* Header Bar */}
-            <div className="flex items-end justify-end pb-4 mb-5">
-              <div className="space-x-2.5">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-                  title="Close"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
             {/* Description Subtext */}
             <p className="text-xs sm:text-sm text-neutral-400 mb-4 font-sans leading-relaxed">
               Enter a prompt for your system idea or import an existing repository to start simulating load and bottlenecks.
