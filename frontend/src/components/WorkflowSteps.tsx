@@ -561,33 +561,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
           {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
           <div className="relative bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '580px' }}>
-            {/* Floating Telemetry Metric Ribbon */}
-            <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                {currentStep.metrics.map((metric) => (
-                  <div
-                    key={metric.label}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neutral-800 bg-[#121217]/90 backdrop-blur-md text-xs font-mono shadow-sm"
-                  >
-                    <span className="text-neutral-500">{metric.label}:</span>
-                    <span className="font-semibold text-white">{metric.value}</span>
-                    {metric.trend && (
-                      <span className="text-[10px] text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/40">
-                        {metric.trend}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Step indicator tag */}
-              <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-neutral-800 bg-[#121217]/80 text-xs font-mono text-neutral-400">
-                <span className="font-bold text-neutral-200">{currentStep.stepNumber}</span>
-                <span>·</span>
-                <span>{currentStep.tagline}</span>
-              </div>
-            </div>
-
+  
             {/* Horizontal Hierarchy Flow Stages Ribbon */}
             <div className="relative z-10 hidden md:flex items-center justify-between text-[10px] font-mono text-neutral-500 uppercase tracking-widest px-6 pb-2 border-b border-neutral-800/50 mb-2 select-none">
               <div className="flex items-center gap-2 text-neutral-300">
