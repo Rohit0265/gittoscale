@@ -23,7 +23,6 @@ import {
   History,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
-import { GitHubStarButton } from './GitHubStarButton';
 import NewOne from './newOne';
 import WorkflowSteps from './WorkflowSteps';
 import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
@@ -522,14 +521,89 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             }`}
           >
             {/* Left: Brand Logo */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <img
                 src={isDark ? '/logo.png' : '/logo-light.png'}
                 alt="GitToScale"
+                onClick={() => {
+                  const el = document.getElementById('top');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className={`w-auto object-contain cursor-pointer transition-all ${
                   isApp ? 'h-8 sm:h-9 md:h-10' : 'h-6 sm:h-7'
                 }`}
               />
+            </div>
+
+            {/* Middle: Navigation Links */}
+            <nav className="flex items-center gap-0.5 sm:gap-1.5 md:gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('top');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                  active === 0
+                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                }`}
+              >
+                Home
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('features') || document.getElementById('step-1');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                  active >= 1 && active <= 4
+                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                }`}
+              >
+                Features
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('use-cases');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                  active === PAGES.indexOf('use-cases')
+                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                }`}
+              >
+                Use Cases
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('faq');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+                  active === PAGES.indexOf('faq')
+                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                }`}
+              >
+                FAQ
+              </button>
+            </nav>
+
+            {/* Right: Studio CTA */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={onSelectTestSite}
+                className="hidden sm:inline-flex items-center justify-center px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-semibold bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                Studio
+              </button>
             </div>
           </div>
 
@@ -743,12 +817,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
       {/* Sections 3–5: Interactive Workflow Steps Journey (01 Discover, 02 Simulate, 03 Detect) */}
-      <WorkflowSteps
-        onSelectTestSite={onSelectTestSite}
-        onSelectUseRepository={onSelectUseRepository}
-        onOpenRecommender={onOpenRecommender}
-        isDark={isDark}
-      />
+      <div id="features">
+        <WorkflowSteps
+          onSelectTestSite={onSelectTestSite}
+          onSelectUseRepository={onSelectUseRepository}
+          onOpenRecommender={onOpenRecommender}
+          isDark={isDark}
+        />
+      </div>
 
       {/* Section 7: Use Cases (#use-cases) */}
       <section
