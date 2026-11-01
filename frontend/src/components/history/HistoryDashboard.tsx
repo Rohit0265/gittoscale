@@ -370,48 +370,40 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
                     arch.architecture_data?.nodes?.length ||
                     (Array.isArray(arch.architecture_data) ? arch.architecture_data.length : 0);
 
+                  // Extract 3-4 words for the main heading
+                  const rawHeading = (arch.title || arch.prompt || '').trim();
+                  const headingWords = rawHeading.split(/\s+/).filter(Boolean);
+                  const cardHeading =
+                    headingWords.length <= 4
+                      ? headingWords.join(' ')
+                      : headingWords.slice(0, 4).join(' ') + '...';
+
                   return (
                     <div
                       key={arch.id}
                       onClick={() =>
                         onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title)
                       }
-                      className="group relative bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 hover:border-blue-500/50 dark:hover:border-blue-500/50 rounded-xl p-4.5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                      className="group relative bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 hover:border-slate-400 dark:hover:border-neutral-600 rounded-xl p-4.5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
                     >
                       <div>
-                        {/* Header: Title and Status */}
+                        {/* Header: Title only (status badge and subheading removed) */}
                         <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white line-clamp-1 group-hover:text-blue-500 transition-colors">
-                            {arch.title || arch.prompt.slice(0, 40)}
+                          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white line-clamp-1 group-hover:text-slate-700 dark:group-hover:text-neutral-200 transition-colors">
+                            {cardHeading}
                           </h3>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide shrink-0 ${
-                              arch.status === 'completed'
-                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'
-                                : arch.status === 'failed'
-                                ? 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/40'
-                                : 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40'
-                            }`}
-                          >
-                            {arch.status}
-                          </span>
                         </div>
-
-                        {/* Prompt Description */}
-                        <p className="text-xs text-slate-600 dark:text-neutral-400 line-clamp-3 mb-4 leading-relaxed font-normal">
-                          &ldquo;{arch.prompt}&rdquo;
-                        </p>
                       </div>
 
                       {/* Footer & Meta */}
                       <div>
                         <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-500 mb-3 pt-3 border-t border-slate-100 dark:border-neutral-800/60">
                           <div className="flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-blue-500 transition-colors" />
+                            <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
                             <span>{nodeCount} Components</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5" />
+                            <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
                             <span>{formatDate(arch.created_at)}</span>
                           </div>
                         </div>
@@ -419,10 +411,10 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
                         <div className="flex items-center justify-between gap-2">
                           <button
                             type="button"
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-semibold group-hover:bg-blue-600 group-hover:text-white transition-all cursor-pointer"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-slate-100 dark:bg-neutral-800/90 hover:bg-slate-200 dark:hover:bg-neutral-700/90 border border-slate-200 dark:border-neutral-700/80 text-slate-800 dark:text-neutral-200 text-xs font-semibold transition-all cursor-pointer"
                           >
-                            <span>Open in Canvas</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
+                            <span>Continue</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </button>
 
                           <button
