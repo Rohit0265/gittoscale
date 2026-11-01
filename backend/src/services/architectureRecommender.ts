@@ -145,6 +145,7 @@ CRITICAL ARCHITECTURE RULES:
    - Include a "load_generator" (e.g. User Traffic / Clients) as the root entry point.
    - Edges MUST connect existing node IDs with "source" and "target".
    - The graph MUST be a valid directed acyclic request flow.
+   - Each node's config.overflowPolicy MUST be either "reject" or "drop" (do NOT use "block" or "throttle").
 3. For each technology recommendation, provide category, name, reason, trade-offs, and viable alternatives.
 4. Provide structured data flows, security considerations, scaling strategy, and key trade-off decisions.
 5. DETAILED VIEW & ADVANCED TOPICS:
@@ -440,12 +441,18 @@ function validateAndSanitizeRecommendation(
         workerCount: Number(node.workerCount) || (type === 'gateway' ? 4 : 2),
         enabled: node.enabled !== false,
         config: {
-          baselineLatencyMs: Number(node.config?.baselineLatencyMs) || (type === 'database' ? 15 : type === 'cache' ? 2 : 10),
-          maxQueueSize: Number(node.config?.maxQueueSize) || 2000,
+          ...(node.config || {}),
+          baselineLatencyMs:
+            typeof node.config?.baselineLatencyMs === 'number' && !isNaN(node.config.baselineLatencyMs)
+              ? Math.max(0, node.config.baselineLatencyMs)
+              : (type === 'database' ? 15 : type === 'cache' ? 2 : 10),
+          maxQueueSize:
+            typeof node.config?.maxQueueSize === 'number' && !isNaN(node.config.maxQueueSize) && node.config.maxQueueSize > 0
+              ? node.config.maxQueueSize
+              : 2000,
           overflowPolicy: node.config?.overflowPolicy === 'drop' ? 'drop' : 'reject',
           isSource: type === 'load_generator',
-          defaultTrafficRate: type === 'load_generator' ? 1000 : undefined,
-          ...(node.config || {}),
+          defaultTrafficRate: type === 'load_generator' ? (Number(node.config?.defaultTrafficRate) || 1000) : undefined,
         },
       };
     });

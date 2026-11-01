@@ -3,7 +3,12 @@ import { z } from 'zod';
 export const nodeConfigSchema = z.object({
   baselineLatencyMs: z.number().min(0).default(10),
   maxQueueSize: z.number().min(0).default(2000),
-  overflowPolicy: z.enum(['drop', 'reject']).default('reject'),
+  overflowPolicy: z
+    .preprocess(
+      (val) => (val === 'drop' ? 'drop' : 'reject'),
+      z.enum(['drop', 'reject'])
+    )
+    .default('reject'),
   isSource: z.boolean().optional(),
   defaultTrafficRate: z.number().min(0).optional(),
 }).passthrough();
