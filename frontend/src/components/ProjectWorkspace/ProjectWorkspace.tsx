@@ -640,12 +640,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               onClick={() => setViewMode('basic')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'basic'
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
+                  ? 'bg-slate-700 dark:bg-neutral-800 text-white dark:text-neutral-100 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
               title="High-level architecture overview"
             >
-              <Layers className="w-3 h-3 hover:text-indigo-500 transition-colors" />
+              <Layers className="w-3 h-3 text-slate-300 dark:text-neutral-300 transition-colors" />
               <span>Basic View</span>
             </button>
             <button
@@ -653,12 +653,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               onClick={() => setViewMode('detailed')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'detailed'
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
+                  ? 'bg-slate-700 dark:bg-neutral-800 text-white dark:text-neutral-100 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
               title="Decomposed architecture: controllers, pools, worker queues & replicas"
             >
-              <Network className="w-3 h-3 hover:text-blue-500 transition-colors" />
+              <Network className="w-3 h-3 text-slate-300 dark:text-neutral-300 transition-colors" />
               <span>Detailed View</span>
             </button>
           </div>
