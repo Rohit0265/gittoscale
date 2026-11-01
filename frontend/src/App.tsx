@@ -384,7 +384,7 @@ export const App: React.FC = () => {
           setCurrentView('recommender');
         } else if (isAppDomain()) {
           setCurrentView('simulator');
-          if (!activePromptText && !activeProject?.prompt) {
+          if (!activePromptText && !activeProject?.prompt && !activeProject?.projectId) {
             setIsStartProjectModalOpen(true);
           }
         } else {
