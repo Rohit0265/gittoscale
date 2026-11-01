@@ -526,7 +526,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
           {/* Canvas Window Chrome / Toolbar Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-[#111116] text-xs font-mono select-none">
             {/* Left: macOS Window Controls & Breadcrumbs */}
-            <div className="flex items-center gap-3 min-w-0">
+            {/* <div className="flex items-center gap-3 min-w-0">
               <div className="flex items-center gap-1.5 shrink-0">
                 <span className="w-3 h-3 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]" />
                 <span className="w-3 h-3 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]" />
@@ -537,7 +537,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                 <span className="text-neutral-500">gitoscale /</span>
                 <span className="text-neutral-200 font-semibold truncate">{currentStep.canvasTitle}</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
