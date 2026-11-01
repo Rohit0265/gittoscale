@@ -154,8 +154,8 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
             }}
           >
             {/* Header Bar */}
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-neutral-800/80">
-              <div className="flex items-center space-x-2.5">
+            <div className="flex items-end  pb-4 mb-5 border-b border-neutral-800/80">
+              <div className="space-x-2.5">
                 <button
                   type="button"
                   onClick={onClose}
