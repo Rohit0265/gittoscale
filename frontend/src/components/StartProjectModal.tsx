@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Sparkles,
   ArrowUp,
   Zap,
   Database,
@@ -8,7 +7,6 @@ import {
   ShieldCheck,
   GitBranch,
   X,
-  Wand2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -57,7 +55,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
   onClose,
   onSubmitPrompt,
   onOpenImportRepo,
-  onGoHome,
+  onGoHome: _onGoHome,
   isDark: _isDark,
 }) => {
   const [query, setQuery] = useState('');
