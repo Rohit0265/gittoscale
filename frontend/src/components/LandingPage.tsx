@@ -499,27 +499,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     >
       <PageDots active={active} />
 
-      {/* Section 1: Hero Header & Content (#top) */}
+      {/* Sticky Top Navbar Header */}
       <header
-        id="top"
-        className="relative flex min-h-screen snap-start flex-col justify-between bg-white dark:bg-[#060709]"
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 pointer-events-none ${
+          isApp
+            ? 'border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#020202]/90 backdrop-blur px-3 sm:px-6 md:px-8 h-16 flex items-center justify-between pointer-events-auto'
+            : 'pt-3 sm:pt-4 px-3 sm:px-6 flex items-center justify-center gap-2 sm:gap-3'
+        }`}
       >
-        {/* Top Navbar Header */}
+        {/* Centered Floating Pill Navbar */}
         <div
-          className={`w-full z-30 transition-all duration-300 ${
+          className={`pointer-events-auto flex items-center justify-between transition-all duration-300 ${
             isApp
-              ? 'border-b border-slate-200/80 dark:border-neutral-800 bg-white/90 dark:bg-[#020202]/90 backdrop-blur px-3 sm:px-6 md:px-8 h-16 flex items-center justify-between'
-              : 'pt-3 sm:pt-4 px-3 sm:px-6 flex items-center justify-center gap-2 sm:gap-3'
+              ? 'h-full flex-1 max-w-none'
+              : 'h-12 sm:h-13 w-full max-w-4xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#020202]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
           }`}
         >
-          {/* Centered Floating Pill Navbar */}
-          <div
-            className={`flex items-center justify-between transition-all duration-300 ${
-              isApp
-                ? 'h-full flex-1 max-w-none'
-                : 'h-12 sm:h-13 w-full max-w-4xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#020202]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
-            }`}
-          >
             {/* Left: Brand Logo */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <img
@@ -597,7 +592,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Standalone Profile Button & Dropdown Outside Navbar */}
-          <div ref={profileRef} className="relative shrink-0">
+          <div ref={profileRef} className="pointer-events-auto relative shrink-0">
             <button
               type="button"
               onClick={() => setIsProfileOpen((prev) => !prev)}
@@ -768,25 +763,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               )}
             </AnimatePresence>
           </div>
-        </div>
+        </header>
 
+        {/* Section 1: Hero Header & Content (#top) */}
+        <section
+          id="top"
+          className="relative flex min-h-screen snap-start flex-col justify-between bg-white dark:bg-[#060709] pt-16 sm:pt-20"
+        >
+          {/* New UI Section */}
+          <NewOne
+            onSelectTestSite={onSelectTestSite}
+            onSelectUseRepository={onSelectUseRepository}
+            onOpenRecommender={onOpenRecommender}
+            onOpenAuth={onOpenAuth}
+            onStartProject={onStartProject}
+            isDark={isDark}
+          />
 
-        {/* New UI Section */}
-        <NewOne
-          onSelectTestSite={onSelectTestSite}
-          onSelectUseRepository={onSelectUseRepository}
-          onOpenRecommender={onOpenRecommender}
-          onOpenAuth={onOpenAuth}
-          onStartProject={onStartProject}
-          isDark={isDark}
-        />
+          {/* Hero Body Grid */}
+    
 
-        {/* Hero Body Grid */}
-  
-
-        {/* Subtle Bottom Spacer */}
-        <div className="h-4" />
-      </header>
+          {/* Subtle Bottom Spacer */}
+          <div className="h-4" />
+        </section>
 
       {/* Section 2: Project Overview (#demo) */}
       {/* <section
@@ -806,7 +805,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
       {/* Sections 3–5: Interactive Workflow Steps Journey (01 Discover, 02 Simulate, 03 Detect) */}
-      <div id="features">
+      <div id="features" className="scroll-mt-20">
         <WorkflowSteps
           onSelectTestSite={onSelectTestSite}
           onSelectUseRepository={onSelectUseRepository}
@@ -818,7 +817,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Section 7: Use Cases (#use-cases) */}
       <section
         id="use-cases"
-        className="relative flex min-h-screen snap-start flex-col justify-center px-6 sm:px-10 py-20"
+        className="relative flex min-h-screen snap-start flex-col justify-center px-6 sm:px-10 py-20 scroll-mt-20"
       >
         <div className="mx-auto w-full max-w-6xl">
           <div className="mb-12 max-w-2xl">
@@ -907,7 +906,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {children}
 
       {/* Section 11: Frequently Asked Questions (#faq) */}
-      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202]">
+      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202] scroll-mt-20">
         <FrequentlyAskedQuestions
           title="Frequently Asked Questions"
           description="Everything you need to know about GitToScale text-to-system design, repository architecture scanning, and distributed load simulation."
