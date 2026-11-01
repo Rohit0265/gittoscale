@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  Bot,
-  Zap,
-  CheckCircle2,
   ArrowRight,
+  Boxes,
+  CheckCircle2,
+  CircleDot,
+  Cpu,
+  Database,
+  GitBranch,
+  Layers,
+  RefreshCw,
+  Server,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 
 export interface WorkflowStepsProps {
@@ -14,348 +22,893 @@ export interface WorkflowStepsProps {
   isDark?: boolean;
 }
 
-const AI_COMPLETION_SCENARIOS = [
+interface CanvasStepData {
+  id: string;
+  stepNumber: string;
+  tabLabel: string;
+  tagline: string;
+  title: string;
+  description: string;
+  canvasTitle: string;
+  simStatus: string;
+  metrics: {
+    label: string;
+    value: string;
+    trend?: string;
+  }[];
+  nodes: {
+    id: string;
+    label: string;
+    type: string;
+    badge: string;
+    status: 'normal' | 'warning' | 'critical' | 'injected';
+    latency: string;
+    load: string;
+    icon: React.ElementType;
+    x: number;
+    y: number;
+  }[];
+  connections: {
+    from: string;
+    to: string;
+    flowStatus: 'healthy' | 'stressed' | 'rerouted';
+  }[];
+  aiRecommendation?: {
+    action: string;
+    impact: string;
+    observed: string;
+  };
+}
+
+const WORKFLOW_STEPS: CanvasStepData[] = [
   {
-    id: 'decouple',
-    label: 'Decouple Flow',
-    prompt: 'Billing Service is at 80% capacity. Inject a queue to decouple payments.',
-    action: 'Injected Kafka buffer & 3x worker consumer pool',
-    nodes: [
-      { name: 'Billing Service', badge: 'Warning 80%', isInjected: false, color: 'text-amber-300 border-amber-500/50 bg-amber-950/30' },
-      { name: 'Kafka Queue', badge: '⚡ Injected Queue', isInjected: true, color: 'text-emerald-300 border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/30' },
-      { name: 'Worker Pool (3x)', badge: '⚡ Auto-scaled', isInjected: true, color: 'text-emerald-300 border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/30' },
-      { name: 'Payment DB', badge: 'Normal · 12%', isInjected: false, color: 'text-neutral-200 border-neutral-700 bg-neutral-900/60' },
+    id: 'step-1',
+    stepNumber: '01 / MAP',
+    tabLabel: '01. Map & Ingest',
+    tagline: 'Text to Architecture & Codebase Discovery',
+    title: 'Design from text prompt or scan your repo.',
+    description:
+      'Describe any distributed system in natural language or import a GitHub repository. GitToScale parses topology, service boundaries, and data contracts into an interactive visual canvas.',
+    canvasTitle: 'e-commerce-fleet-topology.gts',
+    simStatus: 'Topology Synced · 12 Services Mapped',
+    metrics: [
+      { label: 'Services', value: '12 Active' },
+      { label: 'Protocols', value: 'gRPC / HTTPS' },
+      { label: 'Graph Depth', value: '4 Tiers' },
     ],
-    metric: 'Saturation: 80% → 12%',
-    latency: 'p95: 184ms → 22ms (-88%)',
+    nodes: [
+      {
+        id: 'client',
+        label: 'Client Traffic',
+        type: 'Edge Client',
+        badge: 'Global Edge',
+        status: 'normal',
+        latency: '14ms',
+        load: '15.4k rps',
+        icon: CircleDot,
+        x: 7,
+        y: 50,
+      },
+      {
+        id: 'gateway',
+        label: 'API Gateway',
+        type: 'Kong Envoy',
+        badge: 'Load Balancer',
+        status: 'normal',
+        latency: '22ms',
+        load: '15.4k rps',
+        icon: GitBranch,
+        x: 27,
+        y: 50,
+      },
+      {
+        id: 'orders',
+        label: 'Order Service',
+        type: 'Microservice',
+        badge: 'Node / Go',
+        status: 'normal',
+        latency: '48ms',
+        load: '9.2k rps',
+        icon: Server,
+        x: 58,
+        y: 25,
+      },
+      {
+        id: 'payments',
+        label: 'Payment Service',
+        type: 'Microservice',
+        badge: 'Python Worker',
+        status: 'normal',
+        latency: '62ms',
+        load: '6.2k rps',
+        icon: Cpu,
+        x: 58,
+        y: 75,
+      },
+      {
+        id: 'db',
+        label: 'Primary Postgres',
+        type: 'Relational DB',
+        badge: 'Storage',
+        status: 'normal',
+        latency: '8ms',
+        load: '42% Pool',
+        icon: Database,
+        x: 91,
+        y: 50,
+      },
+    ],
+    connections: [
+      { from: 'client', to: 'gateway', flowStatus: 'healthy' },
+      { from: 'gateway', to: 'orders', flowStatus: 'healthy' },
+      { from: 'gateway', to: 'payments', flowStatus: 'healthy' },
+      { from: 'orders', to: 'db', flowStatus: 'healthy' },
+      { from: 'payments', to: 'db', flowStatus: 'healthy' },
+    ],
   },
   {
-    id: 'cache',
-    label: 'Inject Cache',
-    prompt: 'Database connection pool reached 92%. Add Redis caching between API and DB.',
-    action: 'Injected Redis Cache tier with 98% target hit rate',
-    nodes: [
-      { name: 'API Gateway', badge: 'Active', isInjected: false, color: 'text-neutral-200 border-neutral-700 bg-neutral-900/60' },
-      { name: 'Redis Cache', badge: '⚡ 98% Hit Rate', isInjected: true, color: 'text-emerald-300 border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/30' },
-      { name: 'Postgres DB', badge: 'Pool load · 14%', isInjected: false, color: 'text-neutral-200 border-neutral-700 bg-neutral-900/60' },
+    id: 'step-2',
+    stepNumber: '02 / SIMULATE',
+    tabLabel: '02. Stress Simulation',
+    tagline: 'Realistic Distributed Load Testing',
+    title: 'Stress-test before production does.',
+    description:
+      'Inject synthetic traffic spikes from 1k to 100k RPS. Trace cascading latency across every network hop and observe queue saturation, rate limits, and database pool depletion live.',
+    canvasTitle: 'traffic-surge-simulation-10x.sim',
+    simStatus: 'Simulation Active · 45,000 req/s Surge',
+    metrics: [
+      { label: 'Incoming Load', value: '45,200 RPS', trend: '+900%' },
+      { label: 'p95 Latency', value: '380ms', trend: '+420%' },
+      { label: 'Error Rate', value: '4.8%', trend: 'Spike' },
     ],
-    metric: 'DB Queries: -86% read pressure',
-    latency: 'Latency: 120ms → 8ms (-93%)',
+    nodes: [
+      {
+        id: 'client',
+        label: 'Spike Traffic',
+        type: 'Synthetic Load',
+        badge: '45k RPS Surge',
+        status: 'warning',
+        latency: '34ms',
+        load: '45.2k rps',
+        icon: Zap,
+        x: 7,
+        y: 50,
+      },
+      {
+        id: 'gateway',
+        label: 'API Gateway',
+        type: 'Kong Envoy',
+        badge: 'Rate Limit 80%',
+        status: 'warning',
+        latency: '82ms',
+        load: '45.2k rps',
+        icon: GitBranch,
+        x: 27,
+        y: 50,
+      },
+      {
+        id: 'orders',
+        label: 'Order Service',
+        type: 'Microservice',
+        badge: 'CPU 91%',
+        status: 'critical',
+        latency: '240ms',
+        load: '28.1k rps',
+        icon: Server,
+        x: 58,
+        y: 25,
+      },
+      {
+        id: 'payments',
+        label: 'Payment Service',
+        type: 'Microservice',
+        badge: 'Thread Pool Starved',
+        status: 'critical',
+        latency: '380ms',
+        load: '17.1k rps',
+        icon: Cpu,
+        x: 58,
+        y: 75,
+      },
+      {
+        id: 'db',
+        label: 'Primary Postgres',
+        type: 'Relational DB',
+        badge: 'Conn Pool 96%',
+        status: 'critical',
+        latency: '112ms',
+        load: '96% Pool',
+        icon: Database,
+        x: 91,
+        y: 50,
+      },
+    ],
+    connections: [
+      { from: 'client', to: 'gateway', flowStatus: 'stressed' },
+      { from: 'gateway', to: 'orders', flowStatus: 'stressed' },
+      { from: 'gateway', to: 'payments', flowStatus: 'stressed' },
+      { from: 'orders', to: 'db', flowStatus: 'stressed' },
+      { from: 'payments', to: 'db', flowStatus: 'stressed' },
+    ],
   },
   {
-    id: 'replica',
-    label: 'Auto-Scale',
-    prompt: 'Traffic surging to 20,000 req/s. Complete topology to eliminate SPOF.',
-    action: 'Added dynamic Load Balancer & 2x Read Replicas',
-    nodes: [
-      { name: 'Load Balancer', badge: '⚡ Injected Proxy', isInjected: true, color: 'text-emerald-300 border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/30' },
-      { name: 'Primary DB', badge: 'Writes Only', isInjected: false, color: 'text-neutral-200 border-neutral-700 bg-neutral-900/60' },
-      { name: 'Replica Pool (2x)', badge: '⚡ Read Replicas', isInjected: true, color: 'text-emerald-300 border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/30' },
+    id: 'step-3',
+    stepNumber: '03 / DIAGNOSE',
+    tabLabel: '03. Bottleneck Analysis',
+    tagline: 'Automated Root-Cause Diagnostics',
+    title: 'Find the bottleneck before the outage.',
+    description:
+      'GitToScale automatically audits your system topology during load, identifying single points of failure (SPOFs), unbuffered synchronous calls, and memory saturation before deployment.',
+    canvasTitle: 'root-cause-diagnostics-report.log',
+    simStatus: 'Audit Completed · 3 Critical Hazards Found',
+    metrics: [
+      { label: 'Identified Hazards', value: '3 Bottlenecks' },
+      { label: 'SPOF Risk', value: 'Critical (Primary DB)' },
+      { label: 'Backpressure', value: 'Unbuffered Sync' },
     ],
-    metric: 'Capacity: 800 → 20,000 req/s',
-    latency: 'Zero dropped requests (99.99%)',
+    nodes: [
+      {
+        id: 'client',
+        label: 'Client Traffic',
+        type: 'Edge Client',
+        badge: 'Normal Flow',
+        status: 'normal',
+        latency: '18ms',
+        load: '20.0k rps',
+        icon: CircleDot,
+        x: 7,
+        y: 50,
+      },
+      {
+        id: 'gateway',
+        label: 'API Gateway',
+        type: 'Kong Envoy',
+        badge: 'Passing',
+        status: 'normal',
+        latency: '24ms',
+        load: '20.0k rps',
+        icon: GitBranch,
+        x: 27,
+        y: 50,
+      },
+      {
+        id: 'orders',
+        label: 'Order Service',
+        type: 'Microservice',
+        badge: 'SPOF Warning',
+        status: 'warning',
+        latency: '140ms',
+        load: '12.0k rps',
+        icon: Server,
+        x: 58,
+        y: 25,
+      },
+      {
+        id: 'payments',
+        label: 'Payment Service',
+        type: 'Microservice',
+        badge: 'Queue Required',
+        status: 'critical',
+        latency: '290ms',
+        load: '8.0k rps',
+        icon: Cpu,
+        x: 58,
+        y: 75,
+      },
+      {
+        id: 'db',
+        label: 'Primary Postgres',
+        type: 'Relational DB',
+        badge: 'Connection Starvation',
+        status: 'critical',
+        latency: '94ms',
+        load: '94% Limit',
+        icon: Database,
+        x: 91,
+        y: 50,
+      },
+    ],
+    connections: [
+      { from: 'client', to: 'gateway', flowStatus: 'healthy' },
+      { from: 'gateway', to: 'orders', flowStatus: 'stressed' },
+      { from: 'gateway', to: 'payments', flowStatus: 'stressed' },
+      { from: 'orders', to: 'db', flowStatus: 'stressed' },
+      { from: 'payments', to: 'db', flowStatus: 'stressed' },
+    ],
+  },
+  {
+    id: 'step-4',
+    stepNumber: '04 / HEAL',
+    tabLabel: '04. AI Auto-Healing',
+    tagline: 'Autonomous Architectural Healing & Scale',
+    title: 'Design with AI, scale, and auto-heal bottlenecks.',
+    description:
+      'With one click or conversational prompt, the AI Architect injects Kafka queue buffers, provisioned Redis cache tiers, and auto-scaled read replicas to restore 99.99% availability.',
+    canvasTitle: 'ai-healed-resilient-topology.flow',
+    simStatus: 'AI Remediation Applied · Zero Dropped Packets',
+    metrics: [
+      { label: 'Saturation', value: '94% → 14%', trend: '-85%' },
+      { label: 'p95 Latency', value: '380ms → 22ms', trend: '-94%' },
+      { label: 'Availability', value: '99.99%', trend: 'Restored' },
+    ],
+    nodes: [
+      {
+        id: 'client',
+        label: 'Client Traffic',
+        type: 'Edge Client',
+        badge: 'Protected',
+        status: 'normal',
+        latency: '12ms',
+        load: '50.0k rps',
+        icon: CircleDot,
+        x: 6,
+        y: 50,
+      },
+      {
+        id: 'gateway',
+        label: 'API Gateway',
+        type: 'Kong Envoy',
+        badge: 'Healed Routing',
+        status: 'normal',
+        latency: '16ms',
+        load: '50.0k rps',
+        icon: GitBranch,
+        x: 24,
+        y: 50,
+      },
+      {
+        id: 'redis',
+        label: 'Redis Cache',
+        type: 'In-Memory Tier',
+        badge: '⚡ Injected 98% Hit',
+        status: 'injected',
+        latency: '4ms',
+        load: '32k hits',
+        icon: Layers,
+        x: 50,
+        y: 25,
+      },
+      {
+        id: 'kafka',
+        label: 'Kafka Queue Buffer',
+        type: 'Event Broker',
+        badge: '⚡ Decoupled Buffer',
+        status: 'injected',
+        latency: '8ms',
+        load: '18k msgs',
+        icon: Boxes,
+        x: 50,
+        y: 75,
+      },
+      {
+        id: 'workers',
+        label: 'Scaled Worker Fleet',
+        type: 'Consumer Pool',
+        badge: '⚡ Auto-Scaled 4x',
+        status: 'injected',
+        latency: '18ms',
+        load: '18k rps',
+        icon: Cpu,
+        x: 72,
+        y: 75,
+      },
+      {
+        id: 'db',
+        label: 'Postgres + Replicas',
+        type: 'HA Cluster',
+        badge: '1 Primary / 2 Read',
+        status: 'normal',
+        latency: '9ms',
+        load: '14% Healthy',
+        icon: Database,
+        x: 92,
+        y: 50,
+      },
+    ],
+    connections: [
+      { from: 'client', to: 'gateway', flowStatus: 'healthy' },
+      { from: 'gateway', to: 'redis', flowStatus: 'rerouted' },
+      { from: 'gateway', to: 'kafka', flowStatus: 'rerouted' },
+      { from: 'kafka', to: 'workers', flowStatus: 'rerouted' },
+      { from: 'redis', to: 'db', flowStatus: 'healthy' },
+      { from: 'workers', to: 'db', flowStatus: 'healthy' },
+    ],
+    aiRecommendation: {
+      action: 'Injected Kafka queue buffer, Redis read cache, and 2x Postgres Read Replicas',
+      impact: 'p95 latency reduced from 380ms to 22ms. Database pool load dropped from 94% to 14%.',
+      observed: 'Zero dropped requests at 50,000 RPS peak load.',
+    },
   },
 ];
 
 export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
-  onSelectTestSite: _onSelectTestSite,
+  onSelectTestSite,
   onSelectUseRepository: _onSelectUseRepository,
   onOpenRecommender: _onOpenRecommender,
-  isDark: _isDark,
 }) => {
-  // Interactive state for Step 04 (AI flow completion scenario)
-  const [activeScenario, setActiveScenario] = useState<number>(0);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
 
-  const currentScenario = AI_COMPLETION_SCENARIOS[activeScenario];
+  const currentStep = WORKFLOW_STEPS[activeStepIndex];
+
+  const handleTriggerSim = () => {
+    setIsSimulating(true);
+    if (onSelectTestSite) {
+      setTimeout(() => {
+        onSelectTestSite();
+      }, 700);
+    } else {
+      setTimeout(() => {
+        setIsSimulating(false);
+      }, 1800);
+    }
+  };
+
+  // Helper to compute smooth horizontal tree S-curve paths between nodes
+  const getPathCoordinates = (
+    fromNode: (typeof currentStep.nodes)[0],
+    toNode: (typeof currentStep.nodes)[0]
+  ) => {
+    const x1 = fromNode.x * 10;
+    const y1 = fromNode.y * 5;
+    const x2 = toNode.x * 10;
+    const y2 = toNode.y * 5;
+
+    // Card half-width in 1000x500 coordinates
+    const cardHalfWidth = 76;
+    const startX = x1 + cardHalfWidth;
+    const startY = y1;
+    const endX = x2 - cardHalfWidth;
+    const endY = y2;
+
+    const dx = Math.max(30, (endX - startX) * 0.5);
+    return {
+      startX,
+      startY,
+      endX,
+      endY,
+      d: `M ${startX} ${startY} C ${startX + dx} ${startY}, ${endX - dx} ${endY}, ${endX} ${endY}`,
+    };
+  };
 
   return (
     <section
       id="steps-section"
-      className="relative w-full bg-transparent text-slate-900 dark:text-white py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-10 lg:px-14 overflow-hidden font-sans"
+      className="relative overflow-hidden bg-black px-4 py-16 text-white sm:px-6 sm:py-24 lg:px-12 select-none font-sans"
     >
-      {/* Background Subtle Blueprint Grid Pattern matching hero */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.35] dark:opacity-[0.20]"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-        }}
-      />
+      <div className="relative mx-auto max-w-7xl">
+        {/* Top Header Section */}
+        <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-[#121217] text-neutral-400 font-mono text-[11px] uppercase tracking-widest mb-4 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
+            <span>Workflow Builder &amp; Simulation Engine</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-[-0.04em] text-white leading-[1.08]">
+            Design, simulate, and scale with visual control.
+          </h2>
+          <p className="mt-4 text-base sm:text-lg text-neutral-400 max-w-2xl leading-relaxed">
+            A unified visual canvas for drafting distributed architectures from natural language or code,
+            stress-testing microservices under synthetic load, and healing bottlenecks with AI.
+          </p>
+        </div>
 
-      {/* 1. SECTION HEADER: "From codebase to confidence." */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto mb-10 sm:mb-14 md:mb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-end">
-          {/* Left Column: Eyebrow + Main Headline */}
-          <div className="lg:col-span-8 flex flex-col items-start text-left">
-            <h2 className="font-lora text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-bold tracking-[-0.025em] leading-[1.08] select-none">
-              <span className="block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent drop-shadow-xs">
-                Features
-              </span>
-            </h2>
+        {/* Voiceflow-Style Navigation Tab Switcher */}
+        <div className="mb-6 flex items-center justify-center">
+          <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-[#0f0f13] border border-neutral-800 shadow-xl max-w-full overflow-x-auto">
+            {WORKFLOW_STEPS.map((step, idx) => {
+              const isActive = activeStepIndex === idx;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveStepIndex(idx);
+                    setSelectedNodeId(null);
+                  }}
+                  className={`relative flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-mono text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? 'bg-neutral-800 text-white shadow-md border border-neutral-700/80'
+                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/60'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-neutral-600'
+                    }`}
+                  />
+                  <span>{step.tabLabel}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>
 
-      {/* 2. STEPS CONTAINER */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col gap-12 sm:gap-16 md:gap-20">
-        {/* STEP 01: DISCOVER */}
-        <div
-          id="step-1"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
-        >
-          {/* Left Column: Visual Card (Architecture Map Image) */}
-          <div className="lg:col-span-7 w-full">
-            <div className="group relative w-full bg-[#08090d] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-3 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
-              <img
-                src="/architecture-map.jpg"
-                alt="GitToScale Architecture Map"
-                className="w-full h-auto object-contain rounded-xl select-none"
-                loading="eager"
-              />
+        {/* Voiceflow-Style Main Workflow Builder Canvas Showcase */}
+        <div className="relative rounded-2xl border border-neutral-800 bg-[#0c0c10] shadow-2xl overflow-hidden mb-12 sm:mb-16">
+          {/* Canvas Window Chrome / Toolbar Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-[#111116] text-xs font-mono select-none">
+            {/* Left: macOS Window Controls & Breadcrumbs */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="w-3 h-3 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]" />
+                <span className="w-3 h-3 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]" />
+                <span className="w-3 h-3 rounded-full bg-[#27c93f]/80 border border-[#1aab29]" />
+              </div>
+              <div className="h-4 w-[1px] bg-neutral-800 mx-1 hidden sm:block" />
+              <div className="flex items-center gap-2 text-neutral-400 truncate">
+                <span className="text-neutral-500">gitoscale /</span>
+                <span className="text-neutral-200 font-semibold truncate">{currentStep.canvasTitle}</span>
+              </div>
+            </div>
+
+            {/* Right: Live Status Indicator & Action Buttons */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-900 border border-neutral-800 text-[11px] text-neutral-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                {currentStep.simStatus}
+              </span>
+
+              <button
+                type="button"
+                onClick={handleTriggerSim}
+                disabled={isSimulating}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white hover:bg-neutral-200 text-black text-xs font-semibold font-mono transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                title="Run synthetic simulation on this canvas"
+              >
+                <RefreshCw className={`w-3 h-3 ${isSimulating ? 'animate-spin' : ''}`} />
+                <span>{isSimulating ? 'Simulating...' : 'Simulate Load'}</span>
+              </button>
             </div>
           </div>
 
-          {/* Right Column: Step Copy */}
-          <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
-              <span
-                aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
-              />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                Design from text prompt or scan your repo.
-              </span>
-            </h3>
-            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Describe any architecture in natural language to generate instant distributed systems, or import a GitHub repository to auto-map services, queues, databases, and dependencies.
-            </p>
-          </div>
-        </div>
+          {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
+          <div className="relative bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '580px' }}>
+            {/* Floating Telemetry Metric Ribbon */}
+            <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                {currentStep.metrics.map((metric) => (
+                  <div
+                    key={metric.label}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neutral-800 bg-[#121217]/90 backdrop-blur-md text-xs font-mono shadow-sm"
+                  >
+                    <span className="text-neutral-500">{metric.label}:</span>
+                    <span className="font-semibold text-white">{metric.value}</span>
+                    {metric.trend && (
+                      <span className="text-[10px] text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/40">
+                        {metric.trend}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
 
-        {/* Line of Separation after Step 1 */}
-        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
-
-        {/* STEP 02: SIMULATE (Reversed Layout) */}
-        <div
-          id="step-2"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
-        >
-          {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
-          <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
-              <span
-                aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
-              />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                Stress-test before production does.
-              </span>
-            </h3>
-            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Run synthetic workloads on text-generated blueprints or scanned repositories. Model traffic surges, cache misses, database saturation, and cascade failure paths in real time.
-            </p>
-          </div>
-
-          {/* Right Column: Visual Card (Simulation Demo Video) */}
-          <div className="lg:col-span-7 w-full order-1 lg:order-2">
-            <div className="group relative w-full bg-[#08090d] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-3 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
-              <video
-                src="/simulation-demo.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-auto object-contain rounded-xl select-none"
-              />
+              {/* Step indicator tag */}
+              <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-neutral-800 bg-[#121217]/80 text-xs font-mono text-neutral-400">
+                <span className="font-bold text-neutral-200">{currentStep.stepNumber}</span>
+                <span>·</span>
+                <span>{currentStep.tagline}</span>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Line of Separation after Step 2 */}
-        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
-
-        {/* STEP 03: DETECT */}
-        <div
-          id="step-3"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
-        >
-          {/* Left Column: Visual Card (Bottleneck Detection Image) */}
-          <div className="lg:col-span-7 w-full">
-            <div className="group relative w-full bg-[#08090d] border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl shadow-slate-200/40 dark:shadow-none p-2 sm:p-3 flex items-center justify-center overflow-hidden transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700">
-              <img
-                src="/detect-bottleneck.png"
-                alt="GitToScale Bottleneck Detection & Inspector"
-                className="w-full h-auto object-contain rounded-xl select-none"
-                loading="eager"
-              />
+            {/* Horizontal Hierarchy Flow Stages Ribbon */}
+            <div className="relative z-10 hidden md:flex items-center justify-between text-[10px] font-mono text-neutral-500 uppercase tracking-widest px-6 pb-2 border-b border-neutral-800/50 mb-2 select-none">
+              <div className="flex items-center gap-2 text-neutral-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span>01 · Ingress (Left)</span>
+              </div>
+              <ArrowRight className="w-3 h-3 text-neutral-600" />
+              <div className="text-neutral-400">02 · Routing &amp; Load Balancing</div>
+              <ArrowRight className="w-3 h-3 text-neutral-600" />
+              <div className="text-neutral-400">03 · Services, Caches &amp; Buffers</div>
+              <ArrowRight className="w-3 h-3 text-neutral-600" />
+              <div className="flex items-center gap-2 text-neutral-300">
+                <span>04 · Persistent Store (Right)</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              </div>
             </div>
-          </div>
 
-          {/* Right Column: Step Copy */}
-          <div className="lg:col-span-5 flex flex-col items-start text-left">
-            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
-              <span
-                aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
-              />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                Find the bottleneck before the outage.
-              </span>
-            </h3>
-            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Detect queue congestion, connection pool starvation, and single points of failure across your system design with actionable metrics your team can discuss and resolve.
-            </p>
-          </div>
-        </div>
-
-        {/* Line of Separation after Step 3 */}
-        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
-
-        {/* STEP 04: COMPLETE WITH AI (Reversed Layout) */}
-        <div
-          id="step-4"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center"
-        >
-          {/* Left Column: Step Copy (Desktop order 1, Mobile order 2) */}
-          <div className="lg:col-span-5 flex flex-col items-start text-left order-2 lg:order-1">
-            <h3 className="relative font-lora text-2xl sm:text-3xl md:text-[36px] font-bold text-slate-950 dark:text-white leading-[1.18] tracking-tight mt-3 inline-block">
-              <span
-                aria-hidden="true"
-                className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
-              />
-              <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                Design with AI, scale, and auto-heal bottlenecks.
-              </span>
-            </h3>
-            <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Prompt the AI Architect to generate full-stack distributed systems, inject caching tiers, decouple asynchronous queues, or auto-scale replicas with live canvas execution.
-            </p>
-          </div>
-
-          {/* Right Column: Visual Card (Interactive AI Flow Completion Card) */}
-          <div className="lg:col-span-7 w-full order-1 lg:order-2">
-            <div className="group relative w-full min-h-[340px] sm:min-h-[380px] bg-[#07080b] border border-neutral-800 rounded-2xl shadow-xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:border-neutral-700">
-              {/* Canvas Dot Matrix Grid */}
+            {/* Horizontal Tree Canvas: sending traffic from left to right */}
+            <div className="relative z-10 w-full overflow-x-auto py-2" style={{ minHeight: '480px' }}>
               <div
-                className="absolute inset-0 pointer-events-none opacity-20"
-                style={{
-                  backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px)',
-                  backgroundSize: '16px 16px',
-                }}
-              />
+                className="relative w-full min-w-[850px] max-w-5xl mx-auto select-none"
+                style={{ height: '480px', minHeight: '480px' }}
+              >
+                {/* SVG Tree Connector Lines & Animated Left-to-Right Traffic Packets */}
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 1000 500"
+                  preserveAspectRatio="none"
+                >
+                  {currentStep.connections.map((conn, idx) => {
+                    const fromNode = currentStep.nodes.find((n) => n.id === conn.from);
+                    const toNode = currentStep.nodes.find((n) => n.id === conn.to);
+                    if (!fromNode || !toNode) return null;
 
-              {/* Card Header: AI Copilot indicator & Scenario selector */}
-              <div className="relative z-10 flex flex-wrap items-center justify-between gap-2">
-                <div className="inline-flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
-                    <Bot className="w-3.5 h-3.5 text-sky-400" />
-                  </div>
-                  <span className="text-xs font-mono text-neutral-300 font-semibold">
-                    AI Architecture Copilot
-                  </span>
-                  <span className="relative flex h-2 w-2 ml-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                </div>
+                    const { d, endX, endY } = getPathCoordinates(fromNode, toNode);
 
-                {/* Scenario Toggle Pills */}
-                <div className="inline-flex items-center p-0.5 rounded-lg bg-[#11131a] border border-neutral-800 text-[10.5px] font-mono">
-                  {AI_COMPLETION_SCENARIOS.map((scenario, idx) => (
-                    <button
-                      key={scenario.id}
-                      type="button"
-                      onClick={() => setActiveScenario(idx)}
-                      className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
-                        activeScenario === idx
-                          ? 'bg-sky-600 text-white font-medium shadow-xs'
-                          : 'text-neutral-400 hover:text-white'
-                      }`}
+                    const isStressed = conn.flowStatus === 'stressed';
+                    const isHealed = conn.flowStatus === 'rerouted';
+
+                    const speed = isSimulating ? '0.6s' : isStressed ? '0.8s' : isHealed ? '1.4s' : '1.8s';
+                    const delay2 = isSimulating ? '0.3s' : isStressed ? '0.4s' : isHealed ? '0.7s' : '0.9s';
+
+                    const baseStroke = isStressed
+                      ? 'rgba(244, 63, 94, 0.3)'
+                      : isHealed
+                      ? 'rgba(16, 185, 129, 0.3)'
+                      : 'rgba(255, 255, 255, 0.15)';
+
+                    const dashStroke = isStressed
+                      ? '#f43f5e'
+                      : isHealed
+                      ? '#10b981'
+                      : '#38bdf8';
+
+                    const particleColor = isStressed
+                      ? '#fb7185'
+                      : isHealed
+                      ? '#34d399'
+                      : '#7dd3fc';
+
+                    const pathId = `flow-${conn.from}-${conn.to}-${idx}`;
+
+                    return (
+                      <g key={pathId}>
+                        {/* Base conduit pipe line */}
+                        <path
+                          d={d}
+                          fill="none"
+                          stroke={baseStroke}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+
+                        {/* Animated Dash flow moving Left to Right */}
+                        <path
+                          d={d}
+                          fill="none"
+                          stroke={dashStroke}
+                          strokeWidth="2"
+                          strokeDasharray="6 8"
+                          strokeOpacity={isStressed ? 0.95 : 0.8}
+                          strokeLinecap="round"
+                        >
+                          <animate
+                            attributeName="stroke-dashoffset"
+                            from="28"
+                            to="0"
+                            dur={speed}
+                            repeatCount="indefinite"
+                          />
+                        </path>
+
+                        {/* Direct Arrowhead at destination port (no url markers to avoid CSS errors) */}
+                        <polygon
+                          points={`${endX - 7},${endY - 4} ${endX},${endY} ${endX - 7},${endY + 4}`}
+                          fill={dashStroke}
+                        />
+
+                        {/* Primary Traffic Packet moving along the curve from left to right */}
+                        <circle r={isStressed ? 4.5 : 4} fill={particleColor}>
+                          <animateMotion
+                            path={d}
+                            dur={speed}
+                            begin="0s"
+                            repeatCount="indefinite"
+                          />
+                        </circle>
+
+                        {/* Secondary Traffic Packet trailing behind */}
+                        <circle r={isStressed ? 3.5 : 3} fill={particleColor} opacity="0.75">
+                          <animateMotion
+                            path={d}
+                            dur={speed}
+                            begin={delay2}
+                            repeatCount="indefinite"
+                          />
+                        </circle>
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                {/* Horizontal Tree Node Cards */}
+                {currentStep.nodes.map((node) => {
+                  const NodeIcon = node.icon;
+                  const isSelected = selectedNodeId === node.id;
+
+                  const hasIncoming = currentStep.connections.some((c) => c.to === node.id);
+                  const hasOutgoing = currentStep.connections.some((c) => c.from === node.id);
+
+                  const statusStyles = {
+                    normal:
+                      'border-neutral-800 bg-[#121218]/95 text-neutral-200 hover:border-neutral-600 shadow-md',
+                    warning:
+                      'border-amber-700/60 bg-[#16120e]/95 text-amber-200 hover:border-amber-500/80 ring-1 ring-amber-500/30 shadow-lg shadow-amber-950/20',
+                    critical:
+                      'border-rose-700/70 bg-[#180e12]/95 text-rose-200 hover:border-rose-500/90 ring-1 ring-rose-500/40 shadow-lg shadow-rose-950/25',
+                    injected:
+                      'border-emerald-600/70 bg-[#0c1612]/95 text-emerald-200 hover:border-emerald-400 ring-1 ring-emerald-500/50 shadow-lg shadow-emerald-950/30',
+                  }[node.status];
+
+                  const badgeStyles = {
+                    normal: 'text-neutral-400 bg-neutral-900 border-neutral-800',
+                    warning: 'text-amber-300 bg-amber-950/80 border-amber-800/60',
+                    critical: 'text-rose-300 bg-rose-950/80 border-rose-800/60',
+                    injected: 'text-emerald-300 bg-emerald-950/80 border-emerald-700/60 font-bold',
+                  }[node.status];
+
+                  return (
+                    <div
+                      key={node.id}
+                      style={{
+                        position: 'absolute',
+                        left: `${node.x}%`,
+                        top: `${node.y}%`,
+                      }}
+                      className="-translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto"
                     >
-                      {scenario.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      <div
+                        onClick={() => setSelectedNodeId(isSelected ? null : node.id)}
+                        className={`w-[145px] sm:w-[155px] p-3 rounded-2xl border backdrop-blur-md cursor-pointer transition-transform duration-150 hover:scale-[1.03] select-none ${statusStyles} ${
+                          isSelected ? 'ring-2 ring-white border-white' : ''
+                        }`}
+                      >
+                        {/* Input Port (Left Anchor) */}
+                        {hasIncoming && (
+                          <span
+                            aria-hidden="true"
+                            className={`absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 z-30 ${
+                              node.status === 'injected'
+                                ? 'bg-emerald-500 border-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.8)]'
+                                : node.status === 'warning'
+                                ? 'bg-amber-500 border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.8)]'
+                                : node.status === 'critical'
+                                ? 'bg-rose-500 border-rose-300 shadow-[0_0_8px_rgba(244,63,94,0.8)]'
+                                : 'bg-neutral-800 border-neutral-500'
+                            }`}
+                          />
+                        )}
 
-              {/* Interactive Middle Area: Prompt & Completed Topology Flow */}
-              <div className="relative z-10 my-4 flex flex-col gap-3.5">
-                {/* User Prompt Input simulation */}
-                <div className="p-3 rounded-xl bg-[#12141c] border border-neutral-800 flex items-start gap-2.5 shadow-inner">
-                  <div className="w-5 h-5 rounded-md bg-neutral-800 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-mono font-bold text-sky-400">⌘</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-500">
-                      User Prompt
-                    </div>
-                    <p className="text-xs font-mono text-neutral-200 mt-0.5 leading-relaxed">
-                      "{currentScenario.prompt}"
-                    </p>
-                  </div>
-                </div>
+                        {/* Output Port (Right Anchor) */}
+                        {hasOutgoing && (
+                          <span
+                            aria-hidden="true"
+                            className={`absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 z-30 ${
+                              node.status === 'injected'
+                                ? 'bg-emerald-500 border-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.8)]'
+                                : node.status === 'warning'
+                                ? 'bg-amber-500 border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.8)]'
+                                : node.status === 'critical'
+                                ? 'bg-rose-500 border-rose-300 shadow-[0_0_8px_rgba(244,63,94,0.8)]'
+                                : 'bg-neutral-800 border-neutral-500'
+                            }`}
+                          />
+                        )}
 
-                {/* AI Action Execution Banner */}
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-xs font-mono">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="font-medium truncate">{currentScenario.action}</span>
-                </div>
-
-                {/* Completed Flow Diagram Pipeline */}
-                <div className="p-3.5 rounded-xl bg-[#0c0d12] border border-neutral-800/80">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 mb-2.5 flex items-center justify-between">
-                    <span>Completed Topology Pipeline</span>
-                    <span className="text-emerald-400 font-medium">⚡ Flow Verified</span>
-                  </div>
-
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentScenario.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.3 }}
-                      className="flex flex-wrap items-center gap-2"
-                    >
-                      {currentScenario.nodes.map((node, i) => (
-                        <React.Fragment key={node.name}>
-                          <div
-                            className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono font-medium flex flex-col gap-0.5 transition-all shadow-xs ${node.color}`}
-                          >
-                            <span className="text-[11px] font-semibold">{node.name}</span>
-                            <span className="text-[9px] opacity-80">{node.badge}</span>
+                        {/* Node Header: Icon & Badge */}
+                        <div className="flex items-center justify-between gap-1.5 mb-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center shrink-0">
+                            <NodeIcon className="w-3.5 h-3.5 text-neutral-300" />
                           </div>
+                          <span
+                            className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full border truncate max-w-[95px] ${badgeStyles}`}
+                            title={node.badge}
+                          >
+                            {node.badge}
+                          </span>
+                        </div>
 
-                          {i < currentScenario.nodes.length - 1 && (
-                            <ArrowRight className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </div>
+                        {/* Node Titles */}
+                        <div className="mb-2">
+                          <h4 className="text-xs font-bold text-white tracking-tight truncate" title={node.label}>
+                            {node.label}
+                          </h4>
+                          <span className="text-[10px] font-mono text-neutral-400 truncate block">
+                            {node.type}
+                          </span>
+                        </div>
 
-              {/* Card Footer: Telemetry Improvement */}
-              <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-neutral-800/80 text-xs font-mono">
-                <div className="inline-flex items-center gap-3 text-neutral-400">
-                  <span className="inline-flex items-center gap-1.5 text-emerald-400 font-semibold">
-                    <Zap className="w-3.5 h-3.5" />
-                    {currentScenario.metric}
-                  </span>
-                  <span className="hidden sm:inline text-neutral-500">·</span>
-                  <span className="hidden sm:inline text-neutral-300">{currentScenario.latency}</span>
-                </div>
+                        {/* Node Telemetry Footer */}
+                        <div className="pt-1.5 border-t border-neutral-800/80 flex items-center justify-between text-[9.5px] font-mono text-neutral-400">
+                          <span>{node.latency}</span>
+                          <span className="font-semibold text-neutral-200">{node.load}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Bottom AI Recommendation / Execution Bar */}
+            {currentStep.aiRecommendation && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative z-10 mt-4 p-3.5 sm:p-4 rounded-xl border border-emerald-800/60 bg-[#0d1612]/90 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono shadow-xl"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold block">
+                      AI Architect Remediation
+                    </span>
+                    <p className="text-neutral-200 mt-0.5 leading-relaxed font-sans text-xs">
+                      {currentStep.aiRecommendation.action}
+                    </p>
+                    <span className="text-[11px] text-neutral-400 block mt-0.5">
+                      {currentStep.aiRecommendation.impact}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2 self-end md:self-center">
+                  <span className="px-2.5 py-1 rounded-md bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 font-bold text-[11px]">
+                    {currentStep.aiRecommendation.observed}
+                  </span>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 
-        {/* Line of Separation after Step 4 */}
-        <div className="w-full border-t border-slate-200/80 dark:border-neutral-800/80" />
+        {/* 4 Feature Value Pillars below Canvas (Voiceflow Bento style) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {WORKFLOW_STEPS.map((step, idx) => {
+            const isCurrent = activeStepIndex === idx;
+            return (
+              <div
+                key={step.id}
+                id={step.id}
+                onClick={() => {
+                  setActiveStepIndex(idx);
+                  setSelectedNodeId(null);
+                }}
+                className={`group p-5 sm:p-6 rounded-2xl border transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                  isCurrent
+                    ? 'border-neutral-600 bg-[#121217] shadow-xl'
+                    : 'border-neutral-800/80 bg-[#0c0c10] hover:border-neutral-700 hover:bg-[#101014]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-neutral-500 group-hover:text-neutral-400 transition-colors">
+                      {step.stepNumber}
+                    </span>
+                    <span
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        isCurrent ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-neutral-700'
+                      }`}
+                    />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-neutral-800/70 flex items-center justify-between text-xs font-mono">
+                  <span className="text-neutral-500 group-hover:text-neutral-300 transition-colors">
+                    Explore view
+                  </span>
+                  <ArrowRight
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      isCurrent
+                        ? 'translate-x-1 text-white'
+                        : 'text-neutral-500 group-hover:translate-x-1 group-hover:text-neutral-300'
+                    }`}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
