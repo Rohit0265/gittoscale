@@ -525,42 +525,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
         {/* Voiceflow-Style Main Workflow Builder Canvas Showcase */}
         <div className="relative rounded-2xl border border-neutral-800 bg-[#0c0c10] shadow-2xl overflow-hidden mb-12 sm:mb-16">
-          {/* Canvas Window Chrome / Toolbar Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-[#111116] text-xs font-mono select-none">
-            {/* Left: macOS Window Controls & Breadcrumbs */}
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="w-3 h-3 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]" />
-                <span className="w-3 h-3 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]" />
-                <span className="w-3 h-3 rounded-full bg-[#27c93f]/80 border border-[#1aab29]" />
-              </div>
-              <div className="h-4 w-[1px] bg-neutral-800 mx-1 hidden sm:block" />
-              <div className="flex items-center gap-2 text-neutral-400 truncate">
-                <span className="text-neutral-500">gitoscale /</span>
-                <span className="text-neutral-200 font-semibold truncate">{currentStep.canvasTitle}</span>
-              </div>
-            </div>
-
-            {/* Right: Live Status Indicator & Action Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-900 border border-neutral-800 text-[11px] text-neutral-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                {currentStep.simStatus}
-              </span>
-
-              <button
-                type="button"
-                onClick={handleTriggerSim}
-                disabled={isSimulating}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white hover:bg-neutral-200 text-black text-xs font-semibold font-mono transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                title="Run synthetic simulation on this canvas"
-              >
-                <RefreshCw className={`w-3 h-3 ${isSimulating ? 'animate-spin' : ''}`} />
-                <span>{isSimulating ? 'Simulating...' : 'Simulate Load'}</span>
-              </button>
-            </div>
-          </div>
-
           {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
           <div className="relative bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '520px' }}>
             {/* Horizontal Tree Canvas: sending traffic from left to right */}
