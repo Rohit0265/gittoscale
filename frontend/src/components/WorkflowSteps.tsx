@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { PenHighlight } from './ui/PenShadowLine';
 import {
   ArrowRight,
   Boxes,
-  CheckCircle2,
   CircleDot,
   Cpu,
   Database,
@@ -11,7 +10,6 @@ import {
   Layers,
   RefreshCw,
   Server,
-  Sparkles,
   Zap,
 } from 'lucide-react';
 
@@ -482,7 +480,8 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto flex flex-col items-center">
 
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-[-0.04em] text-white leading-[1.08]">
-            Design, simulate, and scale with visual control.
+            <span>Design, simulate, and </span>
+            <PenHighlight highlightClassName="bg-neutral-700/75">scale with visual control.</PenHighlight>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-neutral-400 max-w-2xl leading-relaxed">
             A unified visual canvas for drafting distributed architectures from natural language or code,
@@ -523,9 +522,87 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
         {/* Voiceflow-Style Main Workflow Builder Canvas Showcase */}
         <div className="relative rounded-2xl border border-neutral-800 bg-[#0c0c10] shadow-2xl overflow-hidden mb-12 sm:mb-16">
+          {/* Canvas Window Chrome / Toolbar Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-[#111116] text-xs font-mono select-none">
+            {/* Left: macOS Window Controls & Breadcrumbs */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="w-3 h-3 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]" />
+                <span className="w-3 h-3 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]" />
+                <span className="w-3 h-3 rounded-full bg-[#27c93f]/80 border border-[#1aab29]" />
+              </div>
+              <div className="h-4 w-[1px] bg-neutral-800 mx-1 hidden sm:block" />
+              <div className="flex items-center gap-2 text-neutral-400 truncate">
+                <span className="text-neutral-500">gitoscale /</span>
+                <span className="text-neutral-200 font-semibold truncate">{currentStep.canvasTitle}</span>
+              </div>
+            </div>
+
+            {/* Right: Live Status Indicator & Action Buttons */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-900 border border-neutral-800 text-[11px] text-neutral-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                {currentStep.simStatus}
+              </span>
+
+              <button
+                type="button"
+                onClick={handleTriggerSim}
+                disabled={isSimulating}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white hover:bg-neutral-200 text-black text-xs font-semibold font-mono transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                title="Run synthetic simulation on this canvas"
+              >
+                <RefreshCw className={`w-3 h-3 ${isSimulating ? 'animate-spin' : ''}`} />
+                <span>{isSimulating ? 'Simulating...' : 'Simulate Load'}</span>
+              </button>
+            </div>
+          </div>
 
           {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
           <div className="relative bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '580px' }}>
+            {/* Floating Telemetry Metric Ribbon */}
+            <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                {currentStep.metrics.map((metric) => (
+                  <div
+                    key={metric.label}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neutral-800 bg-[#121217]/90 backdrop-blur-md text-xs font-mono shadow-sm"
+                  >
+                    <span className="text-neutral-500">{metric.label}:</span>
+                    <span className="font-semibold text-white">{metric.value}</span>
+                    {metric.trend && (
+                      <span className="text-[10px] text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/40">
+                        {metric.trend}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Step indicator tag */}
+              <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-neutral-800 bg-[#121217]/80 text-xs font-mono text-neutral-400">
+                <span className="font-bold text-neutral-200">{currentStep.stepNumber}</span>
+                <span>·</span>
+                <span>{currentStep.tagline}</span>
+              </div>
+            </div>
+
+            {/* Horizontal Hierarchy Flow Stages Ribbon */}
+            <div className="relative z-10 hidden md:flex items-center justify-between text-[10px] font-mono text-neutral-500 uppercase tracking-widest px-6 pb-2 border-b border-neutral-800/50 mb-2 select-none">
+              <div className="flex items-center gap-2 text-neutral-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span>01 · Ingress (Left)</span>
+              </div>
+              <ArrowRight className="w-3 h-3 text-neutral-600" />
+              <div className="text-neutral-400">02 · Routing &amp; Load Balancing</div>
+              <ArrowRight className="w-3 h-3 text-neutral-600" />
+              <div className="text-neutral-400">03 · Services, Caches &amp; Buffers</div>
+              <ArrowRight className="w-3 h-3 text-neutral-600" />
+              <div className="flex items-center gap-2 text-neutral-300">
+                <span>04 · Persistent Store (Right)</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              </div>
+            </div>
   
 
             {/* Horizontal Tree Canvas: sending traffic from left to right */}

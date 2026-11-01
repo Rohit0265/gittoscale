@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { PenShadowLine } from "./PenShadowLine";
 import {
   Accordion,
   AccordionItem,
@@ -68,22 +69,27 @@ export default function FrequentlyAskedQuestions({
     <section className={cn("relative w-full overflow-hidden py-24", className)}>
       <div className="mx-auto max-w-3xl px-6">
         <h1 className="relative z-10 mx-auto max-w-4xl text-center text-3xl font-bold tracking-tight text-zinc-800 md:text-5xl lg:text-6xl dark:text-zinc-100">
-          {words.map((word, index) => (
-            <motion.span
-              key={`${word}-${index}`}
-              initial={{ opacity: 0, filter: "blur(6px)", y: 12 }}
-              whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.4,
-                delay: index * 0.08,
-                ease: "easeInOut",
-              }}
-              className="mr-2 inline-block"
-            >
-              {word}
-            </motion.span>
-          ))}
+          <span className="relative inline-block">
+            <span className="relative z-10">
+              {words.map((word, index) => (
+                <motion.span
+                  key={`${word}-${index}`}
+                  initial={{ opacity: 0, filter: "blur(6px)", y: 12 }}
+                  whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.08,
+                    ease: "easeInOut",
+                  }}
+                  className="mr-2 inline-block"
+                >
+                  {word}
+                </motion.span>
+              ))}
+            </span>
+            <PenShadowLine color="stroke-zinc-500/60 dark:stroke-neutral-400/70" delay={0.35} />
+          </span>
         </h1>
 
         <motion.p

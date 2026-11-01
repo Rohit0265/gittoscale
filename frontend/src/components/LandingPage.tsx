@@ -27,6 +27,7 @@ import { GitHubStarButton } from './GitHubStarButton';
 import NewOne from './newOne';
 import WorkflowSteps from './WorkflowSteps';
 import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
+import { PenHighlight } from './ui/PenShadowLine';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
@@ -782,7 +783,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>Target Audiences</span>
             </div> */}
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-              Who benefits from GitToScale
+              <PenHighlight highlightClassName="bg-slate-300/80 dark:bg-neutral-700/75">
+                Who benefits from GitToScale
+              </PenHighlight>
             </h2>
             <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-neutral-400">
               Whether generating greenfield architectures from text or stress-testing existing production codebases, GitToScale helps teams prevent outages before deployment.
