@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowUp,
-  RotateCcw,
   Bot,
   User,
   PanelLeftClose,
@@ -500,21 +499,6 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   const handleSendCustomInput = (e: React.FormEvent) => {
     e.preventDefault();
     executeCommand(customInput);
-  };
-
-  const handleRestart = () => {
-    if (typeof window !== 'undefined') {
-      const key = getChatStorageKey(projectId);
-      localStorage.removeItem(key);
-    }
-    onResetQuestions?.();
-    const resetMsg: ChatBubble = {
-      id: 'msg-reset',
-      sender: 'ai',
-      text: `🔄 **Conversation cleared.**\n\nI have direct access to your playground. Tell me to add components, add requirements, or scale traffic!`,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages([resetMsg]);
   };
 
   return (

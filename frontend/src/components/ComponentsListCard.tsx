@@ -15,7 +15,6 @@ import {
   Bot,
   CreditCard,
   MessageSquare,
-  RotateCcw,
 } from 'lucide-react';
 import { ArchitectureNode, NodeSimulationResult, ComponentType } from '../types';
 
@@ -40,7 +39,6 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
   onDeleteNode,
   onToggleNode,
   onUpdateNode,
-  onRestoreOriginal,
   nodeResults,
   embedded = false,
 }) => {
