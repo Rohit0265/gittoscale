@@ -763,35 +763,12 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-neutral-500 group-hover:text-neutral-400 transition-colors">
-                      {step.stepNumber}
-                    </span>
-                    <span
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        isCurrent ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-neutral-700'
-                      }`}
-                    />
-                  </div>
                   <h3 className="text-base sm:text-lg font-bold text-white tracking-tight mb-2">
                     {step.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
                     {step.description}
                   </p>
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-neutral-800/70 flex items-center justify-between text-xs font-mono">
-                  <span className="text-neutral-500 group-hover:text-neutral-300 transition-colors">
-                    Explore view
-                  </span>
-                  <ArrowRight
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      isCurrent
-                        ? 'translate-x-1 text-white'
-                        : 'text-neutral-500 group-hover:translate-x-1 group-hover:text-neutral-300'
-                    }`}
-                  />
                 </div>
               </div>
             );
