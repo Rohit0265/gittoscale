@@ -410,7 +410,6 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       }
     }
   }, [messages, selectedAnswers, activePrompt, user, nodes, edges, projectId]);
-
   // Auto-scroll
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });

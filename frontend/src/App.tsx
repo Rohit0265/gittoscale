@@ -522,16 +522,20 @@ export const App: React.FC = () => {
     if (route?.prompt || route?.projectId || search.has('repo') || search.has('demo')) {
       return false;
     }
-    return path.startsWith('/app') || path === '/simulator' || (isAppDomain() && path === '/');
+    return (path === '/app' || path === '/simulator') && !route?.projectId;
   });
 
   // Automatically prompt any user who arrives on /app or simulator without an active project or prompt
   useEffect(() => {
     if (currentView === 'simulator') {
       const search = new URLSearchParams(window.location.search);
+      const route = getProjectRouteInfo();
       const hasActiveContext =
         Boolean(activePromptText) ||
         Boolean(activeProject?.prompt) ||
+        Boolean(activeProject?.projectId) ||
+        Boolean(route?.projectId) ||
+        Boolean(route?.prompt) ||
         search.has('repo') ||
         search.has('demo');
       if (!hasActiveContext && nodes.length === 0) {
