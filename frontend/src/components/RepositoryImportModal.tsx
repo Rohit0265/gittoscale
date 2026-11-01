@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
-  GitBranch,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { ArchitectureNode, ArchitectureEdge } from '../types';

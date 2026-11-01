@@ -12,11 +12,9 @@ import {
   LogIn,
   UserPlus,
   ChevronDown,
-  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture } from '../types';
-import { GitHubStarButton } from './GitHubStarButton';
 
 interface HeaderProps {
   scenarios: ScenarioFixture[];

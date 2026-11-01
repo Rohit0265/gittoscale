@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   TrendingUp,
   ChevronRight,
-  PanelRight,
 } from 'lucide-react';
 import {
   SimulationResult,
@@ -25,7 +24,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
   simulationResult,
   onSelectNode,
   selectedNodeId,
-  onToggleCollapse,
+  onToggleCollapse: _onToggleCollapse,
   embedded = false,
 }) => {
   const containerClasses = embedded
@@ -36,15 +35,6 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
     return (
       <div className={containerClasses}>
         <div className="flex items-center justify-between px-0.5 pt-0.5">
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              title="Collapse right sidebar"
-              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-            >
-              <PanelRight className="w-4 h-4 hover:text-indigo-500 transition-colors" />
-            </button>
-          )}
           <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
             ANALYSIS &amp; BOTTLENECKS
           </span>
@@ -62,15 +52,6 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
     <div className={containerClasses}>
       {/* 1. Header Row */}
       <div className="flex items-center justify-between px-0.5 pt-0.5">
-        {onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            title="Collapse right sidebar"
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-          >
-            <PanelRight className="w-4 h-4 hover:text-indigo-500 transition-colors" />
-          </button>
-        )}
         <span className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
           ANALYSIS &amp; BOTTLENECKS ({bottlenecks.length})
         </span>
