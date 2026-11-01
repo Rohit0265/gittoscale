@@ -523,22 +523,6 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
 
         {/* Voiceflow-Style Main Workflow Builder Canvas Showcase */}
         <div className="relative rounded-2xl border border-neutral-800 bg-[#0c0c10] shadow-2xl overflow-hidden mb-12 sm:mb-16">
-          {/* Canvas Window Chrome / Toolbar Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-[#111116] text-xs font-mono select-none">
-            {/* Left: macOS Window Controls & Breadcrumbs */}
-            {/* <div className="flex items-center gap-3 min-w-0">
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="w-3 h-3 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]" />
-                <span className="w-3 h-3 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]" />
-                <span className="w-3 h-3 rounded-full bg-[#27c93f]/80 border border-[#1aab29]" />
-              </div>
-              <div className="h-4 w-[1px] bg-neutral-800 mx-1 hidden sm:block" />
-              <div className="flex items-center gap-2 text-neutral-400 truncate">
-                <span className="text-neutral-500">gitoscale /</span>
-                <span className="text-neutral-200 font-semibold truncate">{currentStep.canvasTitle}</span>
-              </div>
-            </div> */}
-          </div>
 
           {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
           <div className="relative bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '580px' }}>
