@@ -113,9 +113,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             >
               <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />
               <span>Components</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-neutral-700 font-mono text-slate-600 dark:text-neutral-300">
-                {nodes.length}
-              </span>
             </button>
 
             {/* Tab 2: Inspector */}
