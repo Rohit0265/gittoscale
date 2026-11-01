@@ -603,9 +603,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               }`}
             >
               <User className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 dark:text-neutral-200 group-hover:text-indigo-500 transition-colors" />
-              {user && (
-                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0A0A0A]" />
-              )}
             </button>
 
             {/* Profile Dropdown Menu */}
