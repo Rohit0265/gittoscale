@@ -265,23 +265,6 @@ export const Header: React.FC<HeaderProps> = ({
                       <Download className="w-3 h-3" />
                       <span>Download .mmd</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleCopyMermaid}
-                      className="flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-[#151518] hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 text-xs font-medium transition-colors cursor-pointer"
-                    >
-                      {copiedType === 'mermaid' ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-500" />
-                          <span className="text-emerald-500 text-[11px]">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span className="text-[11px]">Copy</span>
-                        </>
-                      )}
-                    </button>
                   </div>
                 </div>
 
