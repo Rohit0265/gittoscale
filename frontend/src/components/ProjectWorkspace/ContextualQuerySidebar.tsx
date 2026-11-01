@@ -6,8 +6,8 @@ import {
   User,
   PanelLeftClose,
 } from 'lucide-react';
-import { Streamdown } from 'streamdown';
-import 'streamdown/styles.css';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ArchitectureNode, ArchitectureEdge, SimulationResult } from '../../types';
 import { api } from '../../services/api';
 
@@ -583,15 +583,17 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
               <div
                 className={`max-w-[94%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-slate-900 dark:bg-neutral-700 text-white rounded-br-sm font-medium streamdown-user whitespace-pre-wrap'
-                    : 'bg-slate-100/90 dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 rounded-bl-sm shadow-xs streamdown-ai'
+                    ? 'bg-slate-900 dark:bg-neutral-700 text-white rounded-br-sm font-medium whitespace-pre-wrap'
+                    : 'bg-slate-100/90 dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 rounded-bl-sm shadow-xs'
                 }`}
               >
                 {msg.sender === 'user' ? (
                   msg.text
                 ) : (
-                  <div className="streamdown-chat-body">
-                    <Streamdown>{msg.text}</Streamdown>
+                  <div className="ai-markdown-chat-body streamdown-chat-body">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {msg.text}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>
