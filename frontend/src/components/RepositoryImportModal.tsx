@@ -92,7 +92,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
           <div className="flex items-center gap-3">
             <div>
               <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                Analyze Repository Architecture
+                Analyze Repository Design
               </h3>
               <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5 font-normal">
                 Inspect public repository and map runtime dependencies
