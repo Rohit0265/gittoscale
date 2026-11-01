@@ -147,6 +147,10 @@ CRITICAL ARCHITECTURE RULES:
    - The graph MUST be a valid directed acyclic request flow.
 3. For each technology recommendation, provide category, name, reason, trade-offs, and viable alternatives.
 4. Provide structured data flows, security considerations, scaling strategy, and key trade-off decisions.
+5. DETAILED VIEW & ADVANCED TOPICS:
+   When the user requests a "detailed view", "detailed architect", or "advanced" design:
+   - Decompose into advanced distributed systems patterns: Anycast Edge CDN/WAF, Envoy/Kong API Gateway with Token Bucket rate limiting & circuit breakers, gRPC internal service mesh, partitioned Kafka event streams, decoupled Worker Fleets, Redis Cluster (Cache-Aside with XFetch), and PostgreSQL Primary with PgBouncer connection pooling and Read Replicas.
+   - Configure realistic worker capacities (\`capacityPerSecond\`) and worker counts (\`workerCount\`) on each node to ensure \`Total Effective Capacity = workerCount × capacityPerSecond\` manages the total load without bottlenecks.
 
 OUTPUT FORMAT:
 Respond with ONLY valid JSON (no markdown formatting, no code fences, no extra commentary) matching this exact schema:

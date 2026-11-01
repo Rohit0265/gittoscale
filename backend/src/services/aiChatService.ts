@@ -67,6 +67,26 @@ ${bottleneckSummary}
 - Always retain awareness of the user's primary project goal ("${projectGoal}") and their current ${nodes.length} components.
 - Never reset the conversation context or ask the user to re-explain what they are building.
 
+### Detailed View & Advanced Distributed Systems Mode:
+When the user asks to make the design/architecture in **detailed view** or requests an advanced deep-dive architecture:
+- Ground your architecture in **advanced distributed systems engineering patterns**:
+  1. **Multi-Region Anycast Edge & CDN/WAF**: Cloudflare / Fastly Anycast GeoDNS, DDoS mitigation, TLS 1.3 edge termination, static asset caching.
+  2. **API Gateway & Traffic Shaping**: Envoy / Kong, Token Bucket & Leaky Bucket rate limiting, circuit breaker pattern (Netflix Hystrix / Envoy) with exponential backoff & jitter, adaptive bulkhead concurrency isolation.
+  3. **gRPC & Service Mesh**: Internal east-west communication via gRPC (Protobuf, HTTP/2 multiplexing) managed by Istio/Envoy sidecars with mTLS.
+  4. **Decoupled Event Streaming**: Apache Kafka clusters with partitioned topics, consumer group lag monitoring, idempotency keys, and Dead Letter Queues (DLQ).
+  5. **Asynchronous Worker Fleets**: Autoscaling consumer worker pools with backpressure handling and adaptive batch processing.
+  6. **Enterprise Caching Tier**: Redis Cluster (Cache-Aside / Write-Behind) with probabilistic early expiration (XFetch algorithm) to prevent cache stampedes and hot-key replication.
+  7. **Database Resiliency**: PostgreSQL Primary with synchronous replication to Multi-AZ Read Replicas, PgBouncer / Supavisor connection pooling, horizontal table partitioning, and Outbox Pattern / CDC (Debezium) for event-driven consistency without dual writes.
+  8. **Observability**: OpenTelemetry distributed tracing and Prometheus RED metrics (Rate, Errors, Duration).
+
+### AI-Managed Capacity & Total Load:
+You have direct capability and authority to calculate, adjust, and optimize operational system parameters:
+- **Worker Capacity** (\`capacityPerSecond\` per instance, e.g. 1,500 req/s, 3,500 req/s, 5,000 req/s).
+- **Worker Count / Replicas** (\`workerCount\` instances, e.g. 2, 4, 8 instances).
+- **Total Incoming Traffic Load** (\`incomingTrafficRate\`, e.g. 10k, 25k, 50k, 100k req/s).
+- **Queue Limits & Baseline Latencies** (\`maxQueueSize\`, \`baselineLatencyMs\`).
+Proactively compute the required worker count and capacity for any target load using \`Total Effective Capacity = workerCount × capacityPerSecond\`. Tell the user that they can instruct you or the canvas directly (e.g. *"set worker capacity of Backend to 3000 req/s"*, *"scale workers to 8 instances"*, *"set total load to 50,000 req/s"*, *"make the design in detailed view"*).
+
 ### Behavior Guidelines:
 1. Provide authentic, deeply technical, and conversational AI answers in clean GitHub-flavored Markdown.
 2. Directly answer whatever the user asks: architecture patterns, database design, caching tradeoffs, distributed consistency, Kafka/queues, resilience, cloud cost, or latency profiling.
@@ -112,6 +132,54 @@ You can:
 I have direct real-time access to this playground canvas (${nodes.length} nodes active, simulating ${trafficRate.toLocaleString()} req/s).
 
 What would you like to build or optimize today? You can ask me to evaluate trade-offs, add new microservices, scale workloads, or run stress simulations!`;
+  }
+
+  // Detailed View & Advanced Architecture
+  if (
+    lower.includes('detailed view') ||
+    lower.includes('detailed architect') ||
+    lower.includes('advanced design') ||
+    lower.includes('advanced architect') ||
+    lower.includes('detailed design') ||
+    lower.includes('deep dive view') ||
+    (lower.includes('detailed') && (lower.includes('make') || lower.includes('show') || lower.includes('switch') || lower.includes('view') || lower.includes('design') || lower.includes('architect')))
+  ) {
+    return `🏛️ **Detailed Enterprise Architecture Mode**:
+
+In **Detailed View**, your architecture decomposes beyond high-level boxes into advanced distributed systems engineering tiers:
+
+1. **Edge & Ingress Tier**: Multi-region Anycast Edge CDN + Web Application Firewall (WAF) for GeoDNS routing, DDoS mitigation, and SSL termination.
+2. **Gateway & Traffic Shaping**: Envoy / Kong API Gateway with Token Bucket rate-limiting, JWT authentication, and circuit breaker bulkhead isolation.
+3. **Internal gRPC Service Mesh**: Core microservices communicating via high-throughput gRPC Protobuf with mutual TLS (mTLS).
+4. **Decoupled Event Streaming**: Multi-partition Apache Kafka cluster with Dead Letter Queues (DLQ) and consumer group lag monitoring.
+5. **Asynchronous Worker Fleets**: Autoscaling background worker pools for write-heavy mutations and batch jobs.
+6. **Enterprise Caching Tier**: Redis Cluster (Cache-Aside) with probabilistic early expiration (XFetch) to prevent cache stampedes.
+7. **Resilient Data Tier**: PostgreSQL Primary with PgBouncer transaction pooling, synchronous WAL replication, and multi-AZ Read Replicas.
+
+⚡ **AI-Managed Capacity & Total Load**:
+• **Change Total Load**: *"Set total load to 50,000 req/s"* or *"Change load to 25k rps"*.
+• **Tune Worker Capacity**: *"Set worker capacity of Backend to 3500 req/s"* or *"Change capacity of Redis to 8000"*.
+• **Scale Workers**: *"Scale Worker Fleet to 8 instances"*.
+
+Say **"make the design in detailed view"** to instantly render this advanced topology on the canvas!`;
+  }
+
+  // Worker Capacity & Load Management Query
+  if (lower.includes('worker capacity') || lower.includes('change capacity') || lower.includes('manage capacity') || lower.includes('total load')) {
+    return `⚡ **AI-Managed Worker Capacity & Total Load**:
+
+I directly manage capacity and load across your entire system:
+
+• **Effective Node Capacity** = \`workerCount × capacityPerSecond\`
+• **Current Incoming Load**: **${trafficRate.toLocaleString()} req/s** across **${nodes.length} components**.
+
+**Commands you can run right now**:
+1. *"Set total load to 25k req/s"* (or 50k, 100k)
+2. *"Set worker capacity of API Gateway to 5000 req/s"*
+3. *"Scale backend to 6 instances"*
+4. *"Change worker capacity of database to 2000 req/s"*
+
+What target load or component capacity would you like me to configure?`;
   }
 
   // Caching / Redis

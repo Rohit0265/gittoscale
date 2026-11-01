@@ -1094,14 +1094,15 @@ export function synthesizeDetailedArchitecture(
 function buildPrompt(inventory: RepositoryInventory, viewMode: 'basic' | 'detailed' = 'basic'): string {
   const modeInstructions = viewMode === 'detailed'
     ? `DETAILED ARCHITECTURE MODE:
-Decompose each runtime service into its evidenced internal components:
-- Application bootstrap & entrypoint
-- Route handlers & controllers
-- Middleware & session guards
-- Database schemas & models
-- Cache clients & session stores
-- Agent workflows, intent routers & specialized workers
-- External payment / auth integrations
+Decompose each runtime service into its evidenced internal components with advanced distributed systems architecture:
+- Edge Ingress & WAF / CDN routing
+- API Gateway with Token Bucket rate limiting, circuit breaker patterns, and auth guards
+- Application bootstrap & route controllers
+- Internal gRPC service mesh and domain microservices
+- Decoupled Kafka / RabbitMQ event brokers with consumer worker groups
+- In-memory Redis Cache tiers with Cache-Aside pattern
+- Relational / NoSQL database models, connection pooling (PgBouncer), and Read Replicas
+- Calculate and set realistic "estimatedCapacity" and "defaultWorkers" for each component so the system can withstand heavy total load.
 Include parentId for each submodule linking to the parent service ID (e.g. parentId: "node-gateway", "node-auth").
 Set isBidirectional: true with descriptive dataFlowDescription (inbound and outbound data flows).`
     : `BASIC ARCHITECTURE MODE:
