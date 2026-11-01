@@ -771,13 +771,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         className="relative flex min-h-screen snap-start flex-col justify-center px-6 sm:px-10 py-20"
       >
         <div className="mx-auto w-full max-w-6xl">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ amount: 0.2 }}
-            variants={fadeUp}
-            className="mb-12 max-w-2xl"
-          >
+          <div className="mb-12 max-w-2xl">
             {/* <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 mb-3">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Target Audiences</span>
@@ -793,17 +787,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-neutral-400">
               Whether generating greenfield architectures from text or stress-testing existing production codebases, GitToScale helps teams prevent outages before deployment.
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Card 1 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ amount: 0.2 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
-            >
+            <div className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
                   <Compass className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-500 transition-colors" />
@@ -815,16 +803,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Generate complete system designs from text prompts in seconds, or validate proposed microservice topologies, database sharding strategies, and broker backpressure before writing a line of code.
                 </p>
               </div>
-            </motion.div>
+            </div>
 
             {/* Card 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ amount: 0.2 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
-            >
+            <div className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
                   <Cpu className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-sky-500 transition-colors" />
@@ -836,16 +818,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Stress-test text-generated blueprints or imported architectures to diagnose whether downstream DB connection pools or queue worker threads saturate first during 10x traffic surges.
                 </p>
               </div>
-            </motion.div>
+            </div>
 
             {/* Card 3 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ amount: 0.2 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
-            >
+            <div className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
                   <ShieldCheck className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-emerald-500 transition-colors" />
@@ -857,16 +833,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Draft, simulate, and compare multiple architectural approaches side-by-side to make data-backed infrastructure budget decisions and justify cloud spend.
                 </p>
               </div>
-            </motion.div>
+            </div>
 
             {/* Card 4 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ amount: 0.2 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between"
-            >
+            <div className="group p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#121214] shadow-xs hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 flex items-center justify-center mb-4">
                   <Layers className="w-5 h-5 text-slate-700 dark:text-neutral-300 group-hover:text-amber-500 transition-colors" />
@@ -878,7 +848,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Practice designing real-world distributed systems (Uber, Netflix, WhatsApp) from text prompts. Test caching tiers, load balancers, rate limiters, and failover mechanics interactively under synthetic loads.
                 </p>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
