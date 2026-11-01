@@ -536,15 +536,6 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={handleRestart}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:text-neutral-500 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-            title="Clear conversation"
-            aria-label="Clear conversation"
-          >
-            <RotateCcw className="w-3.5 h-3.5 hover:text-gray-500 transition-colors" />
-          </button>
           {onToggleCollapse && (
             <button
               type="button"
