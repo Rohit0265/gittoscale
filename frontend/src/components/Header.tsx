@@ -156,7 +156,6 @@ export const Header: React.FC<HeaderProps> = ({
         )}
 
         {/* GitHub Star Button */}
-        <GitHubStarButton className="hidden sm:inline-flex" />
 
         {/* User Button: Container for User Profile, Theme, Import Repo, History, and Scenario */}
         <div ref={menuRef} className="relative shrink-0">
