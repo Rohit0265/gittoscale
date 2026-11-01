@@ -531,12 +531,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }`}
               />
             </div>
-
-            {/* Right: Actions inside Navbar */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5">
-              {/* Test Demo Site */}
-              <GitHubStarButton className="hidden md:inline-flex" />
-            </div>
           </div>
 
           {/* Standalone Profile Button & Dropdown Outside Navbar */}
