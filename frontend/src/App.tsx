@@ -680,7 +680,7 @@ export const App: React.FC = () => {
 
   // Generate / synthesize architecture directly from a prompt using vertical tree layout
   const handleGenerateFromPrompt = useCallback(
-    async (promptText: string, customAnswers = selectedAnswers) => {
+    async (promptText: string, customAnswers = selectedAnswers, targetProjectId?: string) => {
       if (!promptText.trim()) return;
       setActivePromptText(promptText);
       setIsGeneratingArchitecture(true);
@@ -720,10 +720,11 @@ export const App: React.FC = () => {
         // Persist to architecture history in PostgreSQL if user is authenticated
         if (user) {
           const token = getAuthToken();
+          const projId = targetProjectId || activeProject?.projectId;
           api.saveArchitectureHistory(token, {
             title: promptText.slice(0, 60),
             prompt: promptText,
-            generationConfig: customAnswers,
+            generationConfig: { ...customAnswers, projectId: projId },
             architectureData: { nodes: verticalNodes, edges: res.edges },
             status: 'completed',
           }).catch((histErr) => {
@@ -737,7 +738,7 @@ export const App: React.FC = () => {
         setIsGeneratingArchitecture(false);
       }
     },
-    [incomingTrafficRate, durationSeconds, triggerSimulation, selectedAnswers, user, getAuthToken]
+    [incomingTrafficRate, durationSeconds, triggerSimulation, selectedAnswers, user, getAuthToken, activeProject?.projectId]
   );
 
   // AI Refine callback from left sidebar
@@ -924,6 +925,7 @@ export const App: React.FC = () => {
         return;
       }
 
+      lastGeneratedPromptRef.current = promptText;
       window.history.pushState({ projectId, prompt: promptText }, '', projectPath);
       setActiveProject({ projectId, prompt: promptText });
       setCurrentView('simulator');
@@ -936,7 +938,7 @@ export const App: React.FC = () => {
       baseDetailedGraphRef.current = null;
       detailedGraphCacheRef.current = null;
       setActivePromptText(promptText);
-      handleGenerateFromPrompt(promptText);
+      handleGenerateFromPrompt(promptText, undefined, projectId);
     },
     [user, savePendingAction, selectedAnswers, handleGenerateFromPrompt]
   );
@@ -964,10 +966,12 @@ export const App: React.FC = () => {
   );
 
   // Check URL on mount if prompt query is present
+  const lastGeneratedPromptRef = useRef<string | null>(null);
   useEffect(() => {
     const route = getProjectRouteInfo();
-    if (route?.prompt) {
-      handleGenerateFromPrompt(route.prompt);
+    if (route?.prompt && lastGeneratedPromptRef.current !== route.prompt) {
+      lastGeneratedPromptRef.current = route.prompt;
+      handleGenerateFromPrompt(route.prompt, undefined, route.projectId);
     }
   }, [handleGenerateFromPrompt]);
 

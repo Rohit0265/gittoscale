@@ -393,18 +393,23 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         if (saveDebounceTimer.current) clearTimeout(saveDebounceTimer.current);
         saveDebounceTimer.current = setTimeout(() => {
           const token = localStorage.getItem('sb-access-token') || null;
+          const stableSessionId = projectId
+            ? `chat_${projectId}`
+            : `chat_${encodeURIComponent(activePrompt || 'default').slice(0, 32)}`;
           api.saveChatHistory(token, {
+            sessionId: stableSessionId,
+            projectId,
             prompt: activePrompt,
             messages: messages.slice(-MAX_CONTEXT_MESSAGES),
             selectedAnswers,
-            architectureData: { nodes, edges },
+            architectureData: nodes.length > 0 ? { nodes, edges } : undefined,
           }).catch((err) => {
             console.warn('[ContextualQuerySidebar] Background DB sync note:', err.message);
           });
         }, 1500);
       }
     }
-  }, [messages, selectedAnswers, activePrompt, user, nodes, edges]);
+  }, [messages, selectedAnswers, activePrompt, user, nodes, edges, projectId]);
 
   // Auto-scroll
   useEffect(() => {

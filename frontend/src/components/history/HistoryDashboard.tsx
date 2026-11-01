@@ -73,13 +73,27 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
       let archList = archRes.data || [];
       let repoList = repoRes.data || [];
 
+      // Deduplicate architecture items by projectId or prompt
+      const seenArch = new Set<string>();
+      const dedupedArchs: any[] = [];
+      for (const item of archList) {
+        const projId = item.generation_config?.projectId;
+        const normPrompt = (item.prompt || '').trim().toLowerCase();
+        const key = projId ? `proj_${projId}` : `prompt_${normPrompt}`;
+        if (!seenArch.has(key)) {
+          seenArch.add(key);
+          dedupedArchs.push(item);
+        }
+      }
+      archList = dedupedArchs;
+
       if (sortOrder === 'asc') {
         archList = [...archList].reverse();
         repoList = [...repoList].reverse();
       }
 
       setArchitectures(archList);
-      setTotalArch(archRes.total || archList.length);
+      setTotalArch(archList.length);
       setRepositories(repoList);
       setTotalRepo(repoRes.total || repoList.length);
     } catch (err: any) {

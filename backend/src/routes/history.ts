@@ -3,6 +3,7 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
 import {
   isNeonConfigured,
+  getSql,
   insertArchitectureHistory,
   queryArchitectureHistory,
   getArchitectureById as getArchByIdNeon,
@@ -47,6 +48,21 @@ interface InMemRepo {
 const inMemoryArchHistory: InMemArch[] = [];
 const inMemoryRepoHistory: InMemRepo[] = [];
 
+function deduplicateArchitectureRecords(items: any[]): any[] {
+  const seen = new Set<string>();
+  const result: any[] = [];
+  for (const item of items) {
+    const projId = item.generation_config?.projectId;
+    const normPrompt = (item.prompt || '').trim().toLowerCase();
+    const key = projId ? `proj_${projId}` : `prompt_${normPrompt}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(item);
+    }
+  }
+  return result;
+}
+
 // =============================================================================
 // ARCHITECTURE HISTORY ENDPOINTS
 // =============================================================================
@@ -73,13 +89,14 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
       const { rows, total } = await queryArchitectureHistory(userId, {
         query,
         status,
-        limit,
+        limit: Math.max(limit * 2, 50),
         offset,
       });
+      const deduped = deduplicateArchitectureRecords(rows || []);
       res.json({
         success: true,
-        data: rows,
-        total,
+        data: deduped.slice(0, limit),
+        total: deduped.length < (rows || []).length ? deduped.length : total,
         limit,
         offset,
       });
@@ -98,7 +115,7 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
         .select('*', { count: 'exact' })
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+        .range(offset, offset + Math.max(limit * 2, 50) - 1);
 
       if (status && status !== 'all') {
         sbQuery = sbQuery.eq('status', status);
@@ -110,10 +127,12 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
       const { data, count, error } = await sbQuery;
       if (error) throw error;
 
+      const deduped = deduplicateArchitectureRecords(data || []);
+
       res.json({
         success: true,
-        data: data || [],
-        total: count || 0,
+        data: deduped.slice(0, limit),
+        total: deduped.length < (data?.length || 0) ? deduped.length : (count || 0),
         limit,
         offset,
       });
@@ -136,8 +155,9 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
       (item) => item.title.toLowerCase().includes(qLower) || item.prompt.toLowerCase().includes(qLower)
     );
   }
-  const total = items.length;
-  const paginated = items.slice(offset, offset + limit);
+  const deduped = deduplicateArchitectureRecords(items);
+  const total = deduped.length;
+  const paginated = deduped.slice(offset, offset + limit);
 
   res.json({
     success: true,
@@ -166,12 +186,14 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
     return;
   }
 
-  const recordTitle = (title && typeof title === 'string' && title.trim()) || prompt.slice(0, 60) + (prompt.length > 60 ? '...' : '');
+  const promptTrimmed = prompt.trim();
+  const projectId = generationConfig?.projectId;
+  const recordTitle = (title && typeof title === 'string' && title.trim()) || promptTrimmed.slice(0, 60) + (promptTrimmed.length > 60 ? '...' : '');
 
   const newRecord = {
     user_id: userId,
     title: recordTitle,
-    prompt: prompt.trim(),
+    prompt: promptTrimmed,
     generation_config: generationConfig || {},
     architecture_data: architectureData || {},
     status: ['pending', 'processing', 'completed', 'failed'].includes(status) ? status : 'completed',
@@ -181,6 +203,35 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
   // 1. Neon PostgreSQL
   if (isNeonConfigured()) {
     try {
+      const db = getSql();
+      // Check if existing record exists for this user and project/prompt to prevent duplicates
+      const existing = await db`
+        SELECT id FROM public.architecture_history
+        WHERE user_id = ${userId}
+          AND (
+            (${projectId || null}::text IS NOT NULL AND generation_config->>'projectId' = ${projectId})
+            OR prompt = ${promptTrimmed}
+          )
+        ORDER BY updated_at DESC
+        LIMIT 1;
+      `;
+
+      if (existing.length > 0) {
+        const updated = await db`
+          UPDATE public.architecture_history
+          SET
+            title = ${recordTitle},
+            generation_config = ${JSON.stringify(newRecord.generation_config)}::jsonb,
+            architecture_data = ${JSON.stringify(newRecord.architecture_data)}::jsonb,
+            status = ${newRecord.status},
+            updated_at = timezone('utc'::text, now())
+          WHERE id = ${existing[0].id}
+          RETURNING *;
+        `;
+        res.status(200).json({ success: true, data: updated[0] });
+        return;
+      }
+
       const data = await insertArchitectureHistory(newRecord);
       res.status(201).json({ success: true, data });
       return;
@@ -193,6 +244,45 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
   // 2. Supabase PostgreSQL
   if (isServerSupabaseConfigured) {
     try {
+      // Check if existing record exists for this user and project/prompt to prevent duplicates
+      let existingQuery = supabaseServer
+        .from('architecture_history')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (projectId) {
+        existingQuery = existingQuery.or(
+          `generation_config->>projectId.eq.${projectId},prompt.eq.${promptTrimmed}`
+        );
+      } else {
+        existingQuery = existingQuery.eq('prompt', promptTrimmed);
+      }
+
+      const { data: existing } = await existingQuery
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing?.id) {
+        const { data: updated, error: updateErr } = await supabaseServer
+          .from('architecture_history')
+          .update({
+            title: recordTitle,
+            generation_config: newRecord.generation_config,
+            architecture_data: newRecord.architecture_data,
+            status: newRecord.status,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (!updateErr && updated) {
+          res.status(200).json({ success: true, data: updated });
+          return;
+        }
+      }
+
       const { data, error } = await supabaseServer
         .from('architecture_history')
         .insert(newRecord)
@@ -210,6 +300,22 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
   }
 
   // 3. Fallback in-memory
+  const existingIdx = inMemoryArchHistory.findIndex(
+    (item) =>
+      item.user_id === userId &&
+      ((projectId && item.generation_config?.projectId === projectId) ||
+        item.prompt.trim().toLowerCase() === promptTrimmed.toLowerCase())
+  );
+
+  if (existingIdx !== -1) {
+    inMemoryArchHistory[existingIdx] = {
+      ...inMemoryArchHistory[existingIdx],
+      ...newRecord,
+      updated_at: new Date().toISOString(),
+    };
+    res.status(200).json({ success: true, data: inMemoryArchHistory[existingIdx] });
+    return;
+  }
   const created: InMemArch = {
     id: `arch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     ...newRecord,

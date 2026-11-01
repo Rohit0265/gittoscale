@@ -212,6 +212,7 @@ export const api = {
     token: string | null,
     data: {
       sessionId?: string;
+      projectId?: string;
       prompt: string;
       messages: any[];
       selectedAnswers?: any;

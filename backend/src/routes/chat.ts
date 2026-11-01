@@ -53,22 +53,30 @@ router.post('/save', async (req: Request, res: Response) => {
   try {
     const userId = await getUserIdFromReq(req) || req.body.userId || 'anonymous';
     const {
-      sessionId = `chat_${Date.now()}`,
+      projectId,
       prompt = 'Scalable distributed cloud architecture',
       messages = [],
       selectedAnswers = {},
       architectureData = {},
     } = req.body;
 
+    const promptText = (prompt || '').trim();
+    const sessionId =
+      req.body.sessionId ||
+      (projectId
+        ? `chat_${projectId}`
+        : `chat_${Buffer.from(promptText || 'default').toString('base64url').slice(0, 32)}`);
+
     // Cap context at 200 messages
     const cappedMessages = Array.isArray(messages) ? messages.slice(-200) : [];
 
     const recordData = {
       user_id: userId,
-      title: prompt.slice(0, 60),
-      prompt,
+      title: promptText.slice(0, 60),
+      prompt: promptText,
       generation_config: {
         chatSessionId: sessionId,
+        projectId: projectId || undefined,
         chatMessages: cappedMessages,
         selectedAnswers,
         messageCount: cappedMessages.length,
@@ -81,11 +89,15 @@ router.post('/save', async (req: Request, res: Response) => {
     if (isNeonConfigured() && userId !== 'anonymous') {
       try {
         const db = getSql();
-        // Check if existing record for this prompt/session exists
+        // Check if existing record for this prompt/session/project exists
         const existing = await db`
           SELECT id FROM public.architecture_history
           WHERE user_id = ${userId}
-            AND (generation_config->>'chatSessionId' = ${sessionId} OR prompt = ${prompt})
+            AND (
+              generation_config->>'chatSessionId' = ${sessionId}
+              OR (${projectId || null}::text IS NOT NULL AND generation_config->>'projectId' = ${projectId})
+              OR prompt = ${promptText}
+            )
           ORDER BY updated_at DESC
           LIMIT 1;
         `;
@@ -101,9 +113,11 @@ router.post('/save', async (req: Request, res: Response) => {
             RETURNING *;
           `;
           return res.json({ success: true, id: updated[0].id, count: cappedMessages.length });
-        } else {
+        } else if (architectureData?.nodes?.length) {
           const inserted = await insertArchitectureHistory(recordData);
           return res.json({ success: true, id: inserted.id, count: cappedMessages.length });
+        } else {
+          return res.json({ success: true, id: sessionId, count: cappedMessages.length });
         }
       } catch (err: any) {
         console.warn('[Chat API] Neon save error:', err.message);
@@ -113,11 +127,23 @@ router.post('/save', async (req: Request, res: Response) => {
     // 2. Supabase PostgreSQL
     if (isServerSupabaseConfigured && userId !== 'anonymous') {
       try {
-        const { data: existing } = await supabaseServer
+        let existingQuery = supabaseServer
           .from('architecture_history')
           .select('id')
-          .eq('user_id', userId)
-          .eq('generation_config->>chatSessionId', sessionId)
+          .eq('user_id', userId);
+
+        if (projectId) {
+          existingQuery = existingQuery.or(
+            `generation_config->>projectId.eq.${projectId},generation_config->>chatSessionId.eq.${sessionId},prompt.eq.${promptText}`
+          );
+        } else {
+          existingQuery = existingQuery.or(
+            `generation_config->>chatSessionId.eq.${sessionId},prompt.eq.${promptText}`
+          );
+        }
+
+        const { data: existing } = await existingQuery
+          .order('updated_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -131,7 +157,7 @@ router.post('/save', async (req: Request, res: Response) => {
             })
             .eq('id', existing.id);
           return res.json({ success: true, id: existing.id, count: cappedMessages.length });
-        } else {
+        } else if (architectureData?.nodes?.length) {
           const { data: inserted, error } = await supabaseServer
             .from('architecture_history')
             .insert(recordData)
@@ -140,6 +166,8 @@ router.post('/save', async (req: Request, res: Response) => {
           if (!error && inserted) {
             return res.json({ success: true, id: inserted.id, count: cappedMessages.length });
           }
+        } else {
+          return res.json({ success: true, id: sessionId, count: cappedMessages.length });
         }
       } catch (err: any) {
         console.warn('[Chat API] Supabase save error:', err.message);
