@@ -247,20 +247,20 @@ export const Header: React.FC<HeaderProps> = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.96 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
-                className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl shadow-2xl shadow-slate-300/40 dark:shadow-black/70 p-3.5 z-50 flex flex-col gap-2.5"
+                className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-slate-200/90 dark:border-neutral-800/90 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl shadow-xl shadow-slate-300/40 dark:shadow-black/70 p-2 z-50 flex flex-col gap-1.5"
               >
                 {/* Option 1: Mermaid Diagram */}
-                <div className="p-2.5 rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-2">
+                <div className="p-1.5 rounded-lg border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-slate-900 dark:text-white">Mermaid Design</p>
+                      <p className="text-[11px] font-semibold text-slate-900 dark:text-white">Mermaid Design</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 pt-1">
+                  <div className="flex items-center">
                     <button
                       type="button"
                       onClick={handleDownloadMermaid}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer"
                     >
                       <Download className="w-3 h-3" />
                       <span>Download .mmd</span>
@@ -269,17 +269,17 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 {/* Option 2: JSON Architecture */}
-                <div className="p-2.5 rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-2">
+                <div className="p-1.5 rounded-lg border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-slate-900 dark:text-white">JSON Design</p>
+                      <p className="text-[11px] font-semibold text-slate-900 dark:text-white">JSON Design</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 pt-1">
+                  <div className="flex items-center">
                     <button
                       type="button"
                       onClick={handleDownloadJson}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-neutral-100 text-white dark:text-slate-900 text-xs font-medium transition-colors shadow-xs cursor-pointer"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1 rounded-md bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-neutral-100 text-white dark:text-slate-900 text-xs font-medium transition-colors shadow-xs cursor-pointer"
                     >
                       <Download className="w-3 h-3" />
                       <span>Download .json</span>
