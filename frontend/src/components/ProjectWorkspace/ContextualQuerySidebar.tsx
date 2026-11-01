@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Send,
   RotateCcw,
@@ -75,13 +75,66 @@ const getChatStorageKey = (projectId?: string) =>
   projectId ? `gitoscale_ai_chat_session_${projectId}` : 'gitoscale_ai_chat_session_v2';
 const MAX_CONTEXT_MESSAGES = 200;
 
-const DEFAULT_GREETING = `👋 **Hello! I'm your Playground AI Architect Agent.**
+/**
+ * Detects if a user prompt is vague, underspecified, or lacks architectural parameters.
+ */
+export function isVagueRequirement(promptText: string): boolean {
+  if (!promptText || promptText === 'Scalable distributed cloud architecture') return true;
+  const clean = promptText.trim().toLowerCase();
+  const words = clean.split(/\s+/).filter(Boolean);
 
-I have direct real-time access to this canvas. Tell me what to build or change:
-• ➕ **Add components**: *"Add Redis cache between API and Database"* or *"Add Kafka queue"*
-• 🎯 **Add more requirements**: *"Add more requirement: must handle 50k req/s and include payment service"*
-• ⚙️ **Scale & modify**: *"Scale backend to 5 instances"* or *"Set traffic to 5000 req/s"*
-• 🔍 **Diagnose**: *"What are the bottlenecks right now?"*`;
+  // Very short prompts (< 4 words or < 22 characters)
+  if (words.length <= 3 || clean.length < 22) {
+    const hasSpecificTech =
+      /(kafka|redis|postgres|postgresql|mysql|mongodb|mongo|grpc|graphql|rabbitmq|dynamodb|elasticsearch|cassandra|k8s|kubernetes|microservice|event-driven|pubsub)/i.test(
+        clean
+      );
+    return !hasSpecificTech;
+  }
+
+  // Generic requests without architectural details
+  const isGenericStarter =
+    /^(build|create|make|design|want|need|develop)\s+(a|an|the)?\s*(simple\s+|scalable\s+|modern\s+)?(app|application|website|web app|system|platform|project|tool|software|ecommerce|shop|chat|dashboard)$/i.test(
+      clean
+    );
+  if (isGenericStarter) return true;
+
+  // Lacks technical dimensions
+  const hasArchitectureDimensions =
+    /(scale|traffic|rps|req\/s|load|cache|db|database|queue|stream|latency|worker|replica|sharding|cluster|event|async|sync|rest|grpc|auth|payment|realtime|real-time|websocket)/i.test(
+      clean
+    );
+  return !hasArchitectureDimensions && words.length < 8;
+}
+
+/**
+ * Generates initial AI response: asking clarifying questions for vague prompts,
+ * or confirming architecture analysis for specific prompts.
+ */
+export function getClarifyingQuestionsOrSummary(promptText: string, isVague: boolean): string {
+  if (isVague) {
+    const title = promptText && promptText !== 'Scalable distributed cloud architecture' ? `"${promptText}"` : 'your architecture idea';
+    return `👋 I've received your request for **${title}**.
+
+To design the most accurate and cost-effective distributed architecture without guessing, could you clarify a few key requirements?
+
+1. ⚡ **Target Scale & Load**: What is your expected peak traffic (e.g., early MVP < 1,000 req/s, or Growth 10k–50k req/s)?
+2. 🔄 **Workload Characteristic**: Is your application primarily read-heavy (e.g. feeds/catalogs) or write-heavy (e.g. transactions/telemetry)?
+3. 💾 **Data Persistence**: Do you need strict ACID compliance (PostgreSQL) or flexible document/NoSQL storage (MongoDB/DynamoDB)?
+4. 📬 **Communication Pattern**: Do you require asynchronous event streaming (Kafka/RabbitMQ) or synchronous REST/gRPC APIs?
+
+*(Feel free to reply with your answers, or say **"use recommended defaults"** to proceed with a balanced production setup!)*`;
+  }
+
+  return `🎯 **Architecture Analyzed**:
+I've evaluated your prompt: **"${promptText}"** and initialized your distributed architecture topology on the canvas.
+
+• **Ingress & Gateway**: Configured routing, rate-limiting, and TLS termination.
+• **Processing Tier**: Core microservice layer sized for your workload.
+• **Data & Caching**: Spliced persistence and in-memory caching to eliminate bottlenecks.
+
+What component, scaling threshold, or failure scenario would you like to explore next?`;
+}
 
 export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   projectId,
@@ -92,6 +145,7 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   onExecuteChatCommand,
   onRestoreSession,
   onToggleCollapse,
+  isGenerating = false,
   user,
   nodes = [],
   edges = [],
@@ -208,6 +262,44 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       localStorage.setItem('gitoscale_left_sidebar_width', String(defaultWidth));
     } catch {}
   };
+
+  const createInitialMessages = useCallback(
+    (promptText: string, generating: boolean): ChatBubble[] => {
+      const isPlaceholder = !promptText || promptText === 'Scalable distributed cloud architecture';
+      if (isPlaceholder) {
+        return [
+          {
+            id: 'msg-welcome',
+            sender: 'ai',
+            text: `👋 **Welcome! I'm your AI Systems Architect.**\n\nDescribe any system you'd like to design (e.g., *"Design an event-driven payment processing system"* or *"Build an e-commerce platform"*), and I'll generate the live architecture canvas and guide you through scaling trade-offs.`,
+            timestamp: new Date().toISOString(),
+          },
+        ];
+      }
+
+      const userBubble: ChatBubble = {
+        id: `user-init-${Date.now()}`,
+        sender: 'user',
+        text: promptText,
+        timestamp: new Date().toISOString(),
+      };
+
+      const isVague = isVagueRequirement(promptText);
+      const aiBubble: ChatBubble = {
+        id: `ai-init-${Date.now() + 1}`,
+        sender: 'ai',
+        text: generating
+          ? 'Evaluating architecture requirements & designing topology...'
+          : getClarifyingQuestionsOrSummary(promptText, isVague),
+        isThinking: generating,
+        timestamp: new Date().toISOString(),
+      };
+
+      return [userBubble, aiBubble];
+    },
+    []
+  );
+
   // Load existing session from localStorage to prevent re-asking on refresh
   const [messages, setMessages] = useState<ChatBubble[]>(() => {
     if (typeof window !== 'undefined') {
@@ -223,15 +315,16 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
         console.warn('Failed to parse cached chat session:', e);
       }
     }
-    return [];
+    return createInitialMessages(activePrompt, isGenerating);
   });
 
   const [customInput, setCustomInput] = useState('');
   const [isProcessingCommand, setIsProcessingCommand] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const saveDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const prevGeneratingRef = useRef(isGenerating);
 
-  // Sync messages when projectId changes
+  // Sync messages when projectId or activePrompt changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const key = getChatStorageKey(projectId);
@@ -252,14 +345,30 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
       }
     } catch (e) {}
 
-    const welcome: ChatBubble = {
-      id: 'msg-welcome',
-      sender: 'ai',
-      text: DEFAULT_GREETING,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages([welcome]);
-  }, [projectId]);
+    // Initialize with user's prompt as the first message
+    setMessages(createInitialMessages(activePrompt, isGenerating));
+  }, [projectId, activePrompt, isGenerating, createInitialMessages]);
+
+  // Transition thinking bubble when generation finishes
+  useEffect(() => {
+    if (prevGeneratingRef.current && !isGenerating) {
+      setMessages((prev) => {
+        const hasThinking = prev.some((m) => m.isThinking);
+        if (!hasThinking) return prev;
+        const isVague = isVagueRequirement(activePrompt);
+        return prev.map((msg) =>
+          msg.isThinking
+            ? {
+                ...msg,
+                isThinking: false,
+                text: getClarifyingQuestionsOrSummary(activePrompt, isVague),
+              }
+            : msg
+        );
+      });
+    }
+    prevGeneratingRef.current = isGenerating;
+  }, [isGenerating, activePrompt]);
 
   // Persist conversation to localStorage & database (capped at 200 messages)
   useEffect(() => {
