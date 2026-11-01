@@ -86,7 +86,7 @@ const GITOSCALE_FAQS = [
   {
     question: "Can I generate system designs from text prompts or only from repositories?",
     answer:
-      "Both! You can type any prompt (such as 'Design a video streaming pipeline with CDN and transcoder workers') to generate interactive system architectures from scratch, or import any public or private GitHub repository to auto-discover existing architecture.",
+      "Both! You can type any prompt (such as 'Design a video streaming pipeline with CDN and transcoder workers') to generate interactive system architectures from scratch, or import any public GitHub repository to auto-discover existing architecture.",
   },
   {
     question: "How does Text to System Design work in GitToScale?",
