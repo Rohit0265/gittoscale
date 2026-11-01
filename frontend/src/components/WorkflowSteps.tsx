@@ -126,11 +126,11 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                 className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
               />
               <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                See the architecture hiding in your repo.
+                Design from text prompt or scan your repo.
               </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Import a GitHub repository and let GitToScale map services, queues, data stores, and the traffic between them.
+              Describe any architecture in natural language to generate instant distributed systems, or import a GitHub repository to auto-map services, queues, databases, and dependencies.
             </p>
           </div>
         </div>
@@ -155,7 +155,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
               </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Model traffic spikes, cache misses, database saturation, and failure paths with a clear, interactive view of what happens next.
+              Run synthetic workloads on text-generated blueprints or scanned repositories. Model traffic surges, cache misses, database saturation, and cascade failure paths in real time.
             </p>
           </div>
 
@@ -206,7 +206,7 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
               </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Turn invisible coupling into a prioritized list of risks your team can understand, discuss, and fix.
+              Detect queue congestion, connection pool starvation, and single points of failure across your system design with actionable metrics your team can discuss and resolve.
             </p>
           </div>
         </div>
@@ -227,11 +227,11 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                 className="absolute -inset-x-4 -inset-y-2 bg-gradient-to-r from-slate-400/15 via-neutral-400/20 to-slate-400/15 dark:from-neutral-500/20 dark:via-slate-400/25 dark:to-neutral-500/20 rounded-2xl blur-xl pointer-events-none -z-10"
               />
               <span className="relative z-10 box-decoration-clone bg-no-repeat bg-gradient-to-r from-slate-300/60 via-slate-200/70 to-slate-300/50 dark:from-neutral-700/70 dark:via-neutral-600/80 dark:to-neutral-700/60 [background-size:100%_42%] [background-position:0_92%] px-1 -mx-1 rounded-xs drop-shadow-[0_2px_10px_rgba(100,116,139,0.25)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                Use AI to complete, scale, and heal your flow.
+                Design with AI, scale, and auto-heal bottlenecks.
               </span>
             </h3>
             <p className="font-aleo text-slate-600 dark:text-neutral-400 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Prompt the AI Architect to heal bottlenecks, inject cache layers, decouple asynchronous workers, or generate complete production topologies with real-time canvas execution.
+              Prompt the AI Architect to generate full-stack distributed systems, inject caching tiers, decouple asynchronous queues, or auto-scale replicas with live canvas execution.
             </p>
           </div>
 

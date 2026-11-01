@@ -72,7 +72,7 @@ const PAGES = [
 
 const PAGE_LABELS: Record<string, string> = {
   top: 'Overview',
-  'step-1': '01: Discover',
+  'step-1': '01: Text & Repo Design',
   'step-2': '02: Simulate',
   'step-3': '03: Detect',
   'step-4': '04: Complete with AI',
@@ -83,9 +83,14 @@ const PAGE_LABELS: Record<string, string> = {
 
 const GITOSCALE_FAQS = [
   {
-    question: "How does GitToScale discover system architecture from a repository?",
+    question: "Can I generate system designs from text prompts or only from repositories?",
     answer:
-      "GitToScale statically analyzes your repository to identify services, databases, message queues, API gateways, and their communication protocols. It auto-generates a living interactive topology graph representing your entire distributed system.",
+      "Both! You can type any prompt (such as 'Design a video streaming pipeline with CDN and transcoder workers') to generate interactive system architectures from scratch, or import any public or private GitHub repository to auto-discover existing architecture.",
+  },
+  {
+    question: "How does Text to System Design work in GitToScale?",
+    answer:
+      "Our AI Architect parses your requirements, estimates throughput and storage needs, and automatically constructs services, databases, queues, and gateways with realistic traffic paths, latencies, and capacities ready for live simulation.",
   },
   {
     question: "Can I simulate high traffic spikes without deploying to production?",
@@ -98,14 +103,9 @@ const GITOSCALE_FAQS = [
       "The AI Architect analyzes node resource utilization, saturated queues, and query latency under simulated load, providing concrete actionable scaling patterns—such as read-replicas, caching tiers, and event-driven decoupled queues.",
   },
   {
-    question: "What Git hosting providers and repositories are supported?",
+    question: "Is my repository source code or architecture design stored or exposed?",
     answer:
-      "You can import public or private repositories from GitHub, GitLab, and Bitbucket, or enter a prompt directly to generate custom greenfield system architectures from scratch.",
-  },
-  {
-    question: "Is my repository source code stored or exposed?",
-    answer:
-      "No. GitToScale only parses configuration manifests and dependency graphs to extract topology. Your proprietary source code is never permanently stored or shared with third parties.",
+      "No. GitToScale only parses configuration manifests and dependency graphs to extract topology. Your proprietary source code and architecture designs are never permanently stored or shared with third parties.",
   },
 ];
 
@@ -230,21 +230,21 @@ export function HeroDiagram() {
 const DEMO_IMAGES = [
   {
     src: '/demo-basic.png',
-    title: 'Basic Architecture View',
-    subtitle: 'High-level microservices, cache tiers, and load balancers',
-    alt: 'GitToScale Basic Architecture Simulation View',
+    title: 'Interactive System Architecture Canvas',
+    subtitle: 'Text-to-design generation, microservices, cache tiers, and load balancers',
+    alt: 'GitToScale System Architecture Simulation View',
   },
   {
     src: '/demo-detailed.png',
     title: 'Detailed Fleet & Bottleneck View',
-    subtitle: 'Deep dive into queue saturation, latencies, and constrained nodes',
+    subtitle: 'Deep dive into queue saturation, latencies, and constrained nodes under load',
     alt: 'GitToScale Detailed Fleet and Bottleneck Analysis View',
   },
   {
     src: '/demo-import.png',
-    title: 'Automated Codebase Scanner',
-    subtitle: 'Auto-construct interactive topology from any GitHub repository',
-    alt: 'GitToScale AI Ingestion and Architecture Extraction',
+    title: 'Text Prompt & Codebase Scanner',
+    subtitle: 'Generate system designs from text prompts or auto-construct from GitHub repositories',
+    alt: 'GitToScale Text to System Design and Codebase Ingestion',
   },
 ];
 
@@ -785,7 +785,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Who benefits from GitToScale
             </h2>
             <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-neutral-400">
-              Discover how distributed system architects, DevOps engineers, and engineering managers prevent outages before production deployments.
+              Whether generating greenfield architectures from text or stress-testing existing production codebases, GitToScale helps teams prevent outages before deployment.
             </p>
           </motion.div>
 
@@ -806,7 +806,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   System Architects
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-neutral-400 leading-relaxed mb-4">
-                  Validate proposed microservice topologies, database sharding strategies, and message broker backpressure before writing a single line of infrastructure code.
+                  Generate complete system designs from text prompts in seconds, or validate proposed microservice topologies, database sharding strategies, and broker backpressure before writing a line of code.
                 </p>
               </div>
             </motion.div>
@@ -827,7 +827,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   DevOps & Platform Teams
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-neutral-400 leading-relaxed mb-4">
-                  Diagnose whether downstream DB connection pools or queue worker threads saturate first during 10x traffic spikes, pinpointing root bottlenecks instantly.
+                  Stress-test text-generated blueprints or imported architectures to diagnose whether downstream DB connection pools or queue worker threads saturate first during 10x traffic surges.
                 </p>
               </div>
             </motion.div>
@@ -848,7 +848,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Tech Leads & Engineering VPs
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-neutral-400 leading-relaxed mb-4">
-                  Make data-backed infrastructure budget decisions. Compare baseline vs. scaled configurations side-by-side to justify cloud spend and replica counts.
+                  Draft, simulate, and compare multiple architectural approaches side-by-side to make data-backed infrastructure budget decisions and justify cloud spend.
                 </p>
               </div>
             </motion.div>
@@ -869,7 +869,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   System Design Learners
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-neutral-400 leading-relaxed mb-4">
-                  Move beyond static whiteboard diagrams. Test caching layers, load balancers, rate limiters, and failover mechanics interactively under synthetic loads.
+                  Practice designing real-world distributed systems (Uber, Netflix, WhatsApp) from text prompts. Test caching tiers, load balancers, rate limiters, and failover mechanics interactively under synthetic loads.
                 </p>
               </div>
             </motion.div>
@@ -884,7 +884,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202]">
         <FrequentlyAskedQuestions
           title="Frequently Asked Questions"
-          description="Everything you need to know about GitToScale architecture scanning, distributed simulation, and AI recommendations."
+          description="Everything you need to know about GitToScale text-to-system design, repository architecture scanning, and distributed load simulation."
           data={GITOSCALE_FAQS}
           supportEmail="support@gittoscale.tech"
         />

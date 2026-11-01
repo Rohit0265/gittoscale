@@ -21,14 +21,20 @@ export interface NewOneProps {
 }
 
 const IDEAS = [
-  'Cook your next big system architecture...',
-  'Share your architecture idea or blueprint...',
+  'Design an e-commerce platform with Redis & Kafka...',
+  'Text to system design: Build a Netflix streaming fleet...',
+  'Design a real-time chat architecture with WebSockets...',
   'Where are the single points of failure under 200k RPS?',
-  'How should we scale microservices for event streaming?',
-  'Cook a low-latency caching layer idea...',
+  'Design a global URL shortener with rate limiting...',
+  'Cook a low-latency distributed caching layer idea...',
 ];
 
 const SCENARIO_CHIPS = [
+  {
+    label: 'Text to Architecture',
+    prompt: 'Design an event-driven payment processing system with Kafka and Postgres',
+    icon: Layers,
+  },
   {
     label: '10x Traffic',
     prompt: 'How do we handle a 10x Traffic Spike without downtime?',
@@ -42,11 +48,6 @@ const SCENARIO_CHIPS = [
   {
     label: 'Queue Spike',
     prompt: 'Design fault tolerance for queue spikes with SQS and Workers',
-    icon: Layers,
-  },
-  {
-    label: 'DB Pool',
-    prompt: 'Optimize DB Connection Pooling under heavy concurrent writes',
     icon: ShieldCheck,
   },
 ];
@@ -169,8 +170,7 @@ export const NewOne: React.FC<NewOneProps> = ({
 
           {/* Subheading / Explainer */}
           <p className="font-aleo mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-slate-600 dark:text-neutral-400 leading-relaxed max-w-xl font-normal">
-            Import your GitHub repository, ask better questions, and see exactly
-            how your system behaves under load.
+            Turn text prompts into interactive system architectures or scan your GitHub repository. Simulate traffic, stress-test microservices, and eliminate bottlenecks before production.
           </p>
 
           {/* Action Button Row */}
@@ -210,7 +210,7 @@ export const NewOne: React.FC<NewOneProps> = ({
               <div className="flex items-center justify-between pb-4 mb-5 border-b border-neutral-800/70">
                 <div className="flex items-center">
                   <span className="relative font-lora text-sm sm:text-base font-medium tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(255,255,255,0.12)] select-none">
-                    Cook what&apos;s in your mind
+                    Text to System Design
                   </span>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export const NewOne: React.FC<NewOneProps> = ({
                     }}
                     className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-neutral-100 placeholder-neutral-500 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none shadow-none"
                     style={{ outline: 'none', boxShadow: 'none' }}
-                    placeholder={placeholder || 'Share your architecture idea or cook a concept...'}
+                    placeholder={placeholder || 'Describe your system idea (e.g. "Design Uber ride-matching at scale")...'}
                     autoComplete="off"
                   />
 
@@ -291,7 +291,7 @@ export const NewOne: React.FC<NewOneProps> = ({
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-between w-full px-3 py-2.5 rounded-xl bg-neutral-900/40 border border-neutral-800/50 backdrop-blur-md">
               <div className="flex items-center space-x-2 text-xs sm:text-sm text-neutral-400 mb-2 sm:mb-0">
                 <GitBranch className="w-4 h-4 text-neutral-500" />
-                <span>Want automated discovery?</span>
+                <span>Have an existing codebase?</span>
               </div>
 
               <button
@@ -300,7 +300,7 @@ export const NewOne: React.FC<NewOneProps> = ({
                 className="group flex items-center space-x-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 hover:border-neutral-500 px-4 py-2 rounded-lg text-xs sm:text-sm text-neutral-200 hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
               >
                 <Github className="w-4 h-4 text-base text-neutral-300 group-hover:text-white transition-colors" />
-                <span className="font-medium">Import GitHub repository</span>
+                <span className="font-medium">Scan GitHub repository</span>
                 <ArrowUpRight className="w-3 h-3 text-[10px] text-neutral-500 group-hover:text-neutral-300 transition-colors ml-0.5" />
               </button>
             </div>
