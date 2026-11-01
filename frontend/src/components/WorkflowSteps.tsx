@@ -316,7 +316,7 @@ const WORKFLOW_STEPS: CanvasStepData[] = [
   {
     id: 'step-4',
     stepNumber: '04 / HEAL',
-    tabLabel: '04. AI Auto-Healing',
+    tabLabel: '04. AI Auto-Scaling',
     tagline: 'Autonomous Architectural Healing & Scale',
     title: 'Design with AI, scale, and auto-heal bottlenecks.',
     description:
