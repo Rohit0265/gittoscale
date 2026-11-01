@@ -853,7 +853,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           title="Frequently Asked Questions"
           description="Everything you need to know about GitToScale text-to-system design, repository architecture scanning, and distributed load simulation."
           data={GITOSCALE_FAQS}
-          supportEmail="support@gittoscale.tech"
         />
       </div>
 

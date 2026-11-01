@@ -80,12 +80,6 @@ export default function FrequentlyAskedQuestions({
 
         <p className="relative z-10 mx-auto mt-6 max-w-2xl text-center text-base text-zinc-500 dark:text-zinc-400 md:text-lg">
           {description}{" "}
-          <a
-            href={`mailto:${supportEmail}`}
-            className="text-primary underline underline-offset-4 hover:opacity-80 transition-opacity"
-          >
-            {supportEmail}
-          </a>
         </p>
 
         <div className="mt-14">
