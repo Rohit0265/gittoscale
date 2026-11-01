@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from "@/components/ui/frequently-asked-questions-with-accordion-utils/accordion";
+} from "@/components/ui/accordion";
 
 export interface FAQItem {
   question: string;
