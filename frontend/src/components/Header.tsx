@@ -249,7 +249,7 @@ export const Header: React.FC<HeaderProps> = ({
                 transition={{ duration: 0.15, ease: 'easeOut' }}
                 className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl shadow-2xl shadow-slate-300/40 dark:shadow-black/70 p-3.5 z-50 flex flex-col gap-2.5"
               >
-                <div className="px-1 pt-0.5">
+                {/* <div className="px-1 pt-0.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-900 dark:text-white">Export Design</span>
                     <span className="text-[10px] font-medium text-slate-500 dark:text-neutral-400">
@@ -259,7 +259,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
                     Export your system architecture to code or diagram format.
                   </p>
-                </div>
+                </div> */}
 
                 {/* Option 1: Mermaid Diagram */}
                 <div className="p-2.5 rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-2">
