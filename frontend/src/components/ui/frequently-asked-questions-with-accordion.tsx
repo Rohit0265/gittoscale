@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { PenHighlight } from "./PenShadowLine";
 import {
@@ -72,50 +71,14 @@ export default function FrequentlyAskedQuestions({
       <div className="mx-auto max-w-3xl px-6">
         <h1 className="relative z-10 mx-auto max-w-4xl text-center text-3xl font-bold leading-[0.94] tracking-tight text-zinc-800 md:text-5xl lg:text-6xl dark:text-zinc-100">
           <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-            {firstLineWords.map((word, index) => (
-              <motion.span
-                key={`${word}-${index}`}
-                initial={{ opacity: 0, filter: "blur(6px)", y: 12 }}
-                whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.4,
-                  delay: index * 0.08,
-                  ease: "easeInOut",
-                }}
-                className="mr-2 inline-block"
-              >
-                {word}
-              </motion.span>
-            ))}
+            {firstLineWords.join(" ")}
           </PenHighlight>
           <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-            {secondLineWords.map((word, index) => (
-              <motion.span
-                key={`${word}-${index + firstLineWords.length}`}
-                initial={{ opacity: 0, filter: "blur(6px)", y: 12 }}
-                whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.4,
-                  delay: (index + firstLineWords.length) * 0.08,
-                  ease: "easeInOut",
-                }}
-                className="mr-2 inline-block"
-              >
-                {word}
-              </motion.span>
-            ))}
+            {secondLineWords.join(" ")}
           </PenHighlight>
         </h1>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="relative z-10 mx-auto mt-6 max-w-2xl text-center text-base text-zinc-500 dark:text-zinc-400 md:text-lg"
-        >
+        <p className="relative z-10 mx-auto mt-6 max-w-2xl text-center text-base text-zinc-500 dark:text-zinc-400 md:text-lg">
           {description}{" "}
           <a
             href={`mailto:${supportEmail}`}
@@ -123,36 +86,20 @@ export default function FrequentlyAskedQuestions({
           >
             {supportEmail}
           </a>
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-14"
-        >
+        <div className="mt-14">
           <Accordion type="single" collapsible className="w-full">
             {data.map((item, index) => (
-              <motion.div
-                key={`faq-${index}`}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.35,
-                  delay: 0.5 + index * 0.07,
-                  ease: "easeOut",
-                }}
-              >
+              <div key={`faq-${index}`}>
                 <AccordionItem value={`item-${index}`}>
                   <AccordionTrigger>{item.question}</AccordionTrigger>
                   <AccordionContent>{item.answer}</AccordionContent>
                 </AccordionItem>
-              </motion.div>
+              </div>
             ))}
           </Accordion>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

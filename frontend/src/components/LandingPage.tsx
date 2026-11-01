@@ -111,15 +111,6 @@ const GITOSCALE_FAQS = [
 ];
 
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
-
 function PageDots({ active }: { active: number }) {
   return (
     <div className="fixed right-4 sm:right-6 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-2.5 md:flex">
