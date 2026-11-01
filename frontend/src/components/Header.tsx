@@ -12,9 +12,22 @@ import {
   LogIn,
   UserPlus,
   ChevronDown,
+  Download,
+  FileCode,
+  Code2,
+  Copy,
+  Check,
+  Eye,
+  X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScenarioFixture } from '../types';
+import { ScenarioFixture, ArchitectureNode, ArchitectureEdge } from '../types';
+import {
+  generateMermaidDiagram,
+  generateArchitectureJson,
+  downloadFile,
+  copyToClipboard,
+} from '../utils/exportDiagram';
 
 interface HeaderProps {
   scenarios: ScenarioFixture[];
@@ -40,6 +53,9 @@ interface HeaderProps {
   onToggleTheme?: () => void;
   isLeftCollapsed?: boolean;
   onToggleLeftSidebar?: () => void;
+  nodes?: ArchitectureNode[];
+  edges?: ArchitectureEdge[];
+  projectName?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -62,21 +78,37 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   isLeftCollapsed: _isLeftCollapsed = false,
   onToggleLeftSidebar: _onToggleLeftSidebar,
+  nodes = [],
+  edges = [],
+  projectName = 'GitToScale System Design',
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewTab, setPreviewTab] = useState<'mermaid' | 'json'>('mermaid');
+  const [copiedType, setCopiedType] = useState<'mermaid' | 'json' | null>(null);
+
   const menuRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsMenuOpen(false);
       }
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setIsExportOpen(false);
+      }
     };
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMenuOpen(false);
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+        setIsExportOpen(false);
+        setIsPreviewModalOpen(false);
+      }
     };
 
-    if (isMenuOpen) {
+    if (isMenuOpen || isExportOpen || isPreviewModalOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
     }
@@ -84,7 +116,42 @@ export const Header: React.FC<HeaderProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, isExportOpen, isPreviewModalOpen]);
+
+  const safeFilename = (projectName || 'architecture')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '_')
+    .slice(0, 40) || 'architecture';
+
+  const handleDownloadMermaid = () => {
+    const content = generateMermaidDiagram(nodes, edges, projectName);
+    downloadFile(content, `${safeFilename}.mmd`, 'text/plain;charset=utf-8');
+    setIsExportOpen(false);
+  };
+
+  const handleCopyMermaid = async () => {
+    const content = generateMermaidDiagram(nodes, edges, projectName);
+    const success = await copyToClipboard(content);
+    if (success) {
+      setCopiedType('mermaid');
+      setTimeout(() => setCopiedType(null), 2000);
+    }
+  };
+
+  const handleDownloadJson = () => {
+    const content = generateArchitectureJson(nodes, edges, projectName);
+    downloadFile(content, `${safeFilename}.json`, 'application/json;charset=utf-8');
+    setIsExportOpen(false);
+  };
+
+  const handleCopyJson = async () => {
+    const content = generateArchitectureJson(nodes, edges, projectName);
+    const success = await copyToClipboard(content);
+    if (success) {
+      setCopiedType('json');
+      setTimeout(() => setCopiedType(null), 2000);
+    }
+  };
 
   // const activeScenario = _scenarios.find((s) => s.id === _currentScenarioId);
 
@@ -152,6 +219,148 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">New Project</span>
           </button>
         )}
+
+        {/* Export Design (JSON or Mermaid) */}
+        <div ref={exportRef} className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsExportOpen((prev) => !prev)}
+            aria-label="Export architecture as JSON or Mermaid"
+            aria-expanded={isExportOpen}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900 hover:text-slate-900 dark:hover:text-white transition-all shadow-xs cursor-pointer shrink-0"
+            title="Export design as JSON or Mermaid diagram"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-300" />
+            <span className="hidden sm:inline">Export</span>
+            <ChevronDown
+              className={`w-3 h-3 text-slate-400 dark:text-neutral-500 transition-transform duration-200 ${
+                isExportOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {/* Export Dropdown Menu */}
+          <AnimatePresence>
+            {isExportOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl shadow-2xl shadow-slate-300/40 dark:shadow-black/70 p-3.5 z-50 flex flex-col gap-2.5"
+              >
+                <div className="px-1 pt-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">Export Design</span>
+                    <span className="text-[10px] font-medium text-slate-500 dark:text-neutral-400">
+                      {nodes?.length || 0} nodes · {edges?.length || 0} edges
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                    Export your system architecture to code or diagram format.
+                  </p>
+                </div>
+
+                {/* Option 1: Mermaid Diagram */}
+                <div className="p-2.5 rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                      <FileCode className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-white">Mermaid Design</p>
+                      <p className="text-[10px] text-slate-500 dark:text-neutral-400 truncate">
+                        Markdown flowchart for GitHub, Notion, docs
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleDownloadMermaid}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>Download .mmd</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyMermaid}
+                      className="flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-[#151518] hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 text-xs font-medium transition-colors cursor-pointer"
+                    >
+                      {copiedType === 'mermaid' ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-500" />
+                          <span className="text-emerald-500 text-[11px]">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span className="text-[11px]">Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Option 2: JSON Architecture */}
+                <div className="p-2.5 rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <Code2 className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-white">JSON Design</p>
+                      <p className="text-[10px] text-slate-500 dark:text-neutral-400 truncate">
+                        Full topology, configs, latencies & simulation
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleDownloadJson}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-neutral-100 text-white dark:text-slate-900 text-xs font-medium transition-colors shadow-xs cursor-pointer"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>Download .json</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyJson}
+                      className="flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-[#151518] hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 text-xs font-medium transition-colors cursor-pointer"
+                    >
+                      {copiedType === 'json' ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-500" />
+                          <span className="text-emerald-500 text-[11px]">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span className="text-[11px]">Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Preview / Inspection Action */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportOpen(false);
+                    setIsPreviewModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Preview Code & Diagrams</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* GitHub Star Button */}
 
@@ -387,6 +596,118 @@ export const Header: React.FC<HeaderProps> = ({
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Code & Diagram Preview Modal */}
+      <AnimatePresence>
+        {isPreviewModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0c0d10] shadow-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-neutral-800/80">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                    <Download className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Export Architecture Design
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-neutral-400">
+                      {projectName || 'System Design'} · {nodes?.length || 0} nodes, {edges?.length || 0} edges
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (previewTab === 'mermaid') handleCopyMermaid();
+                      else handleCopyJson();
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    {copiedType === previewTab ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        <span className="text-emerald-500">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy {previewTab === 'mermaid' ? 'Mermaid' : 'JSON'}</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (previewTab === 'mermaid') handleDownloadMermaid();
+                      else handleDownloadJson();
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPreviewModalOpen(false)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex items-center gap-2 px-5 pt-3 pb-2 border-b border-slate-100 dark:border-neutral-800/60 bg-slate-50/50 dark:bg-neutral-900/30">
+                <button
+                  type="button"
+                  onClick={() => setPreviewTab('mermaid')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    previewTab === 'mermaid'
+                      ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                      : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <FileCode className="w-3.5 h-3.5" />
+                  <span>Mermaid Flowchart (.mmd)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewTab('json')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    previewTab === 'json'
+                      ? 'bg-white dark:bg-neutral-800 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                      : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                  <span>Architecture JSON (.json)</span>
+                </button>
+              </div>
+
+              {/* Code Viewer Body */}
+              <div className="flex-1 overflow-auto p-4 bg-slate-900 text-slate-100 dark:bg-[#07080a] font-mono text-xs leading-relaxed selection:bg-indigo-600 selection:text-white">
+                <pre className="whitespace-pre overflow-x-auto">
+                  {previewTab === 'mermaid'
+                    ? generateMermaidDiagram(nodes || [], edges || [], projectName)
+                    : generateArchitectureJson(nodes || [], edges || [], projectName)}
+                </pre>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

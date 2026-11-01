@@ -1691,6 +1691,9 @@ export const App: React.FC = () => {
         onToggleTheme={handleToggleTheme}
         isLeftCollapsed={isLeftCollapsed}
         onToggleLeftSidebar={handleToggleLeft}
+        nodes={nodes}
+        edges={edges}
+        projectName={activePromptText || defaultArchitecture?.description || 'GitToScale System Architecture'}
       />
 
       {/* 2. Top Metrics Strip */}
