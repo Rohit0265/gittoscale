@@ -17,7 +17,6 @@ import {
   Code2,
   Copy,
   Check,
-  Eye,
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
