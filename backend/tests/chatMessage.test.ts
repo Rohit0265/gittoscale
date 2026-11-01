@@ -15,35 +15,70 @@ describe('AI Chat Message API (/api/chat/message)', () => {
   });
 
   it('handles random gibberish politely without canned predefined template', async () => {
-    const res = await request(app)
-      .post('/api/chat/message')
-      .send({ message: 'hkuhjkjkh' });
+    const originalFetch = global.fetch;
+    global.fetch = async (url: any, opts: any) => {
+      const urlStr = String(url);
+      if (urlStr.includes('generativelanguage.googleapis.com')) {
+        return new Response(
+          JSON.stringify({
+            candidates: [{ content: { parts: [{ text: "Could you please clarify your request?" }] } }],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      return originalFetch(url, opts);
+    };
 
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.reply).toBeDefined();
-    // Must NOT contain the old canned robotic phrase
-    expect(res.body.reply).not.toContain("I've analyzed your instruction");
-    expect(res.body.reply).not.toContain("What change would you like me to execute?");
-    expect(res.body.reply.toLowerCase()).toContain("clarify");
+    try {
+      const res = await request(app)
+        .post('/api/chat/message')
+        .send({ message: 'hkuhjkjkh' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.reply).toBeDefined();
+      expect(res.body.reply).not.toContain("I've analyzed your instruction");
+      expect(res.body.reply).not.toContain("What change would you like me to execute?");
+      expect(res.body.reply.toLowerCase()).toContain("clarify");
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 
   it('provides genuine architectural insights for technical questions', async () => {
-    const res = await request(app)
-      .post('/api/chat/message')
-      .send({
-        message: 'What caching strategy should I use for Redis?',
-        architectureContext: {
-          nodes: [{ id: 'api-gw', name: 'API Gateway', type: 'gateway' }],
-          trafficRate: 3500,
-        },
-      });
+    const originalFetch = global.fetch;
+    global.fetch = async (url: any, opts: any) => {
+      const urlStr = String(url);
+      if (urlStr.includes('generativelanguage.googleapis.com')) {
+        return new Response(
+          JSON.stringify({
+            candidates: [{ content: { parts: [{ text: "Consider using a distributed Redis cache layer with LRU eviction." }] } }],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      return originalFetch(url, opts);
+    };
 
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.reply).toBeDefined();
-    expect(res.body.reply).not.toContain("I've analyzed your instruction");
-    expect(res.body.reply.toLowerCase()).toContain("cache");
+    try {
+      const res = await request(app)
+        .post('/api/chat/message')
+        .send({
+          message: 'What caching strategy should I use for Redis?',
+          architectureContext: {
+            nodes: [{ id: 'api-gw', name: 'API Gateway', type: 'gateway' }],
+            trafficRate: 3500,
+          },
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.reply).toBeDefined();
+      expect(res.body.reply).not.toContain("I've analyzed your instruction");
+      expect(res.body.reply.toLowerCase()).toContain("cache");
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 
   it('seamlessly transfers to Groq in background when Gemini hits 429 rate limit', async () => {
