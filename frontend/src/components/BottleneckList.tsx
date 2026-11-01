@@ -155,12 +155,7 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
                 : 'bg-rose-500 ring-2 ring-rose-500/20'
             }`}
           />
-          <span>{bottlenecks.length === 0 ? 'Optimal System Health' : `${bottlenecks.length} Constraint${bottlenecks.length > 1 ? 's' : ''}`}</span>
         </div>
-        {/* <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-          <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" strokeWidth={1.75} />
-          <span className="font-mono text-[10px] tracking-tight">M/M/m/K Model</span>
-        </div> */}
       </div>
     </div>
   );
