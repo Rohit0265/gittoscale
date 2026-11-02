@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { supabase, isSupabaseConfigured, crossDomainStorage } from '../services/supabase';
 
 export interface UserProfile {
   id: string;
@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [pendingAction, setPendingActionState] = useState<PendingAction | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
-      const raw = localStorage.getItem(PENDING_ACTION_STORAGE_KEY);
+      const raw = crossDomainStorage.getItem(PENDING_ACTION_STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -218,7 +218,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } as unknown as import('@supabase/supabase-js').User;
             setUser(mockUser);
             setProfile({ id: u.id, email: u.email, fullName: u.fullName });
-            try { localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(u)); } catch {}
+            try { crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(u)); } catch {}
             resolve({ error: null });
           }
         };
@@ -331,13 +331,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
 
-  // Save pending action to both memory and localStorage
+  // Save pending action to cross-domain storage
   const savePendingAction = useCallback((action: PendingAction) => {
     setPendingActionState(action);
     try {
-      localStorage.setItem(PENDING_ACTION_STORAGE_KEY, JSON.stringify(action));
+      crossDomainStorage.setItem(PENDING_ACTION_STORAGE_KEY, JSON.stringify(action));
     } catch (e) {
-      console.warn('Failed to save pending action to localStorage:', e);
+      console.warn('Failed to save pending action to crossDomainStorage:', e);
     }
   }, []);
 
@@ -345,9 +345,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearPendingAction = useCallback(() => {
     setPendingActionState(null);
     try {
-      localStorage.removeItem(PENDING_ACTION_STORAGE_KEY);
+      crossDomainStorage.removeItem(PENDING_ACTION_STORAGE_KEY);
     } catch (e) {
-      console.warn('Failed to remove pending action from localStorage:', e);
+      console.warn('Failed to remove pending action from crossDomainStorage:', e);
     }
   }, []);
 
@@ -380,7 +380,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         // Mock session mode when Supabase credentials are not in .env yet
         try {
-          const savedMock = localStorage.getItem(MOCK_USER_STORAGE_KEY);
+          const savedMock = crossDomainStorage.getItem(MOCK_USER_STORAGE_KEY);
           if (savedMock) {
             const parsed = JSON.parse(savedMock);
             const mockUser = {
@@ -456,7 +456,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(mockUser);
         setProfile(mockProfile);
         try {
-          localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
+          crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
         } catch {}
         setIsLoading(false);
         return { error: null };
@@ -524,7 +524,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(mockUser);
         setProfile(mockProfile);
         try {
-          localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
+          crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
         } catch {}
         setIsLoading(false);
         return { error: null };
@@ -599,10 +599,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Failed to wipe cookies:', e);
       }
 
-      // 4. Clear auth and session items from localStorage
+      // 4. Clear auth and session items from storage
       try {
-        localStorage.removeItem(MOCK_USER_STORAGE_KEY);
-        localStorage.removeItem(PENDING_ACTION_STORAGE_KEY);
+        crossDomainStorage.removeItem(MOCK_USER_STORAGE_KEY);
+        crossDomainStorage.removeItem(PENDING_ACTION_STORAGE_KEY);
         localStorage.removeItem('gts_github_token');
         localStorage.removeItem('sb-access-token');
 

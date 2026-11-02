@@ -73,9 +73,6 @@ import {
   AuthModalSkeleton,
 } from './components/common/SkeletonScreens';
 
-const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
-const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
-
 const EMPTY_NODE_RESULTS: Record<string, any> = {};
 const EMPTY_EDGE_RESULTS: Record<string, any> = {};
 
@@ -105,11 +102,6 @@ const getProjectRouteInfo = (): ProjectRouteInfo | null => {
     };
   }
   return null;
-};
-
-const isCustomDomain = () => {
-  if (typeof window === 'undefined') return false;
-  return window.location.hostname.toLowerCase().includes('gittoscale.tech');
 };
 
 const isAuthUrl = () => {
@@ -285,10 +277,6 @@ export const App: React.FC = () => {
   }, []);
 
   const handleGoHome = useCallback(() => {
-    if (isCustomDomain() && isAppDomain()) {
-      window.location.href = LANDING_DOMAIN_URL;
-      return;
-    }
     window.history.pushState({}, '', '/');
     setActiveProject(null);
     setActivePromptText('');
@@ -372,8 +360,7 @@ export const App: React.FC = () => {
       path.startsWith('/app') ||
       path.startsWith('/history') ||
       path.startsWith('/project') ||
-      path.startsWith('/product') ||
-      (isAppDomain() && path !== '/');
+      path.startsWith('/product');
 
     if (!user && isProtectedRoute) {
       const destination = path + window.location.search;
@@ -1205,26 +1192,18 @@ export const App: React.FC = () => {
       }
 
       const projectPath = `/product/${projectId}?prompt=${encodeURIComponent(promptText)}`;
-      const targetUrl = (isCustomDomain() && !isAppDomain())
-        ? `${APP_SUBDOMAIN_URL}${projectPath}`
-        : projectPath;
 
       if (!user) {
         savePendingAction({
           type: 'prompt',
           prompt: promptText,
           projectId,
-          returnUrl: targetUrl,
+          returnUrl: projectPath,
           customAnswers: selectedAnswers,
           createdAt: Date.now(),
         });
-        window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(targetUrl)}`);
+        window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(projectPath)}`);
         setCurrentView('signup');
-        return;
-      }
-
-      if (isCustomDomain() && !isAppDomain()) {
-        window.location.href = targetUrl;
         return;
       }
 
@@ -1251,19 +1230,16 @@ export const App: React.FC = () => {
     (repoUrl: string, llmConfig?: any) => {
       const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
       const projectPath = `/project/${projectId}?repo=${encodeURIComponent(repoUrl)}`;
-      const targetUrl = (isCustomDomain() && !isAppDomain())
-        ? `${APP_SUBDOMAIN_URL}${projectPath}`
-        : projectPath;
 
       savePendingAction({
         type: 'repo',
         repoUrl,
         projectId,
-        returnUrl: targetUrl,
+        returnUrl: projectPath,
         llmConfig,
         createdAt: Date.now(),
       });
-      window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(targetUrl)}`);
+      window.history.pushState({}, '', `/signup?redirect=${encodeURIComponent(projectPath)}`);
       setCurrentView('signup');
     },
     [savePendingAction]
@@ -1614,11 +1590,17 @@ export const App: React.FC = () => {
       const action = { ...pendingAction };
       clearPendingAction();
 
-      const dest = action.returnUrl || '/app';
-      if (isCustomDomain() && !isAppDomain() && dest.startsWith('http')) {
-        window.location.href = dest;
-        return;
-      }
+      const rawDest = action.returnUrl || '/app';
+      const dest = rawDest.startsWith('http')
+        ? (() => {
+            try {
+              const parsed = new URL(rawDest, window.location.origin);
+              return parsed.pathname + parsed.search;
+            } catch {
+              return rawDest;
+            }
+          })()
+        : rawDest;
 
       if (action.type === 'prompt') {
         window.history.pushState({ projectId: action.projectId, prompt: action.prompt }, '', dest);
@@ -1869,10 +1851,6 @@ export const App: React.FC = () => {
           }}
           onStartProject={handleStartProject}
           onSelectTestSite={() => {
-            if (isCustomDomain() && !isAppDomain()) {
-              window.location.href = `${APP_SUBDOMAIN_URL}/?demo=true`;
-              return;
-            }
             window.history.pushState({}, '', '/app');
             setCurrentView('simulator');
             if (defaultArchitecture && nodes.length === 0) {
@@ -1891,12 +1869,6 @@ export const App: React.FC = () => {
               isUserAuthenticated={Boolean(user)}
               onRequireAuth={handleRequireAuthForRepo}
               onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl) => {
-                if (isCustomDomain() && !isAppDomain() && repoUrl) {
-                  const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
-                  const projectPath = `/project/${projectId}?repo=${encodeURIComponent(repoUrl)}`;
-                  window.location.href = `${APP_SUBDOMAIN_URL}${projectPath}`;
-                  return;
-                }
                 handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl);
                 setCurrentView('simulator');
               }}
