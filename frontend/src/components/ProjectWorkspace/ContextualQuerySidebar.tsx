@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowUp,
   Bot,
-  User,
   PanelLeftClose,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
