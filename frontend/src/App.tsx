@@ -1558,92 +1558,106 @@ export const App: React.FC = () => {
 
   if (currentView === 'signup' || currentView === 'signin') {
     return (
-      <ModernLoginSignup
-        onClose={handleGoHome}
-        onSuccess={() => {
-          setIsAuthOpen(false);
+      <Suspense fallback={<SuspenseLoader />}>
+        <ModernLoginSignup
+          onClose={handleGoHome}
+          onSuccess={() => {
+            setIsAuthOpen(false);
 
-          if (pendingAction) {
-            // Handled automatically by the pendingAction useEffect
-            return;
-          }
-
-          const search = new URLSearchParams(window.location.search);
-          const redirectParam = search.get('redirect');
-
-          if (redirectParam) {
-            if (redirectParam.startsWith('http')) {
-              window.location.href = redirectParam;
+            if (pendingAction) {
+              // Handled automatically by the pendingAction useEffect
               return;
             }
-            if (redirectParam === '/') {
-              window.history.pushState({}, '', '/');
-              setCurrentView('landing');
-              return;
-            }
-            window.history.pushState({}, '', redirectParam);
-            if (redirectParam.startsWith('/app') || redirectParam.startsWith('/project') || redirectParam.startsWith('/product')) {
-              setCurrentView('simulator');
-              if (!redirectParam.includes('repo=') && !redirectParam.includes('/project/') && !redirectParam.includes('/product/')) {
-                setIsStartProjectModalOpen(true);
+
+            const search = new URLSearchParams(window.location.search);
+            const redirectParam = search.get('redirect');
+
+            if (redirectParam) {
+              if (redirectParam.startsWith('http')) {
+                window.location.href = redirectParam;
+                return;
               }
-            } else if (redirectParam.startsWith('/history')) {
-              setCurrentView('history');
-            } else if (redirectParam.startsWith('/recommender')) {
-              setCurrentView('recommender');
-            } else {
-              setCurrentView('landing');
+              if (redirectParam === '/') {
+                window.history.pushState({}, '', '/');
+                setCurrentView('landing');
+                return;
+              }
+              window.history.pushState({}, '', redirectParam);
+              if (redirectParam.startsWith('/app') || redirectParam.startsWith('/project') || redirectParam.startsWith('/product')) {
+                setCurrentView('simulator');
+                if (!redirectParam.includes('repo=') && !redirectParam.includes('/project/') && !redirectParam.includes('/product/')) {
+                  setIsStartProjectModalOpen(true);
+                }
+              } else if (redirectParam.startsWith('/history')) {
+                setCurrentView('history');
+              } else if (redirectParam.startsWith('/recommender')) {
+                setCurrentView('recommender');
+              } else {
+                setCurrentView('landing');
+              }
+              return;
             }
-            return;
-          }
 
-          // Default: If user logged in from / (or without explicit redirect), stay on landing page
-          window.history.pushState({}, '', '/');
-          setCurrentView('landing');
-        }}
-      />
+            // Default: If user logged in from / (or without explicit redirect), stay on landing page
+            window.history.pushState({}, '', '/');
+            setCurrentView('landing');
+          }}
+        />
+      </Suspense>
     );
   }
 
   if (currentView === 'forgot-password') {
-    return <ForgotPasswordPage onNavigate={handleNavigate} isDark={isDark} />;
+    return (
+      <Suspense fallback={<SuspenseLoader />}>
+        <ForgotPasswordPage onNavigate={handleNavigate} isDark={isDark} />
+      </Suspense>
+    );
   }
 
   if (currentView === 'auth-callback') {
-    return <AuthCallback onNavigate={handleNavigate} isDark={isDark} />;
+    return (
+      <Suspense fallback={<SuspenseLoader />}>
+        <AuthCallback onNavigate={handleNavigate} isDark={isDark} />
+      </Suspense>
+    );
   }
 
   if (currentView === 'history') {
     return (
-      <HistoryDashboard
-        onGoHome={handleGoHome}
-        onOpenArchitecture={handleOpenArchitectureFromHistory}
-        onOpenRepository={handleOpenRepositoryFromHistory}
-        onNavigateToSimulator={() => {
-          window.history.pushState({}, '', '/app');
-          setCurrentView('simulator');
-        }}
-        isDark={isDark}
-        onToggleTheme={handleToggleTheme}
-      />
+      <Suspense fallback={<SuspenseLoader />}>
+        <HistoryDashboard
+          onGoHome={handleGoHome}
+          onOpenArchitecture={handleOpenArchitectureFromHistory}
+          onOpenRepository={handleOpenRepositoryFromHistory}
+          onNavigateToSimulator={() => {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+        />
+      </Suspense>
     );
   }
 
   if (currentView === 'cookie-policy' || currentView === 'privacy-policy' || currentView === 'terms') {
     return (
-      <LegalPage
-        type={
-          currentView === 'cookie-policy'
-            ? 'cookie'
-            : currentView === 'privacy-policy'
-            ? 'privacy'
-            : 'terms'
-        }
-        isDark={isDark}
-        onToggleTheme={handleToggleTheme}
-        onGoHome={handleGoHome}
-        onNavigate={handleNavigate}
-      />
+      <Suspense fallback={<SuspenseLoader />}>
+        <LegalPage
+          type={
+            currentView === 'cookie-policy'
+              ? 'cookie'
+              : currentView === 'privacy-policy'
+              ? 'privacy'
+              : 'terms'
+          }
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onGoHome={handleGoHome}
+          onNavigate={handleNavigate}
+        />
+      </Suspense>
     );
   }
 
@@ -1689,30 +1703,36 @@ export const App: React.FC = () => {
             setIsImportRepoOpen(true);
           }}
         />
-        <RepositoryImportModal
-          isOpen={isImportRepoOpen}
-          onClose={() => setIsImportRepoOpen(false)}
-          isUserAuthenticated={Boolean(user)}
-          onRequireAuth={handleRequireAuthForRepo}
-          onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl) => {
-            if (isCustomDomain() && !isAppDomain() && repoUrl) {
-              const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
-              const projectPath = `/project/${projectId}?repo=${encodeURIComponent(repoUrl)}`;
-              window.location.href = `${APP_SUBDOMAIN_URL}${projectPath}`;
-              return;
-            }
-            handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl);
-            setCurrentView('simulator');
-          }}
-        />
-        {isAuthOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
-            <ModernLoginSignup
-              onClose={() => setIsAuthOpen(false)}
-              onSuccess={(_user) => {
-                setIsAuthOpen(false);
+        {isImportRepoOpen && (
+          <Suspense fallback={null}>
+            <RepositoryImportModal
+              isOpen={isImportRepoOpen}
+              onClose={() => setIsImportRepoOpen(false)}
+              isUserAuthenticated={Boolean(user)}
+              onRequireAuth={handleRequireAuthForRepo}
+              onImportArchitecture={(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl) => {
+                if (isCustomDomain() && !isAppDomain() && repoUrl) {
+                  const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+                  const projectPath = `/project/${projectId}?repo=${encodeURIComponent(repoUrl)}`;
+                  window.location.href = `${APP_SUBDOMAIN_URL}${projectPath}`;
+                  return;
+                }
+                handleImportArchitecture(newNodes, newEdges, repoName, basicGraph, detailedGraph, repoUrl);
+                setCurrentView('simulator');
               }}
             />
+          </Suspense>
+        )}
+        {isAuthOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
+            <Suspense fallback={<SuspenseLoader />}>
+              <ModernLoginSignup
+                onClose={() => setIsAuthOpen(false)}
+                onSuccess={(_user) => {
+                  setIsAuthOpen(false);
+                }}
+              />
+            </Suspense>
           </div>
         )}
       </div>
@@ -1721,46 +1741,50 @@ export const App: React.FC = () => {
 
   if (currentView === 'projectWorkspace' && activeProject) {
     return (
-      <ProjectWorkspace
-        projectId={activeProject.projectId}
-        initialPrompt={activeProject.prompt}
-        isDark={isDark}
-        onToggleTheme={handleToggleTheme}
-        onGoHome={handleGoHome}
-        onSimulate={(_wsNodes, _wsEdges) => {
-          window.history.pushState({}, '', '/app');
-          setCurrentView('simulator');
-        }}
-      />
+      <Suspense fallback={<SuspenseLoader />}>
+        <ProjectWorkspace
+          projectId={activeProject.projectId}
+          initialPrompt={activeProject.prompt}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onGoHome={handleGoHome}
+          onSimulate={(_wsNodes, _wsEdges) => {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
+        />
+      </Suspense>
     );
   }
 
   if (currentView === 'recommender') {
     return (
-      <ArchitectureRecommenderPage
-        isDark={isDark}
-        onToggleTheme={handleToggleTheme}
-        onGoHome={handleGoHome}
-        onGoToSimulator={() => {
-          window.history.pushState({}, '', '/app');
-          setCurrentView('simulator');
-        }}
-        onSimulate={(recNodes: ArchitectureNode[], recEdges: ArchitectureEdge[]) => {
-          const basicToUse = { nodes: recNodes, edges: recEdges };
-          baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
-          basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
-          baseDetailedGraphRef.current = null;
-          detailedGraphCacheRef.current = null;
+      <Suspense fallback={<SuspenseLoader />}>
+        <ArchitectureRecommenderPage
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onGoHome={handleGoHome}
+          onGoToSimulator={() => {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
+          onSimulate={(recNodes: ArchitectureNode[], recEdges: ArchitectureEdge[]) => {
+            const basicToUse = { nodes: recNodes, edges: recEdges };
+            baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
+            basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
+            baseDetailedGraphRef.current = null;
+            detailedGraphCacheRef.current = null;
 
-          setViewMode('basic');
-          setNodes(recNodes);
-          setEdges(recEdges);
-          setSelectedNodeId(null);
-          window.history.pushState({}, '', '/app');
-          setCurrentView('simulator');
-          triggerSimulation(recNodes, recEdges, incomingTrafficRate, durationSeconds);
-        }}
-      />
+            setViewMode('basic');
+            setNodes(recNodes);
+            setEdges(recEdges);
+            setSelectedNodeId(null);
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+            triggerSimulation(recNodes, recEdges, incomingTrafficRate, durationSeconds);
+          }}
+        />
+      </Suspense>
     );
   }
 
