@@ -8,7 +8,22 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-plugins: [react()],
+  plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-flow': ['@xyflow/react'],
+          'vendor-charts': ['recharts'],
+          'vendor-motion': ['framer-motion', 'motion'],
+          'vendor-markdown': ['react-markdown', 'remark-gfm', 'streamdown'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -20,3 +35,4 @@ plugins: [react()],
     },
   },
 });
+
