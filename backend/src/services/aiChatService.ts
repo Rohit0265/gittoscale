@@ -834,9 +834,19 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
           return { reply: groqRes.reply };
         }
 
-        // If Groq also failed (or rate limited / unavailable)
+        // Failover to Mercury-3 if Groq also failed
+        if (process.env.MERCURY_API_KEY) {
+          console.info('[AI Chat Service] Groq also failed. Seamlessly failing over to Mercury-3 in background...');
+          const mercuryRes = await callMercuryChat(input, systemPrompt);
+          if (mercuryRes.ok && mercuryRes.reply) {
+            console.info('[AI Chat Service] Request successfully completed by Mercury-3 in background.');
+            return { reply: mercuryRes.reply };
+          }
+        }
+
+        // If all LLMs failed (or rate limited / unavailable)
         console.warn(
-          '[AI Chat Service] Groq failover also failed. Returning traffic overload message:',
+          '[AI Chat Service] Groq & Mercury failovers also failed. Returning traffic overload message:',
           groqRes.error
         );
         return { reply: 'Traffic is more than expected. Please retry later.' };
@@ -844,6 +854,13 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
         const groqRes = await callGroqChat(input, systemPrompt);
         if (groqRes.ok && groqRes.reply) {
           return { reply: groqRes.reply };
+        }
+        if (process.env.MERCURY_API_KEY) {
+          console.info('[AI Chat Service] Groq failed. Seamlessly failing over to Mercury-3...');
+          const mercuryRes = await callMercuryChat(input, systemPrompt);
+          if (mercuryRes.ok && mercuryRes.reply) {
+            return { reply: mercuryRes.reply };
+          }
         }
         return { reply: 'Traffic is more than expected. Please retry later.' };
       } else if (provider === 'anthropic') {
@@ -1001,69 +1018,10 @@ export async function streamAIChatReply(
   if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {
       if (provider === 'mercury' || provider === 'mercury-3') {
-        const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
-        const cleanBase = baseUrl.replace(/\/+$/, '');
-        const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
-        const mKey = apiKey || process.env.MERCURY_API_KEY || '';
-        const mModel = model || process.env.MERCURY_MODEL || 'mercury-3';
-
-        const formattedHistory = (input.history || []).slice(-10).map((msg) => ({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content,
-        }));
-
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${mKey}`,
-          },
-          body: JSON.stringify({
-            model: mModel,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              ...formattedHistory,
-              { role: 'user', content: input.message },
-            ],
-            stream: true,
-            temperature: 0.2,
-          }),
-        });
-
-        if (!res.ok) {
-          const errText = await res.text().catch(() => '');
-          throw new Error(`Mercury-3 streaming error (${res.status}): ${errText}`);
+        const mStream = await callMercuryChatStream(input, systemPrompt, onToken);
+        if (mStream.ok && mStream.reply) {
+          return { reply: mStream.reply };
         }
-
-        const reader = res.body?.getReader();
-        if (!reader) throw new Error('ReadableStream not supported');
-        const decoder = new TextDecoder();
-        let accumulated = '';
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith('data:')) continue;
-            const dataStr = trimmed.slice(5).trim();
-            if (!dataStr || dataStr === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(dataStr);
-              const delta = parsed.choices?.[0]?.delta?.content || '';
-              if (delta) {
-                accumulated += delta;
-                onToken(delta);
-              }
-            } catch {}
-          }
-        }
-        return { reply: accumulated };
       } else if (provider === 'gemini') {
         const geminiModels = Array.from(
           new Set(
@@ -1106,10 +1064,26 @@ export async function streamAIChatReply(
         if (groqStream.ok && groqStream.reply) {
           return { reply: groqStream.reply };
         }
+
+        // Failover to Mercury-3 stream in background if Groq fails
+        if (process.env.MERCURY_API_KEY) {
+          console.info('[AI Chat Stream] Groq stream also failed. Seamlessly failing over to Mercury-3 stream in background...');
+          const mercuryStream = await callMercuryChatStream(input, systemPrompt, onToken);
+          if (mercuryStream.ok && mercuryStream.reply) {
+            return { reply: mercuryStream.reply };
+          }
+        }
       } else if (provider === 'groq') {
         const groqStream = await callGroqChatStream(input, systemPrompt, onToken);
         if (groqStream.ok && groqStream.reply) {
           return { reply: groqStream.reply };
+        }
+        if (process.env.MERCURY_API_KEY) {
+          console.info('[AI Chat Stream] Groq stream failed. Seamlessly failing over to Mercury-3 stream...');
+          const mercuryStream = await callMercuryChatStream(input, systemPrompt, onToken);
+          if (mercuryStream.ok && mercuryStream.reply) {
+            return { reply: mercuryStream.reply };
+          }
         }
       }
     } catch (streamErr: any) {

@@ -129,7 +129,6 @@ export async function recommendArchitecture(
             throw groqErr;
           }
         }
-      }
       } else if (provider === 'anthropic') {
         llmResult = await callAnthropicRecommender(input, config);
       } else {
