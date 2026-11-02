@@ -947,23 +947,44 @@ export function executeArchitectureCommand(
   if (
     hasDomainKeyword ||
     (hasCreationVerb && hasSystemNoun) ||
-    (isMetaCanvasQuery && currentNodes.length <= 1)
+    isMetaCanvasQuery
   ) {
-    const domainMatch = cleanedLower.match(/(reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i) ||
+    let domainTopic: string | undefined;
+    const domainMatch =
+      cleanedLower.match(/(reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i) ||
       lower.match(/(reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i);
-    const domainTopic = domainMatch ? domainMatch[1] : (cleanedLower || 'scalable system');
 
-    const preset = buildDomainArchitecturePreset(domainTopic);
-    const verticalNodes = toVerticalTree(preset.basicNodes, preset.basicEdges);
+    if (domainMatch) {
+      domainTopic = domainMatch[1];
+    } else if (chatHistory && chatHistory.length > 0) {
+      for (const msg of [...chatHistory].reverse()) {
+        const textToSearch = (msg.text || '').toLowerCase();
+        const histMatch = textToSearch.match(/(reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i);
+        if (histMatch) {
+          domainTopic = histMatch[1];
+          break;
+        }
+      }
+    }
 
-    return {
-      executed: true,
-      actionType: 'add_node',
-      updatedNodes: verticalNodes,
-      updatedEdges: preset.basicEdges,
-      updatedTrafficRate: preset.trafficRate,
-      explanation: preset.explanation,
-    };
+    if (!domainTopic && isMetaCanvasQuery) {
+      domainTopic = 'reddit';
+    }
+
+    if (domainTopic || hasCreationVerb) {
+      const topicToBuild = domainTopic || (cleanedLower || 'scalable system');
+      const preset = buildDomainArchitecturePreset(topicToBuild);
+      const verticalNodes = toVerticalTree(preset.basicNodes, preset.basicEdges);
+
+      return {
+        executed: true,
+        actionType: 'add_node',
+        updatedNodes: verticalNodes,
+        updatedEdges: preset.basicEdges,
+        updatedTrafficRate: preset.trafficRate,
+        explanation: preset.explanation,
+      };
+    }
   }
 
   // ───────────────────────────────────────────────────────────────────────────

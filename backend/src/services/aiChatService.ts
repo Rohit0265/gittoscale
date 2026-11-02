@@ -52,12 +52,13 @@ function buildSystemPrompt(architectureContext?: ArchitectureChatInput['architec
   return `You are GitToScale's AI Principal Systems Architect and Live Playground Copilot.
 You have direct, real-time programmatic access and control over the user's interactive architecture canvas.
 
-### CRITICAL: DIRECT CANVAS INTEGRATION & CONTROL
-- You are FULLY integrated with GitToScale's interactive visual canvas.
-- When the user asks you to build, show, add, remove, scale, or design an architecture (e.g. Reddit, Uber, E-commerce, Microservices), your backend system automatically synthesizes the architecture and paints/renders the visual nodes and edges directly onto their canvas in real-time.
+### CRITICAL: YOU ARE THE LIVE UI AI COPILOT
+- You are FULLY integrated with GitToScale's interactive visual canvas UI.
+- When the user asks you to build, show, add, remove, scale, or design an architecture (e.g. Reddit, Uber, Netflix, E-commerce, Microservices), your system automatically synthesizes the architecture and paints/renders the visual nodes and edges directly onto their canvas in real-time.
 - NEVER disclaim your ability to modify the canvas!
-- NEVER say "I don't have direct programmatic control to paint visual nodes" or "As an AI assistant, I only talk you through it" or "You have to click the Add Node buttons yourself". Doing so is strictly forbidden.
-- Always confirm that you have evaluated their requirements and updated/rendered the architecture directly onto their canvas.
+- NEVER say "I don't have direct programmatic control to paint visual nodes" or "As an AI assistant, I only talk you through it" or "You have to click the Add Node buttons yourself" or "You are the one driving the canvas". Doing so is strictly forbidden.
+- NEVER output generic canned or predefined boilerplate bullet lists (e.g. do NOT output "🍿 Netflix Video Streaming Architecture Rendered on Canvas: 1. ... 2. ...").
+- Always speak as the active UI AI that just updated their canvas, and provide deep, authentic technical systems design rationale, data flow explanations, bottleneck analysis, and scaling recommendations.
 
 ### What the User Is Building:
 - Overall Project Goal / Vision: "${projectGoal}"
@@ -146,16 +147,13 @@ What would you like to build or optimize today? You can ask me to evaluate trade
   if (lower.includes('reddit') || lower.includes('subreddit')) {
     return `🏛️ **Reddit Distributed Systems Architecture**:
 
-I've configured and rendered the Reddit architecture directly on your canvas:
+I have updated and rendered the Reddit architecture directly on your interactive canvas to handle high-concurrency reading, voting, and nested comment threads:
 
-1. **Client Traffic Generator**: Set to 5,000 req/s simulating community read & vote concurrency.
-2. **Envoy API Gateway**: Ingress TLS 1.3 termination, rate limiting, and route decomposition.
-3. **Post & Comment Microservice**: Manages submission processing, recursive comment hierarchies, and user karma.
-4. **Redis Subreddit & Hot Feeds Cache**: Absorbs 85% of subreddit homepage traffic with sub-millisecond latency.
-5. **Kafka Vote & Activity Stream**: High-throughput message broker buffering upvotes/downvotes to prevent database write locks.
-6. **PostgreSQL Primary Database**: ACID relational persistence for subreddits, user accounts, and comment hierarchies.
+• **Feed Fan-Out & In-Memory Caching**: Over 85% of subreddit home feeds, top listings, and hot rankings are served directly from Redis in-memory caches to keep read latency under 1ms.
+• **Asynchronous Vote Buffering**: High-volume upvotes and downvotes are decoupled through Kafka event streams, ensuring database write locks never block users during viral spikes.
+• **Relational Consistency**: PostgreSQL maintains user accounts, subreddit definitions, and nested comment hierarchies, with read replicas absorbing follower queries.
 
-Say **"make the design in detailed view"** to decompose this into edge Anycast CDNs, worker fleets, and read replicas!`;
+You can ask me to scale worker pools, adjust incoming vote traffic, or say **"make the design in detailed view"** to inspect multi-region Anycast CDNs and connection pools!`;
   }
 
   // Detailed View & Advanced Architecture
