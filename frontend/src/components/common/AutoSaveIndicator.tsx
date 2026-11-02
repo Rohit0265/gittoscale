@@ -1,5 +1,4 @@
 import React from 'react';
-import { CheckCircle2, RefreshCw, HardDrive, CloudOff } from 'lucide-react';
 import { AutoSaveStatus } from '../../services/playgroundPersistence';
 
 interface AutoSaveIndicatorProps {
