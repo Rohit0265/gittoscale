@@ -10,11 +10,6 @@ import {
   ComponentType,
   RecommenderInput,
 } from './types';
-import { Header } from './components/Header';
-import { MetricsStrip } from './components/MetricsStrip';
-import { ContextualQuerySidebar } from './components/ProjectWorkspace/ContextualQuerySidebar';
-import { ArchitectureCanvas } from './components/Canvas/ArchitectureCanvas';
-import { RightSidebar } from './components/RightSidebar';
 import { LandingPage } from './components/LandingPage';
 import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
 import { useAuth } from './contexts/AuthContext';
@@ -26,6 +21,17 @@ import {
   loadPlaygroundFromBrowserStorage,
 } from './services/playgroundPersistence';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
+
+// Code-split heavy interactive canvas & simulator modules so initial landing page bundle is tiny & ultra-fast
+const Header = React.lazy(() => import('./components/Header').then((m) => ({ default: m.Header })));
+const MetricsStrip = React.lazy(() => import('./components/MetricsStrip').then((m) => ({ default: m.MetricsStrip })));
+const ContextualQuerySidebar = React.lazy(() =>
+  import('./components/ProjectWorkspace/ContextualQuerySidebar').then((m) => ({ default: m.ContextualQuerySidebar }))
+);
+const ArchitectureCanvas = React.lazy(() =>
+  import('./components/Canvas/ArchitectureCanvas').then((m) => ({ default: m.ArchitectureCanvas }))
+);
+const RightSidebar = React.lazy(() => import('./components/RightSidebar').then((m) => ({ default: m.RightSidebar })));
 
 // Code-split heavy routes and modals for fast loading on slow phones & networks
 const BaselineComparisonModal = React.lazy(() =>
@@ -618,8 +624,9 @@ export const App: React.FC = () => {
   // Guard against React 18 StrictMode duplicate initialization
   const hasInitializedRef = useRef<boolean>(false);
 
-  // 1. Load initial fixtures
+  // 1. Load initial fixtures when entering simulator
   useEffect(() => {
+    if (currentView !== 'simulator') return;
     if (hasInitializedRef.current) return;
     hasInitializedRef.current = true;
 
@@ -1943,7 +1950,8 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#090B10] font-sans">
+    <Suspense fallback={<SkeletonCanvas activePrompt={activePromptText} viewMode={viewMode} isDark={isDark} />}>
+      <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#090B10] font-sans">
       {/* 1. Header */}
       <Header
         scenarios={scenarios}
@@ -2252,6 +2260,7 @@ export const App: React.FC = () => {
         </div>
       )}
     </div>
+    </Suspense>
   );
 };
 

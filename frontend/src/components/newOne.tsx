@@ -169,7 +169,7 @@ export const NewOne: React.FC<NewOneProps> = ({
           </h1>
 
           {/* Subheading / Explainer */}
-          <p className="font-aleo mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-slate-600 dark:text-neutral-400 leading-relaxed max-w-xl font-normal">
+          <p className="font-aleo mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-slate-700 dark:text-neutral-300 leading-relaxed max-w-xl font-normal">
             Turn text prompts into interactive system architectures or scan your GitHub repository. Simulate traffic, stress-test microservices, and eliminate bottlenecks before production.
           </p>
 
@@ -238,16 +238,18 @@ export const NewOne: React.FC<NewOneProps> = ({
                         setIsUserInteracting(false);
                       }
                     }}
-                    className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-neutral-100 placeholder-neutral-500 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none shadow-none"
+                    className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-neutral-100 placeholder-neutral-400 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none shadow-none"
                     style={{ outline: 'none', boxShadow: 'none' }}
                     placeholder={placeholder || 'Describe your system idea (e.g. "Design Uber ride-matching at scale")...'}
                     autoComplete="off"
+                    aria-label="Describe your system idea for architecture generation"
                   />
 
                   {/* Off-white / Dark Charcoal Action Button */}
                   <button
                     id="submit-btn"
                     type="submit"
+                    aria-label="Generate Architecture"
                     className="flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 hover:bg-white text-neutral-950 hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 shadow-md shrink-0 cursor-pointer"
                     title="Analyze Architecture"
                   >
@@ -258,11 +260,11 @@ export const NewOne: React.FC<NewOneProps> = ({
 
               {/* Quick Architecture Scenario Chips */}
               <div className="mt-5 pt-1">
-                <div className="flex items-center justify-between text-xs text-neutral-400 mb-3 font-mono">
-                  <span className="text-neutral-500">Quick scenarios:</span>
-                  <span className="hidden sm:inline text-neutral-600">
+                <div className="flex items-center justify-between text-xs text-neutral-300 mb-3 font-mono">
+                  <span className="text-neutral-300">Quick scenarios:</span>
+                  <span className="hidden sm:inline text-neutral-400">
                     Press{' '}
-                    <kbd className="px-1.5 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-neutral-300 font-mono text-[10px]">
+                    <kbd className="px-1.5 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-neutral-200 font-mono text-[10px]">
                       Enter ↵
                     </kbd>
                   </span>

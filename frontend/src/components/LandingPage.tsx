@@ -105,22 +105,26 @@ function PageDots({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="fixed right-4 sm:right-6 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-2.5 md:flex">
+    <div className="fixed right-2 sm:right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-1 md:flex">
       {PAGES.map((id, i) => (
         <div key={id} className="relative group flex items-center justify-end">
-          <div className="absolute right-6 px-2.5 py-1 rounded-md bg-slate-900 text-white dark:bg-white dark:text-neutral-950 text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-md z-50">
+          <div className="absolute right-10 px-2.5 py-1 rounded-md bg-slate-900 text-white dark:bg-white dark:text-neutral-950 text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-md z-50">
             {PAGE_LABELS[id] || id}
           </div>
           <button
             type="button"
             aria-label={`Go to ${PAGE_LABELS[id] || id}`}
             onClick={() => onSelect(id)}
-            className={`w-2 rounded-full transition-all cursor-pointer ${
-              i === active
-                ? 'h-6 bg-slate-900 dark:bg-white'
-                : 'h-2 bg-slate-400/40 dark:bg-neutral-600/40 hover:bg-slate-600 dark:hover:bg-neutral-400'
-            }`}
-          />
+            className="w-11 h-11 flex items-center justify-center cursor-pointer p-0 rounded-full focus:outline-hidden"
+          >
+            <span
+              className={`w-2 rounded-full transition-all block ${
+                i === active
+                  ? 'h-6 bg-slate-900 dark:bg-white'
+                  : 'h-2 bg-slate-500/60 dark:bg-neutral-400/60 hover:bg-slate-800 dark:hover:bg-white'
+              }`}
+            />
+          </button>
         </div>
       ))}
     </div>
@@ -512,6 +516,13 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
       ref={containerRef}
       className="h-screen w-full overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#020202] text-slate-800 dark:text-slate-100 transition-colors"
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-slate-900 focus:font-semibold focus:rounded-lg focus:shadow-xl focus:border focus:border-slate-300"
+      >
+        Skip to main content
+      </a>
+
       <PageDots active={active} onSelect={scrollToSection} />
 
       {/* Sticky Top Navbar Header */}
@@ -534,7 +545,9 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <img
               src={isDark ? '/logo.png' : '/logo-light.png'}
-              alt="GitToScale"
+              alt="GitToScale Logo"
+              width="140"
+              height="36"
               onClick={() => scrollToSection('top')}
               className={`w-auto object-contain cursor-pointer transition-all ${
                 isApp ? 'h-8 sm:h-9 md:h-10' : 'h-6 sm:h-7'
@@ -547,10 +560,10 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={() => scrollToSection('top')}
-              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+              className={`min-h-[44px] px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex items-center justify-center ${
                 active === 0
                   ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                  : 'text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
               }`}
             >
               Home
@@ -558,10 +571,10 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={() => scrollToSection('features')}
-              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+              className={`min-h-[44px] px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex items-center justify-center ${
                 active === 1
                   ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                  : 'text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
               }`}
             >
               Features
@@ -569,10 +582,10 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={() => scrollToSection('use-cases')}
-              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+              className={`min-h-[44px] px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex items-center justify-center ${
                 active === 2
                   ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                  : 'text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
               }`}
             >
               Use Cases
@@ -580,10 +593,10 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={() => scrollToSection('faq')}
-              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-colors cursor-pointer ${
+              className={`min-h-[44px] px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex items-center justify-center ${
                 active === 3
                   ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+                  : 'text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
               }`}
             >
               FAQ
@@ -762,14 +775,16 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
           </div>
         </header>
 
-        {/* Section 1: Hero Header & Content (#top) */}
-        <section
-          id="top"
-          className="relative flex min-h-screen flex-col justify-between bg-white dark:bg-[#060709] pt-16 sm:pt-20"
-        >
-          {/* New UI Section */}
-          <NewOne
-            onSelectTestSite={onSelectTestSite}
+        {/* Main Landmark for Accessibility and SEO */}
+        <main id="main-content" className="flex-1 w-full flex flex-col">
+          {/* Section 1: Hero Header & Content (#top) */}
+          <section
+            id="top"
+            className="relative flex min-h-screen flex-col justify-between bg-white dark:bg-[#060709] pt-16 sm:pt-20"
+          >
+            {/* New UI Section */}
+            <NewOne
+              onSelectTestSite={onSelectTestSite}
             onSelectUseRepository={onSelectUseRepository}
             onOpenRecommender={onOpenRecommender}
             onOpenAuth={onOpenAuth}
@@ -802,7 +817,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
 
 
       {/* Sections 3–5: Interactive Workflow Steps Journey (01 Discover, 02 Simulate, 03 Detect) */}
-      <div id="features">
+      <div id="features" style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 800px' }}>
         <WorkflowSteps
           onSelectTestSite={onSelectTestSite}
           onSelectUseRepository={onSelectUseRepository}
@@ -814,6 +829,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
       {/* Section 7: Use Cases (#use-cases) */}
       <section
         id="use-cases"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 700px' }}
         className="relative flex min-h-screen flex-col justify-center px-6 sm:px-10 py-20"
       >
         <div className="mx-auto w-full max-w-6xl">
@@ -915,16 +931,21 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
       {children}
 
       {/* Section 11: Frequently Asked Questions (#faq) */}
-      <div id="faq" className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202]">
+      <div
+        id="faq"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 600px' }}
+        className="relative w-full border-t border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#020202]"
+      >
         <FrequentlyAskedQuestions
           title="Frequently Asked Questions"
           description="Everything you need to know about GitToScale text-to-system design, repository architecture scanning, and distributed load simulation."
           data={GITOSCALE_FAQS}
         />
       </div>
+    </main>
 
-      {/* Section 12: Global Footer (#footer) */}
-      <div id="footer" className="relative w-full">
+    {/* Section 12: Global Footer (#footer) */}
+    <div id="footer" className="relative w-full">
         <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
       </div>
     </div>
