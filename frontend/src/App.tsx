@@ -2083,7 +2083,7 @@ export const App: React.FC = () => {
       {/* Modern Login / Signup Modal */}
       {isAuthOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
-          <Suspense fallback={<SuspenseLoader />}>
+          <Suspense fallback={<AuthModalSkeleton />}>
             <ModernLoginSignup
               onClose={() => setIsAuthOpen(false)}
               onSuccess={(_user) => {
