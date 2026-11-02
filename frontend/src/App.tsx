@@ -401,6 +401,14 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Mobile detection for responsive drawer layouts
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
   // Sidebar collapse states - auto-collapse on smaller screens
   const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -438,7 +446,9 @@ export const App: React.FC = () => {
   // Keep sidebars non-colliding on window resize
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
         setIsLeftCollapsed(true);
         setIsRightCollapsed(true);
       } else if (window.innerWidth < 1024) {
@@ -1870,9 +1880,12 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* Left Floating Panel: Whole Left Sidebar for AI Chat (Resizable up to 2/5 of screen) */}
+        {/* Left Floating Panel: Whole Left Sidebar for AI Chat (Drawer on mobile, resizable up to 2/5 of screen on desktop) */}
         <div
-          style={{ width: `${leftSidebarWidth}px`, maxWidth: '40vw' }}
+          style={{
+            width: isMobile ? 'calc(100vw - 24px)' : `${leftSidebarWidth}px`,
+            maxWidth: isMobile ? '380px' : '40vw',
+          }}
           className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none ${
             isLeftDragging ? 'transition-none select-none' : 'transition-transform duration-300 ease-in-out'
           } ${

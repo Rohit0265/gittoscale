@@ -15,6 +15,9 @@ const API_BASE = CLEAN_URL
   ? (CLEAN_URL.endsWith('/api') ? CLEAN_URL : `${CLEAN_URL}/api`)
   : '/api';
 
+// Safe default timeout (30 seconds) to prevent infinite pending state on slow mobile networks
+axios.defaults.timeout = 30000;
+
 export const api = {
   async getHealth() {
     const res = await axios.get(`${API_BASE}/health`);
