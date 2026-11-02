@@ -20,13 +20,12 @@ export default defineConfig({
             if (id.includes('recharts') || id.includes('d3-')) {
               return 'vendor-charts';
             }
-            if (id.includes('framer-motion') || id.includes('/motion/')) {
+            if (id.includes('framer-motion')) {
               return 'vendor-motion';
             }
             if (
               id.includes('react-markdown') ||
               id.includes('remark-') ||
-              id.includes('streamdown') ||
               id.includes('micromark') ||
               id.includes('mdast') ||
               id.includes('hast') ||
