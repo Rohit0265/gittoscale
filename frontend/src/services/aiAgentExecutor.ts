@@ -904,9 +904,10 @@ export function executeArchitectureCommand(
   currentEdges: ArchitectureEdge[],
   currentTrafficRate: number,
   simulationResult: SimulationResult | null,
-  _contextHistory: Array<{ text: string; sender: string }> = [],
+  contextHistory: Array<{ text: string; sender: string }> = [],
   viewMode: 'basic' | 'detailed' = 'basic'
 ): AgentCommandExecutionResult {
+  const chatHistory = contextHistory;
   const text = command.trim();
   const lower = text.toLowerCase();
   const cleanedLower = lower
