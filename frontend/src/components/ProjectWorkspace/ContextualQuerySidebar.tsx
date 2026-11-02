@@ -23,6 +23,7 @@ export interface ChatBubble {
   text: string;
   choices?: ChatChoice[];
   isThinking?: boolean;
+  isStreaming?: boolean;
   thinkingText?: string;
   isAction?: boolean;
   category?: 'scale' | 'budget' | 'consistency' | 'region';
@@ -49,7 +50,8 @@ export interface ContextualQuerySidebarProps {
   onSendCustomMessage?: (message: string) => void;
   onExecuteChatCommand?: (
     message: string,
-    history: ChatBubble[]
+    history: ChatBubble[],
+    onToken?: (token: string, fullText: string) => void
   ) => Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void>;
   onRestoreSession?: (session: {
     selectedAnswers: Record<string, string>;
@@ -443,22 +445,39 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
 
     try {
       if (onExecuteChatCommand) {
-        const result = await onExecuteChatCommand(text, currentContext);
-        const replyText = result?.reply || `Executed instruction for: "${text}". Architecture updated.`;
+        let streamAccumulated = '';
+        const handleToken = (_token: string, fullText: string) => {
+          streamAccumulated = fullText;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === thinkId
+                ? {
+                    ...m,
+                    isThinking: false,
+                    isStreaming: true,
+                    text: fullText,
+                  }
+                : m
+            )
+          );
+        };
 
-        setMessages((prev) => {
-          const filtered = prev.filter((m) => m.id !== thinkId);
-          return [
-            ...filtered,
-            {
-              id: `custom-ai-${Date.now()}`,
-              sender: 'ai' as const,
-              text: replyText,
-              actionDone: result?.actionDone,
-              timestamp: new Date().toISOString(),
-            },
-          ].slice(-MAX_CONTEXT_MESSAGES);
-        });
+        const result = await onExecuteChatCommand(text, currentContext, handleToken);
+        const replyText = result?.reply || streamAccumulated || `Executed instruction for: "${text}". Architecture updated.`;
+
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === thinkId
+              ? {
+                  ...m,
+                  isThinking: false,
+                  isStreaming: false,
+                  text: replyText,
+                  actionDone: result?.actionDone,
+                }
+              : m
+          ).slice(-MAX_CONTEXT_MESSAGES)
+        );
       } else {
         setTimeout(() => {
           setMessages((prev) => {
@@ -577,6 +596,9 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {msg.text}
                     </ReactMarkdown>
+                    {msg.isStreaming && (
+                      <span className="inline-block w-1.5 h-3 ml-0.5 bg-indigo-500 animate-pulse align-middle" />
+                    )}
                   </div>
                 )}
               </div>

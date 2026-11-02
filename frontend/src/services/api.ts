@@ -263,5 +263,92 @@ export const api = {
     const res = await axios.post(`${API_BASE}/chat/message`, data, { headers });
     return res.data;
   },
+
+  async streamChatMessage(
+    token: string | null,
+    data: {
+      message: string;
+      history?: any[];
+      architectureContext?: {
+        nodes?: any[];
+        edges?: any[];
+        trafficRate?: number;
+        bottlenecks?: any[];
+        projectDescription?: string;
+        activePrompt?: string;
+      };
+      llmConfig?: any;
+    },
+    onToken: (token: string, fullText: string) => void
+  ): Promise<{
+    success: boolean;
+    reply: string;
+    actionDone?: string;
+  }> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/chat/message`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ...data, stream: true }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Chat API error (${res.status}): ${errText}`);
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('text/event-stream')) {
+      const json = await res.json();
+      onToken(json.reply || '', json.reply || '');
+      return { success: true, reply: json.reply || '', actionDone: json.actionDone };
+    }
+
+    const reader = res.body?.getReader();
+    if (!reader) {
+      throw new Error('ReadableStream not supported');
+    }
+
+    const decoder = new TextDecoder();
+    let accumulated = '';
+    let actionDone: string | undefined = undefined;
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.slice(5).trim();
+        if (!dataStr || dataStr === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(dataStr);
+          if (parsed.token) {
+            accumulated += parsed.token;
+            onToken(parsed.token, accumulated);
+          }
+          if (parsed.actionDone) {
+            actionDone = parsed.actionDone;
+          }
+          if (parsed.reply && !accumulated) {
+            accumulated = parsed.reply;
+            onToken(parsed.reply, accumulated);
+          }
+        } catch {}
+      }
+    }
+
+    return { success: true, reply: accumulated, actionDone };
+  },
 };
 

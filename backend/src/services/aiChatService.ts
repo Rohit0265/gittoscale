@@ -390,6 +390,167 @@ async function callGroqChat(
   }
 }
 
+async function callGroqChatStream(
+  input: ArchitectureChatInput,
+  systemPrompt: string,
+  onToken: (token: string) => void
+): Promise<{ ok: boolean; reply?: string; isRateLimited?: boolean; error?: string }> {
+  const groqApiKey = input.llmConfig?.apiKey || process.env.GROQ_API_KEY;
+  const groqModel = input.llmConfig?.model || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+  if (!groqApiKey) return { ok: false, error: 'No Groq API key available' };
+
+  try {
+    const messages: any[] = [{ role: 'system', content: systemPrompt }];
+    const priorHistory = extractRelevantConversationHistory(input.history);
+    for (const msg of priorHistory) {
+      messages.push({ role: msg.role, content: msg.content });
+    }
+    messages.push({ role: 'user', content: input.message });
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${groqApiKey}`,
+      },
+      body: JSON.stringify({
+        model: groqModel,
+        messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+        stream: true,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      return { ok: false, error: `Groq stream error: ${res.status} ${errText}` };
+    }
+
+    if (!res.body) {
+      return { ok: false, error: 'No response body from Groq' };
+    }
+
+    let fullReply = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.slice(5).trim();
+        if (!dataStr || dataStr === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(dataStr);
+          const token = parsed.choices?.[0]?.delta?.content;
+          if (token) {
+            fullReply += token;
+            onToken(token);
+          }
+        } catch {}
+      }
+    }
+
+    if (fullReply.trim()) {
+      return { ok: true, reply: fullReply.trim() };
+    }
+    return { ok: false, error: 'Empty content from Groq stream' };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Groq stream failure' };
+  }
+}
+
+async function callGeminiChatStream(
+  gModel: string,
+  apiKey: string,
+  systemPrompt: string,
+  chatContents: any[],
+  onToken: (token: string) => void
+): Promise<{ ok: boolean; reply?: string; status?: number; error?: string }> {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
+        },
+        contents: chatContents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      return { ok: false, status: res.status, error: errText };
+    }
+
+    if (!res.body) {
+      return { ok: false, status: res.status, error: 'No response body' };
+    }
+
+    let fullReply = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.slice(5).trim();
+        if (!dataStr) continue;
+        try {
+          const parsed = JSON.parse(dataStr);
+          const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            fullReply += text;
+            onToken(text);
+          }
+        } catch {}
+      }
+    }
+
+    if (fullReply.trim()) {
+      return { ok: true, reply: fullReply.trim() };
+    }
+    return { ok: false, error: 'Empty reply from Gemini stream' };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Gemini stream failed' };
+  }
+}
+
+async function streamFallbackText(text: string, onToken: (token: string) => void): Promise<void> {
+  const words = text.split(/(\s+)/);
+  for (const word of words) {
+    onToken(word);
+    await new Promise((resolve) => setTimeout(resolve, 8));
+  }
+}
+
 /**
  * Handles LLM API calls with graceful fallback and seamless Gemini -> Groq failover
  */
@@ -634,5 +795,108 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
   // Graceful intelligent fallback with deep contextual awareness
   const fallbackReply = generateIntelligentConversationalFallback(input.message, input.architectureContext);
   return { reply: fallbackReply };
+}
+
+/**
+ * Streams AI responses token-by-token directly from LLM providers
+ */
+export async function streamAIChatReply(
+  input: ArchitectureChatInput,
+  onToken: (token: string) => void
+): Promise<ArchitectureChatOutput> {
+  const provider =
+    input.llmConfig?.provider ||
+    process.env.LLM_PROVIDER ||
+    (process.env.GEMINI_API_KEY
+      ? 'gemini'
+      : process.env.GROQ_API_KEY
+      ? 'groq'
+      : process.env.OPENAI_API_KEY
+      ? 'openai'
+      : process.env.ANTHROPIC_API_KEY
+      ? 'anthropic'
+      : 'gemini');
+
+  const apiKey =
+    input.llmConfig?.apiKey ||
+    process.env.LLM_API_KEY ||
+    (provider === 'gemini'
+      ? process.env.GEMINI_API_KEY
+      : provider === 'groq'
+      ? process.env.GROQ_API_KEY
+      : provider === 'anthropic'
+      ? process.env.ANTHROPIC_API_KEY
+      : process.env.OPENAI_API_KEY);
+
+  const model =
+    input.llmConfig?.model ||
+    process.env.LLM_MODEL ||
+    (provider === 'gemini'
+      ? 'gemini-2.0-flash'
+      : provider === 'groq'
+      ? (process.env.GROQ_MODEL || 'llama-3.1-8b-instant')
+      : 'gpt-4o-mini');
+
+  const systemPrompt = buildSystemPrompt(input.architectureContext);
+
+  if (apiKey || process.env.GROQ_API_KEY) {
+    try {
+      if (provider === 'gemini') {
+        const geminiModels = Array.from(
+          new Set(
+            [
+              model,
+              'gemini-2.0-flash',
+              'gemini-1.5-flash',
+              'gemini-2.5-flash',
+            ].filter(Boolean) as string[]
+          )
+        );
+
+        const chatContents: any[] = [];
+        const priorHistory = extractRelevantConversationHistory(input.history);
+        for (const msg of priorHistory) {
+          chatContents.push({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }],
+          });
+        }
+        chatContents.push({
+          role: 'user',
+          parts: [{ text: input.message }],
+        });
+
+        for (const gModel of geminiModels) {
+          const geminiStream = await callGeminiChatStream(gModel, apiKey || '', systemPrompt, chatContents, onToken);
+          if (geminiStream.ok && geminiStream.reply) {
+            return { reply: geminiStream.reply };
+          }
+          if (geminiStream.status === 429 || geminiStream.status === 503 || geminiStream.status === 404) {
+            console.warn(`[AI Chat Stream] Gemini model ${gModel} returned ${geminiStream.status}. Trying next...`);
+            continue;
+          }
+          break;
+        }
+
+        // Failover to Groq stream in background
+        const groqStream = await callGroqChatStream(input, systemPrompt, onToken);
+        if (groqStream.ok && groqStream.reply) {
+          return { reply: groqStream.reply };
+        }
+      } else if (provider === 'groq') {
+        const groqStream = await callGroqChatStream(input, systemPrompt, onToken);
+        if (groqStream.ok && groqStream.reply) {
+          return { reply: groqStream.reply };
+        }
+      }
+    } catch (streamErr: any) {
+      console.warn('[AI Chat Service] Streaming error, falling back to generator:', streamErr?.message);
+    }
+  }
+
+  // Fallback to generateAIChatReply and stream token by token
+  const generated = await generateAIChatReply(input);
+  await streamFallbackText(generated.reply, onToken);
+  return generated;
 }
 

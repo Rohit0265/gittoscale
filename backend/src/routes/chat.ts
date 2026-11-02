@@ -5,7 +5,7 @@ import {
   getSql,
   insertArchitectureHistory,
 } from '../services/neon.js';
-import { generateAIChatReply } from '../services/aiChatService.js';
+import { generateAIChatReply, streamAIChatReply } from '../services/aiChatService.js';
 
 const router = Router();
 
@@ -307,21 +307,65 @@ router.get('/history', async (req: Request, res: Response) => {
 
 /**
  * POST /api/chat/message
- * Generates an authentic AI response with live playground architecture context
+ * Generates an authentic AI response with live playground architecture context.
+ * Supports token-by-token streaming via SSE when stream=true or Accept: text/event-stream
  */
 router.post('/message', async (req: Request, res: Response) => {
-  try {
-    const {
-      message = '',
-      history = [],
-      architectureContext = {},
-      llmConfig = {},
-    } = req.body;
+  const {
+    message = '',
+    history = [],
+    architectureContext = {},
+    llmConfig = {},
+    stream = false,
+  } = req.body;
 
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return res.status(400).json({ error: 'Message is required' });
+  if (!message || typeof message !== 'string' || message.trim().length === 0) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  const wantsStream = Boolean(
+    stream ||
+    req.headers.accept?.includes('text/event-stream') ||
+    req.query.stream === 'true'
+  );
+
+  if (wantsStream) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders?.();
+
+    try {
+      let accumulated = '';
+      const aiResult = await streamAIChatReply(
+        {
+          message: message.trim(),
+          history,
+          architectureContext,
+          llmConfig,
+        },
+        (token: string) => {
+          accumulated += token;
+          res.write(`data: ${JSON.stringify({ token, fullText: accumulated })}\n\n`);
+        }
+      );
+
+      res.write(`data: ${JSON.stringify({ done: true, reply: aiResult.reply, actionDone: aiResult.actionDone })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
+    } catch (err: any) {
+      console.error('[Chat API Streaming Error]', err);
+      const fallbackMsg = 'Traffic is more than expected. Please retry later.';
+      res.write(`data: ${JSON.stringify({ token: fallbackMsg, fullText: fallbackMsg, done: true, reply: fallbackMsg })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
     }
+  }
 
+  try {
     const aiResult = await generateAIChatReply({
       message: message.trim(),
       history,

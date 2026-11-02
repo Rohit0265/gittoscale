@@ -767,7 +767,8 @@ export const App: React.FC = () => {
   const handleExecuteChatCommand = useCallback(
     async (
       command: string,
-      chatHistory: any[]
+      chatHistory: any[],
+      onToken?: (token: string, fullText: string) => void
     ): Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void> => {
       // 1. Run local / client-side instant AI agent executor
       const execResult = executeArchitectureCommand(
@@ -823,6 +824,17 @@ export const App: React.FC = () => {
           }).catch((err) => console.warn('Could not sync chat history to DB:', err));
         }
 
+        // Smooth token-by-token stream for local action explanation
+        if (onToken) {
+          const words = execResult.explanation.split(/(\s+)/);
+          let acc = '';
+          for (const word of words) {
+            acc += word;
+            onToken(word, acc);
+            await new Promise((r) => setTimeout(r, 8));
+          }
+        }
+
         return {
           reply: execResult.explanation,
           actionDone: execResult.actionType,
@@ -841,27 +853,43 @@ export const App: React.FC = () => {
       ) {
         const updatedPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
         await handleGenerateFromPrompt(updatedPrompt);
+        const replyText = `🔄 **Re-synthesised Architecture**: Updated architecture topology based on "${command}". Re-evaluated tiers, connections, and latency profiles.`;
+        if (onToken) {
+          const words = replyText.split(/(\s+)/);
+          let acc = '';
+          for (const word of words) {
+            acc += word;
+            onToken(word, acc);
+            await new Promise((r) => setTimeout(r, 8));
+          }
+        }
         return {
-          reply: `🔄 **Re-synthesised Architecture**: Updated architecture topology based on "${command}". Re-evaluated tiers, connections, and latency profiles.`,
+          reply: replyText,
           actionDone: 'refine_architecture',
         };
       }
 
-      // 2. Fetch real AI response with live playground architecture context
+      // 2. Fetch real AI response with token-by-token streaming
       try {
         const token = getAuthToken();
-        const aiResponse = await api.sendChatMessage(token, {
-          message: command,
-          history: chatHistory,
-          architectureContext: {
-            nodes,
-            edges,
-            trafficRate: incomingTrafficRate,
-            bottlenecks: simulationResult?.bottlenecks || [],
-            projectDescription: activePromptText || undefined,
-            activePrompt: activePromptText || undefined,
+        const aiResponse = await api.streamChatMessage(
+          token,
+          {
+            message: command,
+            history: chatHistory,
+            architectureContext: {
+              nodes,
+              edges,
+              trafficRate: incomingTrafficRate,
+              bottlenecks: simulationResult?.bottlenecks || [],
+              projectDescription: activePromptText || undefined,
+              activePrompt: activePromptText || undefined,
+            },
           },
-        });
+          (tokenChunk, fullText) => {
+            onToken?.(tokenChunk, fullText);
+          }
+        );
 
         if (aiResponse?.reply) {
           if (user) {
@@ -882,8 +910,10 @@ export const App: React.FC = () => {
         }
       } catch (err) {
         console.warn('[AI Chat Agent] Backend chat request error:', err);
+        const errMsg = 'Traffic is more than expected. Please retry later.';
+        onToken?.(errMsg, errMsg);
         return {
-          reply: 'Traffic is more than expected. Please retry later.',
+          reply: errMsg,
         };
       }
 

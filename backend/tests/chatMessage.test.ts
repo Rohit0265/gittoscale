@@ -235,5 +235,19 @@ describe('AI Chat Message API (/api/chat/message)', () => {
       global.fetch = originalFetch;
     }
   });
+
+  it('streams response chunks via SSE when stream=true is requested', async () => {
+    const res = await request(app)
+      .post('/api/chat/message')
+      .send({
+        message: 'How do I scale Redis?',
+        stream: true,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/event-stream');
+    expect(res.text).toContain('data:');
+    expect(res.text).toContain('[DONE]');
+  });
 });
 

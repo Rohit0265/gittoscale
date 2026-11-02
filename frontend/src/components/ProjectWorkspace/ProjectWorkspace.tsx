@@ -504,7 +504,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
   const handleExecuteWorkspaceChatCommand = async (
     command: string,
-    chatHistory: any[]
+    chatHistory: any[],
+    onToken?: (token: string, fullText: string) => void
   ): Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void> => {
     const execResult = executeArchitectureCommand(
       command,
@@ -527,6 +528,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           setBasicGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
         }
       }
+
+      if (onToken) {
+        const words = execResult.explanation.split(/(\s+)/);
+        let acc = '';
+        for (const word of words) {
+          acc += word;
+          onToken(word, acc);
+          await new Promise((r) => setTimeout(r, 8));
+        }
+      }
+
       return {
         reply: execResult.explanation,
         actionDone: execResult.actionType,
@@ -541,24 +553,40 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       lower.includes('redesign')
     ) {
       handleCustomChatMessage(command);
+      const replyText = `🔄 Updated blueprint with: "${command}". Re-synthesising system topology...`;
+      if (onToken) {
+        const words = replyText.split(/(\s+)/);
+        let acc = '';
+        for (const word of words) {
+          acc += word;
+          onToken(word, acc);
+          await new Promise((r) => setTimeout(r, 8));
+        }
+      }
       return {
-        reply: `🔄 Updated blueprint with: "${command}". Re-synthesising system topology...`,
+        reply: replyText,
       };
     }
 
     try {
-      const aiResponse = await api.sendChatMessage(null, {
-        message: command,
-        history: chatHistory,
-        architectureContext: {
-          nodes: activeNodes,
-          edges: activeEdges,
-          trafficRate: 1000,
-          bottlenecks: [],
-          projectDescription: prompt || projectId || undefined,
-          activePrompt: prompt || undefined,
+      const aiResponse = await api.streamChatMessage(
+        null,
+        {
+          message: command,
+          history: chatHistory,
+          architectureContext: {
+            nodes: activeNodes,
+            edges: activeEdges,
+            trafficRate: 1000,
+            bottlenecks: [],
+            projectDescription: prompt || projectId || undefined,
+            activePrompt: prompt || undefined,
+          },
         },
-      });
+        (tokenChunk, fullText) => {
+          onToken?.(tokenChunk, fullText);
+        }
+      );
       if (aiResponse?.reply) {
         return {
           reply: aiResponse.reply,
@@ -567,13 +595,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       }
     } catch (e) {
       console.warn('[ProjectWorkspace] AI Chat failed:', e);
+      const errMsg = 'Traffic is more than expected. Please retry later.';
+      onToken?.(errMsg, errMsg);
       return {
-        reply: 'Traffic is more than expected. Please retry later.',
+        reply: errMsg,
       };
     }
 
+    const fallbackMsg = 'Traffic is more than expected. Please retry later.';
+    onToken?.(fallbackMsg, fallbackMsg);
     return {
-      reply: 'Traffic is more than expected. Please retry later.',
+      reply: fallbackMsg,
     };
   };
 
