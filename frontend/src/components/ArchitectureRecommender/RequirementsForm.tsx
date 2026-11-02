@@ -79,6 +79,37 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  // AI Provider & Mercury-3 configuration
+  const [aiProvider, setAiProvider] = useState<'auto' | 'mercury'>(() => {
+    try {
+      const saved = localStorage.getItem('gitoscale_preferred_ai_provider');
+      return saved === 'mercury' ? 'mercury' : 'auto';
+    } catch {
+      return 'auto';
+    }
+  });
+  const [mercuryApiKey, setMercuryApiKey] = useState(() => {
+    try {
+      return localStorage.getItem('gitoscale_mercury_api_key') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [mercuryBaseUrl, setMercuryBaseUrl] = useState(() => {
+    try {
+      return localStorage.getItem('gitoscale_mercury_base_url') || 'https://api.inceptionlabs.ai/v1';
+    } catch {
+      return 'https://api.inceptionlabs.ai/v1';
+    }
+  });
+  const [mercuryModel, setMercuryModel] = useState(() => {
+    try {
+      return localStorage.getItem('gitoscale_mercury_model') || 'mercury-3';
+    } catch {
+      return 'mercury-3';
+    }
+  });
+
   const toggleTech = (tech: string) => {
     setSelectedTech((prev) =>
       prev.includes(tech) ? prev.filter((t) => t !== tech) : [...prev, tech]
@@ -98,7 +129,8 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
       return;
     }
     setValidationError(null);
-    onSubmit({
+
+    const inputPayload: RecommenderInput = {
       projectDescription: description.trim(),
       expectedScale: showAdvanced ? expectedScale : undefined,
       budgetConstraint: showAdvanced ? budgetConstraint : undefined,
@@ -106,7 +138,39 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
       deploymentPreference: showAdvanced ? deploymentPreference : undefined,
       reliabilityRequirement: showAdvanced ? reliabilityRequirement : undefined,
       securityRequirement: showAdvanced ? securityRequirement : undefined,
-    });
+    };
+
+    if (aiProvider === 'mercury') {
+      try {
+        localStorage.setItem('gitoscale_preferred_ai_provider', 'mercury');
+        if (mercuryApiKey) localStorage.setItem('gitoscale_mercury_api_key', mercuryApiKey);
+        if (mercuryBaseUrl) localStorage.setItem('gitoscale_mercury_base_url', mercuryBaseUrl);
+        if (mercuryModel) localStorage.setItem('gitoscale_mercury_model', mercuryModel);
+        localStorage.setItem(
+          'gitoscale_mercury_config',
+          JSON.stringify({
+            enabled: true,
+            apiKey: mercuryApiKey || undefined,
+            baseUrl: mercuryBaseUrl || 'https://api.inceptionlabs.ai/v1',
+            model: mercuryModel || 'mercury-3',
+          })
+        );
+      } catch {}
+
+      inputPayload.llmConfig = {
+        provider: 'mercury',
+        apiKey: mercuryApiKey.trim() || undefined,
+        baseUrl: mercuryBaseUrl.trim() || undefined,
+        model: mercuryModel.trim() || 'mercury-3',
+      };
+    } else {
+      try {
+        localStorage.setItem('gitoscale_preferred_ai_provider', 'auto');
+        localStorage.removeItem('gitoscale_mercury_config');
+      } catch {}
+    }
+
+    onSubmit(inputPayload);
   };
 
   return (

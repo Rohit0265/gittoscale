@@ -29,7 +29,9 @@ export async function recommendArchitecture(
   const provider =
     input.llmConfig?.provider ||
     process.env.LLM_PROVIDER ||
-    (process.env.GEMINI_API_KEY
+    (process.env.MERCURY_API_KEY
+      ? 'mercury'
+      : process.env.GEMINI_API_KEY
       ? 'gemini'
       : process.env.GROQ_API_KEY
       ? 'groq'
@@ -42,7 +44,9 @@ export async function recommendArchitecture(
   const apiKey =
     input.llmConfig?.apiKey ||
     process.env.LLM_API_KEY ||
-    (provider === 'openai'
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_API_KEY || process.env.LLM_API_KEY)
+      : provider === 'openai'
       ? process.env.OPENAI_API_KEY
       : provider === 'gemini'
       ? process.env.GEMINI_API_KEY
@@ -53,7 +57,9 @@ export async function recommendArchitecture(
   const model =
     input.llmConfig?.model ||
     process.env.LLM_MODEL ||
-    (provider === 'gemini'
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_MODEL || 'mercury-3')
+      : provider === 'gemini'
       ? 'gemini-2.0-flash'
       : provider === 'groq'
       ? (process.env.GROQ_MODEL || 'llama-3.1-8b-instant')
@@ -65,14 +71,16 @@ export async function recommendArchitecture(
     provider,
     apiKey,
     model,
-    baseUrl: input.llmConfig?.baseUrl,
+    baseUrl: input.llmConfig?.baseUrl || (provider === 'mercury' || provider === 'mercury-3' ? process.env.MERCURY_BASE_URL : undefined),
   };
 
   // 2. If API Key is present, attempt LLM call
   if (config.apiKey || (provider === 'other' && config.baseUrl)) {
     try {
       let llmResult: any = null;
-      if (provider === 'gemini') {
+      if (provider === 'mercury' || provider === 'mercury-3') {
+        llmResult = await callMercuryRecommender(input, config);
+      } else if (provider === 'gemini') {
         try {
           llmResult = await callGeminiRecommender(input, config);
         } catch (geminiErr) {
@@ -227,6 +235,51 @@ Respond with ONLY valid JSON (no markdown formatting, no code fences, no extra c
   ],
   "futureImprovements": ["Add Redis cache when traffic exceeds 10k RPS", "Introduce Kafka for event streaming"]
 }`;
+}
+
+async function callMercuryRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
+  const prompt = buildRecommenderPrompt(input);
+  const baseUrl = config.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const endpoint = cleanBase.endsWith('/chat/completions')
+    ? cleanBase
+    : `${cleanBase}/chat/completions`;
+
+  const model = config.model || process.env.MERCURY_MODEL || 'mercury-3';
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an elite distributed systems architect. Synthesize production cloud system design topologies. Respond strictly with valid JSON only matching the schema.',
+        },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.2,
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => '');
+    throw new Error(`Mercury-3 API failed (${res.status}): ${errorText}`);
+  }
+
+  const data: any = await res.json();
+  const rawText = data.choices?.[0]?.message?.content;
+  if (!rawText) {
+    throw new Error('Mercury-3 returned empty completion');
+  }
+
+  const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+  return JSON.parse(cleanJson);
 }
 
 async function callOpenAIRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {

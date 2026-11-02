@@ -558,7 +558,9 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
   const provider =
     input.llmConfig?.provider ||
     process.env.LLM_PROVIDER ||
-    (process.env.GEMINI_API_KEY
+    (process.env.MERCURY_API_KEY
+      ? 'mercury'
+      : process.env.GEMINI_API_KEY
       ? 'gemini'
       : process.env.GROQ_API_KEY
       ? 'groq'
@@ -571,7 +573,9 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
   const apiKey =
     input.llmConfig?.apiKey ||
     process.env.LLM_API_KEY ||
-    (provider === 'gemini'
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_API_KEY || process.env.LLM_API_KEY)
+      : provider === 'gemini'
       ? process.env.GEMINI_API_KEY
       : provider === 'groq'
       ? process.env.GROQ_API_KEY
@@ -582,7 +586,9 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
   const model =
     input.llmConfig?.model ||
     process.env.LLM_MODEL ||
-    (provider === 'gemini'
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_MODEL || 'mercury-3')
+      : provider === 'gemini'
       ? 'gemini-2.0-flash'
       : provider === 'groq'
       ? (process.env.GROQ_MODEL || 'llama-3.1-8b-instant')
@@ -594,7 +600,43 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
 
   if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {
-      if (provider === 'gemini') {
+      if (provider === 'mercury' || provider === 'mercury-3') {
+        const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+        const cleanBase = baseUrl.replace(/\/+$/, '');
+        const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
+        const mKey = apiKey || process.env.MERCURY_API_KEY || '';
+        const mModel = model || process.env.MERCURY_MODEL || 'mercury-3';
+
+        const formattedHistory = (input.history || []).slice(-10).map((msg) => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        }));
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${mKey}`,
+          },
+          body: JSON.stringify({
+            model: mModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...formattedHistory,
+              { role: 'user', content: input.message },
+            ],
+            temperature: 0.2,
+          }),
+        });
+
+        if (res.ok) {
+          const data: any = await res.json();
+          const reply = data.choices?.[0]?.message?.content || '';
+          if (reply) {
+            return { reply };
+          }
+        }
+      } else if (provider === 'gemini') {
         const geminiModels = Array.from(
           new Set(
             [
@@ -807,7 +849,9 @@ export async function streamAIChatReply(
   const provider =
     input.llmConfig?.provider ||
     process.env.LLM_PROVIDER ||
-    (process.env.GEMINI_API_KEY
+    (process.env.MERCURY_API_KEY
+      ? 'mercury'
+      : process.env.GEMINI_API_KEY
       ? 'gemini'
       : process.env.GROQ_API_KEY
       ? 'groq'
@@ -820,7 +864,9 @@ export async function streamAIChatReply(
   const apiKey =
     input.llmConfig?.apiKey ||
     process.env.LLM_API_KEY ||
-    (provider === 'gemini'
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_API_KEY || process.env.LLM_API_KEY)
+      : provider === 'gemini'
       ? process.env.GEMINI_API_KEY
       : provider === 'groq'
       ? process.env.GROQ_API_KEY
@@ -831,7 +877,9 @@ export async function streamAIChatReply(
   const model =
     input.llmConfig?.model ||
     process.env.LLM_MODEL ||
-    (provider === 'gemini'
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_MODEL || 'mercury-3')
+      : provider === 'gemini'
       ? 'gemini-2.0-flash'
       : provider === 'groq'
       ? (process.env.GROQ_MODEL || 'llama-3.1-8b-instant')
@@ -839,9 +887,73 @@ export async function streamAIChatReply(
 
   const systemPrompt = buildSystemPrompt(input.architectureContext);
 
-  if (apiKey || process.env.GROQ_API_KEY) {
+  if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {
-      if (provider === 'gemini') {
+      if (provider === 'mercury' || provider === 'mercury-3') {
+        const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+        const cleanBase = baseUrl.replace(/\/+$/, '');
+        const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
+        const mKey = apiKey || process.env.MERCURY_API_KEY || '';
+        const mModel = model || process.env.MERCURY_MODEL || 'mercury-3';
+
+        const formattedHistory = (input.history || []).slice(-10).map((msg) => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        }));
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${mKey}`,
+          },
+          body: JSON.stringify({
+            model: mModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...formattedHistory,
+              { role: 'user', content: input.message },
+            ],
+            stream: true,
+            temperature: 0.2,
+          }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text().catch(() => '');
+          throw new Error(`Mercury-3 streaming error (${res.status}): ${errText}`);
+        }
+
+        const reader = res.body?.getReader();
+        if (!reader) throw new Error('ReadableStream not supported');
+        const decoder = new TextDecoder();
+        let accumulated = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+            const dataStr = trimmed.slice(5).trim();
+            if (!dataStr || dataStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              const delta = parsed.choices?.[0]?.delta?.content || '';
+              if (delta) {
+                accumulated += delta;
+                onToken(delta);
+              }
+            } catch {}
+          }
+        }
+        return { reply: accumulated };
+      } else if (provider === 'gemini') {
         const geminiModels = Array.from(
           new Set(
             [
