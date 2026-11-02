@@ -79,12 +79,14 @@ router.post('/analyze', async (req: Request, res: Response) => {
       return safe;
     };
 
-    // 2. Perform Architecture Analysis for both Basic and Detailed views
-    const basicAnalysis = await analyzeArchitectureWithLLM(inventory, llmConfig, 'basic');
+    // 2. Perform Architecture Analysis for both Basic and Detailed views concurrently
+    const [basicAnalysis, detailedAnalysis] = await Promise.all([
+      analyzeArchitectureWithLLM(inventory, llmConfig, 'basic'),
+      analyzeArchitectureWithLLM(inventory, llmConfig, 'detailed'),
+    ]);
     const basicArch = convertAnalysisToArchitecture(basicAnalysis);
     const basicEdges = sanitizeAcyclicEdges(basicArch.nodes, basicArch.edges);
 
-    const detailedAnalysis = await analyzeArchitectureWithLLM(inventory, llmConfig, 'detailed');
     const detailedArch = convertAnalysisToArchitecture(detailedAnalysis);
     const detailedEdges = sanitizeAcyclicEdges(detailedArch.nodes, detailedArch.edges);
 

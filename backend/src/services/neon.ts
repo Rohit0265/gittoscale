@@ -95,55 +95,63 @@ export async function queryArchitectureHistory(
   let countResult: any[];
 
   if (query && status) {
-    rows = await db`
-      SELECT * FROM public.architecture_history
-      WHERE user_id = ${userId}
-        AND status = ${status}
-        AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query})
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.architecture_history
-      WHERE user_id = ${userId}
-        AND status = ${status}
-        AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query});
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.architecture_history
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query})
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.architecture_history
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query});
+      `,
+    ]);
   } else if (query) {
-    rows = await db`
-      SELECT * FROM public.architecture_history
-      WHERE user_id = ${userId}
-        AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query})
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.architecture_history
-      WHERE user_id = ${userId}
-        AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query});
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.architecture_history
+        WHERE user_id = ${userId}
+          AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query})
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.architecture_history
+        WHERE user_id = ${userId}
+          AND (LOWER(title) LIKE ${query} OR LOWER(prompt) LIKE ${query});
+      `,
+    ]);
   } else if (status) {
-    rows = await db`
-      SELECT * FROM public.architecture_history
-      WHERE user_id = ${userId} AND status = ${status}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.architecture_history
-      WHERE user_id = ${userId} AND status = ${status};
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.architecture_history
+        WHERE user_id = ${userId} AND status = ${status}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.architecture_history
+        WHERE user_id = ${userId} AND status = ${status};
+      `,
+    ]);
   } else {
-    rows = await db`
-      SELECT * FROM public.architecture_history
-      WHERE user_id = ${userId}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.architecture_history
-      WHERE user_id = ${userId};
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.architecture_history
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.architecture_history
+        WHERE user_id = ${userId};
+      `,
+    ]);
   }
 
   return {
@@ -207,55 +215,63 @@ export async function queryRepositoryHistory(
   let countResult: any[];
 
   if (query && status) {
-    rows = await db`
-      SELECT * FROM public.repository_history
-      WHERE user_id = ${userId}
-        AND status = ${status}
-        AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query})
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.repository_history
-      WHERE user_id = ${userId}
-        AND status = ${status}
-        AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query});
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.repository_history
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query})
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.repository_history
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query});
+      `,
+    ]);
   } else if (query) {
-    rows = await db`
-      SELECT * FROM public.repository_history
-      WHERE user_id = ${userId}
-        AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query})
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.repository_history
-      WHERE user_id = ${userId}
-        AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query});
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.repository_history
+        WHERE user_id = ${userId}
+          AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query})
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.repository_history
+        WHERE user_id = ${userId}
+          AND (LOWER(repository_url) LIKE ${query} OR LOWER(COALESCE(repository_name, '')) LIKE ${query} OR LOWER(COALESCE(repository_owner, '')) LIKE ${query});
+      `,
+    ]);
   } else if (status) {
-    rows = await db`
-      SELECT * FROM public.repository_history
-      WHERE user_id = ${userId} AND status = ${status}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.repository_history
-      WHERE user_id = ${userId} AND status = ${status};
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.repository_history
+        WHERE user_id = ${userId} AND status = ${status}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.repository_history
+        WHERE user_id = ${userId} AND status = ${status};
+      `,
+    ]);
   } else {
-    rows = await db`
-      SELECT * FROM public.repository_history
-      WHERE user_id = ${userId}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
-    countResult = await db`
-      SELECT count(*)::int as count FROM public.repository_history
-      WHERE user_id = ${userId};
-    `;
+    [rows, countResult] = await Promise.all([
+      db`
+        SELECT * FROM public.repository_history
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `,
+      db`
+        SELECT count(*)::int as count FROM public.repository_history
+        WHERE user_id = ${userId};
+      `,
+    ]);
   }
 
   return {
