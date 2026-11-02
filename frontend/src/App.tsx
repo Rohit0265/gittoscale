@@ -54,14 +54,13 @@ const LegalPage = React.lazy(() =>
   import('./components/legal/LegalPage').then((m) => ({ default: m.LegalPage }))
 );
 
-const SuspenseLoader: React.FC = () => (
-  <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-[#020202]">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-      <span className="text-xs text-slate-400 font-medium tracking-wide">Loading GitOScale...</span>
-    </div>
-  </div>
-);
+import {
+  AppWorkspaceSkeleton,
+  HistoryPageSkeleton,
+  RecommenderPageSkeleton,
+  LegalPageSkeleton,
+  AuthModalSkeleton,
+} from './components/common/SkeletonScreens';
 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
 const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
@@ -1558,7 +1557,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'signup' || currentView === 'signin') {
     return (
-      <Suspense fallback={<SuspenseLoader />}>
+      <Suspense fallback={<AuthModalSkeleton />}>
         <ModernLoginSignup
           onClose={handleGoHome}
           onSuccess={() => {
@@ -1609,7 +1608,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'forgot-password') {
     return (
-      <Suspense fallback={<SuspenseLoader />}>
+      <Suspense fallback={<AuthModalSkeleton />}>
         <ForgotPasswordPage onNavigate={handleNavigate} isDark={isDark} />
       </Suspense>
     );
@@ -1617,7 +1616,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'auth-callback') {
     return (
-      <Suspense fallback={<SuspenseLoader />}>
+      <Suspense fallback={<AuthModalSkeleton />}>
         <AuthCallback onNavigate={handleNavigate} isDark={isDark} />
       </Suspense>
     );
@@ -1625,7 +1624,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'history') {
     return (
-      <Suspense fallback={<SuspenseLoader />}>
+      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
         <HistoryDashboard
           onGoHome={handleGoHome}
           onOpenArchitecture={handleOpenArchitectureFromHistory}
@@ -1643,7 +1642,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'cookie-policy' || currentView === 'privacy-policy' || currentView === 'terms') {
     return (
-      <Suspense fallback={<SuspenseLoader />}>
+      <Suspense fallback={<LegalPageSkeleton />}>
         <LegalPage
           type={
             currentView === 'cookie-policy'
