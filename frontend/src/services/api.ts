@@ -101,6 +101,36 @@ let activeSimulationPromise: Promise<SimulationResult> | null = null;
 let activeRecommendKey: string | null = null;
 let activeRecommendPromise: Promise<ArchitectureRecommendation> | null = null;
 
+/**
+ * Returns the user-configured LLM provider configuration (e.g. Mercury-3) from localStorage if enabled.
+ */
+export function getActiveLLMConfig(): {
+  provider: 'mercury';
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+} | undefined {
+  try {
+    const preferredProvider = localStorage.getItem('gitoscale_preferred_ai_provider');
+    if (preferredProvider === 'mercury') {
+      const cfgRaw = localStorage.getItem('gitoscale_mercury_config');
+      const cfg = cfgRaw ? JSON.parse(cfgRaw) : {};
+      return {
+        provider: 'mercury',
+        apiKey: cfg.apiKey || localStorage.getItem('gitoscale_mercury_api_key') || undefined,
+        baseUrl:
+          cfg.baseUrl ||
+          localStorage.getItem('gitoscale_mercury_base_url') ||
+          'https://api.inceptionlabs.ai/v1',
+        model: cfg.model || localStorage.getItem('gitoscale_mercury_model') || 'mercury-3',
+      };
+    }
+  } catch {
+    // ignore
+  }
+  return undefined;
+}
+
 export const api = {
   clearCache: clearApiCache,
 
@@ -241,7 +271,13 @@ export const api = {
    * Deduplicates identical concurrent submissions.
    */
   async recommendArchitecture(params: RecommenderInput): Promise<ArchitectureRecommendation> {
-    const key = JSON.stringify(params);
+    const effectiveParams: RecommenderInput = { ...params };
+    if (!effectiveParams.llmConfig) {
+      const activeLLM = getActiveLLMConfig();
+      if (activeLLM) effectiveParams.llmConfig = activeLLM;
+    }
+
+    const key = JSON.stringify(effectiveParams);
     if (activeRecommendKey === key && activeRecommendPromise) {
       return activeRecommendPromise;
     }
@@ -249,7 +285,7 @@ export const api = {
     activeRecommendKey = key;
     activeRecommendPromise = (async () => {
       try {
-        const res = await axios.post(`${API_BASE}/recommend`, params);
+        const res = await axios.post(`${API_BASE}/recommend`, effectiveParams);
         return res.data;
       } finally {
         activeRecommendKey = null;
@@ -454,8 +490,13 @@ export const api = {
     reply: string;
     actionDone?: string;
   }> {
+    const effectiveData = { ...data };
+    if (!effectiveData.llmConfig) {
+      const activeLLM = getActiveLLMConfig();
+      if (activeLLM) effectiveData.llmConfig = activeLLM;
+    }
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await axios.post(`${API_BASE}/chat/message`, data, { headers });
+    const res = await axios.post(`${API_BASE}/chat/message`, effectiveData, { headers });
     return res.data;
   },
 
@@ -480,6 +521,11 @@ export const api = {
     reply: string;
     actionDone?: string;
   }> {
+    const effectiveData = { ...data };
+    if (!effectiveData.llmConfig) {
+      const activeLLM = getActiveLLMConfig();
+      if (activeLLM) effectiveData.llmConfig = activeLLM;
+    }
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
@@ -489,7 +535,7 @@ export const api = {
     const res = await fetch(`${API_BASE}/chat/message`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ ...data, stream: true }),
+      body: JSON.stringify({ ...effectiveData, stream: true }),
     });
 
     if (!res.ok) {

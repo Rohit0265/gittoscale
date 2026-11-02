@@ -12,6 +12,7 @@ import {
   DollarSign,
   Cloud,
   Lock,
+  Key,
 } from 'lucide-react';
 import { RecommenderInput } from '../../types';
 
@@ -381,6 +382,90 @@ export const RequirementsForm: React.FC<RequirementsFormProps> = ({
                     );
                   })}
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* AI Synthesis Engine Selector */}
+        <div className="rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/70 dark:bg-[#141417]/80 p-3.5 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
+                AI Synthesis Engine
+              </span>
+            </div>
+            <div className="flex items-center bg-slate-200/80 dark:bg-neutral-800 p-0.5 rounded-lg text-xs">
+              <button
+                type="button"
+                onClick={() => setAiProvider('auto')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                  aiProvider === 'auto'
+                    ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Auto (Gemini / Groq)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAiProvider('mercury')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-all flex items-center gap-1.5 ${
+                  aiProvider === 'mercury'
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-amber-500'
+                }`}
+              >
+                <Zap className="w-3 h-3 fill-current" />
+                Mercury-3 (Diffusion LLM)
+              </button>
+            </div>
+          </div>
+
+          {aiProvider === 'mercury' && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs border-t border-slate-200/70 dark:border-neutral-800/80">
+              <div className="sm:col-span-1">
+                <label className="block text-[11px] font-medium text-slate-500 dark:text-neutral-400 mb-1 flex items-center gap-1">
+                  <Key className="w-3 h-3 text-amber-500" /> Mercury API Key
+                </label>
+                <input
+                  type="password"
+                  value={mercuryApiKey}
+                  onChange={(e) => setMercuryApiKey(e.target.value)}
+                  placeholder="il_live_... (or backend env)"
+                  className="w-full rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#101012] px-2.5 py-1.5 text-slate-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                />
+              </div>
+              <div className="sm:col-span-1">
+                <label className="block text-[11px] font-medium text-slate-500 dark:text-neutral-400 mb-1 flex items-center gap-1">
+                  <Cloud className="w-3 h-3 text-slate-400" /> Base URL
+                </label>
+                <input
+                  type="text"
+                  value={mercuryBaseUrl}
+                  onChange={(e) => setMercuryBaseUrl(e.target.value)}
+                  placeholder="https://api.inceptionlabs.ai/v1"
+                  className="w-full rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#101012] px-2.5 py-1.5 text-slate-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-amber-500/30 font-mono text-[11px]"
+                />
+              </div>
+              <div className="sm:col-span-1">
+                <label className="block text-[11px] font-medium text-slate-500 dark:text-neutral-400 mb-1 flex items-center gap-1">
+                  <Cpu className="w-3 h-3 text-slate-400" /> Model
+                </label>
+                <input
+                  type="text"
+                  value={mercuryModel}
+                  onChange={(e) => setMercuryModel(e.target.value)}
+                  placeholder="mercury-3"
+                  className="w-full rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#101012] px-2.5 py-1.5 text-slate-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-amber-500/30 font-mono text-[11px]"
+                />
+              </div>
+              <div className="sm:col-span-3 text-[11px] text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 bg-amber-500/10 text-amber-800 dark:text-amber-300 p-2 rounded-lg border border-amber-500/20">
+                <Zap className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                <span>
+                  <strong>Mercury-3:</strong> Inception Labs diffusion LLM running at 1,000+ tokens/sec with sub-second schema-enforced topology synthesis.
+                </span>
               </div>
             </div>
           )}

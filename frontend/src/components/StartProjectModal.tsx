@@ -61,7 +61,35 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
   const [query, setQuery] = useState('');
   const [placeholder, setPlaceholder] = useState('');
   const [isUserInteracting, setIsUserInteracting] = useState(false);
+  const [useMercury, setUseMercury] = useState(() => {
+    try {
+      return localStorage.getItem('gitoscale_preferred_ai_provider') === 'mercury';
+    } catch {
+      return false;
+    }
+  });
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const toggleMercury = () => {
+    setUseMercury((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('gitoscale_preferred_ai_provider', next ? 'mercury' : 'auto');
+        const existingConfigStr = localStorage.getItem('gitoscale_mercury_config');
+        const existingConfig = existingConfigStr ? JSON.parse(existingConfigStr) : {};
+        localStorage.setItem(
+          'gitoscale_mercury_config',
+          JSON.stringify({
+            ...existingConfig,
+            enabled: next,
+            baseUrl: existingConfig.baseUrl || 'https://api.inceptionlabs.ai/v1',
+            model: existingConfig.model || 'mercury-3',
+          })
+        );
+      } catch {}
+      return next;
+    });
+  };
 
   // Focus input when modal opens
   useEffect(() => {
@@ -161,10 +189,25 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                 '0 0 0 1px rgba(255, 255, 255, 0.08), 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 40px rgba(255, 255, 255, 0.02)',
             }}
           >
-            {/* Description Subtext */}
-            <p className="text-xs sm:text-sm text-neutral-400 mb-4 font-sans leading-relaxed">
-              Enter a prompt for your system idea or import an existing repository to start simulating load and bottlenecks.
-            </p>
+            {/* Description Subtext & Engine Toggle */}
+            <div className="flex items-center justify-between mb-4 gap-2">
+              <p className="text-xs sm:text-sm text-neutral-400 font-sans leading-relaxed">
+                Enter a prompt for your system idea or import an existing repository to start simulating load and bottlenecks.
+              </p>
+              <button
+                type="button"
+                onClick={toggleMercury}
+                className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-medium border transition-all cursor-pointer ${
+                  useMercury
+                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                    : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                }`}
+                title={useMercury ? 'Mercury-3 Diffusion LLM Active (1,000+ tok/s)' : 'Click to enable Mercury-3 Diffusion LLM'}
+              >
+                <Zap className={`w-3 h-3 ${useMercury ? 'fill-current text-amber-400' : 'text-neutral-500'}`} />
+                <span>{useMercury ? 'Mercury-3' : 'Engine: Auto'}</span>
+              </button>
+            </div>
 
             {/* Input Prompt Box */}
             <form onSubmit={handleSubmit} className="relative group">
