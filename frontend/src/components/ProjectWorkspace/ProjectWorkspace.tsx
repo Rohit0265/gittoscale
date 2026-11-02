@@ -325,24 +325,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           }
         }
       }
-
-      if (onToken) {
-        const words = execResult.explanation.split(/(\s+)/);
-        let acc = '';
-        for (const word of words) {
-          acc += word;
-          onToken(word, acc);
-          await new Promise((r) => setTimeout(r, 8));
-        }
-      }
-
-      return {
-        reply: execResult.explanation,
-        actionDone: execResult.actionType,
-      };
     }
 
-    const isSystemGeneration = isArchitectureGenerationRequest(command, activeNodes.length);
+    const isSystemGeneration = !execResult.executed && isArchitectureGenerationRequest(command, activeNodes.length);
 
     if (isSystemGeneration) {
       let targetPrompt = command;
@@ -382,20 +367,6 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
       setPrompt((prev) => (prev ? `${prev} • ${targetPrompt}` : targetPrompt));
       await handleHydrateArchitecture(targetPrompt);
-      const replyText = `🔄 **Architecture Rendered on Canvas**: Successfully synthesized and rendered the architecture for **"${targetPrompt}"** on the canvas. Re-evaluated all tiers, connections, and latency profiles.`;
-      if (onToken) {
-        const words = replyText.split(/(\s+)/);
-        let acc = '';
-        for (const word of words) {
-          acc += word;
-          onToken(word, acc);
-          await new Promise((r) => setTimeout(r, 8));
-        }
-      }
-      return {
-        reply: replyText,
-        actionDone: 'refine_architecture',
-      };
     }
 
     const isRefinementInstruction =
@@ -426,9 +397,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           message: command,
           history: chatHistory,
           architectureContext: {
-            nodes: activeNodes,
-            edges: activeEdges,
-            trafficRate: 1000,
+            nodes: execResult.executed && execResult.updatedNodes ? execResult.updatedNodes : activeNodes,
+            edges: execResult.executed && execResult.updatedEdges ? execResult.updatedEdges : activeEdges,
+            trafficRate: execResult.executed && execResult.updatedTrafficRate ? execResult.updatedTrafficRate : 1000,
             bottlenecks: [],
             projectDescription: prompt || projectId || undefined,
             activePrompt: prompt || undefined,
@@ -459,7 +430,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       if (aiResponse?.reply) {
         return {
           reply: aiResponse.reply,
-          actionDone: aiResponse.actionDone,
+          actionDone: execResult.executed ? execResult.actionType : aiResponse.actionDone,
         };
       }
     } catch (e) {

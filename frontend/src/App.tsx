@@ -972,26 +972,10 @@ export const App: React.FC = () => {
             architectureData: { nodes: nextNodes, edges: nextEdges },
           }).catch((err) => console.warn('Could not sync chat history to DB:', err));
         }
-
-        // Smooth token-by-token stream for local action explanation
-        if (onToken) {
-          const words = execResult.explanation.split(/(\s+)/);
-          let acc = '';
-          for (const word of words) {
-            acc += word;
-            onToken(word, acc);
-            await new Promise((r) => setTimeout(r, 8));
-          }
-        }
-
-        return {
-          reply: execResult.explanation,
-          actionDone: execResult.actionType,
-        };
       }
 
       // If it's a structural transformation or system generation prompt
-      const isSystemGeneration = isArchitectureGenerationRequest(command, nodes.length);
+      const isSystemGeneration = !execResult.executed && isArchitectureGenerationRequest(command, nodes.length);
 
       if (isSystemGeneration) {
         let targetPrompt = command;
@@ -1034,20 +1018,6 @@ export const App: React.FC = () => {
         }
 
         await handleGenerateFromPrompt(targetPrompt);
-        const replyText = `🔄 **Architecture Rendered on Canvas**: Successfully synthesized and rendered the architecture for **"${targetPrompt}"** directly onto the interactive canvas.\n\n• Configured Ingress, Service Clusters, Cache-Aside Tier, and Database Persistence.\n• Initialized real-time simulation profiles at ${incomingTrafficRate.toLocaleString()} req/s.`;
-        if (onToken) {
-          const words = replyText.split(/(\s+)/);
-          let acc = '';
-          for (const word of words) {
-            acc += word;
-            onToken(word, acc);
-            await new Promise((r) => setTimeout(r, 8));
-          }
-        }
-        return {
-          reply: replyText,
-          actionDone: 'refine_architecture',
-        };
       }
 
       // Check if user gave an architectural modification instruction that should update the canvas
@@ -1081,9 +1051,9 @@ export const App: React.FC = () => {
             message: command,
             history: chatHistory,
             architectureContext: {
-              nodes,
-              edges,
-              trafficRate: incomingTrafficRate,
+              nodes: nextNodes,
+              edges: nextEdges,
+              trafficRate: nextRate,
               bottlenecks: simulationResult?.bottlenecks || [],
               projectDescription: activePromptText || undefined,
               activePrompt: activePromptText || undefined,
