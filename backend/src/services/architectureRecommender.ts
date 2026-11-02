@@ -145,14 +145,7 @@ export async function recommendArchitecture(
         return null;
       })();
 
-      const timeoutPromise = new Promise<null>((resolve) =>
-        setTimeout(() => {
-          console.warn('[Architecture Recommender] Total LLM generation time limit reached (14s). Fast-falling back to expert synthesis.');
-          resolve(null);
-        }, 14000)
-      );
-
-      const result = await Promise.race([llmAttempt, timeoutPromise]);
+      const result = await llmAttempt;
       if (result) {
         return result;
       }
@@ -288,7 +281,7 @@ Respond with ONLY valid JSON (no markdown formatting, no code fences, no extra c
 }`;
 }
 
-async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 7000): Promise<Response> {
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 120000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -371,8 +364,7 @@ async function callOpenAIRecommender(input: RecommenderInput, config: LLMConfig)
         messages: [{ role: 'user', content: prompt }],
         response_format: { type: 'json_object' },
       }),
-    },
-    7000
+    }
   );
 
   if (!res.ok) {
@@ -417,8 +409,7 @@ async function callGroqRecommender(
             response_format: { type: 'json_object' },
             temperature: 0.2,
           }),
-        },
-        6000
+        }
       );
 
       if (!res.ok) {
@@ -473,8 +464,7 @@ async function callGeminiRecommender(input: RecommenderInput, config: LLMConfig)
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { responseMimeType: 'application/json' },
           }),
-        },
-        6000
+        }
       );
 
       if (!res.ok) {

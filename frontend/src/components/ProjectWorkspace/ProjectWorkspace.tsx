@@ -390,6 +390,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         });
     }
 
+    const REFUSAL_TEST_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component))/i;
+    let streamedRefusalDetected = false;
+    const fallbackExecExplanation = (execResult.executed && execResult.explanation) ? execResult.explanation : '';
+
     try {
       const aiResponse = await api.streamChatMessage(
         null,
@@ -406,7 +410,16 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           },
         },
         (tokenChunk, fullText) => {
-          onToken?.(tokenChunk, fullText);
+          if (REFUSAL_TEST_REGEX.test(fullText)) {
+            streamedRefusalDetected = true;
+            if (fallbackExecExplanation) {
+              onToken?.('', fallbackExecExplanation);
+            }
+            return;
+          }
+          if (!streamedRefusalDetected) {
+            onToken?.(tokenChunk, fullText);
+          }
         }
       );
 
@@ -427,25 +440,32 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         handleHydrateArchitecture(fallbackPrompt);
       }
 
-      if (aiResponse?.reply) {
+      const effectiveReply =
+        ((streamedRefusalDetected || REFUSAL_TEST_REGEX.test(aiResponse?.reply || '')) && fallbackExecExplanation)
+          ? fallbackExecExplanation
+          : (aiResponse?.reply || fallbackExecExplanation);
+
+      if (effectiveReply) {
         return {
-          reply: aiResponse.reply,
-          actionDone: execResult.executed ? execResult.actionType : aiResponse.actionDone,
+          reply: effectiveReply,
+          actionDone: execResult.executed ? execResult.actionType : aiResponse?.actionDone,
         };
       }
     } catch (e) {
       console.warn('[ProjectWorkspace] AI Chat failed:', e);
-      const errMsg = 'Traffic is more than expected. Please retry later.';
+      const errMsg = fallbackExecExplanation || 'Traffic is more than expected. Please retry later.';
       onToken?.(errMsg, errMsg);
       return {
         reply: errMsg,
+        actionDone: execResult.executed ? execResult.actionType : undefined,
       };
     }
 
-    const fallbackMsg = 'Traffic is more than expected. Please retry later.';
+    const fallbackMsg = fallbackExecExplanation || 'Traffic is more than expected. Please retry later.';
     onToken?.(fallbackMsg, fallbackMsg);
     return {
       reply: fallbackMsg,
+      actionDone: execResult.executed ? execResult.actionType : undefined,
     };
   };
 

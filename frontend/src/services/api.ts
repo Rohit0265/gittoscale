@@ -245,7 +245,7 @@ export const api = {
     repoName?: string;
     viewMode?: string;
   }> {
-    const res = await axios.post(`${API_BASE}/repository/analyze`, params);
+    const res = await axios.post(`${API_BASE}/repository/analyze`, params, { timeout: 180000 });
     return res.data;
   },
 
@@ -285,7 +285,7 @@ export const api = {
     activeRecommendKey = key;
     activeRecommendPromise = (async () => {
       try {
-        const res = await axios.post(`${API_BASE}/recommend`, effectiveParams);
+        const res = await axios.post(`${API_BASE}/recommend`, effectiveParams, { timeout: 180000 });
         return res.data;
       } finally {
         activeRecommendKey = null;

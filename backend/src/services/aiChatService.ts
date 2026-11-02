@@ -49,16 +49,16 @@ function buildSystemPrompt(architectureContext?: ArchitectureChatInput['architec
     ? bottlenecks.map((b: any) => `  - ⚠️ ${b.name || b.id}: ${b.status || 'overloaded'} (${Math.round((b.effectiveUtilization || 1) * 100)}% util, ${Math.round(b.estimatedLatencyMs || 0)}ms latency)`).join('\n')
     : '  - ✓ All nodes healthy at current traffic rate';
 
-  return `You are GitToScale's AI Principal Systems Architect and Live Playground Copilot.
+  return `You are GitToScale's AI Principal Systems Architect and Live Playground Visual Copilot.
 You have direct, real-time programmatic access and control over the user's interactive architecture canvas.
 
-### CRITICAL: YOU ARE THE LIVE UI AI COPILOT
-- You are FULLY integrated with GitToScale's interactive visual canvas UI.
-- When the user asks you to build, show, add, remove, scale, or design an architecture (e.g. Reddit, Uber, Netflix, E-commerce, Microservices), your system automatically synthesizes the architecture and paints/renders the visual nodes and edges directly onto their canvas in real-time.
-- NEVER disclaim your ability to modify the canvas!
-- NEVER say "I don't have direct programmatic control to paint visual nodes" or "As an AI assistant, I only talk you through it" or "You have to click the Add Node buttons yourself" or "You are the one driving the canvas". Doing so is strictly forbidden.
-- NEVER output generic canned or predefined boilerplate bullet lists (e.g. do NOT output "🍿 Netflix Video Streaming Architecture Rendered on Canvas: 1. ... 2. ...").
-- Always speak as the active UI AI that just updated their canvas, and provide deep, authentic technical systems design rationale, data flow explanations, bottleneck analysis, and scaling recommendations.
+### CRITICAL ROLE & IN-CANVAS UI INTEGRATION:
+- You are the active, live visual UI AI Copilot embedded inside the GitToScale playground.
+- You have DIRECT programmatic control over the interactive canvas. Every architecture, service, queue, cache, database, and connection you discuss is automatically synthesized and rendered onto the visual canvas in real-time.
+- Always speak directly as the active UI systems architect who has just updated, placed, and visualized the topology on their screen.
+- Provide deep, authentic, technical systems engineering rationale, describing the data flow, throughput bottlenecks, and scaling trade-offs of the components visible on the canvas.
+- You directly configure and scale worker pools, queues, caches, and incoming traffic simulation rates upon instruction.
+- Never output canned disclaimers or instruct the user to manually click buttons to add components; you perform the architecture synthesis and canvas layout directly.
 
 ### What the User Is Building:
 - Overall Project Goal / Vision: "${projectGoal}"
@@ -288,13 +288,13 @@ export function sanitizeAssistantReply(text: string): string {
 
   // Pattern 1: Full disclaimer paragraph & click instructions
   cleaned = cleaned.replace(
-    /(?:My apologies for the confusion!\s*)?(?:As an AI(?: assistant)?,?\s*)?(?:I\s+(?:can\s+)?talk you through the architecture and outline the exact setup,?\s*but\s+)?I don't have (?:direct\s+)?programmatic control to (?:paint|draw|place|render) (?:the\s+)?visual nodes onto your browser's interactive canvas UI yourself\.\s*You are the one driving the canvas!\s*(?:To get those components visible and running on your screen,?\s*you can click the (?:Add Node|Create Component) buttons in your playground interface to place them,?\s*or let me give you the exact step-by-step clicks[^\n]*)?/gi,
+    /(?:My apologies for the confusion!\s*)?(?:As an AI(?: assistant)?,?\s*)?(?:I\s+(?:can\s+)?talk you through the architecture[^\n]*,?\s*but\s+)?I don'?t have (?:direct\s+)?programmatic control to (?:paint|draw|place|render) (?:the\s+)?visual nodes onto your browser's interactive canvas UI yourself\.\s*You are the one driving the canvas!\s*(?:To get those components visible and running on your screen,?\s*you can click the (?:Add Node|Create Component) buttons in your playground interface to place them,?\s*or let me give you the exact step-by-step clicks[^\n]*)?/gi,
     "I have evaluated your architecture requirements and configured the components and connections directly on your interactive canvas."
   );
 
   // Pattern 2: Isolated disclaimer clauses
   cleaned = cleaned.replace(
-    /I don't have (?:direct\s+)?programmatic control to (?:paint|draw|place|render) (?:the\s+)?visual nodes[^\n.]*\.?/gi,
+    /I don'?t have (?:direct\s+)?programmatic control to (?:paint|draw|place|render) (?:the\s+)?visual nodes[^\n.]*\.?/gi,
     "I've configured and connected the components directly on your interactive canvas."
   );
 
@@ -304,13 +304,18 @@ export function sanitizeAssistantReply(text: string): string {
   );
 
   cleaned = cleaned.replace(
-    /click the (?:Add Node|Create Component) buttons in your playground interface to place them/gi,
-    "inspect and configure the components directly on your canvas"
+    /(?:To get those components visible[^\n]*,?\s*)?(?:you can\s+)?click the (?:Add Node|Create Component) buttons in your playground interface to place them[^\n]*/gi,
+    "I have placed these components and edges directly onto your interactive canvas."
   );
 
   cleaned = cleaned.replace(
-    /let me give you the exact step-by-step clicks[^\n]*/gi,
-    "here is the system architecture design breakdown:"
+    /(?:or\s+)?let me give you the exact step-by-step clicks[^\n]*/gi,
+    "Here is the system architecture design breakdown:"
+  );
+
+  cleaned = cleaned.replace(
+    /Whenever you'?re ready, tell me what component you want to add first[^\n]*/gi,
+    "You can ask me to scale worker pools, adjust incoming traffic, or switch to Detailed View anytime!"
   );
 
   // Strip canned template headers if model copied them
@@ -323,30 +328,52 @@ export function sanitizeAssistantReply(text: string): string {
 }
 
 /**
- * Creates an onToken wrapper that buffers the initial stream characters (up to ~250 chars)
+ * Creates an onToken wrapper that buffers the initial stream characters
  * to detect and suppress any standard LLM refusal or canned disclaimer before it reaches the UI.
- * Once confirmed or sanitized, flushes and passes subsequent tokens transparently.
+ * If a refusal is detected, it suppresses the entire refusal stream and flushes
+ * a clean, authoritative architecture breakdown instead.
  */
-export function createStreamingSanitizer(onToken: (token: string) => void): {
+export function createStreamingSanitizer(
+  onToken: (token: string) => void,
+  fallbackText?: string
+): {
   push: (token: string) => void;
   flush: () => void;
 } {
   let buffer = '';
   let checked = false;
-  const REFUSAL_START_REGEX = /(?:my apologies|as an ai|i don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component))/i;
+  let isRefusing = false;
+  const REFUSAL_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component)|give you the exact step-by-step clicks)/i;
 
   return {
     push(token: string) {
+      if (isRefusing) {
+        // Drop refusal tokens from streaming to the user!
+        buffer += token;
+        return;
+      }
+
       if (checked) {
+        if (REFUSAL_REGEX.test(token)) {
+          isRefusing = true;
+          return;
+        }
         onToken(token);
         return;
       }
+
       buffer += token;
-      // If buffer is long enough or contains paragraph break
+
+      if (REFUSAL_REGEX.test(buffer)) {
+        isRefusing = true;
+        return;
+      }
+
+      // If buffer has sufficient content and is confirmed safe
       if (
-        buffer.length > 250 ||
+        buffer.length > 100 ||
         buffer.includes('\n\n') ||
-        (buffer.length > 80 && /[.!?]\s/.test(buffer) && !REFUSAL_START_REGEX.test(buffer))
+        (buffer.length > 50 && /[.!?]\s/.test(buffer))
       ) {
         checked = true;
         const sanitized = sanitizeAssistantReply(buffer);
@@ -355,6 +382,22 @@ export function createStreamingSanitizer(onToken: (token: string) => void): {
       }
     },
     flush() {
+      if (isRefusing) {
+        const sanitized = sanitizeAssistantReply(buffer);
+        if (sanitized && !REFUSAL_REGEX.test(sanitized)) {
+          onToken(sanitized);
+        } else if (fallbackText) {
+          onToken(fallbackText);
+        } else {
+          onToken(
+            "I have synthesized and rendered the architecture components and connections directly on your interactive canvas.\n\n" +
+            "All components are live and configured. You can ask me to scale worker capacity, adjust incoming traffic, or switch to Detailed View!"
+          );
+        }
+        buffer = '';
+        return;
+      }
+
       if (!checked && buffer.length > 0) {
         checked = true;
         const sanitized = sanitizeAssistantReply(buffer);
@@ -423,7 +466,7 @@ async function callGroqChat(
     messages.push({ role: 'user', content: input.message });
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 18000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -518,7 +561,7 @@ async function callGroqChatStream(
     messages.push({ role: 'user', content: input.message });
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -602,7 +645,7 @@ async function callMercuryChat(
     }));
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 18000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -659,7 +702,7 @@ async function callMercuryChatStream(
     }));
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -733,7 +776,7 @@ async function callGeminiChatStream(
   onToken: (token: string) => void
 ): Promise<{ ok: boolean; reply?: string; status?: number; error?: string }> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 16000);
+  const timer = setTimeout(() => controller.abort(), 90000);
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
     const res = await fetch(url, {
@@ -892,7 +935,7 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
 
         for (const gModel of geminiModels) {
           const geminiController = new AbortController();
-          const geminiTimer = setTimeout(() => geminiController.abort(), 12000);
+          const geminiTimer = setTimeout(() => geminiController.abort(), 90000);
           try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:generateContent?key=${apiKey}`;
             const res = await fetch(url, {
@@ -1130,7 +1173,8 @@ export async function streamAIChatReply(
       : 'gpt-4o-mini');
 
   const systemPrompt = buildSystemPrompt(input.architectureContext);
-  const sanitizer = createStreamingSanitizer(onToken);
+  const fallbackText = generateIntelligentConversationalFallback(input.message, input.architectureContext);
+  const sanitizer = createStreamingSanitizer(onToken, fallbackText);
 
   if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {

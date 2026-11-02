@@ -1050,6 +1050,10 @@ export const App: React.FC = () => {
       }
 
       // 2. Fetch real AI response with token-by-token streaming
+      const REFUSAL_TEST_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component))/i;
+      let streamedRefusalDetected = false;
+      const fallbackExecExplanation = (execResult.executed && execResult.explanation) ? execResult.explanation : '';
+
       try {
         const token = getAuthToken();
         const aiResponse = await api.streamChatMessage(
@@ -1067,7 +1071,16 @@ export const App: React.FC = () => {
             },
           },
           (tokenChunk, fullText) => {
-            onToken?.(tokenChunk, fullText);
+            if (REFUSAL_TEST_REGEX.test(fullText)) {
+              streamedRefusalDetected = true;
+              if (fallbackExecExplanation) {
+                onToken?.('', fallbackExecExplanation);
+              }
+              return;
+            }
+            if (!streamedRefusalDetected) {
+              onToken?.(tokenChunk, fullText);
+            }
           }
         );
 
@@ -1102,34 +1115,40 @@ export const App: React.FC = () => {
           await handleGenerateFromPrompt(fallbackPrompt);
         }
 
-        if (aiResponse?.reply) {
+        const effectiveReply =
+          ((streamedRefusalDetected || REFUSAL_TEST_REGEX.test(aiResponse?.reply || '')) && fallbackExecExplanation)
+            ? fallbackExecExplanation
+            : (aiResponse?.reply || fallbackExecExplanation);
+
+        if (effectiveReply) {
           if (user) {
             api.saveChatHistory(token, {
               prompt: activePromptText,
               messages: [
                 ...chatHistory,
-                { id: `ai-${Date.now()}`, sender: 'ai', text: aiResponse.reply },
+                { id: `ai-${Date.now()}`, sender: 'ai', text: effectiveReply },
               ],
               selectedAnswers,
               architectureData: { nodes, edges },
             }).catch((err) => console.warn('Could not sync chat history to DB:', err));
           }
           return {
-            reply: aiResponse.reply,
-            actionDone: aiResponse.actionDone,
+            reply: effectiveReply,
+            actionDone: aiResponse?.actionDone || (execResult.executed ? execResult.actionType : undefined),
           };
         }
       } catch (err) {
         console.warn('[AI Chat Agent] Backend chat request error:', err);
-        const errMsg = 'Traffic is more than expected. Please retry later.';
+        const errMsg = fallbackExecExplanation || 'Traffic is more than expected. Please retry later.';
         onToken?.(errMsg, errMsg);
         return {
           reply: errMsg,
+          actionDone: execResult.executed ? execResult.actionType : undefined,
         };
       }
 
       return {
-        reply: 'Traffic is more than expected. Please retry later.',
+        reply: fallbackExecExplanation || 'Traffic is more than expected. Please retry later.',
       };
     },
     [
