@@ -901,15 +901,15 @@ export const App: React.FC = () => {
         viewMode
       );
 
+      let nextNodes = nodes;
+      let nextEdges = edges;
+      let nextRate = incomingTrafficRate;
+
       // If an actionable change occurred (e.g. node added/deleted, edge connected, traffic scaled, detailed view)
       if (execResult.executed) {
         if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
           setViewMode(execResult.targetViewMode);
         }
-
-        let nextNodes = nodes;
-        let nextEdges = edges;
-        let nextRate = incomingTrafficRate;
 
         if (execResult.updatedNodes) {
           nextNodes = execResult.updatedNodes;
