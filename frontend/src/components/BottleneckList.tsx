@@ -20,7 +20,7 @@ interface BottleneckListProps {
   embedded?: boolean;
 }
 
-export const BottleneckList: React.FC<BottleneckListProps> = ({
+const BottleneckListComponent: React.FC<BottleneckListProps> = ({
   simulationResult,
   onSelectNode,
   selectedNodeId,
@@ -160,3 +160,6 @@ export const BottleneckList: React.FC<BottleneckListProps> = ({
     </div>
   );
 };
+
+export const BottleneckList = React.memo(BottleneckListComponent);
+export default BottleneckList;
