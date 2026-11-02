@@ -410,3 +410,4 @@ export const AuthModalSkeleton: React.FC = () => {
     </div>
   );
 };
+
