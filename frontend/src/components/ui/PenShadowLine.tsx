@@ -16,7 +16,7 @@ export const PenHighlight: React.FC<PenHighlightProps> = ({
   highlightClassName = '',
 }) => {
   return (
-    <span className={`relative isolate inline-block ${className}`}>
+    <span className={`relative isolate inline-block whitespace-nowrap ${className}`}>
       <span className="relative z-10">{children}</span>
       {/* Pen marker line behind text */}
       <span

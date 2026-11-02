@@ -542,8 +542,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             />
           </div>
 
-          {/* Middle: Navigation Links */}
-          <nav className="flex items-center gap-0.5 sm:gap-1.5 md:gap-2">
+          {/* Middle: Navigation Links (hidden on mobile screen) */}
+          <nav className="hidden md:flex items-center gap-0.5 sm:gap-1.5 md:gap-2">
             <button
               type="button"
               onClick={() => scrollToSection('top')}
@@ -823,12 +823,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>Target Audiences</span>
             </div> */}
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-[0.94] tracking-tight text-slate-900 dark:text-white">
-              <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-                Who benefits from
-              </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-                GitToScale
-              </PenHighlight>
+              {/* Mobile View (< sm): separate highlight per line */}
+              <span className="sm:hidden flex flex-col items-start">
+                <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                  Who benefits
+                </PenHighlight>
+                <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                  from GitToScale
+                </PenHighlight>
+              </span>
+              {/* Desktop View (>= sm) */}
+              <span className="hidden sm:block">
+                <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                  Who benefits from
+                </PenHighlight>
+                <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                  GitToScale
+                </PenHighlight>
+              </span>
             </h2>
             <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-neutral-400">
               Whether generating greenfield architectures from text or stress-testing existing production codebases, GitToScale helps teams prevent outages before deployment.
