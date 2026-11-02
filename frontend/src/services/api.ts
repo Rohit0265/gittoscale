@@ -18,23 +18,117 @@ const API_BASE = CLEAN_URL
 // Safe default timeout (30 seconds) to prevent infinite pending state on slow mobile networks
 axios.defaults.timeout = 30000;
 
+// =========================================================================
+// In-Flight Request Deduplication & Cache Layer
+// Prevents duplicate concurrent API calls, race conditions, and double-fetching
+// =========================================================================
+
+const inFlightRequests = new Map<string, Promise<any>>();
+const cacheStore = new Map<string, { data: any; expiry: number }>();
+
+function getCached<T>(key: string): T | null {
+  const entry = cacheStore.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiry) {
+    cacheStore.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+function setCached<T>(key: string, data: T, ttlMs: number = 15000): void {
+  cacheStore.set(key, { data, expiry: Date.now() + ttlMs });
+}
+
+export function clearApiCache(prefix?: string): void {
+  if (!prefix) {
+    cacheStore.clear();
+    return;
+  }
+  for (const key of cacheStore.keys()) {
+    if (key.startsWith(prefix)) {
+      cacheStore.delete(key);
+    }
+  }
+}
+
+/**
+ * Executes a GET request with automatic single-flight coalescing and optional short-lived TTL caching
+ */
+async function dedupedGet<T>(
+  url: string,
+  config?: { params?: any; headers?: any; ttlMs?: number; forceRefresh?: boolean }
+): Promise<T> {
+  const key = `GET:${url}:${JSON.stringify(config?.params || {})}:${JSON.stringify(config?.headers || {})}`;
+
+  if (!config?.forceRefresh && config?.ttlMs) {
+    const cached = getCached<T>(key);
+    if (cached !== null) {
+      return cached;
+    }
+  }
+
+  // If identical request is already in flight, return the active Promise
+  if (inFlightRequests.has(key)) {
+    return inFlightRequests.get(key) as Promise<T>;
+  }
+
+  const requestPromise = (async () => {
+    try {
+      const res = await axios.get(`${API_BASE}${url}`, {
+        params: config?.params,
+        headers: config?.headers,
+      });
+      if (config?.ttlMs) {
+        setCached(key, res.data, config.ttlMs);
+      }
+      return res.data;
+    } finally {
+      inFlightRequests.delete(key);
+    }
+  })();
+
+  inFlightRequests.set(key, requestPromise);
+  return requestPromise;
+}
+
+// Active simulation controller to cancel obsolete in-flight requests and deduplicate identical payloads
+let activeSimulationController: AbortController | null = null;
+let activeSimulationKey: string | null = null;
+let activeSimulationPromise: Promise<SimulationResult> | null = null;
+
+// Recommender deduplication
+let activeRecommendKey: string | null = null;
+let activeRecommendPromise: Promise<ArchitectureRecommendation> | null = null;
+
 export const api = {
-  async getHealth() {
-    const res = await axios.get(`${API_BASE}/health`);
-    return res.data;
+  clearCache: clearApiCache,
+
+  async getHealth(forceRefresh = false) {
+    return dedupedGet<{ status: string; timestamp?: string }>('/health', {
+      ttlMs: 10000,
+      forceRefresh,
+    });
   },
 
-  async getArchitecture(mode?: 'basic' | 'detailed'): Promise<ArchitectureFixture & {
+  async getArchitecture(mode?: 'basic' | 'detailed', forceRefresh = false): Promise<ArchitectureFixture & {
     basicGraph?: ArchitectureFixture;
     detailedGraph?: ArchitectureFixture;
   }> {
-    const res = await axios.get(`${API_BASE}/architecture${mode ? `?mode=${mode}` : ''}`);
-    return res.data;
+    return dedupedGet<ArchitectureFixture & {
+      basicGraph?: ArchitectureFixture;
+      detailedGraph?: ArchitectureFixture;
+    }>(`/architecture${mode ? `?mode=${mode}` : ''}`, {
+      ttlMs: 30000,
+      forceRefresh,
+    });
   },
 
-  async getScenarios(): Promise<ScenarioFixture[]> {
-    const res = await axios.get(`${API_BASE}/scenarios`);
-    return res.data;
+  async getScenarios(forceRefresh = false): Promise<ScenarioFixture[]> {
+    return dedupedGet<ScenarioFixture[]>('/scenarios', {
+      ttlMs: 30000,
+      forceRefresh,
+    });
   },
 
   async simulate(params: {
@@ -44,8 +138,61 @@ export const api = {
     durationSeconds: number;
     scenarioId?: string;
   }): Promise<SimulationResult> {
-    const res = await axios.post(`${API_BASE}/simulate`, params);
-    return res.data;
+    // Generate signature to detect identical simulation requests
+    const key = JSON.stringify({
+      nodes: params.nodes.map((n) => ({
+        id: n.id,
+        type: n.type,
+        rate: (n.data as any)?.rate,
+        instances: (n.data as any)?.instances,
+        capacity: (n.data as any)?.capacity,
+      })),
+      edges: params.edges.map((e) => ({
+        source: e.source,
+        target: e.target,
+        multiplier: (e.data as any)?.multiplier,
+      })),
+      rate: params.incomingTrafficRate,
+      duration: params.durationSeconds,
+      scenario: params.scenarioId,
+    });
+
+    // If identical simulation is already in-flight, reuse it
+    if (activeSimulationKey === key && activeSimulationPromise) {
+      return activeSimulationPromise;
+    }
+
+    // If a different simulation was in-flight, cancel obsolete request to save backend capacity
+    if (activeSimulationController) {
+      activeSimulationController.abort();
+    }
+
+    const controller = new AbortController();
+    activeSimulationController = controller;
+    activeSimulationKey = key;
+
+    activeSimulationPromise = (async () => {
+      try {
+        const res = await axios.post(`${API_BASE}/simulate`, params, {
+          signal: controller.signal,
+        });
+        return res.data;
+      } catch (err: any) {
+        // If aborted, don't throw an unhandled error into console
+        if (axios.isCancel(err) || err.name === 'CanceledError' || err.name === 'AbortError') {
+          return new Promise<SimulationResult>(() => {}); // Keep pending or ignored
+        }
+        throw err;
+      } finally {
+        if (activeSimulationKey === key) {
+          activeSimulationKey = null;
+          activeSimulationPromise = null;
+          activeSimulationController = null;
+        }
+      }
+    })();
+
+    return activeSimulationPromise;
   },
 
   async analyzeRepository(params: {
@@ -81,17 +228,35 @@ export const api = {
     return res.data;
   },
 
-  async getLLMStatus(): Promise<{ hasKey: boolean; provider: string; model?: string }> {
-    const res = await axios.get(`${API_BASE}/repository/llm-status`);
-    return res.data;
+  async getLLMStatus(forceRefresh = false): Promise<{ hasKey: boolean; provider: string; model?: string }> {
+    return dedupedGet<{ hasKey: boolean; provider: string; model?: string }>('/repository/llm-status', {
+      ttlMs: 20000,
+      forceRefresh,
+    });
   },
 
   /**
    * Generates a recommended system architecture based on natural language project requirements.
+   * Deduplicates identical concurrent submissions.
    */
   async recommendArchitecture(params: RecommenderInput): Promise<ArchitectureRecommendation> {
-    const res = await axios.post(`${API_BASE}/recommend`, params);
-    return res.data;
+    const key = JSON.stringify(params);
+    if (activeRecommendKey === key && activeRecommendPromise) {
+      return activeRecommendPromise;
+    }
+
+    activeRecommendKey = key;
+    activeRecommendPromise = (async () => {
+      try {
+        const res = await axios.post(`${API_BASE}/recommend`, params);
+        return res.data;
+      } finally {
+        activeRecommendKey = null;
+        activeRecommendPromise = null;
+      }
+    })();
+
+    return activeRecommendPromise;
   },
 
   /**
@@ -130,13 +295,19 @@ export const api = {
     return res.data;
   },
 
-  async getAuthSession(): Promise<{
+  async getAuthSession(forceRefresh = false): Promise<{
     success: boolean;
     authenticated: boolean;
     user?: { id: string; email: string; name: string };
   }> {
-    const res = await axios.get(`${API_BASE}/auth/me`);
-    return res.data;
+    return dedupedGet<{
+      success: boolean;
+      authenticated: boolean;
+      user?: { id: string; email: string; name: string };
+    }>('/auth/me', {
+      ttlMs: 15000,
+      forceRefresh,
+    });
   },
 
   // =========================================================================
@@ -145,11 +316,19 @@ export const api = {
 
   async getArchitectureHistory(
     token?: string | null,
-    params?: { q?: string; status?: string; limit?: number; offset?: number }
+    params?: { q?: string; status?: string; limit?: number; offset?: number },
+    forceRefresh = false
   ): Promise<{ success: boolean; data: any[]; total: number }> {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await axios.get(`${API_BASE}/history/architectures`, { headers, params });
-    return res.data;
+    return dedupedGet<{ success: boolean; data: any[]; total: number }>(
+      '/history/architectures',
+      {
+        headers,
+        params,
+        ttlMs: 5000, // 5s short cache for fast tab/filter switching
+        forceRefresh,
+      }
+    );
   },
 
   async saveArchitectureHistory(
@@ -163,12 +342,14 @@ export const api = {
       errorMessage?: string;
     }
   ): Promise<{ success: boolean; data: any }> {
+    clearApiCache('GET:/history/architectures');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const res = await axios.post(`${API_BASE}/history/architectures`, data, { headers });
     return res.data;
   },
 
   async deleteArchitectureHistory(token: string | null, id: string): Promise<{ success: boolean }> {
+    clearApiCache('GET:/history/architectures');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const res = await axios.delete(`${API_BASE}/history/architectures/${id}`, { headers });
     return res.data;
@@ -176,11 +357,19 @@ export const api = {
 
   async getRepositoryHistory(
     token?: string | null,
-    params?: { q?: string; status?: string; limit?: number; offset?: number }
+    params?: { q?: string; status?: string; limit?: number; offset?: number },
+    forceRefresh = false
   ): Promise<{ success: boolean; data: any[]; total: number }> {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await axios.get(`${API_BASE}/history/repositories`, { headers, params });
-    return res.data;
+    return dedupedGet<{ success: boolean; data: any[]; total: number }>(
+      '/history/repositories',
+      {
+        headers,
+        params,
+        ttlMs: 5000,
+        forceRefresh,
+      }
+    );
   },
 
   async saveRepositoryHistory(
@@ -196,12 +385,14 @@ export const api = {
       errorMessage?: string;
     }
   ): Promise<{ success: boolean; data: any }> {
+    clearApiCache('GET:/history/repositories');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const res = await axios.post(`${API_BASE}/history/repositories`, data, { headers });
     return res.data;
   },
 
   async deleteRepositoryHistory(token: string | null, id: string): Promise<{ success: boolean }> {
+    clearApiCache('GET:/history/repositories');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const res = await axios.delete(`${API_BASE}/history/repositories/${id}`, { headers });
     return res.data;
