@@ -52,11 +52,27 @@ export function createApp() {
 
   for (const distPath of frontendDistCandidates) {
     if (fs.existsSync(distPath)) {
-      app.use(express.static(distPath));
+      app.use(
+        express.static(distPath, {
+          setHeaders: (res, filePath) => {
+            if (filePath.endsWith('.html')) {
+              // HTML must never be cached indefinitely so new deployments are fetched immediately
+              res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+            } else if (filePath.includes(`${path.sep}assets${path.sep}`) || filePath.includes('/assets/')) {
+              // Vite-hashed immutable assets (JS/CSS) cached in browser for 1 year
+              res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            } else {
+              // Images, favicons, fonts, static icons cached with stale-while-revalidate
+              res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+            }
+          },
+        })
+      );
       app.get('*', (req: Request, res: Response, next: NextFunction) => {
         if (req.path.startsWith('/api')) {
           return next();
         }
+        res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
         res.sendFile(path.join(distPath, 'index.html'));
       });
       break;
