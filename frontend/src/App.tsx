@@ -1885,25 +1885,12 @@ export const App: React.FC = () => {
                 projectId={activeProject?.projectId}
                 activePrompt={activePromptText || 'Scalable distributed cloud architecture'}
                 selectedAnswers={selectedAnswers}
-                onAnswerSelected={(category, optionId) => {
-                  const updated = { ...selectedAnswers, [category]: optionId };
-                  setSelectedAnswers(updated);
-                  handleGenerateFromPrompt(activePromptText, updated);
-                }}
-                onApplyRefinements={() => {
-                  handleGenerateFromPrompt(activePromptText);
-                }}
-                onResetQuestions={() => {
-                  setSelectedAnswers({});
-                }}
-                onSendCustomMessage={(msg) => {
-                  handleRefinePrompt(msg);
-                }}
+                onAnswerSelected={handleAnswerSelected}
+                onApplyRefinements={handleApplyRefinements}
+                onResetQuestions={handleResetQuestions}
+                onSendCustomMessage={handleSendCustomMessage}
                 onExecuteChatCommand={handleExecuteChatCommand}
-                onRestoreSession={({ selectedAnswers: restored, activePrompt: restoredPrompt }) => {
-                  if (restored) setSelectedAnswers(restored);
-                  if (restoredPrompt) setActivePromptText(restoredPrompt);
-                }}
+                onRestoreSession={handleRestoreSession}
                 user={user}
                 nodes={nodes}
                 edges={edges}
@@ -1912,7 +1899,7 @@ export const App: React.FC = () => {
                 isGenerating={isGeneratingArchitecture}
                 isHydrated={nodes.length > 0}
                 isDark={isDark}
-                onToggleCollapse={() => setIsLeftCollapsed(true)}
+                onToggleCollapse={handleCollapseLeft}
                 width={leftSidebarWidth}
                 onWidthChange={setLeftSidebarWidth}
                 onDragStateChange={setIsLeftDragging}
