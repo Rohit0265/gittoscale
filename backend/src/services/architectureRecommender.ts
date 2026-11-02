@@ -200,10 +200,15 @@ CRITICAL ARCHITECTURE RULES:
    - Each node's config.overflowPolicy MUST be either "reject" or "drop" (do NOT use "block" or "throttle").
 3. For each technology recommendation, provide category, name, reason, trade-offs, and viable alternatives.
 4. Provide structured data flows, security considerations, scaling strategy, and key trade-off decisions.
-5. DETAILED VIEW & ADVANCED TOPICS:
-   When the user requests a "detailed view", "detailed architect", or "advanced" design:
-   - Decompose into advanced distributed systems patterns: Anycast Edge CDN/WAF, Envoy/Kong API Gateway with Token Bucket rate limiting & circuit breakers, gRPC internal service mesh, partitioned Kafka event streams, decoupled Worker Fleets, Redis Cluster (Cache-Aside with XFetch), and PostgreSQL Primary with PgBouncer connection pooling and Read Replicas.
-   - Configure realistic worker capacities (\`capacityPerSecond\`) and worker counts (\`workerCount\`) on each node to ensure \`Total Effective Capacity = workerCount × capacityPerSecond\` manages the total load without bottlenecks.
+5. STRICT DOMAIN SPECIFICITY & ARCHITECTURE ALIGNMENT:
+   - Design the architecture strictly around the user's explicit project description and real-world system needs.
+   - Do NOT force generic or unrelated distributed systems components (such as Apache Kafka, PgBouncer, Envoy, Kong, or Redis) if the user's project does not specifically need them.
+   - If the user describes a straightforward web application, microservice, or standard platform, provide a clean, focused architecture (e.g. User Traffic -> API Gateway -> Domain Service -> Database) rather than a bloated 12-tier enterprise hierarchy.
+   - Every node in the architecture must have a clear, dedicated purpose directly tied to the application domain.
+   - Configure realistic worker capacities ('capacityPerSecond') and worker counts ('workerCount') on each node to ensure Total Effective Capacity = workerCount * capacityPerSecond manages the total load without bottlenecks.
+6. ARCHITECTURE REFINEMENTS & MODIFICATIONS:
+   - When a refinement request is provided, PRESERVE the user's existing core architecture, components, and data stores.
+   - Apply ONLY the specific changes, additions, scaling, or removals requested by the user, without replacing or discarding the user's project with an unrelated preset.
 
 OUTPUT FORMAT:
 Respond with ONLY valid JSON (no markdown formatting, no code fences, no extra commentary) matching this exact schema:
@@ -938,21 +943,34 @@ export function synthesizeExpertRecommendation(
     });
   }
 
-  // Data Tier: Redis Cache
-  nodes.push({
-    id: 'node-cache',
-    name: 'Redis Cache & Session',
-    type: 'cache',
-    position: { x: 960, y: 140 },
-    capacityPerSecond: 9000,
-    workerCount: 2,
-    enabled: true,
-    config: {
-      baselineLatencyMs: 2,
-      maxQueueSize: 5000,
-      overflowPolicy: 'reject',
-    },
-  });
+  // Data Tier: Redis Cache (Only include if scale or workload requires caching)
+  const needsCache =
+    scale.includes('growth') ||
+    scale.includes('burst') ||
+    isEcommerce ||
+    isRealtime ||
+    isIoTOrStreaming ||
+    desc.includes('cache') ||
+    desc.includes('redis') ||
+    refinement.includes('cache') ||
+    refinement.includes('redis');
+
+  if (needsCache) {
+    nodes.push({
+      id: 'node-cache',
+      name: 'Redis Cache & Session',
+      type: 'cache',
+      position: { x: 960, y: 140 },
+      capacityPerSecond: 9000,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: 2,
+        maxQueueSize: 5000,
+        overflowPolicy: 'reject',
+      },
+    });
+  }
 
   // Data Tier: Primary Database
   const dbName = isIoTOrStreaming ? 'TimescaleDB Cluster' : 'PostgreSQL Primary DB';
@@ -974,24 +992,35 @@ export function synthesizeExpertRecommendation(
   // Connect service(s) to cache & db
   const mainServiceId = nodes.find((n) => n.id === 'node-svc-core' || n.id === 'node-svc-monolith')?.id || 'node-gateway';
 
-  edges.push(
-    {
-      id: `edge-${mainServiceId}-cache`,
-      source: mainServiceId,
-      target: 'node-cache',
-      requestsPerInput: 0.7,
-      enabled: true,
-      label: 'Cache Hit/Query',
-    },
-    {
+  if (needsCache) {
+    edges.push(
+      {
+        id: `edge-${mainServiceId}-cache`,
+        source: mainServiceId,
+        target: 'node-cache',
+        requestsPerInput: 0.7,
+        enabled: true,
+        label: 'Cache Hit/Query',
+      },
+      {
+        id: `edge-${mainServiceId}-db`,
+        source: mainServiceId,
+        target: 'node-db',
+        requestsPerInput: 0.4,
+        enabled: true,
+        label: 'Persistent Store',
+      }
+    );
+  } else {
+    edges.push({
       id: `edge-${mainServiceId}-db`,
       source: mainServiceId,
       target: 'node-db',
-      requestsPerInput: 0.4,
+      requestsPerInput: 1.0,
       enabled: true,
-      label: 'Persistent Store',
-    }
-  );
+      label: 'Database Transactions',
+    });
+  }
 
   // 6. Data Flows
   const dataFlows = [

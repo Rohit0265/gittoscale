@@ -810,16 +810,23 @@ export const App: React.FC = () => {
           budget_enterprise: 'Dedicated enterprise multi-region ($5000+/mo)',
         };
 
+        const preferredTech: string[] = [];
+        if (customAnswers?.consistency === 'consistency_eventual') {
+          preferredTech.push('Event-Driven Queue');
+        } else if (customAnswers?.consistency === 'consistency_strong') {
+          preferredTech.push('Strong Consistency ACID');
+        }
+        if (customAnswers?.region === 'deploy_multiregion') {
+          preferredTech.push('Global Multi-Region');
+        }
+
         const payload: RecommenderInput = {
           projectDescription: promptText,
-          expectedScale: scaleMap[customAnswers.scale || 'scale_growth'],
-          budgetConstraint: budgetMap[customAnswers.budget || 'budget_balanced'],
-          preferredTech: [
-            customAnswers.consistency === 'consistency_eventual' ? 'Apache Kafka' : 'Redis Cache',
-            customAnswers.region === 'deploy_multiregion' ? 'Global Multi-Region' : 'Multi-AZ RDS',
-          ],
+          expectedScale: customAnswers?.scale ? scaleMap[customAnswers.scale] : undefined,
+          budgetConstraint: customAnswers?.budget ? budgetMap[customAnswers.budget] : undefined,
+          preferredTech: preferredTech.length > 0 ? preferredTech : undefined,
           deploymentPreference:
-            customAnswers.region === 'deploy_multiregion' ? 'Multi-Region Active/Active' : 'AWS Cloud',
+            customAnswers?.region === 'deploy_multiregion' ? 'Multi-Region Active/Active' : undefined,
         };
         const res = await api.recommendArchitecture(payload);
 
@@ -884,7 +891,7 @@ export const App: React.FC = () => {
       chatHistory: any[],
       onToken?: (token: string, fullText: string) => void
     ): Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void> => {
-      // 1. Run local / client-side instant AI agent executor
+      // 1. Analyze command via local AI agent executor (DO NOT mutate canvas yet!)
       const execResult = executeArchitectureCommand(
         command,
         nodes,
@@ -895,88 +902,13 @@ export const App: React.FC = () => {
         viewMode
       );
 
-      let nextNodes = nodes;
-      let nextEdges = edges;
-      let nextRate = incomingTrafficRate;
-
-      // If an actionable change occurred (e.g. node added/deleted, edge connected, traffic scaled, detailed view)
-      if (execResult.executed) {
-        if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
-          setViewMode(execResult.targetViewMode);
-        }
-
-        if (execResult.updatedNodes) {
-          nextNodes = execResult.updatedNodes;
-          setNodes(nextNodes);
-          if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
-            detailedGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
-            baseDetailedGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
-
-            // If a node was deleted in Detailed View, reflect deletion in Basic View cache as well
-            if (execResult.actionType === 'delete_node' && basicGraphCacheRef.current && execResult.reflectedDeletedTypes) {
-              const delTypes = new Set(execResult.reflectedDeletedTypes);
-              const remainingBasicNodes = basicGraphCacheRef.current.nodes.filter(
-                (n) => !delTypes.has(n.type)
-              );
-              const remainingNodeIds = new Set(remainingBasicNodes.map((n) => n.id));
-              const remainingBasicEdges = basicGraphCacheRef.current.edges.filter(
-                (e) => remainingNodeIds.has(e.source) && remainingNodeIds.has(e.target)
-              );
-              basicGraphCacheRef.current = { nodes: remainingBasicNodes, edges: remainingBasicEdges };
-              baseBasicGraphRef.current = { nodes: remainingBasicNodes, edges: remainingBasicEdges };
-            }
-          } else {
-            baseBasicGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
-            basicGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
-
-            // If a node was deleted in Basic View, reflect deletion in Detailed View cache as well
-            if (execResult.actionType === 'delete_node' && detailedGraphCacheRef.current && execResult.reflectedDeletedTypes) {
-              const delTypes = new Set(execResult.reflectedDeletedTypes);
-              const remainingDetailedNodes = detailedGraphCacheRef.current.nodes.filter(
-                (n) => !delTypes.has(n.type)
-              );
-              const remainingNodeIds = new Set(remainingDetailedNodes.map((n) => n.id));
-              const remainingDetailedEdges = detailedGraphCacheRef.current.edges.filter(
-                (e) => remainingNodeIds.has(e.source) && remainingNodeIds.has(e.target)
-              );
-              detailedGraphCacheRef.current = { nodes: remainingDetailedNodes, edges: remainingDetailedEdges };
-              baseDetailedGraphRef.current = { nodes: remainingDetailedNodes, edges: remainingDetailedEdges };
-            }
-          }
-        }
-        if (execResult.updatedEdges) {
-          nextEdges = execResult.updatedEdges;
-          setEdges(nextEdges);
-        }
-        if (execResult.updatedTrafficRate) {
-          nextRate = execResult.updatedTrafficRate;
-          setIncomingTrafficRate(nextRate);
-        }
-
-        // Trigger simulation with updated state
-        queueSimulation(nextNodes, nextEdges, nextRate, durationSeconds);
-
-        // If user is authenticated, persist the updated architecture + chat to DB
-        if (user) {
-          const token = getAuthToken();
-          api.saveChatHistory(token, {
-            prompt: activePromptText,
-            messages: chatHistory,
-            selectedAnswers,
-            architectureData: { nodes: nextNodes, edges: nextEdges },
-          }).catch((err) => console.warn('Could not sync chat history to DB:', err));
-        }
-      }
-
       // If it's a structural transformation or system generation prompt
       const isSystemGeneration = !execResult.executed && isArchitectureGenerationRequest(command, nodes.length);
+      let targetGenerationPrompt = command;
 
+      let generationPromise: Promise<any> | null = null;
       if (isSystemGeneration) {
-        let targetPrompt = command;
         const lowerCmd = command.toLowerCase();
-
-        // If the user gave a meta-canvas query like "the ai didnt show the architect in the canvas",
-        // retrieve the actual intended system topic from activePromptText or chat history
         const isMetaCanvasQuery =
           lowerCmd.includes('didnt show') ||
           lowerCmd.includes("didn't show") ||
@@ -991,7 +923,7 @@ export const App: React.FC = () => {
 
         if (isMetaCanvasQuery) {
           if (activePromptText && activePromptText.trim().length > 0) {
-            targetPrompt = activePromptText;
+            targetGenerationPrompt = activePromptText;
           } else {
             const pastUserMsg = [...chatHistory]
               .reverse()
@@ -1003,25 +935,35 @@ export const App: React.FC = () => {
                   !m.text.toLowerCase().includes('didnt show') &&
                   !m.text.toLowerCase().includes("didn't show")
               );
-            targetPrompt =
+            targetGenerationPrompt =
               pastUserMsg?.text ||
-              'Scalable distributed cloud architecture with API Gateway, microservices, Redis cache, and PostgreSQL database';
+              'Scalable distributed cloud architecture with API Gateway, microservices, and database';
           }
         } else {
-          targetPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
+          targetGenerationPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
         }
 
-        await handleGenerateFromPrompt(targetPrompt);
+        setActivePromptText(targetGenerationPrompt);
+        generationPromise = api
+          .recommendArchitecture({
+            projectDescription: targetGenerationPrompt,
+            expectedScale: selectedAnswers?.scale ? undefined : undefined,
+          })
+          .catch((err) => {
+            console.warn('[handleExecuteChatCommand] Architecture generation error:', err);
+            return null;
+          });
       }
 
-      // Check if user gave an architectural modification instruction that should update the canvas
+      // Check if user gave an architectural modification instruction that should refine the canvas
       const isRefinementInstruction =
-        /(?:add|remove|delete|scale|connect|disconnect|update|change|increase|decrease|optimize|refine|improve|tune|set|modify|replace|insert|attach|put|deploy|provision|integrate|include)\s+/i.test(
+        !isSystemGeneration &&
+        (/(?:add|remove|delete|scale|connect|disconnect|update|change|increase|decrease|optimize|refine|improve|tune|set|modify|replace|insert|attach|put|deploy|provision|integrate|include)\s+/i.test(
           command
         ) ||
         /(?:more|higher|lower|less|better)\s+(?:capacity|workers|traffic|load|latency|throughput|cache|replicas)/i.test(
           command
-        );
+        ));
 
       let refinementPromise: Promise<any> | null = null;
       if (isRefinementInstruction) {
@@ -1037,6 +979,7 @@ export const App: React.FC = () => {
       }
 
       // 2. Fetch real AI response with token-by-token streaming
+      // Canvas is NOT mutated while streaming so the user experiences zero UI jumps/flashes!
       const REFUSAL_TEST_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component))/i;
       let streamedRefusalDetected = false;
       const fallbackExecExplanation = (execResult.executed && execResult.explanation) ? execResult.explanation : '';
@@ -1049,9 +992,9 @@ export const App: React.FC = () => {
             message: command,
             history: chatHistory,
             architectureContext: {
-              nodes: nextNodes,
-              edges: nextEdges,
-              trafficRate: nextRate,
+              nodes,
+              edges,
+              trafficRate: incomingTrafficRate,
               bottlenecks: simulationResult?.bottlenecks || [],
               projectDescription: activePromptText || undefined,
               activePrompt: activePromptText || undefined,
@@ -1071,8 +1014,36 @@ export const App: React.FC = () => {
           }
         );
 
-        // If an architecture refinement occurred in parallel, apply updated topology to the canvas
-        if (refinementPromise) {
+        // 3. AI response stream has now COMPLETELY ENDED. Apply topology updates to canvas!
+        let finalNodes = nodes;
+        let finalEdges = edges;
+        let finalRate = incomingTrafficRate;
+
+        if (generationPromise) {
+          const gen = await generationPromise;
+          if (gen?.nodes?.length > 0) {
+            const verticalBasicNodes = toVerticalTree(gen.nodes, gen.edges);
+            baseBasicGraphRef.current = { nodes: verticalBasicNodes, edges: gen.edges };
+            basicGraphCacheRef.current = { nodes: verticalBasicNodes, edges: gen.edges };
+
+            const detailed = buildDetailedArchitecture(gen.nodes, gen.edges, targetGenerationPrompt);
+            const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+            baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+            detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+
+            if (viewMode === 'detailed') {
+              finalNodes = verticalDetailedNodes;
+              finalEdges = detailed.edges;
+            } else {
+              finalNodes = verticalBasicNodes;
+              finalEdges = gen.edges;
+            }
+
+            setNodes(finalNodes);
+            setEdges(finalEdges);
+            queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
+          }
+        } else if (refinementPromise) {
           const refined = await refinementPromise;
           if (refined?.nodes?.length > 0) {
             const verticalBasicNodes = toVerticalTree(refined.nodes, refined.edges);
@@ -1085,21 +1056,43 @@ export const App: React.FC = () => {
             detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
 
             if (viewMode === 'detailed') {
-              setNodes(verticalDetailedNodes);
-              setEdges(detailed.edges);
-              queueSimulation(verticalDetailedNodes, detailed.edges, incomingTrafficRate, durationSeconds);
+              finalNodes = verticalDetailedNodes;
+              finalEdges = detailed.edges;
             } else {
-              setNodes(verticalBasicNodes);
-              setEdges(refined.edges);
-              queueSimulation(verticalBasicNodes, refined.edges, incomingTrafficRate, durationSeconds);
+              finalNodes = verticalBasicNodes;
+              finalEdges = refined.edges;
+            }
+
+            setNodes(finalNodes);
+            setEdges(finalEdges);
+            queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
+          }
+        } else if (execResult.executed) {
+          if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
+            setViewMode(execResult.targetViewMode);
+          }
+
+          if (execResult.updatedNodes) {
+            finalNodes = execResult.updatedNodes;
+            setNodes(finalNodes);
+            if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
+              detailedGraphCacheRef.current = { nodes: finalNodes, edges: execResult.updatedEdges || edges };
+              baseDetailedGraphRef.current = { nodes: finalNodes, edges: execResult.updatedEdges || edges };
+            } else {
+              baseBasicGraphRef.current = { nodes: finalNodes, edges: execResult.updatedEdges || edges };
+              basicGraphCacheRef.current = { nodes: finalNodes, edges: execResult.updatedEdges || edges };
             }
           }
-        }
+          if (execResult.updatedEdges) {
+            finalEdges = execResult.updatedEdges;
+            setEdges(finalEdges);
+          }
+          if (execResult.updatedTrafficRate) {
+            finalRate = execResult.updatedTrafficRate;
+            setIncomingTrafficRate(finalRate);
+          }
 
-        // Safety fallback: If canvas has 0 nodes after chat response, ensure architecture is synthesized and shown
-        if (nodes.length === 0) {
-          const fallbackPrompt = activePromptText || command || 'Scalable distributed cloud architecture';
-          await handleGenerateFromPrompt(fallbackPrompt);
+          queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
         }
 
         const effectiveReply =
@@ -1116,7 +1109,7 @@ export const App: React.FC = () => {
                 { id: `ai-${Date.now()}`, sender: 'ai', text: effectiveReply },
               ],
               selectedAnswers,
-              architectureData: { nodes, edges },
+              architectureData: { nodes: finalNodes, edges: finalEdges },
             }).catch((err) => console.warn('Could not sync chat history to DB:', err));
           }
           return {
@@ -1149,7 +1142,6 @@ export const App: React.FC = () => {
       getAuthToken,
       activePromptText,
       selectedAnswers,
-      handleGenerateFromPrompt,
       viewMode,
     ]
   );

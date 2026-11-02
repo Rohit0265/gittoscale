@@ -199,18 +199,25 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         budget_enterprise: 'Dedicated enterprise multi-region ($5000+/mo)',
       };
 
+      const preferredTech: string[] = [];
+      if (selectedAnswers?.consistency === 'consistency_eventual') {
+        preferredTech.push('Event-Driven Queue');
+      } else if (selectedAnswers?.consistency === 'consistency_strong') {
+        preferredTech.push('Strong Consistency ACID');
+      }
+      if (selectedAnswers?.region === 'deploy_multiregion') {
+        preferredTech.push('Global Multi-Region');
+      }
+
       const payload: RecommenderInput = {
         projectDescription: customRefinement || prompt || 'Scalable distributed cloud architecture',
-        expectedScale: scaleMap[selectedAnswers.scale || 'scale_growth'],
-        budgetConstraint: budgetMap[selectedAnswers.budget || 'budget_balanced'],
-        preferredTech: [
-          selectedAnswers.consistency === 'consistency_eventual' ? 'Apache Kafka' : 'Redis Cache',
-          selectedAnswers.region === 'deploy_multiregion' ? 'Global Multi-Region' : 'Multi-AZ RDS',
-        ],
+        expectedScale: selectedAnswers.scale ? scaleMap[selectedAnswers.scale] : undefined,
+        budgetConstraint: selectedAnswers.budget ? budgetMap[selectedAnswers.budget] : undefined,
+        preferredTech: preferredTech.length > 0 ? preferredTech : undefined,
         deploymentPreference:
           selectedAnswers.region === 'deploy_multiregion'
             ? 'Multi-Region Active/Active'
-            : 'AWS Cloud',
+            : undefined,
         refinementRequest: customRefinement,
       };
 
@@ -274,6 +281,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     chatHistory: any[],
     onToken?: (token: string, fullText: string) => void
   ): Promise<{ reply: string; actionDone?: string; updatedAnswers?: any } | void> => {
+    // 1. Analyze command (DO NOT mutate canvas state yet!)
     const execResult = executeArchitectureCommand(
       command,
       activeNodes,
@@ -284,55 +292,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       viewMode
     );
 
-    if (execResult.executed) {
-      if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
-        setViewMode(execResult.targetViewMode);
-      }
-
-      if (execResult.updatedNodes && execResult.updatedEdges) {
-        if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
-          setDetailedGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
-
-          // Also reflect deletion in basicGraph if a component tier was deleted
-          if (execResult.actionType === 'delete_node' && execResult.reflectedDeletedTypes) {
-            const delTypes = new Set(execResult.reflectedDeletedTypes);
-            setBasicGraph((prev) => {
-              const remNodes = prev.nodes.filter((n) => !delTypes.has(n.type));
-              const remIds = new Set(remNodes.map((n) => n.id));
-              const remEdges = prev.edges.filter((e) => remIds.has(e.source) && remIds.has(e.target));
-              return { nodes: remNodes, edges: remEdges };
-            });
-          }
-        } else {
-          setBasicGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
-
-          // Keep detailed graph in sync when adding or updating components
-          if (execResult.actionType !== 'delete_node') {
-            const detailed = buildDetailedArchitecture(execResult.updatedNodes, execResult.updatedEdges, command);
-            const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
-            setDetailedGraph({ nodes: verticalDetailedNodes, edges: detailed.edges });
-          }
-
-          // Also reflect deletion in detailedGraph if a component tier was deleted
-          if (execResult.actionType === 'delete_node' && execResult.reflectedDeletedTypes) {
-            const delTypes = new Set(execResult.reflectedDeletedTypes);
-            setDetailedGraph((prev) => {
-              const remNodes = prev.nodes.filter((n) => !delTypes.has(n.type));
-              const remIds = new Set(remNodes.map((n) => n.id));
-              const remEdges = prev.edges.filter((e) => remIds.has(e.source) && remIds.has(e.target));
-              return { nodes: remNodes, edges: remEdges };
-            });
-          }
-        }
-      }
-    }
-
     const isSystemGeneration = !execResult.executed && isArchitectureGenerationRequest(command, activeNodes.length);
+    let targetPrompt = command;
+    let generationPromise: Promise<any> | null = null;
 
     if (isSystemGeneration) {
-      let targetPrompt = command;
       const lowerCmd = command.toLowerCase();
-
       const isMetaCanvasQuery =
         lowerCmd.includes('didnt show') ||
         lowerCmd.includes("didn't show") ||
@@ -361,21 +326,29 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             );
           targetPrompt =
             pastUserMsg?.text ||
-            'Scalable distributed cloud architecture with API Gateway, microservices, Redis cache, and PostgreSQL database';
+            'Scalable distributed cloud architecture with API Gateway, microservices, and database';
         }
       }
 
       setPrompt((prev) => (prev ? `${prev} • ${targetPrompt}` : targetPrompt));
-      await handleHydrateArchitecture(targetPrompt);
+      generationPromise = api
+        .recommendArchitecture({
+          projectDescription: targetPrompt,
+        })
+        .catch((err) => {
+          console.warn('[ProjectWorkspace] Generation error:', err);
+          return null;
+        });
     }
 
     const isRefinementInstruction =
-      /(?:add|remove|delete|scale|connect|disconnect|update|change|increase|decrease|optimize|refine|improve|tune|set|modify|replace|insert|attach|put|deploy|provision|integrate|include)\s+/i.test(
+      !isSystemGeneration &&
+      (/(?:add|remove|delete|scale|connect|disconnect|update|change|increase|decrease|optimize|refine|improve|tune|set|modify|replace|insert|attach|put|deploy|provision|integrate|include)\s+/i.test(
         command
       ) ||
       /(?:more|higher|lower|less|better)\s+(?:capacity|workers|traffic|load|latency|throughput|cache|replicas)/i.test(
         command
-      );
+      ));
 
     let refinementPromise: Promise<any> | null = null;
     if (isRefinementInstruction) {
@@ -390,6 +363,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         });
     }
 
+    // 2. Stream AI response with zero premature canvas mutation
     const REFUSAL_TEST_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component))/i;
     let streamedRefusalDetected = false;
     const fallbackExecExplanation = (execResult.executed && execResult.explanation) ? execResult.explanation : '';
@@ -401,9 +375,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           message: command,
           history: chatHistory,
           architectureContext: {
-            nodes: execResult.executed && execResult.updatedNodes ? execResult.updatedNodes : activeNodes,
-            edges: execResult.executed && execResult.updatedEdges ? execResult.updatedEdges : activeEdges,
-            trafficRate: execResult.executed && execResult.updatedTrafficRate ? execResult.updatedTrafficRate : 1000,
+            nodes: activeNodes,
+            edges: activeEdges,
+            trafficRate: 1000,
             bottlenecks: [],
             projectDescription: prompt || projectId || undefined,
             activePrompt: prompt || undefined,
@@ -423,7 +397,18 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         }
       );
 
-      if (refinementPromise) {
+      // 3. AI response stream has now COMPLETELY ENDED. Apply canvas topology updates!
+      if (generationPromise) {
+        const gen = await generationPromise;
+        if (gen?.nodes?.length > 0) {
+          const verticalBasicNodes = toVerticalTree(gen.nodes, gen.edges);
+          setBasicGraph({ nodes: verticalBasicNodes, edges: gen.edges });
+          const detailed = buildDetailedArchitecture(gen.nodes, gen.edges, targetPrompt);
+          const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+          setDetailedGraph({ nodes: verticalDetailedNodes, edges: detailed.edges });
+          setViewState('hydrated');
+        }
+      } else if (refinementPromise) {
         const refined = await refinementPromise;
         if (refined?.nodes?.length > 0) {
           const verticalBasicNodes = toVerticalTree(refined.nodes, refined.edges);
@@ -431,13 +416,46 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           const detailed = buildDetailedArchitecture(refined.nodes, refined.edges, prompt);
           const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
           setDetailedGraph({ nodes: verticalDetailedNodes, edges: detailed.edges });
+          setViewState('hydrated');
         }
-      }
+      } else if (execResult.executed) {
+        if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
+          setViewMode(execResult.targetViewMode);
+        }
 
-      // Safety fallback: if canvas had 0 nodes, hydrate now
-      if (activeNodes.length === 0) {
-        const fallbackPrompt = prompt || command || 'Scalable distributed cloud architecture';
-        handleHydrateArchitecture(fallbackPrompt);
+        if (execResult.updatedNodes && execResult.updatedEdges) {
+          if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
+            setDetailedGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
+
+            if (execResult.actionType === 'delete_node' && execResult.reflectedDeletedTypes) {
+              const delTypes = new Set(execResult.reflectedDeletedTypes);
+              setBasicGraph((prev) => {
+                const remNodes = prev.nodes.filter((n) => !delTypes.has(n.type));
+                const remIds = new Set(remNodes.map((n) => n.id));
+                const remEdges = prev.edges.filter((e) => remIds.has(e.source) && remIds.has(e.target));
+                return { nodes: remNodes, edges: remEdges };
+              });
+            }
+          } else {
+            setBasicGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
+
+            if (execResult.actionType !== 'delete_node') {
+              const detailed = buildDetailedArchitecture(execResult.updatedNodes, execResult.updatedEdges, command);
+              const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+              setDetailedGraph({ nodes: verticalDetailedNodes, edges: detailed.edges });
+            }
+
+            if (execResult.actionType === 'delete_node' && execResult.reflectedDeletedTypes) {
+              const delTypes = new Set(execResult.reflectedDeletedTypes);
+              setDetailedGraph((prev) => {
+                const remNodes = prev.nodes.filter((n) => !delTypes.has(n.type));
+                const remIds = new Set(remNodes.map((n) => n.id));
+                const remEdges = prev.edges.filter((e) => remIds.has(e.source) && remIds.has(e.target));
+                return { nodes: remNodes, edges: remEdges };
+              });
+            }
+          }
+        }
       }
 
       const effectiveReply =
