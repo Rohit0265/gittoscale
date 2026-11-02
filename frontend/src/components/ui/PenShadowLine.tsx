@@ -10,7 +10,7 @@ export interface PenHighlightProps {
  * Hand-drawn marker pen stripe behind heading text,
  * styled after a chisel-tip marker pen stroke in grey.
  */
-export const PenHighlight: React.FC<PenHighlightProps> = ({
+export const PenHighlight: React.FC<PenHighlightProps> = React.memo(({
   children,
   className = '',
   highlightClassName = '',
@@ -29,9 +29,9 @@ export const PenHighlight: React.FC<PenHighlightProps> = ({
       />
     </span>
   );
-};
+});
 
-export const PenShadowLine: React.FC<{ className?: string; color?: string }> = ({
+export const PenShadowLine: React.FC<{ className?: string; color?: string }> = React.memo(({
   className = '',
   color = 'bg-slate-300/80 dark:bg-neutral-700/70',
 }) => {
@@ -44,6 +44,6 @@ export const PenShadowLine: React.FC<{ className?: string; color?: string }> = (
       }}
     />
   );
-};
+});
 
 export default PenHighlight;
