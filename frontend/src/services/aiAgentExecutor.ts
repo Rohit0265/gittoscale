@@ -24,6 +24,103 @@ export interface AgentCommandExecutionResult {
 }
 
 /**
+ * Detects whether a user prompt is requesting to synthesize, show, render, or generate an architecture
+ * or if the canvas is empty and any system design instruction is provided.
+ */
+export function isArchitectureGenerationRequest(command: string, currentNodesCount: number): boolean {
+  const text = command.trim();
+  const lower = text.toLowerCase();
+  const cleaned = lower
+    .replace(
+      /^(?:hey\s+|hi\s+|hello\s+)?(?:ai\s+|copilot\s+|assistant\s+)?(?:can\s+you\s+(?:please\s+)?|could\s+you\s+(?:please\s+)?|please\s+|i\s+want\s+(?:you\s+)?to\s+|help\s+me\s+(?:to\s+)?|let's\s+|lets\s+|we\s+need\s+to\s+|i'd\s+like\s+to\s+|try\s+to\s+|go\s+ahead\s+and\s+|would\s+you\s+)/i,
+      ''
+    )
+    .trim();
+
+  // If canvas is completely empty, any non-greeting message should synthesize the architecture!
+  if (currentNodesCount === 0) {
+    const isPureGreeting = /^(?:hi|hello|hey|test|ping|who are you|what can you do)\??$/i.test(cleaned);
+    if (!isPureGreeting) {
+      return true;
+    }
+  }
+
+  // 1. Direct canvas/architect visibility requests
+  if (
+    /(?:show|display|render|draw|put|place|bring|visualize|update|view|see)\s+(?:me\s+)?(?:the\s+)?(?:architect(?:ure)?|system|canvas|graph|nodes?|blueprint|diagram)/i.test(cleaned) ||
+    cleaned.includes('in the canvas') ||
+    cleaned.includes('on the canvas') ||
+    cleaned.includes('on canvas') ||
+    cleaned.includes('in canvas') ||
+    cleaned.includes('show architect') ||
+    cleaned.includes('show architecture') ||
+    cleaned.includes('canvas didnt update') ||
+    cleaned.includes("canvas didn't update") ||
+    cleaned.includes('didnt show') ||
+    cleaned.includes("didn't show") ||
+    lower.includes('in the canvas') ||
+    lower.includes('show the architect')
+  ) {
+    return true;
+  }
+
+  // 2. Creation / design verbs with system nouns
+  const hasCreationVerb =
+    /(?:make|create|generate|design|build|architect|synthesize|draw|show|cook|construct|draft|develop|model|setup|produce|give\s+me|provide|render|display)\s+/i.test(cleaned) ||
+    /(?:make|create|generate|design|build|architect|synthesize|draw|show|cook|construct|draft|develop|model|setup|produce|give\s+me|provide|render|display)\s+/i.test(lower);
+
+  const hasSystemNoun =
+    /(?:architecture|architect|system|blueprint|app|application|platform|pipeline|stack|infra(?:structure)?|topology|backend|microservices?|cluster|design|workflow|solution)/i.test(cleaned) ||
+    /(?:architecture|architect|system|blueprint|app|application|platform|pipeline|stack|infra(?:structure)?|topology|backend|microservices?|cluster|design|workflow|solution)/i.test(lower);
+
+  if (hasCreationVerb && hasSystemNoun) {
+    return true;
+  }
+
+  // 3. Known domain app / brand system architecture
+  const hasDomainApp =
+    /(?:uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|reddit|discord|pinterest|linkedin|doordash|instacart|swiggy|zomato|e-?commerce|food\s*delivery|ride\s*sharing|chat\s*(?:app|system)?|streaming\s*(?:platform|app|system)?|payment\s*(?:gateway|system)?|fintech|iot|telemetry)/i.test(cleaned) ||
+    /(?:uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|reddit|discord|pinterest|linkedin|doordash|instacart|swiggy|zomato|e-?commerce|food\s*delivery|ride\s*sharing|chat\s*(?:app|system)?|streaming\s*(?:platform|app|system)?|payment\s*(?:gateway|system)?|fintech|iot|telemetry)/i.test(lower);
+
+  if (
+    hasDomainApp &&
+    (hasSystemNoun ||
+      hasCreationVerb ||
+      cleaned.includes('design') ||
+      cleaned.includes('architecture') ||
+      cleaned.includes('system') ||
+      cleaned.includes('blueprint') ||
+      cleaned.includes('clone') ||
+      cleaned.includes('platform'))
+  ) {
+    return true;
+  }
+
+  // 4. "architecture of/for", "system for"
+  if (
+    /(?:architecture|system|stack|blueprint|design|infrastructure|topology)\s+(?:for|of)\s+/i.test(cleaned) ||
+    /(?:architecture|system|stack|blueprint|design|infrastructure|topology)\s+(?:for|of)\s+/i.test(lower)
+  ) {
+    return true;
+  }
+
+  // 5. Advanced patterns
+  if (
+    cleaned.includes('microservice') ||
+    cleaned.includes('serverless') ||
+    cleaned.includes('event-driven') ||
+    cleaned.includes('event driven') ||
+    cleaned.includes('re-synthesize') ||
+    cleaned.includes('redesign') ||
+    cleaned.includes('convert to microservice')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Calculates an intelligent, non-destructive coordinate position for a newly added node.
  * Crucially preserves existing node coordinates so the canvas tree structure does not shrink or shift!
  */

@@ -19,7 +19,8 @@ import { LandingPage } from './components/LandingPage';
 import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
 import { useAuth } from './contexts/AuthContext';
 import { toVerticalTree } from './utils/treeLayout';
-import { executeArchitectureCommand } from './services/aiAgentExecutor';
+import { executeArchitectureCommand, isArchitectureGenerationRequest } from './services/aiAgentExecutor';
+import { buildDetailedArchitecture } from './utils/detailedArchitecture';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
 
 // Code-split heavy routes and modals for fast loading on slow phones & networks
@@ -772,12 +773,27 @@ export const App: React.FC = () => {
             customAnswers.region === 'deploy_multiregion' ? 'Multi-Region Active/Active' : 'AWS Cloud',
         };
         const res = await api.recommendArchitecture(payload);
-        const verticalNodes = toVerticalTree(res.nodes, res.edges);
-        setNodes(verticalNodes);
-        setEdges(res.edges);
-        baseBasicGraphRef.current = { nodes: verticalNodes, edges: res.edges };
-        basicGraphCacheRef.current = { nodes: verticalNodes, edges: res.edges };
-        triggerSimulation(verticalNodes, res.edges, incomingTrafficRate, durationSeconds);
+
+        // Basic top-to-bottom vertical tree layout
+        const verticalBasicNodes = toVerticalTree(res.nodes, res.edges);
+        baseBasicGraphRef.current = { nodes: verticalBasicNodes, edges: res.edges };
+        basicGraphCacheRef.current = { nodes: verticalBasicNodes, edges: res.edges };
+
+        // Decomposed detailed graph organized as a vertical tree
+        const detailed = buildDetailedArchitecture(res.nodes, res.edges, promptText);
+        const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+        baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+        detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+
+        if (viewMode === 'detailed') {
+          setNodes(verticalDetailedNodes);
+          setEdges(detailed.edges);
+          triggerSimulation(verticalDetailedNodes, detailed.edges, incomingTrafficRate, durationSeconds);
+        } else {
+          setNodes(verticalBasicNodes);
+          setEdges(res.edges);
+          triggerSimulation(verticalBasicNodes, res.edges, incomingTrafficRate, durationSeconds);
+        }
 
         // Persist to architecture history in PostgreSQL if user is authenticated
         if (user) {
@@ -787,7 +803,7 @@ export const App: React.FC = () => {
             title: promptText.slice(0, 60),
             prompt: promptText,
             generationConfig: { ...customAnswers, projectId: projId },
-            architectureData: { nodes: verticalNodes, edges: res.edges },
+            architectureData: { nodes: verticalBasicNodes, edges: res.edges },
             status: 'completed',
           }).catch((histErr) => {
             console.warn('Could not persist architecture history:', histErr);
@@ -800,7 +816,7 @@ export const App: React.FC = () => {
         setIsGeneratingArchitecture(false);
       }
     },
-    [incomingTrafficRate, durationSeconds, triggerSimulation, selectedAnswers, user, getAuthToken, activeProject?.projectId]
+    [incomingTrafficRate, durationSeconds, triggerSimulation, selectedAnswers, user, getAuthToken, activeProject?.projectId, viewMode]
   );
 
   // AI Refine callback from left sidebar
@@ -920,26 +936,50 @@ export const App: React.FC = () => {
       }
 
       // If it's a structural transformation or system generation prompt
-      const lower = command.toLowerCase();
-      const isSystemGeneration =
-        /(?:make|create|generate|design|build|architect|synthesize|draw|show|cook)\s+(?:me\s+)?(?:an?\s+)?(?:new\s+)?(?:scalable\s+|distributed\s+)?(?:system|architecture|blueprint|app|stack|platform|pipeline|design)/i.test(
-          command
-        ) ||
-        /(?:architecture|system|stack|blueprint|design)\s+for\s+/i.test(command) ||
-        /(?:for|like)\s+(?:uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|e-commerce|ecommerce|food\s*delivery|ride\s*sharing)/i.test(
-          command
-        ) ||
-        lower.includes('microservice') ||
-        lower.includes('serverless') ||
-        lower.includes('event-driven') ||
-        lower.includes('event driven') ||
-        lower.includes('re-synthesize') ||
-        lower.includes('redesign');
+      const isSystemGeneration = isArchitectureGenerationRequest(command, nodes.length);
 
       if (isSystemGeneration) {
-        const updatedPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
-        await handleGenerateFromPrompt(updatedPrompt);
-        const replyText = `🔄 **Synthesised Architecture**: Successfully generated and laid out new system architecture for "${command}". Re-evaluated all tiers, connections, and simulation profiles.`;
+        let targetPrompt = command;
+        const lowerCmd = command.toLowerCase();
+
+        // If the user gave a meta-canvas query like "the ai didnt show the architect in the canvas",
+        // retrieve the actual intended system topic from activePromptText or chat history
+        const isMetaCanvasQuery =
+          lowerCmd.includes('didnt show') ||
+          lowerCmd.includes("didn't show") ||
+          lowerCmd.includes('show the architect') ||
+          lowerCmd.includes('show the architecture') ||
+          lowerCmd.includes('show architecture') ||
+          lowerCmd.includes('in the canvas') ||
+          lowerCmd.includes('on the canvas') ||
+          lowerCmd.includes('on canvas') ||
+          lowerCmd.includes('canvas didnt update') ||
+          lowerCmd.includes("canvas didn't update");
+
+        if (isMetaCanvasQuery) {
+          if (activePromptText && activePromptText.trim().length > 0) {
+            targetPrompt = activePromptText;
+          } else {
+            const pastUserMsg = [...chatHistory]
+              .reverse()
+              .find(
+                (m: any) =>
+                  m.sender === 'user' &&
+                  m.text &&
+                  !m.text.toLowerCase().includes('canvas') &&
+                  !m.text.toLowerCase().includes('didnt show') &&
+                  !m.text.toLowerCase().includes("didn't show")
+              );
+            targetPrompt =
+              pastUserMsg?.text ||
+              'Scalable distributed cloud architecture with API Gateway, microservices, Redis cache, and PostgreSQL database';
+          }
+        } else {
+          targetPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
+        }
+
+        await handleGenerateFromPrompt(targetPrompt);
+        const replyText = `🔄 **Architecture Rendered on Canvas**: Successfully synthesized and rendered the architecture for **"${targetPrompt}"** directly onto the interactive canvas.\n\n• Configured Ingress, Service Clusters, Cache-Aside Tier, and Database Persistence.\n• Initialized real-time simulation profiles at ${incomingTrafficRate.toLocaleString()} req/s.`;
         if (onToken) {
           const words = replyText.split(/(\s+)/);
           let acc = '';
@@ -1003,13 +1043,31 @@ export const App: React.FC = () => {
         if (refinementPromise) {
           const refined = await refinementPromise;
           if (refined?.nodes?.length > 0) {
-            const verticalNodes = toVerticalTree(refined.nodes, refined.edges);
-            setNodes(verticalNodes);
-            setEdges(refined.edges);
-            baseBasicGraphRef.current = { nodes: verticalNodes, edges: refined.edges };
-            basicGraphCacheRef.current = { nodes: verticalNodes, edges: refined.edges };
-            queueSimulation(verticalNodes, refined.edges, incomingTrafficRate, durationSeconds);
+            const verticalBasicNodes = toVerticalTree(refined.nodes, refined.edges);
+            baseBasicGraphRef.current = { nodes: verticalBasicNodes, edges: refined.edges };
+            basicGraphCacheRef.current = { nodes: verticalBasicNodes, edges: refined.edges };
+
+            const detailed = buildDetailedArchitecture(refined.nodes, refined.edges, activePromptText);
+            const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+            baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+            detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+
+            if (viewMode === 'detailed') {
+              setNodes(verticalDetailedNodes);
+              setEdges(detailed.edges);
+              queueSimulation(verticalDetailedNodes, detailed.edges, incomingTrafficRate, durationSeconds);
+            } else {
+              setNodes(verticalBasicNodes);
+              setEdges(refined.edges);
+              queueSimulation(verticalBasicNodes, refined.edges, incomingTrafficRate, durationSeconds);
+            }
           }
+        }
+
+        // Safety fallback: If canvas has 0 nodes after chat response, ensure architecture is synthesized and shown
+        if (nodes.length === 0) {
+          const fallbackPrompt = activePromptText || command || 'Scalable distributed cloud architecture';
+          await handleGenerateFromPrompt(fallbackPrompt);
         }
 
         if (aiResponse?.reply) {
@@ -1412,21 +1470,14 @@ export const App: React.FC = () => {
         setSelectedNodeId(null);
         triggerSimulation(nextNodes, nextEdges, incomingTrafficRate, durationSeconds);
       } else {
-        try {
-          setLoading(true);
-          const detailed = await api.getArchitecture('detailed');
-          baseDetailedGraphRef.current = { nodes: detailed.nodes, edges: detailed.edges };
-          detailedGraphCacheRef.current = { nodes: detailed.nodes, edges: detailed.edges };
-          setNodes(detailed.nodes);
-          setEdges(detailed.edges);
-          setSelectedNodeId(null);
-          triggerSimulation(detailed.nodes, detailed.edges, incomingTrafficRate, durationSeconds);
-        } catch (err: any) {
-          console.error('Failed to load detailed architecture:', err);
-          setError('Failed to load detailed architecture.');
-        } finally {
-          setLoading(false);
-        }
+        const detailed = buildDetailedArchitecture(nodes, edges, activePromptText);
+        const verticalDetailed = toVerticalTree(detailed.nodes, detailed.edges);
+        baseDetailedGraphRef.current = { nodes: verticalDetailed, edges: detailed.edges };
+        detailedGraphCacheRef.current = { nodes: verticalDetailed, edges: detailed.edges };
+        setNodes(verticalDetailed);
+        setEdges(detailed.edges);
+        setSelectedNodeId(null);
+        triggerSimulation(verticalDetailed, detailed.edges, incomingTrafficRate, durationSeconds);
       }
     } else {
       // Switching to Basic View

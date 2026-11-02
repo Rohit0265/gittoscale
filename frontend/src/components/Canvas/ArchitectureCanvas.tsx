@@ -55,11 +55,32 @@ const NodeFocusController: React.FC<{
     if (prevViewModeRef.current !== viewMode) {
       prevViewModeRef.current = viewMode;
       const timer = setTimeout(() => {
-        fitView({ padding: 0.15, duration: 500 });
-      }, 50);
+        fitView({ padding: 0.2, duration: 500 });
+      }, 60);
       return () => clearTimeout(timer);
     }
   }, [viewMode, fitView]);
+
+  // Automatically center & fit architecture whenever new nodes are generated or canvas hydrates from empty
+  const prevNodeCountRef = React.useRef<number>(nodes.length);
+  const prevNodeIdsRef = React.useRef<string>(nodes.map((n) => n.id).sort().join(','));
+  React.useEffect(() => {
+    const currentIds = nodes.map((n) => n.id).sort().join(',');
+    const wasEmpty = prevNodeCountRef.current === 0 && nodes.length > 0;
+    const isMajorChange =
+      prevNodeIdsRef.current !== currentIds &&
+      (Math.abs(nodes.length - prevNodeCountRef.current) >= 2 || wasEmpty);
+
+    prevNodeCountRef.current = nodes.length;
+    prevNodeIdsRef.current = currentIds;
+
+    if ((wasEmpty || isMajorChange) && nodes.length > 0) {
+      const timer = setTimeout(() => {
+        fitView({ padding: 0.22, duration: 500 });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [nodes, fitView]);
 
   React.useEffect(() => {
     if (selectedNodeId) {
