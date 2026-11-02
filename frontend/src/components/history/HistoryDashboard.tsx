@@ -335,20 +335,34 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
           </div>
         )}
 
-        {/* Loading State */}
+        {/* Loading State Skeleton with Shimmer */}
         {loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
-                className="h-44 rounded-xl bg-slate-100 dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 animate-pulse p-4 flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white dark:bg-[#0E1017] border border-slate-200/80 dark:border-neutral-800/80 shadow-xs space-y-4 skeleton-shimmer-layer animate-pulse"
               >
-                <div className="space-y-2">
-                  <div className="h-4 bg-slate-200 dark:bg-neutral-800 rounded-sm w-3/4" />
-                  <div className="h-3 bg-slate-200 dark:bg-neutral-800 rounded-sm w-full" />
-                  <div className="h-3 bg-slate-200 dark:bg-neutral-800 rounded-sm w-1/2" />
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1.5 flex-1 pr-2">
+                    <div className="h-4 bg-slate-200 dark:bg-neutral-800 rounded w-3/4" />
+                    <div className="h-3 bg-slate-200 dark:bg-neutral-800 rounded w-1/2" />
+                  </div>
+                  <div className="w-6 h-6 rounded-md bg-slate-200 dark:bg-neutral-800 shrink-0" />
                 </div>
-                <div className="h-8 bg-slate-200 dark:bg-neutral-800 rounded-md w-full" />
+
+                <div className="space-y-2">
+                  <div className="h-3 bg-slate-200 dark:bg-neutral-800 rounded w-full" />
+                  <div className="h-3 bg-slate-200 dark:bg-neutral-800 rounded w-5/6" />
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-neutral-800/70 flex items-center justify-between">
+                  <div className="flex gap-2">
+                    <div className="w-12 h-5 rounded-full bg-slate-200 dark:bg-neutral-800" />
+                    <div className="w-12 h-5 rounded-full bg-slate-200 dark:bg-neutral-800" />
+                  </div>
+                  <div className="w-16 h-7 rounded-lg bg-slate-200 dark:bg-neutral-800" />
+                </div>
               </div>
             ))}
           </div>

@@ -148,6 +148,49 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
             isRefining={isRefining}
             isDark={isDark}
           />
+        ) : isLoading ? (
+          <div className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8 flex gap-6 max-w-7xl mx-auto w-full">
+            <div className="w-full bg-white dark:bg-[#0E1017] border border-slate-200 dark:border-neutral-800/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-neutral-800/70">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-500 animate-spin" />
+                      <span className="text-sm font-semibold text-slate-800 dark:text-neutral-200">
+                        Synthesizing Architecture Recommendation...
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-neutral-400">
+                      Analyzing system scale, throughput bottlenecks, and cloud primitives
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 animate-pulse">
+                    Generating Nodes & Topology...
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl border border-slate-100 dark:border-neutral-800/60 bg-slate-50 dark:bg-[#14161F] space-y-2 skeleton-shimmer-layer animate-pulse"
+                    >
+                      <div className="w-16 h-3 bg-slate-200 dark:bg-neutral-800 rounded" />
+                      <div className="w-24 h-4 bg-slate-300 dark:bg-neutral-700 rounded" />
+                      <div className="w-full h-2 bg-slate-200 dark:bg-neutral-800 rounded" />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-100 dark:border-neutral-800/60 bg-slate-50/50 dark:bg-[#14161F]/50 space-y-3">
+                  <div className="w-36 h-4 bg-slate-200 dark:bg-neutral-800 rounded animate-pulse" />
+                  <div className="w-full h-3 bg-slate-200 dark:bg-neutral-800 rounded animate-pulse" />
+                  <div className="w-5/6 h-3 bg-slate-200 dark:bg-neutral-800 rounded animate-pulse" />
+                  <div className="w-4/6 h-3 bg-slate-200 dark:bg-neutral-800 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="h-full overflow-y-auto">
             <RequirementsForm
