@@ -464,8 +464,8 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
         <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto flex flex-col items-center">
 
           <h2 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold leading-[0.96] tracking-[-0.04em] text-white">
-            {/* Mobile View (< sm): 3 lines so every line has the highlight */}
-            <span className="sm:hidden flex flex-col items-center">
+            {/* Mobile/Tablet View (< md): 3 lines so every line has its own highlight */}
+            <span className="md:hidden flex flex-col items-center">
               <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-neutral-500/85">
                 Design, simulate, and
               </PenHighlight>
@@ -476,8 +476,8 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
                 control.
               </PenHighlight>
             </span>
-            {/* Desktop View (>= sm): 2 lines */}
-            <span className="hidden sm:block">
+            {/* Desktop View (>= md): 2 lines */}
+            <span className="hidden md:block">
               <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-neutral-500/85">
                 Design, simulate, and
               </PenHighlight>

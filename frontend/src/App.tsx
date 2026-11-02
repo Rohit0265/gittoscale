@@ -21,6 +21,7 @@ import { StartProjectModal } from './components/StartProjectModal';
 import { LandingPage } from './components/LandingPage';
 import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
 import { ProjectWorkspace } from './components/ProjectWorkspace/ProjectWorkspace';
+import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
 import ModernLoginSignup from './components/ui/modern-login-signup';
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
 import { AuthCallback } from './components/auth/AuthCallback';
@@ -1383,15 +1384,6 @@ export const App: React.FC = () => {
       const rawNodes = archData.nodes || (Array.isArray(archData) ? archData : []);
       const rawEdges = archData.edges || [];
       const verticalNodes = toVerticalTree(rawNodes, rawEdges);
-      setNodes(verticalNodes);
-      setEdges(rawEdges);
-      baseBasicGraphRef.current = { nodes: verticalNodes, edges: rawEdges };
-      basicGraphCacheRef.current = { nodes: verticalNodes, edges: rawEdges };
-      baseDetailedGraphRef.current = null;
-      detailedGraphCacheRef.current = null;
-      setViewMode('basic');
-      setActivePromptText(prompt || '');
-      setSelectedNodeId(null);
 
       const targetId = id || 'arch_' + Date.now().toString(36);
       if (typeof window !== 'undefined') {
@@ -1405,11 +1397,27 @@ export const App: React.FC = () => {
         }
       }
 
+      // Enter simulator view with Skeleton loading state
       const targetUrl = `/product/${targetId}`;
       window.history.pushState({ projectId: targetId, prompt }, '', targetUrl);
       setActiveProject({ projectId: targetId, prompt });
+      setActivePromptText(prompt || '');
+      setSelectedNodeId(null);
+      setViewMode('basic');
+      setIsGeneratingArchitecture(true);
       setCurrentView('simulator');
-      triggerSimulation(verticalNodes, rawEdges, incomingTrafficRate, durationSeconds);
+
+      // Once loading animation completes, hydrate the canvas and trigger simulation
+      setTimeout(() => {
+        setNodes(verticalNodes);
+        setEdges(rawEdges);
+        baseBasicGraphRef.current = { nodes: verticalNodes, edges: rawEdges };
+        basicGraphCacheRef.current = { nodes: verticalNodes, edges: rawEdges };
+        baseDetailedGraphRef.current = null;
+        detailedGraphCacheRef.current = null;
+        triggerSimulation(verticalNodes, rawEdges, incomingTrafficRate, durationSeconds);
+        setIsGeneratingArchitecture(false);
+      }, 750);
     },
     [incomingTrafficRate, durationSeconds, triggerSimulation]
   );
@@ -1419,18 +1427,25 @@ export const App: React.FC = () => {
       if (!archData) return;
       const rawNodes = archData.nodes || (Array.isArray(archData) ? archData : []);
       const rawEdges = archData.edges || [];
-      setNodes(rawNodes);
-      setEdges(rawEdges);
-      baseBasicGraphRef.current = { nodes: rawNodes, edges: rawEdges };
-      basicGraphCacheRef.current = { nodes: rawNodes, edges: rawEdges };
-      baseDetailedGraphRef.current = null;
-      detailedGraphCacheRef.current = null;
-      setViewMode('basic');
+
+      // Enter simulator view with Skeleton loading state
+      setIsGeneratingArchitecture(true);
       setSelectedNodeId(null);
+      setViewMode('basic');
       const url = repoUrl ? `/app?repo=${encodeURIComponent(repoUrl)}` : '/app';
       window.history.pushState({}, '', url);
       setCurrentView('simulator');
-      triggerSimulation(rawNodes, rawEdges, incomingTrafficRate, durationSeconds);
+
+      setTimeout(() => {
+        setNodes(rawNodes);
+        setEdges(rawEdges);
+        baseBasicGraphRef.current = { nodes: rawNodes, edges: rawEdges };
+        basicGraphCacheRef.current = { nodes: rawNodes, edges: rawEdges };
+        baseDetailedGraphRef.current = null;
+        detailedGraphCacheRef.current = null;
+        triggerSimulation(rawNodes, rawEdges, incomingTrafficRate, durationSeconds);
+        setIsGeneratingArchitecture(false);
+      }, 750);
     },
     [incomingTrafficRate, durationSeconds, triggerSimulation]
   );
@@ -1719,62 +1734,67 @@ export const App: React.FC = () => {
       <div className="flex flex-1 overflow-hidden relative w-full h-full">
         {/* Full Canvas: Interactive Architecture Diagram */}
         <main className="w-full h-full absolute inset-0 overflow-hidden bg-slate-50 dark:bg-[#090B10]">
-          {isGeneratingArchitecture && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 dark:bg-[#0A0A0A]/95 border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white shadow-lg backdrop-blur-md text-xs font-medium">
-              <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-neutral-400 animate-ping" />
-              <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-amber-500 transition-colors animate-spin" />
-              <span>Loading Your Design...</span>
+          {isGeneratingArchitecture ? (
+            <div className="w-full h-full relative overflow-hidden">
+              <SkeletonCanvas
+                activePrompt={activePromptText}
+                viewMode={viewMode}
+                isDark={isDark}
+              />
             </div>
-          )}
-          {nodes.length === 0 && !isGeneratingArchitecture && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 p-4">
-              <div className="pointer-events-auto flex flex-col items-center p-6 sm:p-7 rounded-2xl bg-white/90 dark:bg-[#12141a]/90 border border-slate-200 dark:border-neutral-800 shadow-2xl backdrop-blur-xl max-w-sm text-center">
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800/80 flex items-center justify-center mb-3">
-                  <Sparkles className="w-5 h-5 text-amber-500" />
+          ) : (
+            <>
+              {nodes.length === 0 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 p-4">
+                  <div className="pointer-events-auto flex flex-col items-center p-6 sm:p-7 rounded-2xl bg-white/90 dark:bg-[#12141a]/90 border border-slate-200 dark:border-neutral-800 shadow-2xl backdrop-blur-xl max-w-sm text-center">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800/80 flex items-center justify-center mb-3">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <h3 className="font-lora text-base font-semibold text-slate-900 dark:text-white mb-1.5">
+                      Ready to design your system
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-neutral-400 mb-4 leading-relaxed">
+                      Enter an architecture idea or import a repository to generate interactive topology.
+                    </p>
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        onClick={() => setIsStartProjectModalOpen(true)}
+                        className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold rounded-lg hover:scale-[1.03] transition-all shadow-xs cursor-pointer"
+                      >
+                        Enter Idea
+                      </button>
+                      <button
+                        onClick={() => setIsImportRepoOpen(true)}
+                        className="px-4 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200/60 dark:border-neutral-700/60"
+                      >
+                        Import GitHub Repo
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-lora text-base font-semibold text-slate-900 dark:text-white mb-1.5">
-                  Ready to design your system
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-neutral-400 mb-4 leading-relaxed">
-                  Enter an architecture idea or import a repository to generate interactive topology.
-                </p>
-                <div className="flex items-center gap-2.5">
-                  <button
-                    onClick={() => setIsStartProjectModalOpen(true)}
-                    className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold rounded-lg hover:scale-[1.03] transition-all shadow-xs cursor-pointer"
-                  >
-                    Enter Idea
-                  </button>
-                  <button
-                    onClick={() => setIsImportRepoOpen(true)}
-                    className="px-4 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200/60 dark:border-neutral-700/60"
-                  >
-                    Import GitHub Repo
-                  </button>
-                </div>
-              </div>
-            </div>
+              )}
+              <ArchitectureCanvas
+                nodes={nodes}
+                edges={edges}
+                nodeResults={simulationResult?.nodeResults || {}}
+                edgeResults={simulationResult?.edgeResults || {}}
+                selectedNodeId={selectedNodeId}
+                onSelectNode={handleSelectNode}
+                onNodesChangePosition={handleNodesPositionChange}
+                onAddEdge={handleAddEdge}
+                onToggleEdge={handleToggleEdge}
+                onDeleteEdge={handleDeleteEdge}
+                onUpdateEdge={handleUpdateEdge}
+                viewMode={viewMode}
+                onToggleViewMode={handleToggleViewMode}
+                isDark={isDark}
+                isRunning={isRunning}
+                isLeftCollapsed={isLeftCollapsed}
+                isRightCollapsed={isRightCollapsed}
+                leftSidebarWidth={leftSidebarWidth}
+              />
+            </>
           )}
-          <ArchitectureCanvas
-            nodes={nodes}
-            edges={edges}
-            nodeResults={simulationResult?.nodeResults || {}}
-            edgeResults={simulationResult?.edgeResults || {}}
-            selectedNodeId={selectedNodeId}
-            onSelectNode={handleSelectNode}
-            onNodesChangePosition={handleNodesPositionChange}
-            onAddEdge={handleAddEdge}
-            onToggleEdge={handleToggleEdge}
-            onDeleteEdge={handleDeleteEdge}
-            onUpdateEdge={handleUpdateEdge}
-            viewMode={viewMode}
-            onToggleViewMode={handleToggleViewMode}
-            isDark={isDark}
-            isRunning={isRunning}
-            isLeftCollapsed={isLeftCollapsed}
-            isRightCollapsed={isRightCollapsed}
-            leftSidebarWidth={leftSidebarWidth}
-          />
         </main>
 
         {/* Mobile backdrop for overlay sidebars */}
