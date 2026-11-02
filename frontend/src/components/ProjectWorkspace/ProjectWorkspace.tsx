@@ -546,14 +546,25 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     }
 
     const lower = command.toLowerCase();
-    if (
+    const isSystemGeneration =
+      /(?:make|create|generate|design|build|architect|synthesize|draw|show|cook)\s+(?:me\s+)?(?:an?\s+)?(?:new\s+)?(?:scalable\s+|distributed\s+)?(?:system|architecture|blueprint|app|stack|platform|pipeline|design)/i.test(
+        command
+      ) ||
+      /(?:architecture|system|stack|blueprint|design)\s+for\s+/i.test(command) ||
+      /(?:for|like)\s+(?:uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|e-commerce|ecommerce|food\s*delivery|ride\s*sharing)/i.test(
+        command
+      ) ||
       lower.includes('convert to microservice') ||
       lower.includes('make it event-driven') ||
+      lower.includes('microservice') ||
+      lower.includes('serverless') ||
+      lower.includes('event-driven') ||
       lower.includes('re-synthesize') ||
-      lower.includes('redesign')
-    ) {
+      lower.includes('redesign');
+
+    if (isSystemGeneration) {
       handleCustomChatMessage(command);
-      const replyText = `🔄 Updated blueprint with: "${command}". Re-synthesising system topology...`;
+      const replyText = `🔄 **Synthesised Blueprint**: Generated new system topology for "${command}". Re-evaluated all tiers, connections, and latency profiles.`;
       if (onToken) {
         const words = replyText.split(/(\s+)/);
         let acc = '';
@@ -565,7 +576,29 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       }
       return {
         reply: replyText,
+        actionDone: 'refine_architecture',
       };
+    }
+
+    const isRefinementInstruction =
+      /(?:add|remove|delete|scale|connect|disconnect|update|change|increase|decrease|optimize|refine|improve|tune|set|modify|replace|insert|attach|put|deploy|provision|integrate|include)\s+/i.test(
+        command
+      ) ||
+      /(?:more|higher|lower|less|better)\s+(?:capacity|workers|traffic|load|latency|throughput|cache|replicas)/i.test(
+        command
+      );
+
+    let refinementPromise: Promise<any> | null = null;
+    if (isRefinementInstruction) {
+      refinementPromise = api
+        .recommendArchitecture({
+          projectDescription: prompt || 'System Blueprint',
+          refinementRequest: command,
+        })
+        .catch((err) => {
+          console.warn('[ProjectWorkspace] Architecture refinement error:', err);
+          return null;
+        });
     }
 
     try {
@@ -587,6 +620,18 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           onToken?.(tokenChunk, fullText);
         }
       );
+
+      if (refinementPromise) {
+        const refined = await refinementPromise;
+        if (refined?.nodes?.length > 0) {
+          const verticalBasicNodes = toVerticalTree(refined.nodes, refined.edges);
+          setBasicGraph({ nodes: verticalBasicNodes, edges: refined.edges });
+          const detailed = buildDetailedArchitecture(refined.nodes, refined.edges, prompt);
+          const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+          setDetailedGraph({ nodes: verticalDetailedNodes, edges: detailed.edges });
+        }
+      }
+
       if (aiResponse?.reply) {
         return {
           reply: aiResponse.reply,

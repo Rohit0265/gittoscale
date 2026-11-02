@@ -890,19 +890,27 @@ export const App: React.FC = () => {
         };
       }
 
-      // If it's a structural transformation prompt (e.g. "convert to microservices", "make it event-driven")
+      // If it's a structural transformation or system generation prompt
       const lower = command.toLowerCase();
-      if (
+      const isSystemGeneration =
+        /(?:make|create|generate|design|build|architect|synthesize|draw|show|cook)\s+(?:me\s+)?(?:an?\s+)?(?:new\s+)?(?:scalable\s+|distributed\s+)?(?:system|architecture|blueprint|app|stack|platform|pipeline|design)/i.test(
+          command
+        ) ||
+        /(?:architecture|system|stack|blueprint|design)\s+for\s+/i.test(command) ||
+        /(?:for|like)\s+(?:uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|e-commerce|ecommerce|food\s*delivery|ride\s*sharing)/i.test(
+          command
+        ) ||
         lower.includes('microservice') ||
         lower.includes('serverless') ||
         lower.includes('event-driven') ||
         lower.includes('event driven') ||
         lower.includes('re-synthesize') ||
-        lower.includes('redesign')
-      ) {
+        lower.includes('redesign');
+
+      if (isSystemGeneration) {
         const updatedPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
         await handleGenerateFromPrompt(updatedPrompt);
-        const replyText = `🔄 **Re-synthesised Architecture**: Updated architecture topology based on "${command}". Re-evaluated tiers, connections, and latency profiles.`;
+        const replyText = `🔄 **Synthesised Architecture**: Successfully generated and laid out new system architecture for "${command}". Re-evaluated all tiers, connections, and simulation profiles.`;
         if (onToken) {
           const words = replyText.split(/(\s+)/);
           let acc = '';
@@ -916,6 +924,28 @@ export const App: React.FC = () => {
           reply: replyText,
           actionDone: 'refine_architecture',
         };
+      }
+
+      // Check if user gave an architectural modification instruction that should update the canvas
+      const isRefinementInstruction =
+        /(?:add|remove|delete|scale|connect|disconnect|update|change|increase|decrease|optimize|refine|improve|tune|set|modify|replace|insert|attach|put|deploy|provision|integrate|include)\s+/i.test(
+          command
+        ) ||
+        /(?:more|higher|lower|less|better)\s+(?:capacity|workers|traffic|load|latency|throughput|cache|replicas)/i.test(
+          command
+        );
+
+      let refinementPromise: Promise<any> | null = null;
+      if (isRefinementInstruction) {
+        refinementPromise = api
+          .recommendArchitecture({
+            projectDescription: activePromptText || 'Current System Architecture',
+            refinementRequest: command,
+          })
+          .catch((err) => {
+            console.warn('[handleExecuteChatCommand] Architecture refinement error:', err);
+            return null;
+          });
       }
 
       // 2. Fetch real AI response with token-by-token streaming
@@ -939,6 +969,19 @@ export const App: React.FC = () => {
             onToken?.(tokenChunk, fullText);
           }
         );
+
+        // If an architecture refinement occurred in parallel, apply updated topology to the canvas
+        if (refinementPromise) {
+          const refined = await refinementPromise;
+          if (refined?.nodes?.length > 0) {
+            const verticalNodes = toVerticalTree(refined.nodes, refined.edges);
+            setNodes(verticalNodes);
+            setEdges(refined.edges);
+            baseBasicGraphRef.current = { nodes: verticalNodes, edges: refined.edges };
+            basicGraphCacheRef.current = { nodes: verticalNodes, edges: refined.edges };
+            queueSimulation(verticalNodes, refined.edges, incomingTrafficRate, durationSeconds);
+          }
+        }
 
         if (aiResponse?.reply) {
           if (user) {

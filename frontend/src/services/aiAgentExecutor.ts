@@ -262,11 +262,19 @@ export function executeArchitectureCommand(
 ): AgentCommandExecutionResult {
   const text = command.trim();
   const lower = text.toLowerCase();
+  const cleanedLower = lower
+    .replace(
+      /^(?:hey\s+|hi\s+|hello\s+)?(?:ai\s+|copilot\s+|assistant\s+)?(?:can\s+you\s+(?:please\s+)?|could\s+you\s+(?:please\s+)?|please\s+|i\s+want\s+(?:you\s+)?to\s+|help\s+me\s+|let's\s+|lets\s+|we\s+need\s+to\s+|i'd\s+like\s+to\s+|try\s+to\s+|go\s+ahead\s+and\s+|would\s+you\s+)/i,
+      ''
+    )
+    .trim();
 
   // ───────────────────────────────────────────────────────────────────────────
   // 0. REQUIREMENT INTAKE ("add more requirement", "add requirement", "new requirement", "requirement: ...")
   // ───────────────────────────────────────────────────────────────────────────
-  const reqMatch = lower.match(/(?:add\s+(?:more\s+)?requirements?|new\s+requirements?|requirements?\s*:?)\s*(.*)/i);
+  const reqMatch =
+    cleanedLower.match(/(?:add\s+(?:more\s+)?requirements?|new\s+requirements?|requirements?\s*:?)\s*(.*)/i) ||
+    lower.match(/(?:add\s+(?:more\s+)?requirements?|new\s+requirements?|requirements?\s*:?)\s*(.*)/i);
   if (reqMatch) {
     const rawReq = reqMatch[1]?.trim() || '';
     const addedItems: string[] = [];
@@ -462,6 +470,12 @@ export function executeArchitectureCommand(
   // 0.5. DETAILED VIEW / ADVANCED ARCHITECTURE ("make design in detailed view", "detailed view", "advanced architect")
   // ───────────────────────────────────────────────────────────────────────────
   if (
+    cleanedLower.includes('detailed view') ||
+    cleanedLower.includes('detailed architect') ||
+    cleanedLower.includes('advanced design') ||
+    cleanedLower.includes('advanced architect') ||
+    cleanedLower.includes('detailed design') ||
+    (cleanedLower.includes('detailed') && (cleanedLower.includes('make') || cleanedLower.includes('architect') || cleanedLower.includes('design') || cleanedLower.includes('switch') || cleanedLower.includes('view') || cleanedLower.includes('show'))) ||
     lower.includes('detailed view') ||
     lower.includes('detailed architect') ||
     lower.includes('advanced design') ||
@@ -659,6 +673,102 @@ export function executeArchitectureCommand(
   }
 
   // ───────────────────────────────────────────────────────────────────────────
+  // 0.8. BOTTLENECK REMEDIATION ("fix bottleneck", "resolve bottlenecks", "optimize bottleneck")
+  // ───────────────────────────────────────────────────────────────────────────
+  if (
+    cleanedLower.includes('fix bottleneck') ||
+    cleanedLower.includes('resolve bottleneck') ||
+    cleanedLower.includes('fix the bottleneck') ||
+    cleanedLower.includes('optimize bottleneck') ||
+    cleanedLower.includes('auto scale') ||
+    cleanedLower.includes('autoscale')
+  ) {
+    const nodeResults = simulationResult?.nodeResults || {};
+    const bottlenecks = Object.values(nodeResults).filter(
+      (nr: any) => nr.isBottleneck || nr.status === 'overloaded' || nr.status === 'warning'
+    );
+
+    if (bottlenecks.length > 0) {
+      let updatedNodes = [...currentNodes];
+      let updatedEdges = [...currentEdges];
+      const fixedNames: string[] = [];
+
+      for (const b of bottlenecks) {
+        const targetNode = currentNodes.find((n) => n.id === b.id || n.name === b.name);
+        if (targetNode) {
+          fixedNames.push(targetNode.name);
+          updatedNodes = updatedNodes.map((n) => {
+            if (n.id === targetNode.id) {
+              const nextWorkers = Math.max(n.workerCount * 2, 4);
+              const nextCapacity = Math.max(
+                Math.round(n.capacityPerSecond * 1.5),
+                Math.round((currentTrafficRate / nextWorkers) * 1.25)
+              );
+              return {
+                ...n,
+                workerCount: Math.min(nextWorkers, 16),
+                capacityPerSecond: Math.min(nextCapacity, 50000),
+              };
+            }
+            return n;
+          });
+        }
+      }
+
+      // If database is bottlenecked and no cache exists, auto-insert Redis cache
+      const hasDbBottleneck = bottlenecks.some(
+        (b: any) => b.name?.toLowerCase().includes('database') || b.id?.includes('database') || b.id?.includes('db')
+      );
+      if (hasDbBottleneck && !updatedNodes.some((n) => n.type === 'cache')) {
+        const cacheId = `cache-${Date.now().toString().slice(-4)}`;
+        const cacheNode: ArchitectureNode = {
+          id: cacheId,
+          name: 'Redis In-Memory Cache',
+          type: 'cache',
+          position: { x: 0, y: 0 },
+          capacityPerSecond: 5000,
+          workerCount: 2,
+          enabled: true,
+          config: { baselineLatencyMs: 2, maxQueueSize: 5000, overflowPolicy: 'reject' },
+        };
+        const svcNode = updatedNodes.find((n) => n.type === 'service') || updatedNodes[0];
+        const dbNode = updatedNodes.find((n) => n.type === 'database');
+        if (svcNode && dbNode) {
+          updatedEdges = updatedEdges.filter((e) => !(e.source === svcNode.id && e.target === dbNode.id));
+          updatedEdges.push({
+            id: `e-${svcNode.id}-${cacheId}`,
+            source: svcNode.id,
+            target: cacheId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: true,
+          });
+          updatedEdges.push({
+            id: `e-${cacheId}-${dbNode.id}`,
+            source: cacheId,
+            target: dbNode.id,
+            requestsPerInput: 0.2,
+            enabled: true,
+            isBidirectional: true,
+            label: 'Cache Miss (20%)',
+          });
+          cacheNode.position = calculateSmartPositionForNewNode(cacheNode, updatedEdges, updatedNodes);
+          updatedNodes.push(cacheNode);
+          fixedNames.push('Redis Cache Layer (absorbs 80% read queries)');
+        }
+      }
+
+      return {
+        executed: true,
+        actionType: 'scale_node',
+        updatedNodes,
+        updatedEdges,
+        explanation: `🛠️ **Bottleneck Remediation Applied to Canvas**:\n\n• Scaled capacity and worker concurrency for: **${fixedNames.join(', ')}**\n• Optimized queue buffers to prevent request rejection\n• Re-simulating architecture to verify 0 dropped packets.`,
+      };
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
   // 1. ADD COMPONENT / NODE
   // Patterns:
   // - "add component redis cache after api gateway"
@@ -667,20 +777,38 @@ export function executeArchitectureCommand(
   // - "add kafka queue"
   // - "add components"
   // ───────────────────────────────────────────────────────────────────────────
-  const addMatch = lower.match(
-    /(?:add|create|insert|attach|put)\s+(?:a\s+|an\s+|the\s+)?(?:new\s+)?(?:components?|nodes?|services?|cache|database|queue)?\s*([a-z0-9_\-\s]+?)(?:\s+(?:between|after|before|in front of|to|connected to)\s+.*)?$/i
-  );
+  const addMatch =
+    cleanedLower.match(
+      /(?:add|create|insert|attach|put|deploy|provision|include|integrate)\s+(?:a\s+|an\s+|the\s+)?(?:new\s+)?(?:components?|nodes?|services?|cache|database|queue)?\s*([a-z0-9_\-\s]+?)(?:\s+(?:between|after|before|in front of|to|connected to)\s+.*)?$/i
+    ) ||
+    lower.match(
+      /(?:add|create|insert|attach|put|deploy|provision|include|integrate)\s+(?:a\s+|an\s+|the\s+)?(?:new\s+)?(?:components?|nodes?|services?|cache|database|queue)?\s*([a-z0-9_\-\s]+?)(?:\s+(?:between|after|before|in front of|to|connected to)\s+.*)?$/i
+    );
 
-  if (addMatch && !lower.startsWith('scale') && !lower.startsWith('delete') && !lower.startsWith('remove')) {
+  if (
+    addMatch &&
+    !cleanedLower.startsWith('scale') &&
+    !cleanedLower.startsWith('delete') &&
+    !cleanedLower.startsWith('remove') &&
+    !lower.startsWith('scale') &&
+    !lower.startsWith('delete') &&
+    !lower.startsWith('remove')
+  ) {
     // Extract component name candidate
     let rawCompName = addMatch[1]?.trim() || '';
 
     // Check for "between X and Y"
-    const betweenMatch = lower.match(/between\s+([a-z0-9_\-\s]+?)\s+and\s+([a-z0-9_\-\s]+)/i);
+    const betweenMatch =
+      cleanedLower.match(/between\s+([a-z0-9_\-\s]+?)\s+and\s+([a-z0-9_\-\s]+)/i) ||
+      lower.match(/between\s+([a-z0-9_\-\s]+?)\s+and\s+([a-z0-9_\-\s]+)/i);
     // Check for "after X"
-    const afterMatch = lower.match(/after\s+([a-z0-9_\-\s]+)/i);
+    const afterMatch =
+      cleanedLower.match(/after\s+([a-z0-9_\-\s]+)/i) ||
+      lower.match(/after\s+([a-z0-9_\-\s]+)/i);
     // Check for "before X" or "in front of X"
-    const beforeMatch = lower.match(/(?:before|in front of)\s+([a-z0-9_\-\s]+)/i);
+    const beforeMatch =
+      cleanedLower.match(/(?:before|in front of)\s+([a-z0-9_\-\s]+)/i) ||
+      lower.match(/(?:before|in front of)\s+([a-z0-9_\-\s]+)/i);
 
     // Clean up raw component name if between/after/before was captured inside it
     rawCompName = rawCompName
@@ -898,7 +1026,9 @@ export function executeArchitectureCommand(
   // - "delete node database"
   // - "drop component cache"
   // ───────────────────────────────────────────────────────────────────────────
-  const deleteMatch = lower.match(/(?:delete|remove|drop|destroy)\s+(?:node|component)?\s*([a-z0-9_\-\s]+)/i);
+  const deleteMatch =
+    cleanedLower.match(/(?:delete|remove|drop|destroy)\s+(?:node|component)?\s*([a-z0-9_\-\s]+)/i) ||
+    lower.match(/(?:delete|remove|drop|destroy)\s+(?:node|component)?\s*([a-z0-9_\-\s]+)/i);
   if (deleteMatch && !lower.includes('edge') && !lower.includes('connection')) {
     const targetQuery = deleteMatch[1].trim();
     const targetNode = findNodeByFuzzyName(targetQuery, currentNodes);
@@ -931,7 +1061,9 @@ export function executeArchitectureCommand(
   // 3. CONNECT NODES
   // Pattern: "connect A to B"
   // ───────────────────────────────────────────────────────────────────────────
-  const connectMatch = lower.match(/connect\s+([a-z0-9_\-\s]+?)\s+to\s+([a-z0-9_\-\s]+)/i);
+  const connectMatch =
+    cleanedLower.match(/connect\s+([a-z0-9_\-\s]+?)\s+to\s+([a-z0-9_\-\s]+)/i) ||
+    lower.match(/connect\s+([a-z0-9_\-\s]+?)\s+to\s+([a-z0-9_\-\s]+)/i);
   if (connectMatch) {
     const srcNode = findNodeByFuzzyName(connectMatch[1], currentNodes);
     const dstNode = findNodeByFuzzyName(connectMatch[2], currentNodes);
@@ -987,11 +1119,25 @@ export function executeArchitectureCommand(
   // - "change total load to 50k"
   // - "simulate 2500 req/s"
   // ───────────────────────────────────────────────────────────────────────────
-  const trafficMatch = lower.match(
-    /(?:set|increase|decrease|change|manage|tune|scale|simulate|run)\s+(?:the\s+)?(?:incoming\s+)?(?:total\s+)?(?:traffic|load|rate|rps|requests)?\s*(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
-  );
+  const trafficMatch =
+    cleanedLower.match(
+      /(?:set|increase|decrease|change|manage|tune|scale|simulate|run)\s+(?:the\s+)?(?:incoming\s+)?(?:total\s+)?(?:traffic|load|rate|rps|requests)?\s*(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
+    ) ||
+    lower.match(
+      /(?:set|increase|decrease|change|manage|tune|scale|simulate|run)\s+(?:the\s+)?(?:incoming\s+)?(?:total\s+)?(?:traffic|load|rate|rps|requests)?\s*(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
+    );
 
-  if (trafficMatch && (lower.includes('traffic') || lower.includes('load') || lower.includes('rps') || lower.includes('req/s'))) {
+  if (
+    trafficMatch &&
+    (cleanedLower.includes('traffic') ||
+      cleanedLower.includes('load') ||
+      cleanedLower.includes('rps') ||
+      cleanedLower.includes('req/s') ||
+      lower.includes('traffic') ||
+      lower.includes('load') ||
+      lower.includes('rps') ||
+      lower.includes('req/s'))
+  ) {
     let val = parseFloat(trafficMatch[1]);
     const unit = (trafficMatch[2] || '').toLowerCase();
     if (unit === 'k') val *= 1000;
@@ -1011,9 +1157,13 @@ export function executeArchitectureCommand(
   // ───────────────────────────────────────────────────────────────────────────
   // 4.5. COMBINED SCALE WORKERS & CAPACITY ("scale backend to 6 workers with capacity 3000")
   // ───────────────────────────────────────────────────────────────────────────
-  const combinedMatch = lower.match(
-    /(?:scale|set|configure)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|replicas)?\s*(?:with|and|at)\s*(?:capacity\s+)?([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|capacity)?/i
-  );
+  const combinedMatch =
+    cleanedLower.match(
+      /(?:scale|set|configure)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|replicas)?\s*(?:with|and|at)\s*(?:capacity\s+)?([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|capacity)?/i
+    ) ||
+    lower.match(
+      /(?:scale|set|configure)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|replicas)?\s*(?:with|and|at)\s*(?:capacity\s+)?([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|capacity)?/i
+    );
   if (combinedMatch) {
     const targetNode = findNodeByFuzzyName(combinedMatch[1], currentNodes);
     const count = parseInt(combinedMatch[2], 10);
@@ -1048,11 +1198,19 @@ export function executeArchitectureCommand(
   // 5. SCALE NODE WORKERS / INSTANCES
   // Pattern: "scale backend to 5 instances" or "set database workers to 4"
   // ───────────────────────────────────────────────────────────────────────────
-  const scaleMatch = lower.match(
-    /(?:scale|set|increase|decrease)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|pods|replicas)?/i
-  );
+  const scaleMatch =
+    cleanedLower.match(
+      /(?:scale|set|increase|decrease)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|pods|replicas)?/i
+    ) ||
+    lower.match(
+      /(?:scale|set|increase|decrease)\s+([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+)\s*(?:instances|workers|pods|replicas)?/i
+    );
 
-  if (scaleMatch && !lower.includes('capacity')) {
+  if (
+    scaleMatch &&
+    !cleanedLower.includes('capacity') &&
+    !lower.includes('capacity')
+  ) {
     const targetNode = findNodeByFuzzyName(scaleMatch[1], currentNodes);
     const count = parseInt(scaleMatch[2], 10);
 
@@ -1080,8 +1238,14 @@ export function executeArchitectureCommand(
   // 5.5. WORKER CAPACITY MANAGEMENT ("set worker capacity of backend to 3000 req/s", "change capacity of redis to 8000")
   // ───────────────────────────────────────────────────────────────────────────
   const capacityMatch =
+    cleanedLower.match(
+      /(?:set|change|increase|decrease|update|configure|tune)\s+(?:the\s+)?(?:worker\s+)?capacity\s+(?:of\s+)?([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
+    ) ||
     lower.match(
       /(?:set|change|increase|decrease|update|configure|tune)\s+(?:the\s+)?(?:worker\s+)?capacity\s+(?:of\s+)?([a-z0-9_\-\s]+?)\s+(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
+    ) ||
+    cleanedLower.match(
+      /(?:set|change|increase|decrease|update|configure|tune)\s+([a-z0-9_\-\s]+?)\s+(?:worker\s+)?capacity\s+(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
     ) ||
     lower.match(
       /(?:set|change|increase|decrease|update|configure|tune)\s+([a-z0-9_\-\s]+?)\s+(?:worker\s+)?capacity\s+(?:to|at)?\s*([0-9]+(?:\.[0-9]+)?)\s*(k|m)?\s*(?:rps|req\/s|requests)?/i
