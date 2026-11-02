@@ -2033,51 +2033,65 @@ export const App: React.FC = () => {
       </div>
 
       {/* Baseline Comparison Modal */}
-      <BaselineComparisonModal
-        isOpen={isCompareOpen}
-        onClose={() => setIsCompareOpen(false)}
-        baseline={baseline}
-        currentResult={simulationResult}
-        currentScenarioName={
-          scenarios.find((s) => s.id === currentScenarioId)?.name || 'Current Configuration'
-        }
-        onSaveAsBaseline={handleSaveBaseline}
-      />
+      {isCompareOpen && (
+        <Suspense fallback={null}>
+          <BaselineComparisonModal
+            isOpen={isCompareOpen}
+            onClose={() => setIsCompareOpen(false)}
+            baseline={baseline}
+            currentResult={simulationResult}
+            currentScenarioName={
+              scenarios.find((s) => s.id === currentScenarioId)?.name || 'Current Configuration'
+            }
+            onSaveAsBaseline={handleSaveBaseline}
+          />
+        </Suspense>
+      )}
 
       {/* Repository Import Modal */}
-      <RepositoryImportModal
-        isOpen={isImportRepoOpen}
-        onClose={() => setIsImportRepoOpen(false)}
-        isUserAuthenticated={Boolean(user)}
-        onRequireAuth={handleRequireAuthForRepo}
-        onImportArchitecture={handleImportArchitecture}
-      />
+      {isImportRepoOpen && (
+        <Suspense fallback={null}>
+          <RepositoryImportModal
+            isOpen={isImportRepoOpen}
+            onClose={() => setIsImportRepoOpen(false)}
+            isUserAuthenticated={Boolean(user)}
+            onRequireAuth={handleRequireAuthForRepo}
+            onImportArchitecture={handleImportArchitecture}
+          />
+        </Suspense>
+      )}
 
       {/* Start Project: Enter Idea or Import Repo Modal */}
-      <StartProjectModal
-        isOpen={isStartProjectModalOpen}
-        onClose={() => setIsStartProjectModalOpen(false)}
-        onSubmitPrompt={(prompt) => {
-          setIsStartProjectModalOpen(false);
-          handleStartProject(prompt);
-        }}
-        onOpenImportRepo={() => {
-          setIsStartProjectModalOpen(false);
-          setIsImportRepoOpen(true);
-        }}
-        onGoHome={handleGoHome}
-        isDark={isDark}
-      />
+      {isStartProjectModalOpen && (
+        <Suspense fallback={null}>
+          <StartProjectModal
+            isOpen={isStartProjectModalOpen}
+            onClose={() => setIsStartProjectModalOpen(false)}
+            onSubmitPrompt={(prompt) => {
+              setIsStartProjectModalOpen(false);
+              handleStartProject(prompt);
+            }}
+            onOpenImportRepo={() => {
+              setIsStartProjectModalOpen(false);
+              setIsImportRepoOpen(true);
+            }}
+            onGoHome={handleGoHome}
+            isDark={isDark}
+          />
+        </Suspense>
+      )}
 
       {/* Modern Login / Signup Modal */}
       {isAuthOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
-          <ModernLoginSignup
-            onClose={() => setIsAuthOpen(false)}
-            onSuccess={(_user) => {
-              setIsAuthOpen(false);
-            }}
-          />
+          <Suspense fallback={<SuspenseLoader />}>
+            <ModernLoginSignup
+              onClose={() => setIsAuthOpen(false)}
+              onSuccess={(_user) => {
+                setIsAuthOpen(false);
+              }}
+            />
+          </Suspense>
         </div>
       )}
     </div>
