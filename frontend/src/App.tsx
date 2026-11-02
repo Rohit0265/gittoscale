@@ -35,6 +35,9 @@ import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
 const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
 
+const EMPTY_NODE_RESULTS: Record<string, any> = {};
+const EMPTY_EDGE_RESULTS: Record<string, any> = {};
+
 export interface ProjectRouteInfo {
   projectId: string;
   prompt?: string;
@@ -936,6 +939,35 @@ export const App: React.FC = () => {
     ]
   );
 
+  const handleAnswerSelected = useCallback((category: string, optionId: string) => {
+    setSelectedAnswers((prev) => {
+      const updated = { ...prev, [category]: optionId };
+      handleGenerateFromPrompt(activePromptText, updated);
+      return updated;
+    });
+  }, [activePromptText, handleGenerateFromPrompt]);
+
+  const handleApplyRefinements = useCallback(() => {
+    handleGenerateFromPrompt(activePromptText);
+  }, [activePromptText, handleGenerateFromPrompt]);
+
+  const handleResetQuestions = useCallback(() => {
+    setSelectedAnswers({});
+  }, []);
+
+  const handleSendCustomMessage = useCallback((msg: string) => {
+    handleRefinePrompt(msg);
+  }, [handleRefinePrompt]);
+
+  const handleRestoreSession = useCallback(({ selectedAnswers: restored, activePrompt: restoredPrompt }: any) => {
+    if (restored) setSelectedAnswers(restored);
+    if (restoredPrompt) setActivePromptText(restoredPrompt);
+  }, []);
+
+  const handleCollapseLeft = useCallback(() => {
+    setIsLeftCollapsed(true);
+  }, []);
+
   // Directly navigate to simulator and generate architecture on prompt submit
   const handleStartProject = useCallback(
     (promptText: string) => {
@@ -1806,8 +1838,8 @@ export const App: React.FC = () => {
               <ArchitectureCanvas
                 nodes={nodes}
                 edges={edges}
-                nodeResults={simulationResult?.nodeResults || {}}
-                edgeResults={simulationResult?.edgeResults || {}}
+                nodeResults={simulationResult?.nodeResults || EMPTY_NODE_RESULTS}
+                edgeResults={simulationResult?.edgeResults || EMPTY_EDGE_RESULTS}
                 selectedNodeId={selectedNodeId}
                 onSelectNode={handleSelectNode}
                 onNodesChangePosition={handleNodesPositionChange}
