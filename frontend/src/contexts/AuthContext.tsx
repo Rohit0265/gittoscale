@@ -594,6 +594,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const topDomain = domainParts.slice(-2).join('.');
             document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${topDomain};`;
           }
+          if (hostname.includes('gittoscale.tech')) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.gittoscale.tech;`;
+          }
         }
       } catch (e) {
         console.warn('Failed to wipe cookies:', e);
@@ -609,11 +612,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const keysToRemove: string[] = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('session'))) {
+          if (
+            key &&
+            (key.startsWith('sb-') ||
+              key.startsWith('supabase.') ||
+              key.includes('auth-token') ||
+              key.includes('session') ||
+              key.includes('mock_user') ||
+              key.includes('pending_action'))
+          ) {
             keysToRemove.push(key);
           }
         }
-        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        keysToRemove.forEach((key) => {
+          localStorage.removeItem(key);
+          crossDomainStorage.removeItem(key);
+        });
       } catch (e) {
         console.warn('Failed to wipe auth localStorage:', e);
       }
@@ -630,6 +644,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     setProfile(null);
     setIsLoading(false);
+
+    // Refresh and navigate to root landing page with a clean slate
+    if (typeof window !== 'undefined') {
+      window.location.replace('/');
+    }
   }, []);
 
   // Password reset request
