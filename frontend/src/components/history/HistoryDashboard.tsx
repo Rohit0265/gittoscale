@@ -27,7 +27,7 @@ interface HistoryDashboardProps {
   onToggleTheme?: () => void;
 }
 
-export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
+const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
   onGoHome,
   onOpenArchitecture,
   onOpenRepository,
@@ -582,4 +582,7 @@ export const HistoryDashboard: React.FC<HistoryDashboardProps> = ({
     </div>
   );
 };
+
+export const HistoryDashboard = React.memo(HistoryDashboardComponent);
+export default HistoryDashboard;
 
