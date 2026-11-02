@@ -513,7 +513,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       activeEdges,
       1000,
       null,
-      chatHistory
+      chatHistory,
+      viewMode
     );
 
     if (execResult.executed) {
@@ -524,8 +525,30 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       if (execResult.updatedNodes && execResult.updatedEdges) {
         if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
           setDetailedGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
+
+          // Also reflect deletion in basicGraph if a component tier was deleted
+          if (execResult.actionType === 'delete_node' && execResult.reflectedDeletedTypes) {
+            const delTypes = new Set(execResult.reflectedDeletedTypes);
+            setBasicGraph((prev) => {
+              const remNodes = prev.nodes.filter((n) => !delTypes.has(n.type));
+              const remIds = new Set(remNodes.map((n) => n.id));
+              const remEdges = prev.edges.filter((e) => remIds.has(e.source) && remIds.has(e.target));
+              return { nodes: remNodes, edges: remEdges };
+            });
+          }
         } else {
           setBasicGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
+
+          // Also reflect deletion in detailedGraph if a component tier was deleted
+          if (execResult.actionType === 'delete_node' && execResult.reflectedDeletedTypes) {
+            const delTypes = new Set(execResult.reflectedDeletedTypes);
+            setDetailedGraph((prev) => {
+              const remNodes = prev.nodes.filter((n) => !delTypes.has(n.type));
+              const remIds = new Set(remNodes.map((n) => n.id));
+              const remEdges = prev.edges.filter((e) => remIds.has(e.source) && remIds.has(e.target));
+              return { nodes: remNodes, edges: remEdges };
+            });
+          }
         }
       }
 

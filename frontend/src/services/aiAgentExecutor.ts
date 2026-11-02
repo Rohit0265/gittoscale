@@ -19,6 +19,8 @@ export interface AgentCommandExecutionResult {
   updatedTrafficRate?: number;
   updatedAnswers?: any;
   targetViewMode?: 'basic' | 'detailed';
+  reflectedDeletedNodeIds?: string[];
+  reflectedDeletedTypes?: ComponentType[];
 }
 
 /**
@@ -250,6 +252,131 @@ function detectComponentTypeAndDefaults(rawName: string): {
 }
 
 /**
+ * Discovers and clusters reflected components that belong to the target node's tier
+ * so that when a user deletes a node, all its replicas, poolers, or subordinate workers
+ * are cleanly pruned as a unified architecture unit.
+ */
+export function findReflectedNodesToDelete(
+  targetNode: ArchitectureNode,
+  allNodes: ArchitectureNode[],
+  allEdges: ArchitectureEdge[]
+): { nodesToDelete: ArchitectureNode[]; reflectedTypes: ComponentType[] } {
+  const toDelete = new Set<string>([targetNode.id]);
+  const deletedTypes = new Set<ComponentType>([targetNode.type]);
+  const lowerName = targetNode.name.toLowerCase();
+  const targetType = targetNode.type;
+
+  // 1. Database Tier: Primary + Read Replicas + Connection Pooler (PgBouncer)
+  if (
+    targetType === 'database' ||
+    lowerName.includes('postgres') ||
+    lowerName.includes('mongo') ||
+    lowerName.includes('mysql') ||
+    lowerName.includes('database') ||
+    lowerName.includes('db') ||
+    lowerName.includes('aurora') ||
+    lowerName.includes('dynamo')
+  ) {
+    deletedTypes.add('database');
+    for (const n of allNodes) {
+      const nLower = n.name.toLowerCase();
+      if (
+        n.type === 'database' ||
+        nLower.includes('read replica') ||
+        nLower.includes('replica') ||
+        nLower.includes('secondary') ||
+        nLower.includes('pgbouncer') ||
+        nLower.includes('connection pooler') ||
+        nLower.includes('supavisor')
+      ) {
+        toDelete.add(n.id);
+        deletedTypes.add(n.type);
+      }
+    }
+  }
+
+  // 2. Cache Tier: Master + Read Replica / Cluster Nodes
+  if (
+    targetType === 'cache' ||
+    lowerName.includes('redis') ||
+    lowerName.includes('cache') ||
+    lowerName.includes('memcached') ||
+    lowerName.includes('valkey')
+  ) {
+    deletedTypes.add('cache');
+    for (const n of allNodes) {
+      const nLower = n.name.toLowerCase();
+      if (
+        n.type === 'cache' ||
+        nLower.includes('redis') ||
+        nLower.includes('cache replica') ||
+        nLower.includes('read-through') ||
+        nLower.includes('read cache')
+      ) {
+        toDelete.add(n.id);
+        deletedTypes.add(n.type);
+      }
+    }
+  }
+
+  // 3. Queue / Streaming: Event Broker + Dedicated Consumer Worker Fleet
+  if (
+    lowerName.includes('kafka') ||
+    lowerName.includes('queue') ||
+    lowerName.includes('rabbitmq') ||
+    lowerName.includes('sqs') ||
+    lowerName.includes('event stream') ||
+    lowerName.includes('event broker')
+  ) {
+    deletedTypes.add('service');
+    for (const n of allNodes) {
+      const nLower = n.name.toLowerCase();
+      if (
+        nLower.includes('worker fleet') ||
+        nLower.includes('async worker') ||
+        nLower.includes('consumer') ||
+        nLower.includes('background worker')
+      ) {
+        const incoming = allEdges.filter((e) => e.target === n.id);
+        if (incoming.length > 0 && incoming.every((e) => toDelete.has(e.source))) {
+          toDelete.add(n.id);
+        }
+      }
+    }
+  }
+
+  // 4. Ingress / Gateway: Gateway + Dedicated Edge CDN / WAF Filter
+  if (
+    targetType === 'gateway' ||
+    lowerName.includes('gateway') ||
+    lowerName.includes('ingress') ||
+    lowerName.includes('proxy') ||
+    lowerName.includes('reverse proxy')
+  ) {
+    deletedTypes.add('gateway');
+    for (const n of allNodes) {
+      const nLower = n.name.toLowerCase();
+      if (
+        nLower.includes('cdn') ||
+        nLower.includes('waf') ||
+        nLower.includes('token validator') ||
+        nLower.includes('auth filter')
+      ) {
+        const outgoing = allEdges.filter((e) => e.source === n.id);
+        if (outgoing.length > 0 && outgoing.every((e) => toDelete.has(e.target))) {
+          toDelete.add(n.id);
+        }
+      }
+    }
+  }
+
+  return {
+    nodesToDelete: allNodes.filter((n) => toDelete.has(n.id)),
+    reflectedTypes: Array.from(deletedTypes),
+  };
+}
+
+/**
  * Executes natural language commands on the active architecture
  */
 export function executeArchitectureCommand(
@@ -258,7 +385,8 @@ export function executeArchitectureCommand(
   currentEdges: ArchitectureEdge[],
   currentTrafficRate: number,
   simulationResult: SimulationResult | null,
-  _contextHistory: Array<{ text: string; sender: string }> = []
+  _contextHistory: Array<{ text: string; sender: string }> = [],
+  viewMode: 'basic' | 'detailed' = 'basic'
 ): AgentCommandExecutionResult {
   const text = command.trim();
   const lower = text.toLowerCase();
@@ -834,6 +962,266 @@ export function executeArchitectureCommand(
       const { type, canonicalName, capacityPerSecond, baselineLatencyMs } =
         detectComponentTypeAndDefaults(rawCompName);
 
+      // ─────────────────────────────────────────────────────────────────
+      // DETAILED VIEW COMPONENT CLUSTERING
+      // In detailed view, adding components provisions their full supporting architecture
+      // (e.g. Primary + Replica for DB, Master + Read Replica for Cache, Queue + Worker Fleet)
+      // ─────────────────────────────────────────────────────────────────
+      if (viewMode === 'detailed') {
+        const lowerComp = rawCompName.toLowerCase();
+
+        // A. Detailed Database Tier (Primary + Read Replica)
+        if (type === 'database') {
+          const pId = `dt-db-primary-${Date.now().toString().slice(-4)}`;
+          const rId = `dt-db-replica-${Date.now().toString().slice(-4)}`;
+
+          const primaryNode: ArchitectureNode = {
+            id: pId,
+            name: `${canonicalName} Primary (Read/Write)`,
+            type: 'database',
+            position: { x: 0, y: 0 },
+            capacityPerSecond: 2500,
+            workerCount: 2,
+            enabled: true,
+            config: { baselineLatencyMs: 18, maxQueueSize: 4000, overflowPolicy: 'reject' },
+          };
+
+          const replicaNode: ArchitectureNode = {
+            id: rId,
+            name: `${canonicalName} Read Replica (Multi-AZ)`,
+            type: 'database',
+            position: { x: 0, y: 0 },
+            capacityPerSecond: 3500,
+            workerCount: 3,
+            enabled: true,
+            config: { baselineLatencyMs: 12, maxQueueSize: 6000, overflowPolicy: 'reject' },
+          };
+
+          let detailedEdges = [...currentEdges];
+          const svcNode =
+            currentNodes.find((n) => n.type === 'service') ||
+            currentNodes.find((n) => n.type === 'gateway') ||
+            currentNodes[0];
+
+          if (svcNode) {
+            detailedEdges.push({
+              id: `e-${svcNode.id}-${pId}`,
+              source: svcNode.id,
+              target: pId,
+              requestsPerInput: 0.2,
+              enabled: true,
+              isBidirectional: true,
+              label: 'ACID Writes (WAL)',
+              communicationType: 'db',
+            });
+            detailedEdges.push({
+              id: `e-${svcNode.id}-${rId}`,
+              source: svcNode.id,
+              target: rId,
+              requestsPerInput: 0.8,
+              enabled: true,
+              isBidirectional: true,
+              label: 'Read Queries (80%)',
+              communicationType: 'db',
+            });
+          }
+
+          detailedEdges.push({
+            id: `e-${pId}-${rId}`,
+            source: pId,
+            target: rId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: false,
+            label: 'Sync Replication WAL',
+            communicationType: 'db',
+          });
+
+          primaryNode.position = calculateSmartPositionForNewNode(primaryNode, detailedEdges, currentNodes);
+          replicaNode.position = { x: primaryNode.position.x + 360, y: primaryNode.position.y };
+
+          return {
+            executed: true,
+            actionType: 'add_node',
+            updatedNodes: [...currentNodes, primaryNode, replicaNode],
+            updatedEdges: detailedEdges,
+            explanation: `🏛️ **Detailed View: Added Resilient Database Cluster**:\n\n• **${primaryNode.name}**: Primary read/write node (${primaryNode.capacityPerSecond.toLocaleString()} req/s)\n• **${replicaNode.name}**: Multi-AZ read replica (${replicaNode.capacityPerSecond.toLocaleString()} req/s)\n• **Data Flow**: Configured 80% read / 20% write traffic splitting with synchronous WAL replication.`,
+          };
+        }
+
+        // B. Detailed Cache Tier (Master + Read Replica)
+        if (type === 'cache') {
+          const mId = `dt-cache-master-${Date.now().toString().slice(-4)}`;
+          const rId = `dt-cache-replica-${Date.now().toString().slice(-4)}`;
+
+          const masterNode: ArchitectureNode = {
+            id: mId,
+            name: `${canonicalName} Master (Write Cache)`,
+            type: 'cache',
+            position: { x: 0, y: 0 },
+            capacityPerSecond: 8000,
+            workerCount: 2,
+            enabled: true,
+            config: { baselineLatencyMs: 1, maxQueueSize: 10000, overflowPolicy: 'reject' },
+          };
+
+          const replicaNode: ArchitectureNode = {
+            id: rId,
+            name: `${canonicalName} Read Replica (Read-Through)`,
+            type: 'cache',
+            position: { x: 0, y: 0 },
+            capacityPerSecond: 12000,
+            workerCount: 3,
+            enabled: true,
+            config: { baselineLatencyMs: 1, maxQueueSize: 15000, overflowPolicy: 'reject' },
+          };
+
+          const svcNode = currentNodes.find((n) => n.type === 'service') || currentNodes[0];
+          const dbNode = currentNodes.find((n) => n.type === 'database');
+          let detailedEdges = [...currentEdges];
+
+          if (svcNode) {
+            detailedEdges.push({
+              id: `e-${svcNode.id}-${mId}`,
+              source: svcNode.id,
+              target: mId,
+              requestsPerInput: 0.2,
+              enabled: true,
+              isBidirectional: true,
+              label: 'Write-Through',
+              communicationType: 'cache',
+            });
+            detailedEdges.push({
+              id: `e-${svcNode.id}-${rId}`,
+              source: svcNode.id,
+              target: rId,
+              requestsPerInput: 0.85,
+              enabled: true,
+              isBidirectional: true,
+              label: 'Cache Hit (85%)',
+              communicationType: 'cache',
+            });
+          }
+          detailedEdges.push({
+            id: `e-${mId}-${rId}`,
+            source: mId,
+            target: rId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: false,
+            label: 'Cache Replication',
+            communicationType: 'cache',
+          });
+          if (dbNode) {
+            detailedEdges.push({
+              id: `e-${rId}-${dbNode.id}`,
+              source: rId,
+              target: dbNode.id,
+              requestsPerInput: 0.15,
+              enabled: true,
+              isBidirectional: true,
+              label: 'Cache Miss Reads (15%)',
+              communicationType: 'db',
+            });
+          }
+
+          masterNode.position = calculateSmartPositionForNewNode(masterNode, detailedEdges, currentNodes);
+          replicaNode.position = { x: masterNode.position.x + 360, y: masterNode.position.y };
+
+          return {
+            executed: true,
+            actionType: 'add_node',
+            updatedNodes: [...currentNodes, masterNode, replicaNode],
+            updatedEdges: detailedEdges,
+            explanation: `🏛️ **Detailed View: Added Cache-Aside Tier**:\n\n• **${masterNode.name}**: Primary write cache (${masterNode.capacityPerSecond.toLocaleString()} req/s)\n• **${replicaNode.name}**: Read replica (${replicaNode.capacityPerSecond.toLocaleString()} req/s, absorbs 85% traffic)\n• **Miss Routing**: 15% cache miss reads forwarded to database storage.`,
+          };
+        }
+
+        // C. Detailed Queue / Event Streaming Tier (Kafka Broker + Worker Fleet)
+        if (
+          lowerComp.includes('kafka') ||
+          lowerComp.includes('queue') ||
+          lowerComp.includes('event') ||
+          lowerComp.includes('stream')
+        ) {
+          const qId = `dt-kafka-${Date.now().toString().slice(-4)}`;
+          const wId = `dt-worker-${Date.now().toString().slice(-4)}`;
+
+          const queueNode: ArchitectureNode = {
+            id: qId,
+            name: 'Apache Kafka Event Stream Buffer',
+            type: 'service',
+            position: { x: 0, y: 0 },
+            capacityPerSecond: 6000,
+            workerCount: 3,
+            enabled: true,
+            config: { baselineLatencyMs: 3, maxQueueSize: 25000, overflowPolicy: 'reject' },
+          };
+
+          const workerNode: ArchitectureNode = {
+            id: wId,
+            name: 'Async Background Worker Fleet',
+            type: 'service',
+            position: { x: 0, y: 0 },
+            capacityPerSecond: 2500,
+            workerCount: 6,
+            enabled: true,
+            config: { baselineLatencyMs: 20, maxQueueSize: 8000, overflowPolicy: 'reject' },
+          };
+
+          const parentNode =
+            currentNodes.find((n) => n.type === 'gateway') ||
+            currentNodes.find((n) => n.type === 'service') ||
+            currentNodes[0];
+          const dbNode = currentNodes.find((n) => n.type === 'database');
+          let detailedEdges = [...currentEdges];
+
+          if (parentNode) {
+            detailedEdges.push({
+              id: `e-${parentNode.id}-${qId}`,
+              source: parentNode.id,
+              target: qId,
+              requestsPerInput: 0.4,
+              enabled: true,
+              isBidirectional: true,
+              label: 'Async Events',
+            });
+          }
+          detailedEdges.push({
+            id: `e-${qId}-${wId}`,
+            source: qId,
+            target: wId,
+            requestsPerInput: 1.0,
+            enabled: true,
+            isBidirectional: true,
+            label: 'Consumer Groups',
+          });
+          if (dbNode) {
+            detailedEdges.push({
+              id: `e-${wId}-${dbNode.id}`,
+              source: wId,
+              target: dbNode.id,
+              requestsPerInput: 0.8,
+              enabled: true,
+              isBidirectional: true,
+              label: 'Batch Mutations',
+              communicationType: 'db',
+            });
+          }
+
+          queueNode.position = calculateSmartPositionForNewNode(queueNode, detailedEdges, currentNodes);
+          workerNode.position = { x: queueNode.position.x + 360, y: queueNode.position.y };
+
+          return {
+            executed: true,
+            actionType: 'add_node',
+            updatedNodes: [...currentNodes, queueNode, workerNode],
+            updatedEdges: detailedEdges,
+            explanation: `🏛️ **Detailed View: Added Decoupled Event Stream & Worker Fleet**:\n\n• **${queueNode.name}**: Partitioned buffer (${queueNode.capacityPerSecond.toLocaleString()} req/s buffer capacity)\n• **${workerNode.name}**: 6 worker instances (${(workerNode.capacityPerSecond * 6).toLocaleString()} req/s batch capacity)\n• Integrated async consumer group queue and batch mutation routing.`,
+          };
+        }
+      }
+
       const newId = `${type}-${Date.now().toString().slice(-4)}`;
       const newNode: ArchitectureNode = {
         id: newId,
@@ -1034,25 +1422,70 @@ export function executeArchitectureCommand(
     const targetNode = findNodeByFuzzyName(targetQuery, currentNodes);
 
     if (targetNode) {
-      if (currentNodes.length <= 1) {
+      const { nodesToDelete, reflectedTypes } = findReflectedNodesToDelete(
+        targetNode,
+        currentNodes,
+        currentEdges
+      );
+
+      if (currentNodes.length <= nodesToDelete.length) {
         return {
           executed: false,
           actionType: 'delete_node',
-          explanation: `⚠️ Cannot remove **${targetNode.name}** because the architecture requires at least one active component.`,
+          explanation: `⚠️ Cannot remove **${targetNode.name}** and its reflected components because the architecture requires at least one active component.`,
         };
       }
 
-      const updatedNodes = currentNodes.filter((n) => n.id !== targetNode.id);
-      const updatedEdges = currentEdges.filter(
-        (e) => e.source !== targetNode.id && e.target !== targetNode.id
+      const deletedIds = new Set(nodesToDelete.map((n) => n.id));
+
+      // Reconnect / bridge edges around removed intermediary nodes (e.g. cache removal should connect service directly to database)
+      let bridgedEdges = currentEdges.filter(
+        (e) => !deletedIds.has(e.source) && !deletedIds.has(e.target)
       );
+
+      for (const delNode of nodesToDelete) {
+        const incomingParents = currentEdges
+          .filter((e) => e.target === delNode.id && !deletedIds.has(e.source))
+          .map((e) => e.source);
+        const outgoingChildren = currentEdges
+          .filter((e) => e.source === delNode.id && !deletedIds.has(e.target))
+          .map((e) => e.target);
+
+        for (const pId of incomingParents) {
+          for (const cId of outgoingChildren) {
+            if (pId !== cId && !bridgedEdges.some((e) => e.source === pId && e.target === cId)) {
+              bridgedEdges.push({
+                id: `e-bridge-${pId}-${cId}`,
+                source: pId,
+                target: cId,
+                requestsPerInput: 1.0,
+                enabled: true,
+                isBidirectional: true,
+                label: 'Direct Flow',
+              });
+            }
+          }
+        }
+      }
+
+      const updatedNodes = currentNodes.filter((n) => !deletedIds.has(n.id));
+      const reflectedNames = nodesToDelete
+        .filter((n) => n.id !== targetNode.id)
+        .map((n) => n.name);
+
+      const explanationSuffix =
+        reflectedNames.length > 0
+          ? ` and reflected components (**${reflectedNames.join('**, **')}**)`
+          : '';
 
       return {
         executed: true,
         actionType: 'delete_node',
         updatedNodes: updatedNodes,
-        updatedEdges: updatedEdges,
-        explanation: `🗑️ **Removed Component: ${targetNode.name}** (\`${targetNode.id}\`)\n\n• Removed component from architecture topology\n• Pruned connected edges\n• Topology updated and re-simulated.`,
+        updatedEdges: bridgedEdges,
+        reflectedDeletedNodeIds: Array.from(deletedIds),
+        reflectedDeletedTypes: reflectedTypes,
+        explanation: `🗑️ **Removed ${targetNode.name}${explanationSuffix}**\n\n• Pruned associated replicas, poolers, and dependent worker fleets\n• Re-bridged active data connections around deleted components\n• Architecture topology updated and re-simulated.`,
       };
     }
   }

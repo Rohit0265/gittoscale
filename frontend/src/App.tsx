@@ -826,7 +826,8 @@ export const App: React.FC = () => {
         edges,
         incomingTrafficRate,
         simulationResult,
-        chatHistory
+        chatHistory,
+        viewMode
       );
 
       // If an actionable change occurred (e.g. node added/deleted, edge connected, traffic scaled, detailed view)
@@ -845,9 +846,37 @@ export const App: React.FC = () => {
           if (execResult.targetViewMode === 'detailed' || viewMode === 'detailed') {
             detailedGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
             baseDetailedGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+
+            // If a node was deleted in Detailed View, reflect deletion in Basic View cache as well
+            if (execResult.actionType === 'delete_node' && basicGraphCacheRef.current && execResult.reflectedDeletedTypes) {
+              const delTypes = new Set(execResult.reflectedDeletedTypes);
+              const remainingBasicNodes = basicGraphCacheRef.current.nodes.filter(
+                (n) => !delTypes.has(n.type)
+              );
+              const remainingNodeIds = new Set(remainingBasicNodes.map((n) => n.id));
+              const remainingBasicEdges = basicGraphCacheRef.current.edges.filter(
+                (e) => remainingNodeIds.has(e.source) && remainingNodeIds.has(e.target)
+              );
+              basicGraphCacheRef.current = { nodes: remainingBasicNodes, edges: remainingBasicEdges };
+              baseBasicGraphRef.current = { nodes: remainingBasicNodes, edges: remainingBasicEdges };
+            }
           } else {
             baseBasicGraphRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
             basicGraphCacheRef.current = { nodes: nextNodes, edges: execResult.updatedEdges || edges };
+
+            // If a node was deleted in Basic View, reflect deletion in Detailed View cache as well
+            if (execResult.actionType === 'delete_node' && detailedGraphCacheRef.current && execResult.reflectedDeletedTypes) {
+              const delTypes = new Set(execResult.reflectedDeletedTypes);
+              const remainingDetailedNodes = detailedGraphCacheRef.current.nodes.filter(
+                (n) => !delTypes.has(n.type)
+              );
+              const remainingNodeIds = new Set(remainingDetailedNodes.map((n) => n.id));
+              const remainingDetailedEdges = detailedGraphCacheRef.current.edges.filter(
+                (e) => remainingNodeIds.has(e.source) && remainingNodeIds.has(e.target)
+              );
+              detailedGraphCacheRef.current = { nodes: remainingDetailedNodes, edges: remainingDetailedEdges };
+              baseDetailedGraphRef.current = { nodes: remainingDetailedNodes, edges: remainingDetailedEdges };
+            }
           }
         }
         if (execResult.updatedEdges) {
@@ -1025,6 +1054,7 @@ export const App: React.FC = () => {
       activePromptText,
       selectedAnswers,
       handleGenerateFromPrompt,
+      viewMode,
     ]
   );
 
