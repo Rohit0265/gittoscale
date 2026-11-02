@@ -557,9 +557,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [loadProfile]
   );
 
-  // Sign out
+  // Sign out and purge all authentication cookies and session state
   const signOut = useCallback(async () => {
     setIsLoading(true);
+
+    // 1. Notify backend to clear any server-set session cookies
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    } catch {}
+
+    // 2. Terminate Supabase auth session
     if (isSupabaseConfigured) {
       try {
         await supabase.auth.signOut();
@@ -567,9 +574,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error signing out:', err);
       }
     }
-    try {
-      localStorage.removeItem(MOCK_USER_STORAGE_KEY);
-    } catch {}
+
+    // 3. Delete all client-side cookies across paths and domains
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      try {
+        const cookies = document.cookie ? document.cookie.split(';') : [];
+        const hostname = window.location.hostname;
+        const domainParts = hostname.split('.');
+
+        for (const cookie of cookies) {
+          const eqPos = cookie.indexOf('=');
+          const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+          if (!name) continue;
+
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname};`;
+
+          if (domainParts.length > 1) {
+            const topDomain = domainParts.slice(-2).join('.');
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${topDomain};`;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to wipe cookies:', e);
+      }
+
+      // 4. Clear auth and session items from localStorage
+      try {
+        localStorage.removeItem(MOCK_USER_STORAGE_KEY);
+        localStorage.removeItem(PENDING_ACTION_STORAGE_KEY);
+        localStorage.removeItem('gts_github_token');
+        localStorage.removeItem('sb-access-token');
+
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('session'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+      } catch (e) {
+        console.warn('Failed to wipe auth localStorage:', e);
+      }
+
+      // 5. Clear sessionStorage
+      try {
+        sessionStorage.clear();
+      } catch (e) {
+        console.warn('Failed to clear sessionStorage:', e);
+      }
+    }
+
     setUser(null);
     setSession(null);
     setProfile(null);

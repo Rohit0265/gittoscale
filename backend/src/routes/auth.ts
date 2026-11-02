@@ -92,6 +92,21 @@ router.post('/signup', (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/auth/logout
+ * Clears session and authentication cookies
+ */
+router.post('/logout', (_req: Request, res: Response) => {
+  res.clearCookie('sb-access-token', { path: '/' });
+  res.clearCookie('sb-refresh-token', { path: '/' });
+  res.clearCookie('session', { path: '/' });
+  res.clearCookie('token', { path: '/' });
+  return res.json({
+    success: true,
+    message: 'Logged out and session cookies cleared.',
+  });
+});
+
+/**
  * GET /api/auth/me
  * Returns mock authenticated user state
  */
