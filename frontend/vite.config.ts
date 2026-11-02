@@ -10,6 +10,9 @@ export default defineConfig({
   },
   plugins: [react()],
   build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
