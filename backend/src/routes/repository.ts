@@ -48,6 +48,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
     const ANALYZER_VERSION = 'v3.2';
 
     // 1. Build Static Inventory (either local directory or GitHub repository tree)
+    const scanSpan = req.startSpan?.('inventory-scan', { source: repoUrl ? 'github' : 'local' });
     let inventory;
     if (repoUrl) {
       const { buildGitHubRepositoryInventory } = await import('../services/githubScanner.js');
@@ -56,6 +57,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
       const targetPath = localPath || process.cwd();
       inventory = buildStaticRepositoryInventory(targetPath);
     }
+    scanSpan?.end({ fileCount: inventory.analyzedFiles?.length });
 
     const revision = inventory.commitSha || 'local-rev';
     const cacheKey = `${localPath || repoUrl}@${revision}-${ANALYZER_VERSION}-${llmConfig?.provider || 'default'}-${viewMode}-${githubToken ? 'auth' : 'pub'}`;
@@ -80,10 +82,12 @@ router.post('/analyze', async (req: Request, res: Response) => {
     };
 
     // 2. Perform Architecture Analysis for both Basic and Detailed views concurrently
+    const llmSpan = req.startSpan?.('llm-architecture-analysis', { viewMode });
     const [basicAnalysis, detailedAnalysis] = await Promise.all([
       analyzeArchitectureWithLLM(inventory, llmConfig, 'basic'),
       analyzeArchitectureWithLLM(inventory, llmConfig, 'detailed'),
     ]);
+    llmSpan?.end({ basicNodes: basicAnalysis.components?.length, detailedNodes: detailedAnalysis.components?.length });
     const basicArch = convertAnalysisToArchitecture(basicAnalysis);
     const basicEdges = sanitizeAcyclicEdges(basicArch.nodes, basicArch.edges);
 
