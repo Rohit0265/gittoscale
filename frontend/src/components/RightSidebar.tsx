@@ -42,7 +42,7 @@ interface RightSidebarProps {
   onToggleCollapse?: () => void;
 }
 
-export const RightSidebar: React.FC<RightSidebarProps> = ({
+const RightSidebarComponent: React.FC<RightSidebarProps> = ({
   nodes,
   edges,
   selectedNodeId,
@@ -239,4 +239,5 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   );
 };
 
+export const RightSidebar = React.memo(RightSidebarComponent);
 export default RightSidebar;

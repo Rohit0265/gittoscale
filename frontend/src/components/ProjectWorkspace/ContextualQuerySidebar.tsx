@@ -137,7 +137,7 @@ I've evaluated your prompt: **"${promptText}"** and initialized your distributed
 What component, scaling threshold, or failure scenario would you like to explore next?`;
 }
 
-export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
+const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = ({
   projectId,
   activePrompt = 'Scalable distributed cloud architecture',
   selectedAnswers = {},
@@ -664,4 +664,5 @@ export const ContextualQuerySidebar: React.FC<ContextualQuerySidebarProps> = ({
   );
 };
 
+export const ContextualQuerySidebar = React.memo(ContextualQuerySidebarComponent);
 export default ContextualQuerySidebar;

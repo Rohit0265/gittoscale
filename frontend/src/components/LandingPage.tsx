@@ -403,7 +403,7 @@ export function Demo({ onLaunch }: { onLaunch: () => void }) {
   );
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({
+const LandingPageComponent: React.FC<LandingPageProps> = ({
   onSelectTestSite,
   onSelectUseRepository,
   onOpenRecommender,
@@ -931,4 +931,5 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   );
 };
 
+export const LandingPage = React.memo(LandingPageComponent);
 export default LandingPage;
