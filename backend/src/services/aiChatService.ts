@@ -473,6 +473,148 @@ async function callGroqChatStream(
   }
 }
 
+async function callMercuryChat(
+  input: ArchitectureChatInput,
+  systemPrompt: string
+): Promise<{ ok: boolean; reply?: string; error?: string }> {
+  const mKey = input.llmConfig?.apiKey || process.env.MERCURY_API_KEY;
+  if (!mKey) return { ok: false, error: 'No Mercury API key available' };
+
+  const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
+  const mModel = input.llmConfig?.model || process.env.MERCURY_MODEL || 'mercury-3';
+
+  try {
+    const formattedHistory = (input.history || []).slice(-10).map((msg) => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content,
+    }));
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${mKey}`,
+      },
+      body: JSON.stringify({
+        model: mModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...formattedHistory,
+          { role: 'user', content: input.message },
+        ],
+        temperature: 0.2,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data: any = await res.json();
+      const reply = data.choices?.[0]?.message?.content || '';
+      if (reply && reply.trim().length > 0) {
+        return { ok: true, reply: reply.trim() };
+      }
+      return { ok: false, error: 'Empty content from Mercury-3' };
+    }
+
+    const errText = await res.text().catch(() => '');
+    return { ok: false, error: `Mercury HTTP ${res.status}: ${errText}` };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Mercury network error' };
+  }
+}
+
+async function callMercuryChatStream(
+  input: ArchitectureChatInput,
+  systemPrompt: string,
+  onToken: (token: string) => void
+): Promise<{ ok: boolean; reply?: string; error?: string }> {
+  const mKey = input.llmConfig?.apiKey || process.env.MERCURY_API_KEY;
+  if (!mKey) return { ok: false, error: 'No Mercury API key available' };
+
+  const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
+  const mModel = input.llmConfig?.model || process.env.MERCURY_MODEL || 'mercury-3';
+
+  try {
+    const formattedHistory = (input.history || []).slice(-10).map((msg) => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content,
+    }));
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${mKey}`,
+      },
+      body: JSON.stringify({
+        model: mModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...formattedHistory,
+          { role: 'user', content: input.message },
+        ],
+        stream: true,
+        temperature: 0.2,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      return { ok: false, error: `Mercury stream error: ${res.status} ${errText}` };
+    }
+
+    if (!res.body) return { ok: false, error: 'No response body from Mercury' };
+
+    let fullReply = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.slice(5).trim();
+        if (!dataStr || dataStr === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(dataStr);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) {
+            fullReply += delta;
+            onToken(delta);
+          }
+        } catch {}
+      }
+    }
+
+    if (fullReply.trim()) {
+      return { ok: true, reply: fullReply.trim() };
+    }
+    return { ok: false, error: 'Empty content from Mercury stream' };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Mercury stream failure' };
+  }
+}
+
 async function callGeminiChatStream(
   gModel: string,
   apiKey: string,
@@ -601,40 +743,9 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
   if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {
       if (provider === 'mercury' || provider === 'mercury-3') {
-        const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
-        const cleanBase = baseUrl.replace(/\/+$/, '');
-        const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
-        const mKey = apiKey || process.env.MERCURY_API_KEY || '';
-        const mModel = model || process.env.MERCURY_MODEL || 'mercury-3';
-
-        const formattedHistory = (input.history || []).slice(-10).map((msg) => ({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content,
-        }));
-
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${mKey}`,
-          },
-          body: JSON.stringify({
-            model: mModel,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              ...formattedHistory,
-              { role: 'user', content: input.message },
-            ],
-            temperature: 0.2,
-          }),
-        });
-
-        if (res.ok) {
-          const data: any = await res.json();
-          const reply = data.choices?.[0]?.message?.content || '';
-          if (reply) {
-            return { reply };
-          }
+        const mRes = await callMercuryChat(input, systemPrompt);
+        if (mRes.ok && mRes.reply) {
+          return { reply: mRes.reply };
         }
       } else if (provider === 'gemini') {
         const geminiModels = Array.from(

@@ -85,14 +85,51 @@ export async function recommendArchitecture(
           llmResult = await callGeminiRecommender(input, config);
         } catch (geminiErr) {
           if (process.env.GROQ_API_KEY) {
-            console.info('[Architecture Recommender] Gemini failed or high demand detected. Seamlessly failing over to Groq...');
-            llmResult = await callGroqRecommender(input, process.env.GROQ_API_KEY, process.env.GROQ_MODEL);
+            try {
+              console.info('[Architecture Recommender] Gemini failed or high demand detected. Seamlessly failing over to Groq...');
+              llmResult = await callGroqRecommender(input, process.env.GROQ_API_KEY, process.env.GROQ_MODEL);
+            } catch (groqErr) {
+              if (process.env.MERCURY_API_KEY) {
+                console.info('[Architecture Recommender] Groq also failed. Seamlessly failing over to Mercury-3...');
+                llmResult = await callMercuryRecommender(input, {
+                  provider: 'mercury',
+                  apiKey: process.env.MERCURY_API_KEY,
+                  baseUrl: process.env.MERCURY_BASE_URL,
+                  model: process.env.MERCURY_MODEL,
+                });
+              } else {
+                throw groqErr;
+              }
+            }
+          } else if (process.env.MERCURY_API_KEY) {
+            console.info('[Architecture Recommender] Gemini failed. Seamlessly failing over to Mercury-3...');
+            llmResult = await callMercuryRecommender(input, {
+              provider: 'mercury',
+              apiKey: process.env.MERCURY_API_KEY,
+              baseUrl: process.env.MERCURY_BASE_URL,
+              model: process.env.MERCURY_MODEL,
+            });
           } else {
             throw geminiErr;
           }
         }
       } else if (provider === 'groq') {
-        llmResult = await callGroqRecommender(input, config.apiKey || process.env.GROQ_API_KEY || '', config.model);
+        try {
+          llmResult = await callGroqRecommender(input, config.apiKey || process.env.GROQ_API_KEY || '', config.model);
+        } catch (groqErr) {
+          if (process.env.MERCURY_API_KEY) {
+            console.info('[Architecture Recommender] Groq failed. Seamlessly failing over to Mercury-3...');
+            llmResult = await callMercuryRecommender(input, {
+              provider: 'mercury',
+              apiKey: process.env.MERCURY_API_KEY,
+              baseUrl: process.env.MERCURY_BASE_URL,
+              model: process.env.MERCURY_MODEL,
+            });
+          } else {
+            throw groqErr;
+          }
+        }
+      }
       } else if (provider === 'anthropic') {
         llmResult = await callAnthropicRecommender(input, config);
       } else {
