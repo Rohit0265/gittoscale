@@ -157,6 +157,18 @@ export default function Component({
       };
     };
 
+    // Skip heavy Three.js script download and WebGL loop on mobile/low-power devices to ensure instant load
+    const isConstrainedDevice = typeof window !== 'undefined' && (
+      window.innerWidth < 768 || 
+      (navigator as any).connection?.saveData || 
+      ((navigator as any).connection?.effectiveType && ['slow-2g', '2g', '3g'].includes((navigator as any).connection.effectiveType))
+    );
+    if (isConstrainedDevice) {
+      return () => {
+        active = false;
+      };
+    }
+
     // Dynamically load Three.js via script tag to avoid bundler import errors
     if ((window as any).THREE) {
       cleanUpFn = initThree((window as any).THREE);

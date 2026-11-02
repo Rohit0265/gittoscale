@@ -12,13 +12,38 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-flow': ['@xyflow/react'],
-          'vendor-charts': ['recharts'],
-          'vendor-motion': ['framer-motion', 'motion'],
-          'vendor-markdown': ['react-markdown', 'remark-gfm', 'streamdown'],
-          'vendor-supabase': ['@supabase/supabase-js'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@xyflow')) {
+              return 'vendor-flow';
+            }
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('framer-motion') || id.includes('/motion/')) {
+              return 'vendor-motion';
+            }
+            if (
+              id.includes('react-markdown') ||
+              id.includes('remark-') ||
+              id.includes('streamdown') ||
+              id.includes('micromark') ||
+              id.includes('mdast') ||
+              id.includes('hast') ||
+              id.includes('unist')
+            ) {
+              return 'vendor-markdown';
+            }
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'vendor-react';
+            }
+          }
         },
       },
     },

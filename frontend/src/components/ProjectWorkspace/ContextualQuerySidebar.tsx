@@ -163,6 +163,10 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
   // Initialize and clamp width (default 340px, strictly clamped to 2/5 = 40% of screen)
   const [internalWidth, setInternalWidth] = useState<number>(() => {
     if (typeof window !== 'undefined') {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        return Math.min(380, Math.max(280, window.innerWidth - 24));
+      }
       try {
         const saved = localStorage.getItem('gitoscale_left_sidebar_width');
         if (saved) {
@@ -184,6 +188,13 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
   // Keep width clamped if window resizes
   useEffect(() => {
     const handleWindowResize = () => {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        const mobileWidth = Math.min(380, Math.max(280, window.innerWidth - 24));
+        setInternalWidth(mobileWidth);
+        onWidthChange?.(mobileWidth);
+        return;
+      }
       const max = Math.floor(window.innerWidth * (2 / 5));
       const min = Math.min(280, max);
       setInternalWidth((prev) => {
@@ -199,7 +210,7 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
   }, [onWidthChange]);
 
   const startDragging = (clientX: number) => {
-    if (!isResizable) return;
+    if (!isResizable || (typeof window !== 'undefined' && window.innerWidth < 768)) return;
     isDraggingRef.current = true;
     setIsDragging(true);
     onDragStateChange?.(true);
