@@ -462,7 +462,7 @@ export default function Component({
               </button>
             </form> */}
 
-            <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} />
+            {/* <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} /> */}
 
             <button type="button" disabled={isLoading} onClick={() => handleSocialClick('Google')} style={socialBtn}>
               {GoogleIcon}Continue with Google
@@ -582,7 +582,7 @@ export default function Component({
             <button type="button" disabled={isLoading} onClick={() => handleSocialClick('Google')} style={socialBtn}>
               {GoogleIcon}Sign up with Google
             </button>
-            <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} />
+            {/* <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} /> */}
             <button type="button" disabled={isLoading} onClick={() => handleSocialClick('GitHub')} style={socialBtn}>
               {GitHubIcon}Sign up with GitHub
             </button>
