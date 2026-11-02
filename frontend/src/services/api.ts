@@ -368,6 +368,12 @@ export const api = {
     );
   },
 
+  async getArchitectureHistoryById(token: string | null, id: string): Promise<{ success: boolean; data: any }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.get(`${API_BASE}/history/architectures/${id}`, { headers });
+    return res.data;
+  },
+
   async saveArchitectureHistory(
     token: string | null,
     data: {

@@ -340,6 +340,19 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
         res.json({ success: true, data });
         return;
       }
+      // Also check by generation_config->>projectId
+      const db = getSql();
+      const rows = await db`
+        SELECT * FROM public.architecture_history
+        WHERE user_id = ${userId}
+          AND generation_config->>'projectId' = ${id}
+        ORDER BY updated_at DESC
+        LIMIT 1;
+      `;
+      if (rows && rows.length > 0) {
+        res.json({ success: true, data: rows[0] });
+        return;
+      }
     } catch (err: any) {
       console.error('[History API] Neon fetch single error:', err);
     }
@@ -347,18 +360,22 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
 
   if (isServerSupabaseConfigured) {
     try {
-      const { data, error } = await supabaseServer
+      // Check primary key id or projectId in generation_config
+      const { data } = await supabaseServer
         .from('architecture_history')
         .select('*')
-        .eq('id', id)
         .eq('user_id', userId)
-        .single();
+        .or(`id.eq.${id},generation_config->>projectId.eq.${id}`)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (error || !data) {
-        res.status(404).json({ error: 'Architecture history record not found' });
+      if (data) {
+        res.json({ success: true, data });
         return;
       }
-      res.json({ success: true, data });
+
+      res.status(404).json({ error: 'Architecture history record not found' });
       return;
     } catch (err: any) {
       res.status(500).json({ error: 'Database error', message: err.message });
@@ -366,7 +383,9 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
     }
   }
 
-  const record = inMemoryArchHistory.find((item) => item.id === id && item.user_id === userId);
+  const record = inMemoryArchHistory.find(
+    (item) => item.user_id === userId && (item.id === id || item.generation_config?.projectId === id)
+  );
   if (!record) {
     res.status(404).json({ error: 'Architecture record not found' });
     return;
