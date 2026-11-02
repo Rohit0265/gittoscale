@@ -278,9 +278,9 @@ export const NewOne: React.FC<NewOneProps> = ({
                         key={chip.label}
                         type="button"
                         onClick={() => handleSetPrompt(chip.prompt)}
-                        className="chip-btn flex items-center space-x-2 bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs px-3 py-2 rounded-lg transition-all duration-150 cursor-pointer"
+                        className="chip-btn min-h-[44px] flex items-center space-x-2 bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs px-3.5 py-2.5 rounded-lg transition-all duration-150 cursor-pointer"
                       >
-                        <Icon className="text-neutral-400 text-xs w-3 h-3" />
+                        <Icon className="text-neutral-300 text-xs w-3.5 h-3.5" />
                         <span>{chip.label}</span>
                       </button>
                     );
@@ -291,19 +291,19 @@ export const NewOne: React.FC<NewOneProps> = ({
 
             {/* Import GitHub Repo Interactive Button / Footer Bar */}
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-between w-full px-3 py-2.5 rounded-xl bg-neutral-900/40 border border-neutral-800/50 backdrop-blur-md">
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-neutral-400 mb-2 sm:mb-0">
-                <GitBranch className="w-4 h-4 text-neutral-500" />
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-neutral-300 mb-2 sm:mb-0">
+                <GitBranch className="w-4 h-4 text-neutral-400" />
                 <span>Have an existing codebase?</span>
               </div>
 
               <button
                 type="button"
                 onClick={onSelectUseRepository}
-                className="group flex items-center space-x-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 hover:border-neutral-500 px-4 py-2 rounded-lg text-xs sm:text-sm text-neutral-200 hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
+                className="group min-h-[44px] flex items-center space-x-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 hover:border-neutral-500 px-4 py-2.5 rounded-lg text-xs sm:text-sm text-neutral-200 hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
               >
                 <Github className="w-4 h-4 text-base text-neutral-300 group-hover:text-white transition-colors" />
                 <span className="font-medium">Scan GitHub repository</span>
-                <ArrowUpRight className="w-3 h-3 text-[10px] text-neutral-500 group-hover:text-neutral-300 transition-colors ml-0.5" />
+                <ArrowUpRight className="w-3 h-3 text-[10px] text-neutral-400 group-hover:text-neutral-200 transition-colors ml-0.5" />
               </button>
             </div>
           </div>

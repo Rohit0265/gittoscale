@@ -608,25 +608,28 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                           fill={dashStroke}
                         />
 
-                        {/* Primary Traffic Packet moving along the curve from left to right */}
-                        <circle r={isStressed ? 4.5 : 4} fill={particleColor}>
-                          <animateMotion
-                            path={d}
-                            dur={speed}
-                            begin="0s"
-                            repeatCount="indefinite"
-                          />
-                        </circle>
+                        {/* Traffic Packets - Active on md+ screens to save mobile CPU */}
+                        <g className="hidden md:inline">
+                          {/* Primary Traffic Packet moving along the curve from left to right */}
+                          <circle r={isStressed ? 4.5 : 4} fill={particleColor}>
+                            <animateMotion
+                              path={d}
+                              dur={speed}
+                              begin="0s"
+                              repeatCount="indefinite"
+                            />
+                          </circle>
 
-                        {/* Secondary Traffic Packet trailing behind */}
-                        <circle r={isStressed ? 3.5 : 3} fill={particleColor} opacity="0.75">
-                          <animateMotion
-                            path={d}
-                            dur={speed}
-                            begin={delay2}
-                            repeatCount="indefinite"
-                          />
-                        </circle>
+                          {/* Secondary Traffic Packet trailing behind */}
+                          <circle r={isStressed ? 3.5 : 3} fill={particleColor} opacity="0.75">
+                            <animateMotion
+                              path={d}
+                              dur={speed}
+                              begin={delay2}
+                              repeatCount="indefinite"
+                            />
+                          </circle>
+                        </g>
                       </g>
                     );
                   })}

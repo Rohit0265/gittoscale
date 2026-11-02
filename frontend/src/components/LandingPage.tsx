@@ -338,6 +338,8 @@ export function Demo({ onLaunch }: { onLaunch: () => void }) {
               key={activeSlide}
               src={DEMO_IMAGES[activeSlide].src}
               alt={DEMO_IMAGES[activeSlide].alt}
+              width="1280"
+              height="720"
               initial={{ opacity: 0, scale: 0.995 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.995 }}
@@ -611,7 +613,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
               onClick={() => setIsProfileOpen((prev) => !prev)}
               aria-label="Profile, Authentication and Appearance settings"
               title={user ? (user.user_metadata?.full_name || user.email || 'Profile') : 'Profile & Settings'}
-              className={`group border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50 hover:bg-slate-100 dark:hover:bg-[#141416] text-slate-700 dark:text-neutral-200 transition-all cursor-pointer flex items-center justify-center shrink-0 relative ${
+              className={`group border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#0A0A0A]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50 hover:bg-slate-100 dark:hover:bg-[#141416] text-slate-700 dark:text-neutral-200 transition-all cursor-pointer flex items-center justify-center shrink-0 relative min-h-[44px] min-w-[44px] ${
                 isApp ? 'p-2 rounded-lg h-10 w-10' : 'p-2.5 rounded-full h-12 w-12 sm:h-13 sm:w-13'
               }`}
             >
