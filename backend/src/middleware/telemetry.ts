@@ -100,7 +100,22 @@ export function telemetryMiddleware(req: Request, res: Response, next: NextFunct
     };
   };
 
-  // 4. Capture request completion
+  // 4. Hook res.end to set Server-Timing before headers are flushed
+  const originalEnd = res.end;
+  (res as any).end = function (...args: any[]) {
+    const elapsedNs = process.hrtime.bigint() - startTime;
+    const durationMs = Math.round(Number(elapsedNs) / 1e4) / 100;
+
+    try {
+      if (!res.headersSent) {
+        res.setHeader('Server-Timing', `total;dur=${durationMs}`);
+      }
+    } catch {}
+
+    return (originalEnd as any).apply(res, args);
+  };
+
+  // 5. Capture request completion
   res.on('finish', () => {
     const elapsedNs = process.hrtime.bigint() - startTime;
     const durationMs = Math.round(Number(elapsedNs) / 1e4) / 100; // 2 decimal precision
@@ -109,13 +124,6 @@ export function telemetryMiddleware(req: Request, res: Response, next: NextFunct
     if (res.statusCode >= 400) {
       errorRequestsCount++;
     }
-
-    // Add Server-Timing header for downstream browser/DevTools inspection
-    try {
-      if (!res.headersSent) {
-        res.setHeader('Server-Timing', `total;dur=${durationMs}`);
-      }
-    } catch {}
 
     // Track latency sample
     if (latencySamples.length >= MAX_LATENCY_SAMPLES) {
