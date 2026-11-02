@@ -27,6 +27,8 @@ import {
   downloadFile,
   copyToClipboard,
 } from '../utils/exportDiagram';
+import { AutoSaveIndicator } from './common/AutoSaveIndicator';
+import { AutoSaveStatus } from '../services/playgroundPersistence';
 
 interface HeaderProps {
   scenarios: ScenarioFixture[];
@@ -55,6 +57,9 @@ interface HeaderProps {
   nodes?: ArchitectureNode[];
   edges?: ArchitectureEdge[];
   projectName?: string;
+  saveStatus?: AutoSaveStatus;
+  lastSaved?: Date | null;
+  onForceSync?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -80,6 +85,9 @@ export const Header: React.FC<HeaderProps> = ({
   nodes = [],
   edges = [],
   projectName = 'GitToScale System Design',
+  saveStatus,
+  lastSaved,
+  onForceSync,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -169,6 +177,15 @@ export const Header: React.FC<HeaderProps> = ({
             className="h-6 sm:h-7 md:h-8 w-auto object-contain transition-transform group-hover:scale-105"
           />
         </button>
+
+        {saveStatus && (
+          <AutoSaveIndicator
+            status={saveStatus}
+            lastSaved={lastSaved}
+            onForceSync={onForceSync}
+            className="ml-1 sm:ml-2"
+          />
+        )}
       </div>
 
       {/* Main Operational Controls (Play/Pause, Reset, AI Architect, Stars, and User Button) */}

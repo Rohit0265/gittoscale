@@ -16,6 +16,12 @@ import { api } from '../../services/api';
 import { executeArchitectureCommand, isArchitectureGenerationRequest } from '../../services/aiAgentExecutor';
 import { toVerticalTree } from '../../utils/treeLayout';
 import { buildDetailedArchitecture } from '../../utils/detailedArchitecture';
+import { useAuth } from '../../contexts/AuthContext';
+import {
+  usePlaygroundPersistence,
+  loadPlaygroundFromBrowserStorage,
+} from '../../services/playgroundPersistence';
+import { AutoSaveIndicator } from '../common/AutoSaveIndicator';
 import {
   ArchitectureNode,
   ArchitectureEdge,
@@ -97,6 +103,76 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   const activeEdges = useMemo(() => {
     return viewMode === 'detailed' ? detailedGraph.edges : basicGraph.edges;
   }, [viewMode, detailedGraph.edges, basicGraph.edges]);
+
+  const { user, getAuthToken } = useAuth();
+
+  // Universal Auto-Save: Automatically saves playground edits to browser storage immediately,
+  // then debounces persistence to the real database to prevent data loss upon PC shutdown.
+  const { saveStatus, lastSaved, forceSyncNow } = usePlaygroundPersistence({
+    projectId,
+    prompt,
+    title: recommendation?.projectName,
+    nodes: activeNodes,
+    edges: activeEdges,
+    incomingTrafficRate: 1000,
+    viewMode,
+    selectedAnswers,
+    basicGraph,
+    detailedGraph,
+    user,
+    getAuthToken,
+    enabled: viewState === 'hydrated' && activeNodes.length > 0,
+  });
+
+  // Restore from browser storage on mount (instant recovery upon PC shutdown / reload)
+  useEffect(() => {
+    const saved = loadPlaygroundFromBrowserStorage(projectId);
+    if (saved && saved.nodes && saved.nodes.length > 0) {
+      if (saved.basicGraph?.nodes?.length) {
+        setBasicGraph(saved.basicGraph);
+      } else {
+        const vertical = toVerticalTree(saved.nodes, saved.edges || []);
+        setBasicGraph({ nodes: vertical, edges: saved.edges || [] });
+      }
+      if (saved.detailedGraph?.nodes?.length) {
+        setDetailedGraph(saved.detailedGraph);
+      } else {
+        const detailed = buildDetailedArchitecture(saved.nodes, saved.edges || [], saved.prompt || prompt);
+        setDetailedGraph({ nodes: toVerticalTree(detailed.nodes, detailed.edges), edges: detailed.edges });
+      }
+      if (saved.viewMode) setViewMode(saved.viewMode);
+      if (saved.selectedAnswers) setSelectedAnswers(saved.selectedAnswers);
+      if (saved.prompt) setPrompt(saved.prompt);
+      setViewState('hydrated');
+      return;
+    }
+
+    // Secondary recovery from Cloud Database if user is logged in
+    const token = getAuthToken ? getAuthToken() : null;
+    if (token && projectId) {
+      api.getArchitectureHistoryById(token, projectId)
+        .then((res) => {
+          if (res?.success && res?.data?.architecture_data?.nodes?.length > 0) {
+            const archData = res.data.architecture_data;
+            const genConfig = res.data.generation_config;
+            const vNodes = toVerticalTree(archData.nodes, archData.edges || []);
+            const bGraph = archData.basicGraph || { nodes: vNodes, edges: archData.edges || [] };
+            setBasicGraph(bGraph);
+            if (archData.detailedGraph) {
+              setDetailedGraph(archData.detailedGraph);
+            } else {
+              const detailed = buildDetailedArchitecture(archData.nodes, archData.edges || [], res.data.prompt || prompt);
+              setDetailedGraph({ nodes: toVerticalTree(detailed.nodes, detailed.edges), edges: detailed.edges });
+            }
+            if (genConfig?.viewMode) setViewMode(genConfig.viewMode);
+            if (genConfig?.selectedAnswers) setSelectedAnswers(genConfig.selectedAnswers);
+            if (res.data.prompt) setPrompt(res.data.prompt);
+            setViewState('hydrated');
+          }
+        })
+        .catch(() => {});
+    }
+  }, [projectId]);
 
   // Save prompt cache
   useEffect(() => {
@@ -487,6 +563,15 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               <span>Detailed View</span>
             </button>
           </div>
+
+          {/* Universal Auto-Save Status Indicator */}
+          {activeNodes.length > 0 && (
+            <AutoSaveIndicator
+              status={saveStatus}
+              lastSaved={lastSaved}
+              onForceSync={forceSyncNow}
+            />
+          )}
 
           {/* Simulate Load Button */}
           <button

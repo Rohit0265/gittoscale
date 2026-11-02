@@ -21,6 +21,10 @@ import { useAuth } from './contexts/AuthContext';
 import { toVerticalTree } from './utils/treeLayout';
 import { executeArchitectureCommand, isArchitectureGenerationRequest } from './services/aiAgentExecutor';
 import { buildDetailedArchitecture } from './utils/detailedArchitecture';
+import {
+  usePlaygroundPersistence,
+  loadPlaygroundFromBrowserStorage,
+} from './services/playgroundPersistence';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
 
 // Code-split heavy routes and modals for fast loading on slow phones & networks
@@ -555,6 +559,25 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  // Universal Auto-Save: Automatically saves playground edits to browser storage immediately,
+  // then debounces persistence to the real database to prevent data loss upon PC shutdown.
+  const { saveStatus, lastSaved, forceSyncNow } = usePlaygroundPersistence({
+    projectId: activeProject?.projectId || getProjectRouteInfo()?.projectId,
+    prompt: activePromptText || activeProject?.prompt || '',
+    title: activePromptText ? activePromptText.slice(0, 60) : 'Playground Architecture',
+    nodes,
+    edges,
+    incomingTrafficRate,
+    durationSeconds,
+    viewMode,
+    selectedAnswers,
+    basicGraph: basicGraphCacheRef.current || undefined,
+    detailedGraph: detailedGraphCacheRef.current || undefined,
+    user,
+    getAuthToken,
+    enabled: currentView === 'simulator' && (nodes.length > 0 || Boolean(activePromptText)),
+  });
+
   // Baseline comparison & project modals
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
   const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
@@ -641,26 +664,58 @@ export const App: React.FC = () => {
         }
 
         const route = getProjectRouteInfo();
-        if (route?.projectId) {
-          const cachedArchStr = typeof window !== 'undefined' ? localStorage.getItem(`gitoscale_arch_${route.projectId}`) : null;
-          if (cachedArchStr) {
+
+        // 1. Recover from Browser Storage (Instant recovery upon sudden PC shutdown or refresh)
+        const savedPlayground = loadPlaygroundFromBrowserStorage(route?.projectId);
+        if (savedPlayground && savedPlayground.nodes && savedPlayground.nodes.length > 0) {
+          const verticalNodes = toVerticalTree(savedPlayground.nodes, savedPlayground.edges || []);
+          setNodes(verticalNodes);
+          setEdges(savedPlayground.edges || []);
+          if (savedPlayground.incomingTrafficRate) {
+            setIncomingTrafficRate(savedPlayground.incomingTrafficRate);
+          }
+          if (savedPlayground.viewMode) {
+            setViewMode(savedPlayground.viewMode);
+          }
+          if (savedPlayground.prompt) {
+            setActivePromptText(savedPlayground.prompt);
+          }
+          baseBasicGraphRef.current = { nodes: verticalNodes, edges: savedPlayground.edges || [] };
+          basicGraphCacheRef.current = { nodes: verticalNodes, edges: savedPlayground.edges || [] };
+          if (savedPlayground.detailedGraph) {
+            detailedGraphCacheRef.current = savedPlayground.detailedGraph;
+            baseDetailedGraphRef.current = savedPlayground.detailedGraph;
+          }
+          queueSimulation(verticalNodes, savedPlayground.edges || [], savedPlayground.incomingTrafficRate || 1000, 60);
+          return;
+        }
+
+        // 2. Recover from Cloud Database if user is authenticated and project exists
+        if (route?.projectId && getAuthToken) {
+          const token = getAuthToken();
+          if (token) {
             try {
-              const cachedArch = JSON.parse(cachedArchStr);
-              const nodesList = cachedArch.nodes || (Array.isArray(cachedArch) ? cachedArch : []);
-              if (nodesList.length > 0) {
-                const verticalNodes = toVerticalTree(nodesList, cachedArch.edges || []);
+              const dbRes = await api.getArchitectureHistoryById(token, route.projectId);
+              if (dbRes?.success && dbRes?.data?.architecture_data?.nodes?.length > 0) {
+                const archData = dbRes.data.architecture_data;
+                const genConfig = dbRes.data.generation_config;
+                const verticalNodes = toVerticalTree(archData.nodes, archData.edges || []);
                 setNodes(verticalNodes);
-                setEdges(cachedArch.edges || []);
-                baseBasicGraphRef.current = { nodes: verticalNodes, edges: cachedArch.edges || [] };
-                basicGraphCacheRef.current = { nodes: verticalNodes, edges: cachedArch.edges || [] };
-                if (route.prompt) setActivePromptText(route.prompt);
+                setEdges(archData.edges || []);
+                if (archData.incomingTrafficRate) setIncomingTrafficRate(archData.incomingTrafficRate);
+                if (genConfig?.viewMode) setViewMode(genConfig.viewMode);
+                if (dbRes.data.prompt) setActivePromptText(dbRes.data.prompt);
+                baseBasicGraphRef.current = { nodes: verticalNodes, edges: archData.edges || [] };
+                basicGraphCacheRef.current = { nodes: verticalNodes, edges: archData.edges || [] };
+                queueSimulation(verticalNodes, archData.edges || [], archData.incomingTrafficRate || 1000, 60);
                 return;
               }
-            } catch (e) {
-              console.warn('Failed to parse cached architecture:', e);
+            } catch (dbErr) {
+              console.warn('Could not load architecture from database:', dbErr);
             }
           }
         }
+
         if (route?.prompt) {
           // Will be generated by prompt route effect
           return;
@@ -1965,6 +2020,9 @@ export const App: React.FC = () => {
         nodes={nodes}
         edges={edges}
         projectName={activePromptText || defaultArchitecture?.description || 'GitToScale System Architecture'}
+        saveStatus={saveStatus}
+        lastSaved={lastSaved}
+        onForceSync={forceSyncNow}
       />
 
       {/* 2. Top Metrics Strip */}
