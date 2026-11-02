@@ -1724,7 +1724,7 @@ export const App: React.FC = () => {
         )}
         {isAuthOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
-            <Suspense fallback={<SuspenseLoader />}>
+            <Suspense fallback={<AuthModalSkeleton />}>
               <ModernLoginSignup
                 onClose={() => setIsAuthOpen(false)}
                 onSuccess={(_user) => {
@@ -1740,7 +1740,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'projectWorkspace' && activeProject) {
     return (
-      <Suspense fallback={<SuspenseLoader />}>
+      <Suspense fallback={<AppWorkspaceSkeleton isDark={isDark} />}>
         <ProjectWorkspace
           projectId={activeProject.projectId}
           initialPrompt={activeProject.prompt}
@@ -1758,7 +1758,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'recommender') {
     return (
-      <Suspense fallback={<SuspenseLoader />}>
+      <Suspense fallback={<RecommenderPageSkeleton isDark={isDark} />}>
         <ArchitectureRecommenderPage
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
