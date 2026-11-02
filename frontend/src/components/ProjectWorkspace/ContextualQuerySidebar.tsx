@@ -567,14 +567,6 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
       <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-            {/* Sender label */}
-            <span className="text-[10px] text-slate-400 dark:text-neutral-500 mb-1 px-0.5 flex items-center gap-1">
-              {msg.sender === 'ai' ? (
-                <><Bot className="w-2.5 h-2.5 text-slate-600 dark:text-neutral-400 hover:text-indigo-500 transition-colors" /> AI Agent</>
-              ) : (
-                <><User className="w-2.5 h-2.5 text-slate-400 hover:text-blue-500 transition-colors" /> You</>
-              )}
-            </span>
 
             {/* Thinking indicator */}
             {msg.isThinking ? (
