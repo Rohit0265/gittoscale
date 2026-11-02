@@ -417,7 +417,7 @@ const WORKFLOW_STEPS: CanvasStepData[] = [
   },
 ];
 
-export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
+const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
   onSelectTestSite: _onSelectTestSite,
   onSelectUseRepository: _onSelectUseRepository,
   onOpenRecommender: _onOpenRecommender,
@@ -778,4 +778,5 @@ export const WorkflowSteps: React.FC<WorkflowStepsProps> = ({
   );
 };
 
+export const WorkflowSteps = React.memo(WorkflowStepsComponent);
 export default WorkflowSteps;
