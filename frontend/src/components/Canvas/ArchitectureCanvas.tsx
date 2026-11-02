@@ -84,7 +84,7 @@ const edgeTypes = {
   customEdge: CustomEdge,
 };
 
-export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
+const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   nodes,
   edges,
   nodeResults,
@@ -513,3 +513,5 @@ export const ArchitectureCanvas: React.FC<ArchitectureCanvasProps> = ({
     </div>
   );
 };
+
+export const ArchitectureCanvas = React.memo(ArchitectureCanvasComponent);
