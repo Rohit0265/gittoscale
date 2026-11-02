@@ -591,8 +591,14 @@ export const App: React.FC = () => {
   // Debounce ref for sliders
   const simulateDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
+  // Guard against React 18 StrictMode duplicate initialization
+  const hasInitializedRef = useRef<boolean>(false);
+
   // 1. Load initial fixtures
   useEffect(() => {
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
     async function init() {
       try {
         setLoading(true);
