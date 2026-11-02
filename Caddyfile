@@ -1,0 +1,5 @@
+{$DOMAIN_NAME:localhost} {
+    reverse_proxy gitoscale:3000
+    encode gzip zstd
+}
+

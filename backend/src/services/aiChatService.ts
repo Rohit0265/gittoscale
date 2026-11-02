@@ -838,6 +838,8 @@ async function callGeminiChatStream(
     return { ok: false, error: 'Empty reply from Gemini stream' };
   } catch (err: any) {
     return { ok: false, error: err?.message || 'Gemini stream failed' };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -975,6 +977,8 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
             break;
           } catch (gErr: any) {
             console.warn(`[AI Chat Service] Gemini request error on "${gModel}":`, gErr?.message);
+          } finally {
+            clearTimeout(geminiTimer);
           }
         }
 
