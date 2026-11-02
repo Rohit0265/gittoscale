@@ -721,18 +721,18 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
 
                         {/* Node Titles */}
                         <div className="mb-2">
-                          <h4 className="text-xs font-bold text-white tracking-tight truncate" title={node.label}>
+                          <p className="text-xs font-bold text-white tracking-tight truncate" title={node.label}>
                             {node.label}
-                          </h4>
-                          <span className="text-[10px] font-mono text-neutral-400 truncate block">
+                          </p>
+                          <span className="text-[10px] font-mono text-neutral-300 truncate block">
                             {node.type}
                           </span>
                         </div>
 
                         {/* Node Telemetry Footer */}
-                        <div className="pt-1.5 border-t border-neutral-800/80 flex items-center justify-between text-[9.5px] font-mono text-neutral-400">
+                        <div className="pt-1.5 border-t border-neutral-800/80 flex items-center justify-between text-[9.5px] font-mono text-neutral-300">
                           <span>{node.latency}</span>
-                          <span className="font-semibold text-neutral-200">{node.load}</span>
+                          <span className="font-semibold text-neutral-100">{node.load}</span>
                         </div>
                       </div>
                     </div>

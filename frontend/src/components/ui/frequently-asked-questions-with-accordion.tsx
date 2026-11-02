@@ -68,7 +68,7 @@ export default function FrequentlyAskedQuestions({
   return (
     <section className={cn("relative w-full overflow-hidden py-24", className)}>
       <div className="mx-auto max-w-3xl px-6">
-        <h1 className="relative z-10 mx-auto max-w-4xl text-center text-3xl font-bold leading-[0.94] tracking-tight text-zinc-800 md:text-5xl lg:text-6xl dark:text-zinc-100">
+        <h2 className="relative z-10 mx-auto max-w-4xl text-center text-3xl font-bold leading-[0.94] tracking-tight text-zinc-800 md:text-5xl lg:text-6xl dark:text-zinc-100">
           {/* Mobile View (< sm): separate highlight per line */}
           <span className="sm:hidden flex flex-col items-center">
             <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
@@ -87,9 +87,9 @@ export default function FrequentlyAskedQuestions({
               {secondLineWords.join(" ")}
             </PenHighlight>
           </span>
-        </h1>
+        </h2>
 
-        <p className="relative z-10 mx-auto mt-6 max-w-2xl text-center text-base text-zinc-500 dark:text-zinc-400 md:text-lg">
+        <p className="relative z-10 mx-auto mt-6 max-w-2xl text-center text-base text-zinc-700 dark:text-zinc-300 md:text-lg">
           {description}{" "}
         </p>
 
