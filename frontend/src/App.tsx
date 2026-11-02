@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { api } from './services/api';
 import {
   ArchitectureFixture,
@@ -15,22 +15,53 @@ import { MetricsStrip } from './components/MetricsStrip';
 import { ContextualQuerySidebar } from './components/ProjectWorkspace/ContextualQuerySidebar';
 import { ArchitectureCanvas } from './components/Canvas/ArchitectureCanvas';
 import { RightSidebar } from './components/RightSidebar';
-import { BaselineComparisonModal } from './components/BaselineComparisonModal';
-import { RepositoryImportModal } from './components/RepositoryImportModal';
-import { StartProjectModal } from './components/StartProjectModal';
 import { LandingPage } from './components/LandingPage';
-import { ArchitectureRecommenderPage } from './components/ArchitectureRecommender/ArchitectureRecommenderPage';
-import { ProjectWorkspace } from './components/ProjectWorkspace/ProjectWorkspace';
 import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
-import ModernLoginSignup from './components/ui/modern-login-signup';
-import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
-import { AuthCallback } from './components/auth/AuthCallback';
-import { HistoryDashboard } from './components/history/HistoryDashboard';
-import { LegalPage } from './components/legal/LegalPage';
 import { useAuth } from './contexts/AuthContext';
 import { toVerticalTree } from './utils/treeLayout';
 import { executeArchitectureCommand } from './services/aiAgentExecutor';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
+
+// Code-split heavy routes and modals for fast loading on slow phones & networks
+const BaselineComparisonModal = React.lazy(() =>
+  import('./components/BaselineComparisonModal').then((m) => ({ default: m.BaselineComparisonModal }))
+);
+const RepositoryImportModal = React.lazy(() =>
+  import('./components/RepositoryImportModal').then((m) => ({ default: m.RepositoryImportModal }))
+);
+const StartProjectModal = React.lazy(() =>
+  import('./components/StartProjectModal').then((m) => ({ default: m.StartProjectModal }))
+);
+const ArchitectureRecommenderPage = React.lazy(() =>
+  import('./components/ArchitectureRecommender/ArchitectureRecommenderPage').then((m) => ({
+    default: m.ArchitectureRecommenderPage,
+  }))
+);
+const ProjectWorkspace = React.lazy(() =>
+  import('./components/ProjectWorkspace/ProjectWorkspace').then((m) => ({ default: m.ProjectWorkspace }))
+);
+const ModernLoginSignup = React.lazy(() => import('./components/ui/modern-login-signup'));
+const ForgotPasswordPage = React.lazy(() =>
+  import('./components/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+);
+const AuthCallback = React.lazy(() =>
+  import('./components/auth/AuthCallback').then((m) => ({ default: m.AuthCallback }))
+);
+const HistoryDashboard = React.lazy(() =>
+  import('./components/history/HistoryDashboard').then((m) => ({ default: m.HistoryDashboard }))
+);
+const LegalPage = React.lazy(() =>
+  import('./components/legal/LegalPage').then((m) => ({ default: m.LegalPage }))
+);
+
+const SuspenseLoader: React.FC = () => (
+  <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-[#020202]">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs text-slate-400 font-medium tracking-wide">Loading GitOScale...</span>
+    </div>
+  </div>
+);
 
 const APP_SUBDOMAIN_URL = 'https://app.gittoscale.tech';
 const LANDING_DOMAIN_URL = 'https://gittoscale.tech';
