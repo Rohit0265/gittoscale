@@ -124,7 +124,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       };
 
       const payload: RecommenderInput = {
-        projectDescription: prompt,
+        projectDescription: customRefinement || prompt || 'Scalable distributed cloud architecture',
         expectedScale: scaleMap[selectedAnswers.scale || 'scale_growth'],
         budgetConstraint: budgetMap[selectedAnswers.budget || 'budget_balanced'],
         preferredTech: [
@@ -230,6 +230,13 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         } else {
           setBasicGraph({ nodes: execResult.updatedNodes, edges: execResult.updatedEdges });
 
+          // Keep detailed graph in sync when adding or updating components
+          if (execResult.actionType !== 'delete_node') {
+            const detailed = buildDetailedArchitecture(execResult.updatedNodes, execResult.updatedEdges, command);
+            const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+            setDetailedGraph({ nodes: verticalDetailedNodes, edges: detailed.edges });
+          }
+
           // Also reflect deletion in detailedGraph if a component tier was deleted
           if (execResult.actionType === 'delete_node' && execResult.reflectedDeletedTypes) {
             const delTypes = new Set(execResult.reflectedDeletedTypes);
@@ -297,7 +304,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         }
       }
 
-      handleCustomChatMessage(targetPrompt);
+      setPrompt((prev) => (prev ? `${prev} • ${targetPrompt}` : targetPrompt));
+      await handleHydrateArchitecture(targetPrompt);
       const replyText = `🔄 **Architecture Rendered on Canvas**: Successfully synthesized and rendered the architecture for **"${targetPrompt}"** on the canvas. Re-evaluated all tiers, connections, and latency profiles.`;
       if (onToken) {
         const words = replyText.split(/(\s+)/);

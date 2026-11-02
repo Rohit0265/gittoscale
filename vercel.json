@@ -21,8 +21,7 @@
     {
       "source": "/:path*",
       "destination": {
-        "service": "web",
-        "path": "/:path*"
+        "service": "web"
       }
     }
   ],

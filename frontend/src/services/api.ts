@@ -15,8 +15,8 @@ const API_BASE = CLEAN_URL
   ? (CLEAN_URL.endsWith('/api') ? CLEAN_URL : `${CLEAN_URL}/api`)
   : '/api';
 
-// Safe default timeout (30 seconds) to prevent infinite pending state on slow mobile networks
-axios.defaults.timeout = 30000;
+// Safe default timeout (60 seconds) to allow multi-tier LLM generation & prevent premature aborts
+axios.defaults.timeout = 60000;
 
 // =========================================================================
 // In-Flight Request Deduplication & Cache Layer

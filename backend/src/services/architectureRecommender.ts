@@ -74,72 +74,87 @@ export async function recommendArchitecture(
     baseUrl: input.llmConfig?.baseUrl || (provider === 'mercury' || provider === 'mercury-3' ? process.env.MERCURY_BASE_URL : undefined),
   };
 
-  // 2. If API Key is present, attempt LLM call
+  // 2. If API Key is present, attempt LLM call with a strict 14-second ceiling to prevent 30s timeouts
   if (config.apiKey || (provider === 'other' && config.baseUrl)) {
     try {
-      let llmResult: any = null;
-      if (provider === 'mercury' || provider === 'mercury-3') {
-        llmResult = await callMercuryRecommender(input, config);
-      } else if (provider === 'gemini') {
-        try {
-          llmResult = await callGeminiRecommender(input, config);
-        } catch (geminiErr) {
-          if (process.env.GROQ_API_KEY) {
-            try {
-              console.info('[Architecture Recommender] Gemini failed or high demand detected. Seamlessly failing over to Groq...');
-              llmResult = await callGroqRecommender(input, process.env.GROQ_API_KEY, process.env.GROQ_MODEL);
-            } catch (groqErr) {
-              if (process.env.MERCURY_API_KEY) {
-                console.info('[Architecture Recommender] Groq also failed. Seamlessly failing over to Mercury-3...');
-                llmResult = await callMercuryRecommender(input, {
-                  provider: 'mercury',
-                  apiKey: process.env.MERCURY_API_KEY,
-                  baseUrl: process.env.MERCURY_BASE_URL,
-                  model: process.env.MERCURY_MODEL,
-                });
-              } else {
-                throw groqErr;
+      const llmAttempt = (async () => {
+        let llmResult: any = null;
+        if (provider === 'mercury' || provider === 'mercury-3') {
+          llmResult = await callMercuryRecommender(input, config);
+        } else if (provider === 'gemini') {
+          try {
+            llmResult = await callGeminiRecommender(input, config);
+          } catch (geminiErr) {
+            if (process.env.GROQ_API_KEY) {
+              try {
+                console.info('[Architecture Recommender] Gemini failed or timed out. Seamlessly failing over to Groq...');
+                llmResult = await callGroqRecommender(input, process.env.GROQ_API_KEY, process.env.GROQ_MODEL);
+              } catch (groqErr) {
+                if (process.env.MERCURY_API_KEY) {
+                  console.info('[Architecture Recommender] Groq also failed. Seamlessly failing over to Mercury-3...');
+                  llmResult = await callMercuryRecommender(input, {
+                    provider: 'mercury',
+                    apiKey: process.env.MERCURY_API_KEY,
+                    baseUrl: process.env.MERCURY_BASE_URL,
+                    model: process.env.MERCURY_MODEL,
+                  });
+                } else {
+                  throw groqErr;
+                }
               }
+            } else if (process.env.MERCURY_API_KEY) {
+              console.info('[Architecture Recommender] Gemini failed. Seamlessly failing over to Mercury-3...');
+              llmResult = await callMercuryRecommender(input, {
+                provider: 'mercury',
+                apiKey: process.env.MERCURY_API_KEY,
+                baseUrl: process.env.MERCURY_BASE_URL,
+                model: process.env.MERCURY_MODEL,
+              });
+            } else {
+              throw geminiErr;
             }
-          } else if (process.env.MERCURY_API_KEY) {
-            console.info('[Architecture Recommender] Gemini failed. Seamlessly failing over to Mercury-3...');
-            llmResult = await callMercuryRecommender(input, {
-              provider: 'mercury',
-              apiKey: process.env.MERCURY_API_KEY,
-              baseUrl: process.env.MERCURY_BASE_URL,
-              model: process.env.MERCURY_MODEL,
-            });
-          } else {
-            throw geminiErr;
           }
-        }
-      } else if (provider === 'groq') {
-        try {
-          llmResult = await callGroqRecommender(input, config.apiKey || process.env.GROQ_API_KEY || '', config.model);
-        } catch (groqErr) {
-          if (process.env.MERCURY_API_KEY) {
-            console.info('[Architecture Recommender] Groq failed. Seamlessly failing over to Mercury-3...');
-            llmResult = await callMercuryRecommender(input, {
-              provider: 'mercury',
-              apiKey: process.env.MERCURY_API_KEY,
-              baseUrl: process.env.MERCURY_BASE_URL,
-              model: process.env.MERCURY_MODEL,
-            });
-          } else {
-            throw groqErr;
+        } else if (provider === 'groq') {
+          try {
+            llmResult = await callGroqRecommender(input, config.apiKey || process.env.GROQ_API_KEY || '', config.model);
+          } catch (groqErr) {
+            if (process.env.MERCURY_API_KEY) {
+              console.info('[Architecture Recommender] Groq failed. Seamlessly failing over to Mercury-3...');
+              llmResult = await callMercuryRecommender(input, {
+                provider: 'mercury',
+                apiKey: process.env.MERCURY_API_KEY,
+                baseUrl: process.env.MERCURY_BASE_URL,
+                model: process.env.MERCURY_MODEL,
+              });
+            } else {
+              throw groqErr;
+            }
           }
+        } else if (provider === 'anthropic') {
+          llmResult = await callAnthropicRecommender(input, config);
+        } else {
+          llmResult = await callOpenAIRecommender(input, config);
         }
-      } else if (provider === 'anthropic') {
-        llmResult = await callAnthropicRecommender(input, config);
-      } else {
-        llmResult = await callOpenAIRecommender(input, config);
-      }
 
-      if (llmResult) {
-        const validated = validateAndSanitizeRecommendation(llmResult, input);
-        if (validated) {
-          return validated;
+        if (llmResult) {
+          const validated = validateAndSanitizeRecommendation(llmResult, input);
+          if (validated) {
+            return validated;
+          }
         }
+        return null;
+      })();
+
+      const timeoutPromise = new Promise<null>((resolve) =>
+        setTimeout(() => {
+          console.warn('[Architecture Recommender] Total LLM generation time limit reached (14s). Fast-falling back to expert synthesis.');
+          resolve(null);
+        }, 14000)
+      );
+
+      const result = await Promise.race([llmAttempt, timeoutPromise]);
+      if (result) {
+        return result;
       }
     } catch (err) {
       console.warn(
@@ -273,6 +288,17 @@ Respond with ONLY valid JSON (no markdown formatting, no code fences, no extra c
 }`;
 }
 
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 7000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function callMercuryRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
   const prompt = buildRecommenderPrompt(input);
   const baseUrl = config.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
@@ -283,25 +309,29 @@ async function callMercuryRecommender(input: RecommenderInput, config: LLMConfig
 
   const model = config.model || process.env.MERCURY_MODEL || 'mercury-3';
 
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.apiKey}`,
+  const res = await fetchWithTimeout(
+    endpoint,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an elite distributed systems architect. Synthesize production cloud system design topologies. Respond strictly with valid JSON only matching the schema.',
+          },
+          { role: 'user', content: prompt },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.2,
+      }),
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an elite distributed systems architect. Synthesize production cloud system design topologies. Respond strictly with valid JSON only matching the schema.',
-        },
-        { role: 'user', content: prompt },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.2,
-    }),
-  });
+    7000
+  );
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => '');
@@ -328,18 +358,22 @@ async function callOpenAIRecommender(input: RecommenderInput, config: LLMConfig)
       : `${cleanBase}/chat/completions`;
   }
 
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.apiKey}`,
+  const res = await fetchWithTimeout(
+    endpoint,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.model || 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' },
+      }),
     },
-    body: JSON.stringify({
-      model: config.model || 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-    }),
-  });
+    7000
+  );
 
   if (!res.ok) {
     throw new Error(`OpenAI API failed: ${res.status} ${await res.text()}`);
@@ -359,31 +393,33 @@ async function callGroqRecommender(
   const models = Array.from(
     new Set(
       [
-        preferredModel,
-        process.env.GROQ_MODEL,
+        preferredModel && !preferredModel.includes('/') ? preferredModel : null,
         'llama-3.1-8b-instant',
         'llama-3.3-70b-versatile',
-        'llama-3.1-70b-versatile',
       ].filter(Boolean) as string[]
     )
-  );
+  ).slice(0, 2);
 
   let lastError: any = null;
   for (const model of models) {
     try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
+      const res = await fetchWithTimeout(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' },
+            temperature: 0.2,
+          }),
         },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt }],
-          response_format: { type: 'json_object' },
-          temperature: 0.2,
-        }),
-      });
+        6000
+      );
 
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
@@ -411,39 +447,41 @@ async function callGroqRecommender(
 
 async function callGeminiRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
   const prompt = buildRecommenderPrompt(input);
-  const preferredModel = config.model || 'gemini-2.0-flash';
+  const preferredModel = config.model && !config.model.includes('3.5') ? config.model : null;
   const models = Array.from(
     new Set(
       [
         preferredModel,
         'gemini-2.0-flash',
         'gemini-1.5-flash',
-        'gemini-2.5-flash',
-        'gemini-1.5-flash-8b',
         'gemini-1.5-pro',
       ].filter(Boolean) as string[]
     )
-  );
+  ).slice(0, 2);
 
   let lastError: any = null;
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
     try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json' },
-        }),
-      });
+      const res = await fetchWithTimeout(
+        url,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json' },
+          }),
+        },
+        6000
+      );
 
       if (!res.ok) {
         const status = res.status;
         const errText = await res.text().catch(() => '');
         lastError = new Error(`Gemini API failed: ${status} ${errText}`);
-        if (status === 503 || status === 404 || status === 429) {
+        if (status === 503 || status === 404 || status === 429 || status === 400) {
           console.warn(
             `[Architecture Recommender] Gemini model "${model}" returned ${status} (${errText.slice(0, 100)}). Retrying with next model candidate...`
           );
@@ -468,19 +506,23 @@ async function callAnthropicRecommender(input: RecommenderInput, config: LLMConf
   const prompt = buildRecommenderPrompt(input);
   const model = config.model || 'claude-3-5-sonnet-20241022';
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': config.apiKey || '',
-      'anthropic-version': '2023-06-01',
+  const res = await fetchWithTimeout(
+    'https://api.anthropic.com/v1/messages',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': config.apiKey || '',
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     },
-    body: JSON.stringify({
-      model,
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
+    7000
+  );
 
   if (!res.ok) {
     throw new Error(`Anthropic API failed: ${res.status} ${await res.text()}`);

@@ -1,4 +1,5 @@
 import { ArchitectureNode, ArchitectureEdge, ComponentType, SimulationResult } from '../types';
+import { toVerticalTree } from '../utils/treeLayout';
 
 export interface AgentCommandExecutionResult {
   executed: boolean;
@@ -473,6 +474,427 @@ export function findReflectedNodesToDelete(
   };
 }
 
+interface DomainPreset {
+  title: string;
+  trafficRate: number;
+  basicNodes: ArchitectureNode[];
+  basicEdges: ArchitectureEdge[];
+  explanation: string;
+}
+
+function buildDomainArchitecturePreset(topic: string): DomainPreset {
+  const lower = topic.toLowerCase();
+
+  // 1. Reddit / Forum / Upvotes / Subreddit
+  if (lower.includes('reddit') || lower.includes('forum') || lower.includes('upvote') || lower.includes('subreddit')) {
+    const nodes: ArchitectureNode[] = [
+      {
+        id: 'client-ingress',
+        name: 'Client Traffic Generator',
+        type: 'load_generator',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 25000,
+        workerCount: 1,
+        enabled: true,
+        config: { baselineLatencyMs: 2, maxQueueSize: 20000, overflowPolicy: 'reject', isSource: true, defaultTrafficRate: 5000 },
+      },
+      {
+        id: 'api-gateway',
+        name: 'Envoy API Gateway & WAF',
+        type: 'gateway',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 10000,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 4, maxQueueSize: 10000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'reddit-core-service',
+        name: 'Post & Comment Microservice',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 4500,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 12, maxQueueSize: 5000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'redis-feed-cache',
+        name: 'Redis Subreddit & Hot Feeds Cache',
+        type: 'cache',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 12000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 1, maxQueueSize: 15000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'kafka-vote-stream',
+        name: 'Kafka Vote & Activity Stream',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 8000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 3, maxQueueSize: 20000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'postgres-primary-db',
+        name: 'PostgreSQL Primary Database',
+        type: 'database',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 4000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 16, maxQueueSize: 3000, overflowPolicy: 'reject' },
+      },
+    ];
+
+    const edges: ArchitectureEdge[] = [
+      { id: 'e-client-gw', source: 'client-ingress', target: 'api-gateway', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: '5k req/s HTTP' },
+      { id: 'e-gw-service', source: 'api-gateway', target: 'reddit-core-service', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: 'gRPC Routing' },
+      { id: 'e-service-cache', source: 'reddit-core-service', target: 'redis-feed-cache', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: 'Subreddit Cache (85% Hit)' },
+      { id: 'e-service-kafka', source: 'reddit-core-service', target: 'kafka-vote-stream', requestsPerInput: 0.8, enabled: true, isBidirectional: true, label: 'Async Votes & Karma' },
+      { id: 'e-service-db', source: 'reddit-core-service', target: 'postgres-primary-db', requestsPerInput: 0.15, enabled: true, isBidirectional: true, label: 'Post Writes & Misses' },
+      { id: 'e-kafka-db', source: 'kafka-vote-stream', target: 'postgres-primary-db', requestsPerInput: 0.3, enabled: true, isBidirectional: true, label: 'Batched Karma Persist' },
+    ];
+
+    return {
+      title: 'Reddit Scalable Subreddit & Voting Architecture',
+      trafficRate: 5000,
+      basicNodes: nodes,
+      basicEdges: edges,
+      explanation: `🏛️ **Reddit Architecture Rendered on Canvas**:\n\n1. **Client Traffic Generator**: Simulating 5,000 req/s community reading & voting load.\n2. **Envoy API Gateway**: Ingress TLS 1.3 termination, rate limiting, and route decomposition.\n3. **Post & Comment Microservice**: Manages submission processing, recursive nested comment trees, and user interactions.\n4. **Redis Subreddit & Hot Feeds Cache**: In-memory caching absorbing 85% of subreddit homepage traffic with sub-millisecond latency.\n5. **Kafka Vote & Activity Stream**: High-throughput message broker buffering upvotes/downvotes to prevent database write locks.\n6. **PostgreSQL Primary Database**: ACID relational persistence for subreddits, user accounts, and comment hierarchies.\n\n*All components and connections are live and painted on your interactive canvas.*`,
+    };
+  }
+
+  // 2. Uber / Ride-Sharing
+  if (lower.includes('uber') || lower.includes('ride') || lower.includes('lyft') || lower.includes('taxi')) {
+    const nodes: ArchitectureNode[] = [
+      {
+        id: 'client-ingress',
+        name: 'Rider & Driver Traffic Generator',
+        type: 'load_generator',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 30000,
+        workerCount: 1,
+        enabled: true,
+        config: { baselineLatencyMs: 2, maxQueueSize: 20000, overflowPolicy: 'reject', isSource: true, defaultTrafficRate: 8000 },
+      },
+      {
+        id: 'api-gateway',
+        name: 'Envoy Edge Gateway & Dispatch Router',
+        type: 'gateway',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 15000,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 3, maxQueueSize: 10000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'uber-dispatch-service',
+        name: 'Ride Matching & Dispatch Engine',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 5000,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 10, maxQueueSize: 5000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'redis-geo-cache',
+        name: 'Redis Geospatial Index (H3)',
+        type: 'cache',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 15000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 1, maxQueueSize: 20000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'kafka-location-stream',
+        name: 'Kafka Driver GPS Telemetry Stream',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 12000,
+        workerCount: 3,
+        enabled: true,
+        config: { baselineLatencyMs: 3, maxQueueSize: 30000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'postgres-trips-db',
+        name: 'PostgreSQL Trips & Billing DB',
+        type: 'database',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 4500,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 15, maxQueueSize: 4000, overflowPolicy: 'reject' },
+      },
+    ];
+
+    const edges: ArchitectureEdge[] = [
+      { id: 'e-client-gw', source: 'client-ingress', target: 'api-gateway', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+      { id: 'e-gw-service', source: 'api-gateway', target: 'uber-dispatch-service', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+      { id: 'e-service-geo', source: 'uber-dispatch-service', target: 'redis-geo-cache', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: 'Driver Proximity Lookup' },
+      { id: 'e-service-kafka', source: 'uber-dispatch-service', target: 'kafka-location-stream', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: 'GPS Pings & ETA' },
+      { id: 'e-service-db', source: 'uber-dispatch-service', target: 'postgres-trips-db', requestsPerInput: 0.2, enabled: true, isBidirectional: true, label: 'Completed Fares' },
+    ];
+
+    return {
+      title: 'Uber Real-Time Dispatch & Geospatial Architecture',
+      trafficRate: 8000,
+      basicNodes: nodes,
+      basicEdges: edges,
+      explanation: `🚖 **Uber Dispatch Architecture Rendered on Canvas**:\n\n1. **Rider & Driver Traffic Generator**: High-frequency telemetry and dispatch pings.\n2. **Envoy Edge Gateway**: WebSocket and HTTP/2 multiplexing for live vehicle tracking.\n3. **Ride Matching Engine**: Computes spatial ETA and matches riders to nearby available drivers.\n4. **Redis Geospatial Index (H3)**: High-performance geospatial index storing real-time driver coordinates.\n5. **Kafka Driver GPS Telemetry Stream**: Buffers raw location updates asynchronously.\n6. **PostgreSQL Trips & Billing DB**: ACID records for completed trips, payments, and ratings.`,
+    };
+  }
+
+  // 3. Netflix / Streaming
+  if (lower.includes('netflix') || lower.includes('stream') || lower.includes('video') || lower.includes('youtube')) {
+    const nodes: ArchitectureNode[] = [
+      {
+        id: 'client-ingress',
+        name: 'Video Playback Traffic Generator',
+        type: 'load_generator',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 35000,
+        workerCount: 1,
+        enabled: true,
+        config: { baselineLatencyMs: 2, maxQueueSize: 25000, overflowPolicy: 'reject', isSource: true, defaultTrafficRate: 10000 },
+      },
+      {
+        id: 'api-gateway',
+        name: 'Cloudflare Edge CDN & API Gateway',
+        type: 'gateway',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 20000,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 2, maxQueueSize: 20000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'video-service',
+        name: 'Video Catalog & Playback API',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 6000,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 8, maxQueueSize: 8000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'redis-metadata-cache',
+        name: 'Redis User Profile & Metadata Cache',
+        type: 'cache',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 15000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 1, maxQueueSize: 15000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'kafka-playback-stream',
+        name: 'Kafka Viewing History & Metrics Stream',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 10000,
+        workerCount: 3,
+        enabled: true,
+        config: { baselineLatencyMs: 3, maxQueueSize: 25000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'postgres-catalog-db',
+        name: 'PostgreSQL Movie Catalog DB',
+        type: 'database',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 5000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 14, maxQueueSize: 5000, overflowPolicy: 'reject' },
+      },
+    ];
+
+    const edges: ArchitectureEdge[] = [
+      { id: 'e-client-gw', source: 'client-ingress', target: 'api-gateway', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+      { id: 'e-gw-service', source: 'api-gateway', target: 'video-service', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+      { id: 'e-service-cache', source: 'video-service', target: 'redis-metadata-cache', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: 'Title & Profile Cache' },
+      { id: 'e-service-kafka', source: 'video-service', target: 'kafka-playback-stream', requestsPerInput: 0.9, enabled: true, isBidirectional: true, label: 'Heartbeat & Watch History' },
+      { id: 'e-service-db', source: 'video-service', target: 'postgres-catalog-db', requestsPerInput: 0.1, enabled: true, isBidirectional: true, label: 'Catalog Misses' },
+    ];
+
+    return {
+      title: 'Netflix High-Throughput Video Streaming Architecture',
+      trafficRate: 10000,
+      basicNodes: nodes,
+      basicEdges: edges,
+      explanation: `🍿 **Netflix Video Streaming Architecture Rendered on Canvas**:\n\n1. **Video Playback Traffic Generator**: Simulating 10,000 req/s concurrent stream requests.\n2. **Cloudflare Edge CDN & API Gateway**: Anycast edge caching video chunks and terminating TLS.\n3. **Video Catalog & Playback API**: Serves manifests, audio/subtitle tracks, and playback licenses.\n4. **Redis Profile & Metadata Cache**: Absorbs 90% of user profile queries.\n5. **Kafka Viewing History Stream**: Ingests playhead position and QoS telemetry.\n6. **PostgreSQL Movie Catalog DB**: Master schema for movies, shows, and seasons.`,
+    };
+  }
+
+  // 4. E-Commerce / Amazon / Marketplace
+  if (lower.includes('commerce') || lower.includes('amazon') || lower.includes('shop') || lower.includes('cart') || lower.includes('store')) {
+    const nodes: ArchitectureNode[] = [
+      {
+        id: 'client-ingress',
+        name: 'Shopper Traffic Generator',
+        type: 'load_generator',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 25000,
+        workerCount: 1,
+        enabled: true,
+        config: { baselineLatencyMs: 2, maxQueueSize: 20000, overflowPolicy: 'reject', isSource: true, defaultTrafficRate: 6000 },
+      },
+      {
+        id: 'api-gateway',
+        name: 'Envoy E-Commerce API Gateway',
+        type: 'gateway',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 12000,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 3, maxQueueSize: 10000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'order-service',
+        name: 'Product & Order Processing Service',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 4500,
+        workerCount: 4,
+        enabled: true,
+        config: { baselineLatencyMs: 12, maxQueueSize: 5000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'redis-inventory-cache',
+        name: 'Redis Cart & Inventory Cache',
+        type: 'cache',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 12000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 1, maxQueueSize: 15000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'kafka-order-stream',
+        name: 'Kafka Checkout & Fulfillment Stream',
+        type: 'service',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 8000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 4, maxQueueSize: 20000, overflowPolicy: 'reject' },
+      },
+      {
+        id: 'postgres-orders-db',
+        name: 'PostgreSQL Orders & Ledger DB',
+        type: 'database',
+        position: { x: 0, y: 0 },
+        capacityPerSecond: 4000,
+        workerCount: 2,
+        enabled: true,
+        config: { baselineLatencyMs: 16, maxQueueSize: 3000, overflowPolicy: 'reject' },
+      },
+    ];
+
+    const edges: ArchitectureEdge[] = [
+      { id: 'e-client-gw', source: 'client-ingress', target: 'api-gateway', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+      { id: 'e-gw-service', source: 'api-gateway', target: 'order-service', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+      { id: 'e-service-cache', source: 'order-service', target: 'redis-inventory-cache', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: 'Cart & Stock Check' },
+      { id: 'e-service-kafka', source: 'order-service', target: 'kafka-order-stream', requestsPerInput: 0.8, enabled: true, isBidirectional: true, label: 'Async Payment & Invoice' },
+      { id: 'e-service-db', source: 'order-service', target: 'postgres-orders-db', requestsPerInput: 0.2, enabled: true, isBidirectional: true, label: 'ACID Order Creation' },
+    ];
+
+    return {
+      title: 'E-Commerce High-Availability Checkout Architecture',
+      trafficRate: 6000,
+      basicNodes: nodes,
+      basicEdges: edges,
+      explanation: `🛒 **E-Commerce Architecture Rendered on Canvas**:\n\n1. **Shopper Traffic Generator**: Simulating 6,000 req/s browsing and checkout traffic.\n2. **Envoy API Gateway**: Ingress rate limiting and JWT auth token validation.\n3. **Product & Order Service**: Executes atomic cart checkouts and reservations.\n4. **Redis Inventory Cache**: Fast-path stock checks preventing database lockups during flash sales.\n5. **Kafka Fulfillment Stream**: Decouples payment gateway webhooks and warehouse logistics.\n6. **PostgreSQL Orders DB**: Strict ACID ledger ensuring zero double-charging.`,
+    };
+  }
+
+  // 5. Default / Scalable Distributed Microservices
+  const nodes: ArchitectureNode[] = [
+    {
+      id: 'client-ingress',
+      name: 'Client Traffic Generator',
+      type: 'load_generator',
+      position: { x: 0, y: 0 },
+      capacityPerSecond: 25000,
+      workerCount: 1,
+      enabled: true,
+      config: { baselineLatencyMs: 2, maxQueueSize: 20000, overflowPolicy: 'reject', isSource: true, defaultTrafficRate: 5000 },
+    },
+    {
+      id: 'api-gateway',
+      name: 'Envoy API Gateway & WAF',
+      type: 'gateway',
+      position: { x: 0, y: 0 },
+      capacityPerSecond: 10000,
+      workerCount: 4,
+      enabled: true,
+      config: { baselineLatencyMs: 3, maxQueueSize: 10000, overflowPolicy: 'reject' },
+    },
+    {
+      id: 'core-service',
+      name: 'Core Application Service',
+      type: 'service',
+      position: { x: 0, y: 0 },
+      capacityPerSecond: 4500,
+      workerCount: 4,
+      enabled: true,
+      config: { baselineLatencyMs: 12, maxQueueSize: 5000, overflowPolicy: 'reject' },
+    },
+    {
+      id: 'redis-cache',
+      name: 'Redis In-Memory Cache',
+      type: 'cache',
+      position: { x: 0, y: 0 },
+      capacityPerSecond: 12000,
+      workerCount: 2,
+      enabled: true,
+      config: { baselineLatencyMs: 1, maxQueueSize: 15000, overflowPolicy: 'reject' },
+    },
+    {
+      id: 'kafka-queue',
+      name: 'Kafka Event Broker',
+      type: 'service',
+      position: { x: 0, y: 0 },
+      capacityPerSecond: 8000,
+      workerCount: 2,
+      enabled: true,
+      config: { baselineLatencyMs: 3, maxQueueSize: 20000, overflowPolicy: 'reject' },
+    },
+    {
+      id: 'postgres-db',
+      name: 'PostgreSQL Database',
+      type: 'database',
+      position: { x: 0, y: 0 },
+      capacityPerSecond: 4000,
+      workerCount: 2,
+      enabled: true,
+      config: { baselineLatencyMs: 16, maxQueueSize: 3000, overflowPolicy: 'reject' },
+    },
+  ];
+
+  const edges: ArchitectureEdge[] = [
+    { id: 'e-client-gw', source: 'client-ingress', target: 'api-gateway', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+    { id: 'e-gw-service', source: 'api-gateway', target: 'core-service', requestsPerInput: 1.0, enabled: true, isBidirectional: true },
+    { id: 'e-service-cache', source: 'core-service', target: 'redis-cache', requestsPerInput: 1.0, enabled: true, isBidirectional: true, label: 'Cache-Aside' },
+    { id: 'e-service-kafka', source: 'core-service', target: 'kafka-queue', requestsPerInput: 0.8, enabled: true, isBidirectional: true, label: 'Async Events' },
+    { id: 'e-service-db', source: 'core-service', target: 'postgres-db', requestsPerInput: 0.2, enabled: true, isBidirectional: true, label: 'ACID Storage' },
+  ];
+
+  return {
+    title: 'Scalable Distributed Microservice Architecture',
+    trafficRate: 5000,
+    basicNodes: nodes,
+    basicEdges: edges,
+    explanation: `🏗️ **Architecture Rendered on Canvas**:\n\n1. **Client Traffic Generator**: Set to 5,000 req/s.\n2. **Envoy API Gateway**: Ingress traffic shaping and routing.\n3. **Core Application Service**: High-concurrency worker cluster.\n4. **Redis In-Memory Cache**: Low-latency cache tier.\n5. **Kafka Event Broker**: Asynchronous queue buffer.\n6. **PostgreSQL Database**: Persistent relational data store.`,
+  };
+}
+
 /**
  * Executes natural language commands on the active architecture
  */
@@ -493,6 +915,56 @@ export function executeArchitectureCommand(
       ''
     )
     .trim();
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // 0. DOMAIN ARCHITECTURE & DIRECT CANVAS GENERATION
+  // ("make architecture for reddit", "reddit architecture", "the ai didnt show the architect in the canvas", etc.)
+  // ───────────────────────────────────────────────────────────────────────────
+  const isMetaCanvasQuery =
+    cleanedLower.includes('didnt show') ||
+    cleanedLower.includes("didn't show") ||
+    cleanedLower.includes('show the architect') ||
+    cleanedLower.includes('show the architecture') ||
+    cleanedLower.includes('show architecture') ||
+    cleanedLower.includes('in the canvas') ||
+    cleanedLower.includes('on the canvas') ||
+    cleanedLower.includes('on canvas') ||
+    cleanedLower.includes('canvas didnt update') ||
+    cleanedLower.includes("canvas didn't update");
+
+  const hasCreationVerb =
+    /(?:make|create|generate|design|build|architect|synthesize|draw|show|cook|construct|draft|develop|model|setup|produce|give\s+me|provide|render|display)\s+/i.test(cleanedLower) ||
+    /(?:make|create|generate|design|build|architect|synthesize|draw|show|cook|construct|draft|develop|model|setup|produce|give\s+me|provide|render|display)\s+/i.test(lower);
+
+  const hasSystemNoun =
+    /(?:architecture|architect|system|blueprint|app|application|platform|pipeline|stack|infra(?:structure)?|topology|backend|microservices?|cluster|design|workflow|solution)/i.test(cleanedLower) ||
+    /(?:architecture|architect|system|blueprint|app|application|platform|pipeline|stack|infra(?:structure)?|topology|backend|microservices?|cluster|design|workflow|solution)/i.test(lower);
+
+  const hasDomainKeyword =
+    /(?:reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i.test(cleanedLower) ||
+    /(?:reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i.test(lower);
+
+  if (
+    hasDomainKeyword ||
+    (hasCreationVerb && hasSystemNoun) ||
+    (isMetaCanvasQuery && currentNodes.length <= 1)
+  ) {
+    const domainMatch = cleanedLower.match(/(reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i) ||
+      lower.match(/(reddit|uber|netflix|airbnb|instagram|whatsapp|slack|twitter|stripe|amazon|youtube|tiktok|spotify|discord|pinterest|linkedin|ecommerce|e-commerce|shopping|rideshare)/i);
+    const domainTopic = domainMatch ? domainMatch[1] : (cleanedLower || 'scalable system');
+
+    const preset = buildDomainArchitecturePreset(domainTopic);
+    const verticalNodes = toVerticalTree(preset.basicNodes, preset.basicEdges);
+
+    return {
+      executed: true,
+      actionType: 'add_node',
+      updatedNodes: verticalNodes,
+      updatedEdges: preset.basicEdges,
+      updatedTrafficRate: preset.trafficRate,
+      explanation: preset.explanation,
+    };
+  }
 
   // ───────────────────────────────────────────────────────────────────────────
   // 0. REQUIREMENT INTAKE ("add more requirement", "add requirement", "new requirement", "requirement: ...")
