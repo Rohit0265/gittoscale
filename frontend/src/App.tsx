@@ -1723,7 +1723,7 @@ export const App: React.FC = () => {
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 dark:bg-[#0A0A0A]/95 border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white shadow-lg backdrop-blur-md text-xs font-medium">
               <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-neutral-400 animate-ping" />
               <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-amber-500 transition-colors animate-spin" />
-              <span>Synthesizing system architecture from requirements...</span>
+              <span>Loading Your Design...</span>
             </div>
           )}
           {nodes.length === 0 && !isGeneratingArchitecture && (
