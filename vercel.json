@@ -18,6 +18,20 @@
       }
     },
     {
+      "source": "/assets/(.*)",
+      "destination": {
+        "service": "web",
+        "path": "/assets/$1"
+      }
+    },
+    {
+      "source": "/((?!api/|assets/|.*\\.[a-zA-Z0-9]+$).*)",
+      "destination": {
+        "service": "web",
+        "path": "/index.html"
+      }
+    },
+    {
       "source": "/(.*)",
       "destination": {
         "service": "web"

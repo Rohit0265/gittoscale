@@ -21,7 +21,8 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
 
   if (status === 'saving') {
     return (
-      <div>
+      <div className={`text-xs text-muted-foreground ${className}`}>
+        Saving...
       </div>
     );
   }
@@ -29,21 +30,30 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
   if (status === 'saved') {
     const timeStr = formatTime(lastSaved);
     return (
-      <div>
+      <div className={`text-xs text-muted-foreground ${className}`} title={timeStr ? `Saved at ${timeStr}` : undefined}>
+        Saved {timeStr ? `(${timeStr})` : ''}
       </div>
     );
   }
 
   if (status === 'local_only') {
     return (
-      <div>
+      <div className={`text-xs text-amber-500 ${className}`}>
+        Saved locally
       </div>
     );
   }
 
   if (status === 'error') {
     return (
-      <div></div>
+      <div className={`text-xs text-red-500 flex items-center gap-1 ${className}`}>
+        Save failed
+        {onForceSync && (
+          <button onClick={onForceSync} className="underline hover:text-red-600">
+            Retry
+          </button>
+        )}
+      </div>
     );
   }
 

@@ -8,3 +8,5 @@ coverage
 .*
 .vercel
 test-results/
+perf-results/
+perf-audit-report.json
