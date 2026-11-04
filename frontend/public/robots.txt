@@ -1,4 +1,19 @@
+# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
+Allow: /app
+Allow: /simulator
+Allow: /architect
+Allow: /terms
+Allow: /privacy-policy
+Allow: /cookie-policy
 
+# Disallow private user sessions, internal APIs, and auth callbacks
+Disallow: /api/
+Disallow: /auth/
+Disallow: /history
+Disallow: /product/
+Disallow: /project/
+
+# Sitemaps
 Sitemap: https://gittoscale.tech/sitemap.xml
