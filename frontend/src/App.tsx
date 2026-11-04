@@ -1894,6 +1894,27 @@ export const App: React.FC = () => {
     );
   }
 
+  if (currentView === 'unverified') {
+    return (
+      <Suspense fallback={<LegalPageSkeleton />}>
+        <UnverifiedProjectPage
+          projectId={unverifiedProjectId || activeProject?.projectId || ''}
+          isDark={isDark}
+          onGoHome={handleGoHome}
+          onNavigateToSimulator={() => {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          onNavigate={handleNavigate}
+        />
+      </Suspense>
+    );
+  }
+
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202]">

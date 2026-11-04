@@ -355,7 +355,7 @@ export function usePlaygroundPersistence(options: UsePlaygroundPersistenceOption
 
   const forceSyncNow = useCallback(async () => {
     if (!latestStateRef.current) return false;
-    savePlaygroundToBrowserStorage(latestStateRef.current);
+    savePlaygroundToBrowserStorage(latestStateRef.current, user?.id);
     const token = getAuthToken ? getAuthToken() : null;
     if (token) {
       setSaveStatus('saving');
