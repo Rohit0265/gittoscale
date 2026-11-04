@@ -1310,10 +1310,11 @@ export const App: React.FC = () => {
   useEffect(() => {
     const route = getProjectRouteInfo();
     if (route?.prompt && lastGeneratedPromptRef.current !== route.prompt) {
+      if (currentView === 'unverified') return;
       lastGeneratedPromptRef.current = route.prompt;
       handleGenerateFromPrompt(route.prompt, undefined, route.projectId);
     }
-  }, [handleGenerateFromPrompt]);
+  }, [handleGenerateFromPrompt, currentView]);
 
   // Helper to apply scenario overrides to any graph without side effects
   const applyScenarioToGraph = (

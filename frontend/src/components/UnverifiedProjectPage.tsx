@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ShieldAlert, ArrowLeft, Home, LogIn, Lock, Sparkles, RefreshCw } from 'lucide-react';
+import { ShieldAlert, ArrowLeft, Home, LogIn, Lock, Sparkles } from 'lucide-react';
 import { Fotter } from './Fotter';
 
 interface UnverifiedProjectPageProps {
