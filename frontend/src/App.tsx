@@ -403,10 +403,8 @@ export const App: React.FC = () => {
   // Route Protection: Unauthenticated visitors to /app, /history, /project, or app.gittoscale.tech are redirected to /signup
   useEffect(() => {
     if (isAuthLoading) return;
-    // Never redirect while we are already on an auth view (sign-in / sign-up)
-    // This prevents bouncing back to /signup right after the user logs in and
-    // onSuccess fires window.location.replace('/app').
-    if (currentView === 'signup' || currentView === 'signin') return;
+    // Never redirect while we are already on an auth view or unverified view
+    if (currentView === 'signup' || currentView === 'signin' || currentView === 'unverified') return;
     const path = window.location.pathname;
     const isAuthRoute =
       path === '/signup' ||
@@ -722,7 +720,17 @@ export const App: React.FC = () => {
 
         const route = getProjectRouteInfo();
 
-        // 1. Recover from Browser Storage (Instant recovery upon sudden PC shutdown or refresh)
+        // 1. Check local ownership mismatch first (instant check for different accounts on same machine)
+      if (currentUserId) {
+        const storedOwner = localStorage.getItem(`gitoscale_project_owner_${route.projectId}`);
+        if (storedOwner && storedOwner !== currentUserId) {
+          setUnverifiedProjectId(route.projectId);
+          setCurrentView('unverified');
+          return;
+        }
+      }
+
+      // 2. Recover from Browser Storage (Instant recovery upon sudden PC shutdown or refresh)
         const savedPlayground = loadPlaygroundFromBrowserStorage(route?.projectId, user?.id);
         if (savedPlayground && savedPlayground.nodes && savedPlayground.nodes.length > 0) {
           const verticalNodes = toVerticalTree(savedPlayground.nodes, savedPlayground.edges || []);
