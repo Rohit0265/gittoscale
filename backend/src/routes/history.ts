@@ -353,6 +353,21 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
         res.json({ success: true, data: rows[0] });
         return;
       }
+
+      // Check if project exists but belongs to a different user (unverified / unauthorized access)
+      const otherUserRows = await db`
+        SELECT user_id FROM public.architecture_history
+        WHERE (id = ${id} OR generation_config->>'projectId' = ${id})
+          AND user_id != ${userId}
+        LIMIT 1;
+      `;
+      if (otherUserRows && otherUserRows.length > 0) {
+        res.status(403).json({
+          error: 'Forbidden: Project ownership unverified. You do not have permission to access this project.',
+          code: 'PROJECT_UNVERIFIED'
+        });
+        return;
+      }
     } catch (err: any) {
       console.error('[History API] Neon fetch single error:', err);
     }
@@ -372,6 +387,23 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
 
       if (data) {
         res.json({ success: true, data });
+        return;
+      }
+
+      // Check if project exists but belongs to a different user under Supabase
+      const { data: otherUserData } = await supabaseServer
+        .from('architecture_history')
+        .select('user_id')
+        .or(`id.eq.${id},generation_config->>projectId.eq.${id}`)
+        .neq('user_id', userId)
+        .limit(1)
+        .maybeSingle();
+
+      if (otherUserData) {
+        res.status(403).json({
+          error: 'Forbidden: Project ownership unverified. You do not have permission to access this project.',
+          code: 'PROJECT_UNVERIFIED'
+        });
         return;
       }
 
