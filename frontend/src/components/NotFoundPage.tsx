@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Home, ArrowLeft, RefreshCw, Compass, Search, Sparkles } from 'lucide-react';
+import { Home, ArrowLeft, RefreshCw, Compass, Sparkles } from 'lucide-react';
 import { Fotter } from './Fotter';
 
 interface NotFoundPageProps {
