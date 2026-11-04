@@ -721,16 +721,16 @@ export const App: React.FC = () => {
         const route = getProjectRouteInfo();
 
         // 1. Check local ownership mismatch first (instant check for different accounts on same machine)
-      if (currentUserId) {
-        const storedOwner = localStorage.getItem(`gitoscale_project_owner_${route.projectId}`);
-        if (storedOwner && storedOwner !== currentUserId) {
-          setUnverifiedProjectId(route.projectId);
-          setCurrentView('unverified');
-          return;
+        if (route?.projectId && user?.id) {
+          const storedOwner = localStorage.getItem(`gitoscale_project_owner_${route.projectId}`);
+          if (storedOwner && storedOwner !== user.id) {
+            setUnverifiedProjectId(route.projectId);
+            setCurrentView('unverified');
+            return;
+          }
         }
-      }
 
-      // 2. Recover from Browser Storage (Instant recovery upon sudden PC shutdown or refresh)
+        // 2. Recover from Browser Storage (Instant recovery upon sudden PC shutdown or refresh)
         const savedPlayground = loadPlaygroundFromBrowserStorage(route?.projectId, user?.id);
         if (savedPlayground && savedPlayground.nodes && savedPlayground.nodes.length > 0) {
           const verticalNodes = toVerticalTree(savedPlayground.nodes, savedPlayground.edges || []);
