@@ -723,7 +723,7 @@ export const App: React.FC = () => {
         const route = getProjectRouteInfo();
 
         // 1. Recover from Browser Storage (Instant recovery upon sudden PC shutdown or refresh)
-        const savedPlayground = loadPlaygroundFromBrowserStorage(route?.projectId);
+        const savedPlayground = loadPlaygroundFromBrowserStorage(route?.projectId, user?.id);
         if (savedPlayground && savedPlayground.nodes && savedPlayground.nodes.length > 0) {
           const verticalNodes = toVerticalTree(savedPlayground.nodes, savedPlayground.edges || []);
           setNodes(verticalNodes);
@@ -752,16 +752,21 @@ export const App: React.FC = () => {
           const token = getAuthToken();
           if (token) {
             try {
-              const dbRes = await api.getArchitectureHistoryById(token, route.projectId);
-              if (dbRes?.success && dbRes?.data?.architecture_data?.nodes?.length > 0) {
-                const archData = dbRes.data.architecture_data;
-                const genConfig = dbRes.data.generation_config;
+              const verifyRes = await api.verifyProjectAccess(token, route.projectId);
+              if (verifyRes.status === 'unverified') {
+                setUnverifiedProjectId(route.projectId);
+                setCurrentView('unverified');
+                return;
+              }
+              if (verifyRes.status === 'verified' && verifyRes.data?.architecture_data?.nodes?.length > 0) {
+                const archData = verifyRes.data.architecture_data;
+                const genConfig = verifyRes.data.generation_config;
                 const verticalNodes = toVerticalTree(archData.nodes, archData.edges || []);
                 setNodes(verticalNodes);
                 setEdges(archData.edges || []);
                 if (archData.incomingTrafficRate) setIncomingTrafficRate(archData.incomingTrafficRate);
                 if (genConfig?.viewMode) setViewMode(genConfig.viewMode);
-                if (dbRes.data.prompt) setActivePromptText(dbRes.data.prompt);
+                if (verifyRes.data.prompt) setActivePromptText(verifyRes.data.prompt);
                 baseBasicGraphRef.current = { nodes: verticalNodes, edges: archData.edges || [] };
                 basicGraphCacheRef.current = { nodes: verticalNodes, edges: archData.edges || [] };
                 queueSimulation(verticalNodes, archData.edges || [], archData.incomingTrafficRate || 1000, 60);
