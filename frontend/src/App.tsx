@@ -67,6 +67,9 @@ const LegalPage = React.lazy(() =>
 const NotFoundPage = React.lazy(() =>
   import('./components/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
 );
+const UnverifiedProjectPage = React.lazy(() =>
+  import('./components/UnverifiedProjectPage').then((m) => ({ default: m.UnverifiedProjectPage }))
+);
 
 import {
   AppWorkspaceSkeleton,
@@ -159,7 +162,8 @@ export type AppView =
   | 'cookie-policy'
   | 'privacy-policy'
   | 'terms'
-  | 'not-found';
+  | 'not-found'
+  | 'unverified';
 
 const isValidAppPath = (path: string): boolean => {
   if (path === '/' || path === '') return true;
@@ -255,6 +259,7 @@ export const App: React.FC = () => {
   } = useAuth();
 
   const [activeProject, setActiveProject] = useState<ProjectRouteInfo | null>(() => getProjectRouteInfo());
+  const [unverifiedProjectId, setUnverifiedProjectId] = useState<string | null>(null);
 
   // Navigation mode
   const [currentView, setCurrentView] = useState<AppView>(() => getInitialView());

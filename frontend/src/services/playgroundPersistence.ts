@@ -48,7 +48,7 @@ export function computePlaygroundHash(state: Partial<PlaygroundPersistenceState>
  * Saves playground state immediately to browser storage (localStorage).
  * Executes synchronously with zero latency to guarantee recovery even upon sudden shutdown.
  */
-export function savePlaygroundToBrowserStorage(state: PlaygroundPersistenceState): boolean {
+export function savePlaygroundToBrowserStorage(state: PlaygroundPersistenceState, userId?: string | null): boolean {
   if (typeof window === 'undefined') return false;
   try {
     const raw = JSON.stringify(state);
@@ -57,6 +57,9 @@ export function savePlaygroundToBrowserStorage(state: PlaygroundPersistenceState
     if (state.projectId) {
       localStorage.setItem(`gitoscale_project_state_${state.projectId}`, raw);
       localStorage.setItem(`gitoscale_project_${state.projectId}`, state.prompt);
+      if (userId) {
+        localStorage.setItem(`gitoscale_project_owner_${state.projectId}`, userId);
+      }
       localStorage.setItem(
         `gitoscale_arch_${state.projectId}`,
         JSON.stringify({ nodes: state.nodes, edges: state.edges })
@@ -78,15 +81,25 @@ export function savePlaygroundToBrowserStorage(state: PlaygroundPersistenceState
 /**
  * Loads playground state from browser storage.
  * Prioritizes project-specific state, falling back to active state.
+ * If currentUserId is passed, verifies that local project ownership matches.
  */
 export function loadPlaygroundFromBrowserStorage(
-  projectId?: string | null
+  projectId?: string | null,
+  currentUserId?: string | null
 ): PlaygroundPersistenceState | null {
   if (typeof window === 'undefined') return null;
 
   try {
     // 1. Try project-specific key
     if (projectId) {
+      if (currentUserId) {
+        const storedOwner = localStorage.getItem(`gitoscale_project_owner_${projectId}`);
+        if (storedOwner && storedOwner !== currentUserId) {
+          // Belongs to a different account in local storage
+          return null;
+        }
+      }
+
       const projRaw = localStorage.getItem(`gitoscale_project_state_${projectId}`);
       if (projRaw) {
         const parsed = JSON.parse(projRaw);
@@ -261,7 +274,7 @@ export function usePlaygroundPersistence(options: UsePlaygroundPersistenceOption
     if (!enabled || (nodes.length === 0 && !prompt)) return;
 
     // A. Immediate Local Storage Save (instant recovery on sudden shutdown)
-    savePlaygroundToBrowserStorage(currentState);
+    savePlaygroundToBrowserStorage(currentState, user?.id);
 
     const token = getAuthToken ? getAuthToken() : null;
     const isAuthenticated = Boolean(user && token);
@@ -316,7 +329,7 @@ export function usePlaygroundPersistence(options: UsePlaygroundPersistenceOption
   useEffect(() => {
     const handleFlush = () => {
       if (latestStateRef.current && (latestStateRef.current.nodes.length > 0 || latestStateRef.current.prompt)) {
-        savePlaygroundToBrowserStorage(latestStateRef.current);
+        savePlaygroundToBrowserStorage(latestStateRef.current, user?.id);
 
         const token = getAuthToken ? getAuthToken() : null;
         if (token) {

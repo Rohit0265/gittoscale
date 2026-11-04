@@ -419,6 +419,17 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
     (item) => item.user_id === userId && (item.id === id || item.generation_config?.projectId === id)
   );
   if (!record) {
+    const otherUserRecord = inMemoryArchHistory.find(
+      (item) => item.user_id !== userId && (item.id === id || item.generation_config?.projectId === id)
+    );
+    if (otherUserRecord) {
+      res.status(403).json({
+        error: 'Forbidden: Project ownership unverified. You do not have permission to access this project.',
+        code: 'PROJECT_UNVERIFIED'
+      });
+      return;
+    }
+
     res.status(404).json({ error: 'Architecture record not found' });
     return;
   }

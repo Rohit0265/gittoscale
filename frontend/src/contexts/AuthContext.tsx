@@ -616,6 +616,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             key &&
             (key.startsWith('sb-') ||
               key.startsWith('supabase.') ||
+              key.startsWith('gitoscale_') ||
               key.includes('auth-token') ||
               key.includes('session') ||
               key.includes('mock_user') ||

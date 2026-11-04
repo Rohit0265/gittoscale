@@ -374,6 +374,29 @@ export const api = {
     return res.data;
   },
 
+  async verifyProjectAccess(
+    token: string | null,
+    id: string
+  ): Promise<{ status: 'verified' | 'unverified' | 'not_found'; data?: any }> {
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.get(`${API_BASE}/history/architectures/${id}`, { headers });
+      if (res.data?.success && res.data?.data) {
+        return { status: 'verified', data: res.data.data };
+      }
+      return { status: 'not_found' };
+    } catch (err: any) {
+      if (err?.response?.status === 403 || err?.response?.data?.code === 'PROJECT_UNVERIFIED') {
+        return { status: 'unverified' };
+      }
+      if (err?.response?.status === 404) {
+        return { status: 'not_found' };
+      }
+      // If network failure or backend not responding, return not_found or let fallback handle
+      return { status: 'not_found' };
+    }
+  },
+
   async saveArchitectureHistory(
     token: string | null,
     data: {
