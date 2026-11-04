@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ArrowLeft, Home, Sparkles } from 'lucide-react';
+import { Home, Sparkles } from 'lucide-react';
 
 interface NotFoundPageProps {
   isDark?: boolean;
@@ -19,15 +19,6 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
   const currentPath =
     requestedPath || (typeof window !== 'undefined' ? window.location.pathname : '');
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.title = '404: Page Not Found — GitToScale';
-    return () => {
-      document.title =
-        'GitToScale — Turn Code into Interactive System Architectures & Capacity Simulations';
-    };
-  }, []);
-
   const handleNavigate = (route: string) => {
     if (onNavigate) {
       onNavigate(route);
@@ -36,6 +27,15 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.title = '404: Page Not Found — GitToScale';
+    return () => {
+      document.title =
+        'GitToScale — Turn Code into Interactive System Architectures & Capacity Simulations';
+    };
+  }, []);
 
   return (
     <div
@@ -174,19 +174,23 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
 
         {/* Right Side: Quick Action Return Links */}
         <div className="flex items-center gap-3">
-          {onNavigateToSimulator && (
-            <button
-              onClick={onNavigateToSimulator}
-              className={`hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                isDark
-                  ? 'border-neutral-800 bg-neutral-900/60 hover:bg-neutral-800 text-neutral-300'
-                  : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-              <span>Simulator</span>
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (onNavigateToSimulator) {
+                onNavigateToSimulator();
+              } else {
+                handleNavigate('/app');
+              }
+            }}
+            className={`hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              isDark
+                ? 'border-neutral-800 bg-neutral-900/60 hover:bg-neutral-800 text-neutral-300'
+                : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            <span>Simulator</span>
+          </button>
 
           <button
             onClick={onGoHome}
