@@ -64,6 +64,9 @@ const HistoryDashboard = React.lazy(() =>
 const LegalPage = React.lazy(() =>
   import('./components/legal/LegalPage').then((m) => ({ default: m.LegalPage }))
 );
+const NotFoundPage = React.lazy(() =>
+  import('./components/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
+);
 
 import {
   AppWorkspaceSkeleton,
@@ -155,7 +158,46 @@ export type AppView =
   | 'history'
   | 'cookie-policy'
   | 'privacy-policy'
-  | 'terms';
+  | 'terms'
+  | 'not-found';
+
+const isValidAppPath = (path: string): boolean => {
+  if (path === '/' || path === '') return true;
+  if (path === '/app' || path.startsWith('/app/')) return true;
+  if (path === '/signup' || path === '/signin' || path === '/forgot-password') return true;
+  if (path.startsWith('/auth')) return true;
+  if (path === '/history') return true;
+  if (path === '/architect' || path === '/recommender') return true;
+  if (path.startsWith('/project/') || path.startsWith('/product/')) return true;
+  if (
+    path === '/cookie' ||
+    path === '/cookies' ||
+    path === '/cookie-policy' ||
+    path === '/cokkie' ||
+    path.startsWith('/cookie') ||
+    path.startsWith('/cokkie')
+  ) {
+    return true;
+  }
+  if (
+    path === '/privacy' ||
+    path === '/privacy-policy' ||
+    path === '/provacy' ||
+    path.startsWith('/privacy') ||
+    path.startsWith('/provacy')
+  ) {
+    return true;
+  }
+  if (
+    path === '/terms' ||
+    path === '/terms-and-conditions' ||
+    path === '/terms-of-service' ||
+    path.startsWith('/terms')
+  ) {
+    return true;
+  }
+  return false;
+};
 
 const getInitialView = (): AppView => {
   if (typeof window === 'undefined') return 'landing';
@@ -195,7 +237,10 @@ const getInitialView = (): AppView => {
   if (getProjectRouteInfo()) return 'simulator';
   if (isRecommenderUrl()) return 'recommender';
   if (isAppDomain()) return 'simulator';
-  return 'landing';
+  if (path === '/' || path === '') return 'landing';
+
+  // Unknown path / typo -> 404 Not Found
+  return 'not-found';
 };
 
 export const App: React.FC = () => {
@@ -333,10 +378,20 @@ export const App: React.FC = () => {
     ) {
       window.history.pushState({}, '', '/terms');
       setCurrentView('terms');
-    } else {
+    } else if (cleanName === '404' || cleanName === '/404' || cleanName === 'not-found') {
+      window.history.pushState({}, '', '/404');
+      setCurrentView('not-found');
+    } else if (cleanName === '/' || cleanName === '' || cleanName === 'home') {
       window.history.pushState({}, '', '/');
       setActiveProject(null);
       setCurrentView('landing');
+    } else if (isValidAppPath(cleanName)) {
+      window.history.pushState({}, '', cleanName);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else {
+      window.history.pushState({}, '', cleanName.startsWith('/') ? cleanName : `/${cleanName}`);
+      setActiveProject(null);
+      setCurrentView('not-found');
     }
   }, []);
 
@@ -419,9 +474,12 @@ export const App: React.FC = () => {
           if (!activePromptText && !activeProject?.prompt && !activeProject?.projectId) {
             setIsStartProjectModalOpen(true);
           }
-        } else {
+        } else if (path === '/' || path === '') {
           setActiveProject(null);
           setCurrentView('landing');
+        } else {
+          setActiveProject(null);
+          setCurrentView('not-found');
         }
       }
     };
@@ -1809,6 +1867,22 @@ export const App: React.FC = () => {
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
           onGoHome={handleGoHome}
+          onNavigate={handleNavigate}
+        />
+      </Suspense>
+    );
+  }
+
+  if (currentView === 'not-found') {
+    return (
+      <Suspense fallback={<LegalPageSkeleton />}>
+        <NotFoundPage
+          isDark={isDark}
+          onGoHome={handleGoHome}
+          onNavigateToSimulator={() => {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
           onNavigate={handleNavigate}
         />
       </Suspense>
