@@ -365,6 +365,9 @@ export const App: React.FC = () => {
     } else if (cleanName === 'feed' || cleanName === '/feed') {
       window.history.pushState({}, '', '/feed');
       setCurrentView('feed');
+    } else if (cleanName === 'profile' || cleanName === '/profile') {
+      window.history.pushState({}, '', '/profile');
+      setCurrentView('feed-profile');
     } else if (cleanName.startsWith('/feed/profile/')) {
       window.history.pushState({}, '', cleanName);
       setCurrentView('feed-profile');
@@ -451,7 +454,7 @@ export const App: React.FC = () => {
       const path = window.location.pathname.toLowerCase();
       if (path === '/feed') {
         setCurrentView('feed');
-      } else if (path.startsWith('/feed/profile/')) {
+      } else if (path === '/profile' || path.startsWith('/profile') || path.startsWith('/feed/profile/')) {
         setCurrentView('feed-profile');
       } else if (path === '/signup') {
         setCurrentView('signup');
