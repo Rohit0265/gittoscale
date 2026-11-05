@@ -1911,7 +1911,8 @@ export const App: React.FC = () => {
             setCurrentView('simulator');
           }}
           onNavigateToProfile={(profileUserId) => {
-            window.history.pushState({}, '', `/feed/profile/${profileUserId}`);
+            const targetUrl = user?.id && profileUserId === user.id ? '/profile' : `/feed/profile/${profileUserId}`;
+            window.history.pushState({}, '', targetUrl);
             setCurrentView('feed-profile');
           }}
         />
@@ -1921,7 +1922,9 @@ export const App: React.FC = () => {
 
   if (currentView === 'feed-profile') {
     const rawPath = window.location.pathname;
-    const profileIdFromUrl = rawPath.replace(/^\/feed\/profile\/?/, '').split('/')[0] || user?.id || '';
+    const profileIdFromUrl = rawPath === '/profile' || rawPath.startsWith('/profile/')
+      ? (user?.id || '')
+      : (rawPath.replace(/^\/feed\/profile\/?/, '').split('/')[0] || user?.id || '');
     return (
       <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
         <ProfilePage
@@ -1949,7 +1952,8 @@ export const App: React.FC = () => {
             setCurrentView('simulator');
           }}
           onNavigateToProfile={(nextUserId) => {
-            window.history.pushState({}, '', `/feed/profile/${nextUserId}`);
+            const targetUrl = user?.id && nextUserId === user.id ? '/profile' : `/feed/profile/${nextUserId}`;
+            window.history.pushState({}, '', targetUrl);
             setCurrentView('feed-profile');
           }}
         />
