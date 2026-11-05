@@ -1,12 +1,49 @@
 import { getSql } from '../services/neon.js';
+import { deleteFromR2 } from '../services/r2Service.js';
 import { FeedPost, FeedComment, UserProfileFeed } from './types.js';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // In-memory fallbacks when Neon is offline (e.g. unit testing or network timeouts)
 const inMemPosts: any[] = [];
 const inMemLikes: { post_id: string; user_id: string }[] = [];
 const inMemComments: any[] = [];
 const inMemFollows: { follower_id: string; following_id: string }[] = [];
+
+/**
+ * Removes orphaned media from Cloudflare R2 and local disk cache when post is deleted.
+ */
+async function cleanupPostMedia(mediaUrl?: string | null, mediaMetadata?: any): Promise<void> {
+  if (!mediaUrl && !mediaMetadata) return;
+
+  try {
+    // 1. Identify R2 key
+    let r2Key: string | null = mediaMetadata?.r2Key || null;
+    if (!r2Key && mediaUrl) {
+      if (mediaUrl.includes('.r2.dev/') || mediaUrl.includes('cloudflarestorage.com/')) {
+        const parts = mediaUrl.split('/');
+        const fileName = parts[parts.length - 1];
+        r2Key = `feed/${fileName}`;
+      }
+    }
+
+    if (r2Key) {
+      await deleteFromR2(r2Key).catch(() => {});
+    }
+
+    // 2. Identify local file if stored/cached locally
+    if (mediaUrl && (mediaUrl.startsWith('/uploads/feed/') || mediaUrl.includes('/uploads/feed/'))) {
+      const fileName = path.basename(mediaUrl);
+      const localPath = path.join(process.cwd(), 'uploads', 'feed', fileName);
+      if (fs.existsSync(localPath)) {
+        await fs.promises.unlink(localPath).catch(() => {});
+      }
+    }
+  } catch (e: any) {
+    console.warn('[Feed Service] Cleanup media warning:', e.message);
+  }
+}
 
 /**
  * Normalizes username from full_name or email if not explicitly set.
@@ -55,6 +92,7 @@ export async function getFeedPosts(
         p.content,
         p.media_url,
         p.media_type,
+        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
@@ -153,6 +191,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         p.content,
         p.media_url,
         p.media_type,
+        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
