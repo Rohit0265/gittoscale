@@ -40,7 +40,7 @@ export const feedApi = {
    * Create new post
    */
   async createPost(
-    post: { content: string; mediaUrl?: string | null; mediaType?: 'image' | 'video' | null },
+    post: { content: string; mediaUrl?: string | null; mediaType?: 'image' | 'video' | null; mediaMetadata?: any },
     token: string
   ): Promise<FeedPost> {
     const res = await axios.post(`${API_BASE}/feed/posts`, post, {
@@ -153,17 +153,32 @@ export const feedApi = {
   },
 
   /**
-   * Upload media file (image / video <= 1MB)
+   * Upload media file with client-side progress and duration reporting
    */
-  async uploadMedia(base64Data: string, token: string): Promise<{ url: string; mediaType: 'image' | 'video' }> {
+  async uploadMedia(
+    base64Data: string,
+    token: string,
+    duration?: number,
+    onUploadProgress?: (progressEvent: any) => void
+  ): Promise<{
+    url: string;
+    mediaType: 'image' | 'video';
+    mediaMetadata?: any;
+    storage?: string;
+  }> {
     const res = await axios.post(
       `${API_BASE}/feed/upload`,
-      { base64Data },
-      { headers: getAuthHeader(token) }
+      { base64Data, duration },
+      {
+        headers: getAuthHeader(token),
+        onUploadProgress,
+      }
     );
     return {
       url: res.data?.url,
       mediaType: res.data?.mediaType,
+      mediaMetadata: res.data?.mediaMetadata,
+      storage: res.data?.storage,
     };
   },
 };
