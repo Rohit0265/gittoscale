@@ -56,8 +56,9 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
   onSubmitPrompt,
   onOpenImportRepo,
   onGoHome: _onGoHome,
-  isDark: _isDark,
+  isDark,
 }) => {
+  const isDarkMode = isDark ?? (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
   const [query, setQuery] = useState('');
   const [placeholder, setPlaceholder] = useState('');
   const [isUserInteracting, setIsUserInteracting] = useState(false);
