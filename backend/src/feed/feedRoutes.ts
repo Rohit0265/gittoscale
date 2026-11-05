@@ -174,11 +174,13 @@ router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Respon
       return;
     }
 
-    if (content.trim().length > 3000) {
+    // Strict 2,500 word limit enforcement
+    const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount > 2500) {
       res.status(400).json({
         success: false,
-        error: 'VALIDATION_ERROR',
-        message: 'Post content exceeds the 3,000 character limit.',
+        error: 'WORD_LIMIT_EXCEEDED',
+        message: `Post content exceeds the 2,500 word limit (${wordCount.toLocaleString()} words).`,
       });
       return;
     }
@@ -256,6 +258,17 @@ router.put('/posts/:id', requireAuth, async (req: AuthenticatedRequest, res: Res
         success: false,
         error: 'VALIDATION_ERROR',
         message: 'Post content cannot be empty.',
+      });
+      return;
+    }
+
+    // Strict 2,500 word limit enforcement
+    const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount > 2500) {
+      res.status(400).json({
+        success: false,
+        error: 'WORD_LIMIT_EXCEEDED',
+        message: `Post content exceeds the 2,500 word limit (${wordCount.toLocaleString()} words).`,
       });
       return;
     }

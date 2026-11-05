@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { FeedPost } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { PostActions } from './PostActions';
@@ -29,6 +31,19 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      const scrollH = contentRef.current.scrollHeight;
+      const lines = post.content.split('\n').length;
+      if (scrollH > 108 || lines > 4 || post.content.length > 280) {
+        setIsClamped(true);
+      }
+    }
+  }, [post.content]);
 
   const isOwner = Boolean(currentUserId && currentUserId === post.user_id);
   const author = post.author;
