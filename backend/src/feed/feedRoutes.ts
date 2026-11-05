@@ -162,7 +162,7 @@ router.get('/posts', optionalAuth, async (req: AuthenticatedRequest, res: Respon
 router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { content, mediaUrl, mediaType } = req.body;
+    const { content, mediaUrl, mediaType, mediaItems } = req.body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       res.status(400).json({
@@ -192,6 +192,7 @@ router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Respon
       content: content.trim(),
       mediaUrl: mediaUrl || null,
       mediaType: sanitizedMediaType,
+      mediaItems: Array.isArray(mediaItems) ? mediaItems : undefined,
       authorName: req.user?.fullName,
       authorEmail: req.user?.email,
     });
