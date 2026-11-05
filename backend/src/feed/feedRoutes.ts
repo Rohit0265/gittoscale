@@ -4,6 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
+import { uploadToR2 } from '../services/r2Service.js';
 import {
   getFeedPosts,
   getPostById,
@@ -646,9 +647,13 @@ router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Respo
     const diskFilename = `${safeBaseName}.${ext}`;
     const filePath = path.join(UPLOADS_DIR, diskFilename);
 
+    // Save to server local disk as cache/fallback
     await fs.promises.writeFile(filePath, buffer);
 
-    const publicUrl = `/uploads/feed/${diskFilename}`;
+    // Upload to Cloudflare R2 object storage if configured
+    const mimeType = validation.mimeType || (validation.mediaType === 'video' ? 'video/mp4' : 'image/png');
+    const r2Url = await uploadToR2(buffer, `feed/${diskFilename}`, mimeType);
+    const publicUrl = r2Url || `/uploads/feed/${diskFilename}`;
 
     res.json({
       success: true,
@@ -656,6 +661,7 @@ router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Respo
       mediaType: validation.mediaType,
       sizeBytes: buffer.length,
       mimeType: validation.mimeType,
+      storage: r2Url ? 'cloudflare_r2' : 'local',
     });
   } catch (error: any) {
     console.error('[Feed API] Media upload failed:', error);
