@@ -446,7 +446,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                               e.stopPropagation();
                               onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title, arch.id);
                             }}
-                            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-slate-900 hover:bg-black dark:bg-[#161722] dark:hover:bg-[#202230] border border-slate-800 dark:border-neutral-700/80 text-white dark:text-neutral-200 text-xs font-medium transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
+                            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white border border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-300 text-xs font-semibold transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
                           >
                             <span>Continue</span>
                             <ExternalLink className="w-3.5 h-3.5 opacity-80 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />

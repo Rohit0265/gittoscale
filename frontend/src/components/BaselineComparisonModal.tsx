@@ -238,7 +238,7 @@ export const BaselineComparisonModal: React.FC<BaselineComparisonModalProps> = (
         <div className="p-3.5 border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#141414] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-slate-800 dark:bg-neutral-800 text-white font-medium hover:bg-slate-900 dark:hover:bg-neutral-700 transition-colors cursor-pointer shadow-none"
+            className="px-4 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 font-medium hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer shadow-xs"
           >
             Close
           </button>
