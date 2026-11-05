@@ -259,6 +259,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (ev.origin === window.location.origin) {
               if (ev.data?.type === 'GTS_OAUTH_SUCCESS') {
                 cleanup();
+                const sessionUser = ev.data.session?.user || ev.data.user;
+                if (sessionUser) {
+                  // If user account was created within the last 60 seconds, treat as new signup
+                  const createdAtTs = new Date(sessionUser.created_at || 0).getTime();
+                  const isNewUser = Date.now() - createdAtTs < 60000;
+                  if (isNewUser) {
+                    api.notifySignup({
+                      name: sessionUser.user_metadata?.full_name || sessionUser.user_metadata?.name || sessionUser.email?.split('@')[0],
+                      email: sessionUser.email,
+                      userId: sessionUser.id,
+                      provider: provider,
+                    });
+                  }
+                }
                 if (ev.data.session) {
                   setSession(ev.data.session);
                   setUser(ev.data.session.user);
