@@ -334,3 +334,11 @@ export async function getUserProfile(userId: string) {
   return rows[0] || null;
 }
 
+export async function getUserProfileByEmail(email: string) {
+  const db = getSql();
+  const rows = await db`
+    SELECT * FROM public.profiles WHERE LOWER(email) = ${email.trim().toLowerCase()} LIMIT 1;
+  `;
+  return rows[0] || null;
+}
+
