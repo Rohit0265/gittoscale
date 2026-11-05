@@ -178,3 +178,96 @@ export async function uploadToR2(
   });
 }
 
+/**
+ * Deletes an object from Cloudflare R2 via AWS SigV4 S3 DELETE.
+ *
+ * @param key - Target storage path (e.g. "feed/abc12345.webp")
+ * @returns True if deleted successfully, false otherwise.
+ */
+export async function deleteFromR2(key: string): Promise<boolean> {
+  const config = getR2Config();
+  if (!config) return false;
+
+  const cleanKey = key.replace(/^\/+/, '');
+  const host = `${config.accountId}.r2.cloudflarestorage.com`;
+  const canonicalUri = `/${config.bucketName}/${cleanKey.split('/').map(encodeURIComponent).join('/')}`;
+
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
+  const dateStamp = amzDate.slice(0, 8);
+  const contentSha256 = sha256Hex('');
+  const region = config.region || 'auto';
+
+  const canonicalHeaders =
+    `host:${host}\n` +
+    `x-amz-content-sha256:${contentSha256}\n` +
+    `x-amz-date:${amzDate}\n`;
+
+  const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+
+  const canonicalRequest = [
+    'DELETE',
+    canonicalUri,
+    '',
+    canonicalHeaders,
+    signedHeaders,
+    contentSha256,
+  ].join('\n');
+
+  const algorithm = 'AWS4-HMAC-SHA256';
+  const credentialScope = `${dateStamp}/${region}/s3/aws4_request`;
+  const stringToSign = [
+    algorithm,
+    amzDate,
+    credentialScope,
+    sha256Hex(canonicalRequest),
+  ].join('\n');
+
+  const signingKey = getSignatureKey(config.secretAccessKey, dateStamp, region, 's3');
+  const signature = crypto.createHmac('sha256', signingKey).update(stringToSign, 'utf8').digest('hex');
+  const authorizationHeader = `${algorithm} Credential=${config.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+  return new Promise((resolve) => {
+    const options: https.RequestOptions = {
+      hostname: host,
+      port: 443,
+      path: canonicalUri,
+      method: 'DELETE',
+      family: 4,
+      timeout: 10000,
+      headers: {
+        'Host': host,
+        'x-amz-date': amzDate,
+        'x-amz-content-sha256': contentSha256,
+        'Authorization': authorizationHeader,
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      res.on('data', () => {});
+      res.on('end', () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`[Cloudflare R2] Successfully deleted ${cleanKey}`);
+          resolve(true);
+        } else {
+          console.warn(`[Cloudflare R2] Delete failed with status ${res.statusCode}`);
+          resolve(false);
+        }
+      });
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(false);
+    });
+
+    req.on('error', (err) => {
+      console.warn(`[Cloudflare R2] Delete error:`, err.message);
+      resolve(false);
+    });
+
+    req.end();
+  });
+}
+
+
