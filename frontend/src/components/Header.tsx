@@ -19,6 +19,7 @@ import {
   Copy,
   Check,
   X,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture, ArchitectureNode, ArchitectureEdge } from '../types';
