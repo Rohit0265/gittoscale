@@ -36,6 +36,8 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     posts,
     loading,
     error,
+    filter,
+    setFilter,
     refreshPosts,
     createPost,
     updatePost,
@@ -45,7 +47,15 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     openComments,
     closeComments,
     notifyCommentChange,
-  } = useFeed({ token });
+  } = useFeed({ token, userId: user?.id });
+
+  const handleToggleFilter = () => {
+    if (!user) {
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
+    setFilter((prev) => (prev === 'liked' ? 'all' : 'liked'));
+  };
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
@@ -59,6 +69,8 @@ export const FeedPage: React.FC<FeedPageProps> = ({
         onOpenSignUp={onOpenSignUp}
         onSignOut={onSignOut}
         onNavigateToSimulator={onNavigateToSimulator}
+        onNavigateToProfile={onNavigateToProfile}
+        onViewLikes={handleToggleFilter}
       />
 
       {/* 2. Responsive 3-Column Layout */}
@@ -68,7 +80,12 @@ export const FeedPage: React.FC<FeedPageProps> = ({
           <FeedSidebar
             user={user}
             token={token}
+            isDark={isDark}
+            onToggleTheme={onToggleTheme}
+            onSignOut={onSignOut}
             onNavigateToProfile={onNavigateToProfile}
+            onViewLikes={handleToggleFilter}
+            activeFilter={filter}
             onOpenSignIn={onOpenAuth}
             onOpenSignUp={onOpenSignUp}
           />
@@ -82,13 +99,30 @@ export const FeedPage: React.FC<FeedPageProps> = ({
               : 'md:col-span-8 lg:col-span-7'
           } flex flex-col`}
         >
-          {/* Create Post Widget */}
-          <CreatePost
-            user={user}
-            token={token}
-            onPostCreated={createPost}
-            onOpenSignIn={onOpenAuth}
-          />
+          {/* Active Filter Banner when viewing 'Your Likes' */}
+          {filter === 'liked' && (
+            <div className="mb-4 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center justify-between">
+              <span className="text-xs font-semibold text-rose-700 dark:text-rose-300">
+                Viewing posts you liked
+              </span>
+              <button
+                onClick={() => setFilter('all')}
+                className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+              >
+                Back to All Posts
+              </button>
+            </div>
+          )}
+
+          {/* Create Post Widget (only on All feed) */}
+          {filter === 'all' && (
+            <CreatePost
+              user={user}
+              token={token}
+              onPostCreated={createPost}
+              onOpenSignIn={onOpenAuth}
+            />
+          )}
 
           {/* Posts List / Loading / Empty / Error */}
           {loading ? (
@@ -131,9 +165,13 @@ export const FeedPage: React.FC<FeedPageProps> = ({
               <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
                 <MessageSquare className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">No posts yet</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                {filter === 'liked' ? 'No liked posts yet' : 'No posts yet'}
+              </h3>
               <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 max-w-sm mx-auto">
-                Be the first to share an architecture diagram, latency finding, or discuss scaling strategies!
+                {filter === 'liked'
+                  ? 'Posts you like will show up here for easy access.'
+                  : 'Be the first to share an architecture diagram, latency finding, or discuss scaling strategies!'}
               </p>
             </div>
           ) : (
@@ -154,7 +192,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
           )}
         </main>
 
-        {/* Right Column: Comments Panel (Sticky on large desktop, Drawer/Modal on mobile/tablet) */}
+        {/* Right Column: Comments Panel (Sticky on large desktop, Bottom Sheet on mobile/tablet) */}
         {selectedPostForComments && (
           <>
             {/* Desktop Side Panel */}
@@ -171,9 +209,15 @@ export const FeedPage: React.FC<FeedPageProps> = ({
               />
             </div>
 
-            {/* Mobile / Tablet Bottom Drawer / Modal */}
-            <div className="lg:hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4">
-              <div className="w-full max-w-lg h-[80vh] sm:h-[650px] max-h-[90vh] rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+            {/* Mobile / Tablet Bottom-to-Up Sheet (occupies half screen) */}
+            <div className="lg:hidden fixed inset-0 z-50 flex items-end justify-center">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+                onClick={closeComments}
+              />
+              {/* Slide up sheet occupying half of the screen */}
+              <div className="relative w-full max-w-2xl h-[55vh] max-h-[85vh] rounded-t-3xl overflow-hidden shadow-2xl flex flex-col z-50 transform transition-transform duration-300 ease-out animate-in slide-in-from-bottom">
                 <CommentPanel
                   post={selectedPostForComments}
                   currentUserId={user?.id}
