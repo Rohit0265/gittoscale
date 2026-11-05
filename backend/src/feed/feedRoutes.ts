@@ -5,7 +5,6 @@ import crypto from 'node:crypto';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
 import { uploadToR2 } from '../services/r2Service.js';
-import { compressImage, processAndValidateVideo } from '../services/mediaCompressionService.js';
 import {
   getFeedPosts,
   getPostById,
@@ -162,7 +161,7 @@ router.get('/posts', optionalAuth, async (req: AuthenticatedRequest, res: Respon
 router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { content, mediaUrl, mediaType, mediaMetadata } = req.body;
+    const { content, mediaUrl, mediaType } = req.body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       res.status(400).json({
@@ -192,7 +191,6 @@ router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Respon
       content: content.trim(),
       mediaUrl: mediaUrl || null,
       mediaType: sanitizedMediaType,
-      mediaMetadata: mediaMetadata || null,
       authorName: req.user?.fullName,
       authorEmail: req.user?.email,
     });
@@ -577,11 +575,11 @@ router.post('/profile/:id/follow', requireAuth, async (req: AuthenticatedRequest
 });
 
 // ============================================================================
-// 13. POST /api/feed/upload - Media Upload with WebP image compression, 2-minute video limit, and R2 storage
+// 13. POST /api/feed/upload - Media Upload with strict 1MB video restriction & magic byte validation
 // ============================================================================
 router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { base64Data, duration: clientDuration } = req.body;
+    const { base64Data } = req.body;
 
     if (!base64Data || typeof base64Data !== 'string') {
       res.status(400).json({
@@ -619,123 +617,50 @@ router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Respo
       return;
     }
 
-    // Upload limits (generous input limit before compression, removing previous 1MB barrier)
-    const MAX_INPUT_IMAGE_BYTES = 25 * 1024 * 1024; // 25 MB raw image input
-    const MAX_INPUT_VIDEO_BYTES = 60 * 1024 * 1024; // 60 MB raw video input
+    // Strict file size limits:
+    // Video: Maximum 1 MB (1,048,576 bytes)
+    // Image: Maximum 5 MB (5,242,880 bytes)
+    const MAX_VIDEO_BYTES = 1 * 1024 * 1024; // 1 MB strictly enforced
+    const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 
-    if (validation.mediaType === 'image' && buffer.length > MAX_INPUT_IMAGE_BYTES) {
-      res.status(400).json({
-        success: false,
-        error: 'IMAGE_TOO_LARGE',
-        message: 'Image input exceeds maximum 25 MB limit.',
-      });
-      return;
-    }
-
-    if (validation.mediaType === 'video' && buffer.length > MAX_INPUT_VIDEO_BYTES) {
+    if (validation.mediaType === 'video' && buffer.length > MAX_VIDEO_BYTES) {
       res.status(400).json({
         success: false,
         error: 'VIDEO_TOO_LARGE',
-        message: 'Video input exceeds maximum 60 MB payload limit.',
+        message: `Video file size (${(buffer.length / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB.`,
       });
       return;
     }
 
-    let finalBuffer: Buffer = buffer;
-    let finalMimeType: string = validation.mimeType || 'application/octet-stream';
-    let ext: string = 'bin';
-    let width: number | null = null;
-    let height: number | null = null;
-    let videoDuration: number | null = null;
-    let originalSizeBytes: number = buffer.length;
-    let sizeBytes: number = buffer.length;
-    let compressionPercentage: number = 0;
-
-    // 1. Process and compress image with Sharp (WebP, quality 80, max 1600x1600)
-    if (validation.mediaType === 'image') {
-      try {
-        const compressed = await compressImage(buffer);
-        finalBuffer = compressed.buffer;
-        finalMimeType = compressed.mimeType;
-        ext = compressed.extension;
-        width = compressed.width ?? null;
-        height = compressed.height ?? null;
-        originalSizeBytes = compressed.originalSizeBytes;
-        sizeBytes = compressed.sizeBytes;
-        compressionPercentage = compressed.compressionPercentage;
-      } catch (sharpError: any) {
-        console.warn('[Feed API] Sharp image compression warning, falling back to original:', sharpError.message);
-        ext = validation.mimeType?.split('/')[1] || 'png';
-        finalMimeType = validation.mimeType || 'image/png';
-        finalBuffer = buffer;
-        sizeBytes = buffer.length;
-      }
-    }
-
-    // 2. Process and validate video (strictly enforces 2 minutes / 120s maximum length)
-    if (validation.mediaType === 'video') {
-      try {
-        const processed = await processAndValidateVideo(buffer, {
-          clientDuration: typeof clientDuration === 'number' ? clientDuration : undefined,
-          mimeType: validation.mimeType,
-        });
-
-        finalBuffer = processed.buffer;
-        finalMimeType = processed.mimeType;
-        ext = processed.extension;
-        width = processed.width ?? null;
-        height = processed.height ?? null;
-        videoDuration = processed.duration ?? null;
-        originalSizeBytes = processed.originalSizeBytes;
-        sizeBytes = processed.sizeBytes;
-        compressionPercentage = processed.compressionPercentage;
-      } catch (videoError: any) {
-        if (videoError.message?.startsWith('VIDEO_TOO_LONG')) {
-          res.status(400).json({
-            success: false,
-            error: 'VIDEO_TOO_LONG',
-            message: videoError.message,
-          });
-          return;
-        }
-        console.warn('[Feed API] Video processing warning, falling back:', videoError.message);
-        ext = validation.mimeType?.split('/')[1] || 'mp4';
-        finalMimeType = validation.mimeType || 'video/mp4';
-        finalBuffer = buffer;
-        sizeBytes = buffer.length;
-      }
+    if (validation.mediaType === 'image' && buffer.length > MAX_IMAGE_BYTES) {
+      res.status(400).json({
+        success: false,
+        error: 'IMAGE_TOO_LARGE',
+        message: `Image file size exceeds the maximum allowed limit of 5 MB.`,
+      });
+      return;
     }
 
     // Generate collision-resistant unique filename
+    const ext = validation.mimeType?.split('/')[1] || (validation.mediaType === 'video' ? 'mp4' : 'png');
     const safeBaseName = crypto.randomBytes(16).toString('hex');
     const diskFilename = `${safeBaseName}.${ext}`;
-    const r2Key = `feed/${diskFilename}`;
     const filePath = path.join(UPLOADS_DIR, diskFilename);
 
-    // Save optimized media to server local disk as cache/fallback
-    await fs.promises.writeFile(filePath, finalBuffer);
+    // Save to server local disk as cache/fallback
+    await fs.promises.writeFile(filePath, buffer);
 
-    // Upload only the optimized media to Cloudflare R2 object storage if configured
-    const r2Url = await uploadToR2(finalBuffer, r2Key, finalMimeType);
+    // Upload to Cloudflare R2 object storage if configured
+    const mimeType = validation.mimeType || (validation.mediaType === 'video' ? 'video/mp4' : 'image/png');
+    const r2Url = await uploadToR2(buffer, `feed/${diskFilename}`, mimeType);
     const publicUrl = r2Url || `/uploads/feed/${diskFilename}`;
-
-    const mediaMetadata = {
-      r2Key,
-      mediaUrl: publicUrl,
-      mimeType: finalMimeType,
-      sizeBytes,
-      originalSizeBytes,
-      compressionPercentage,
-      width,
-      height,
-      duration: videoDuration,
-    };
 
     res.json({
       success: true,
       url: publicUrl,
       mediaType: validation.mediaType,
-      mediaMetadata,
+      sizeBytes: buffer.length,
+      mimeType: validation.mimeType,
       storage: r2Url ? 'cloudflare_r2' : 'local',
     });
   } catch (error: any) {

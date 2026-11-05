@@ -30,14 +30,9 @@ export function useFeed({ token }: UseFeedOptions) {
     fetchPosts();
   }, [fetchPosts]);
 
-  const handleCreatePost = async (
-    content: string,
-    mediaUrl?: string | null,
-    mediaType?: 'image' | 'video' | null,
-    mediaMetadata?: any
-  ) => {
+  const handleCreatePost = async (content: string, mediaUrl?: string | null, mediaType?: 'image' | 'video' | null) => {
     if (!token) throw new Error('You must be signed in to post.');
-    const newPost = await feedApi.createPost({ content, mediaUrl, mediaType, mediaMetadata }, token);
+    const newPost = await feedApi.createPost({ content, mediaUrl, mediaType }, token);
     setPosts((prev) => [newPost, ...prev]);
     return newPost;
   };

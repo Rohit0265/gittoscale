@@ -1,49 +1,12 @@
 import { getSql } from '../services/neon.js';
-import { deleteFromR2 } from '../services/r2Service.js';
 import { FeedPost, FeedComment, UserProfileFeed } from './types.js';
 import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
 
 // In-memory fallbacks when Neon is offline (e.g. unit testing or network timeouts)
 const inMemPosts: any[] = [];
 const inMemLikes: { post_id: string; user_id: string }[] = [];
 const inMemComments: any[] = [];
 const inMemFollows: { follower_id: string; following_id: string }[] = [];
-
-/**
- * Removes orphaned media from Cloudflare R2 and local disk cache when post is deleted.
- */
-async function cleanupPostMedia(mediaUrl?: string | null, mediaMetadata?: any): Promise<void> {
-  if (!mediaUrl && !mediaMetadata) return;
-
-  try {
-    // 1. Identify R2 key
-    let r2Key: string | null = mediaMetadata?.r2Key || null;
-    if (!r2Key && mediaUrl) {
-      if (mediaUrl.includes('.r2.dev/') || mediaUrl.includes('cloudflarestorage.com/')) {
-        const parts = mediaUrl.split('/');
-        const fileName = parts[parts.length - 1];
-        r2Key = `feed/${fileName}`;
-      }
-    }
-
-    if (r2Key) {
-      await deleteFromR2(r2Key).catch(() => {});
-    }
-
-    // 2. Identify local file if stored/cached locally
-    if (mediaUrl && (mediaUrl.startsWith('/uploads/feed/') || mediaUrl.includes('/uploads/feed/'))) {
-      const fileName = path.basename(mediaUrl);
-      const localPath = path.join(process.cwd(), 'uploads', 'feed', fileName);
-      if (fs.existsSync(localPath)) {
-        await fs.promises.unlink(localPath).catch(() => {});
-      }
-    }
-  } catch (e: any) {
-    console.warn('[Feed Service] Cleanup media warning:', e.message);
-  }
-}
 
 /**
  * Normalizes username from full_name or email if not explicitly set.
@@ -92,7 +55,6 @@ export async function getFeedPosts(
         p.content,
         p.media_url,
         p.media_type,
-        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
@@ -129,7 +91,6 @@ export async function getFeedPosts(
       content: r.content,
       media_url: r.media_url,
       media_type: r.media_type,
-      media_metadata: r.media_metadata || null,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
@@ -161,7 +122,6 @@ export async function getFeedPosts(
           content: r.content,
           media_url: r.media_url,
           media_type: r.media_type,
-          media_metadata: r.media_metadata || null,
           created_at: r.created_at,
           updated_at: r.updated_at,
           author: {
@@ -193,7 +153,6 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         p.content,
         p.media_url,
         p.media_type,
-        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
@@ -232,7 +191,6 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       content: r.content,
       media_url: r.media_url,
       media_type: r.media_type,
-      media_metadata: r.media_metadata || null,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
@@ -259,7 +217,6 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         content: found.content,
         media_url: found.media_url,
         media_type: found.media_type,
-        media_metadata: found.media_metadata || null,
         created_at: found.created_at,
         updated_at: found.updated_at,
         author: {
@@ -285,40 +242,18 @@ export async function createFeedPost(data: {
   content: string;
   mediaUrl?: string | null;
   mediaType?: 'image' | 'video' | null;
-  mediaMetadata?: any;
   authorName?: string;
   authorEmail?: string;
 }): Promise<FeedPost> {
   try {
     const db = getSql();
-
-    // Ensure user profile exists in public.profiles to satisfy foreign key constraint
-    if (data.userId) {
-      await db`
-        INSERT INTO public.profiles (id, full_name, email, created_at, updated_at)
-        VALUES (
-          ${data.userId},
-          ${data.authorName || 'GitToScale User'},
-          ${(data.authorEmail || `${data.userId}@gittoscale.tech`).toLowerCase()},
-          timezone('utc'::text, now()),
-          timezone('utc'::text, now())
-        )
-        ON CONFLICT (id) DO UPDATE SET
-          full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name),
-          updated_at = timezone('utc'::text, now());
-      `.catch((e: any) => {
-        console.warn('[Feed Service] Profile upsert warning:', e.message);
-      });
-    }
-
     const rows = await db`
-      INSERT INTO public.feed_posts (user_id, content, media_url, media_type, media_metadata, created_at, updated_at)
+      INSERT INTO public.feed_posts (user_id, content, media_url, media_type, created_at, updated_at)
       VALUES (
         ${data.userId},
         ${data.content.trim()},
         ${data.mediaUrl || null},
         ${data.mediaType || null},
-        ${data.mediaMetadata ? JSON.stringify(data.mediaMetadata) : null}::jsonb,
         timezone('utc'::text, now()),
         timezone('utc'::text, now())
       )
@@ -339,7 +274,6 @@ export async function createFeedPost(data: {
         content: data.content.trim(),
         media_url: data.mediaUrl || null,
         media_type: data.mediaType || null,
-        media_metadata: data.mediaMetadata || null,
         created_at: now,
         updated_at: now,
         author_name: data.authorName || 'GitToScale User',
@@ -354,7 +288,6 @@ export async function createFeedPost(data: {
         content: inMem.content,
         media_url: inMem.media_url,
         media_type: inMem.media_type,
-        media_metadata: inMem.media_metadata,
         created_at: inMem.created_at,
         updated_at: inMem.updated_at,
         author: {
@@ -420,7 +353,7 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
   try {
     const db = getSql();
     const checkRows = await db`
-      SELECT user_id, media_url, media_metadata FROM public.feed_posts WHERE id = ${postId} LIMIT 1;
+      SELECT user_id FROM public.feed_posts WHERE id = ${postId} LIMIT 1;
     `;
 
     if (!checkRows || checkRows.length === 0) {
@@ -429,9 +362,6 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
     if (checkRows[0].user_id !== userId) {
       throw new Error('FORBIDDEN_NOT_OWNER');
     }
-
-    const postRecord = checkRows[0];
-    await cleanupPostMedia(postRecord.media_url, postRecord.media_metadata);
 
     await db`
       DELETE FROM public.feed_posts WHERE id = ${postId} AND user_id = ${userId};
@@ -442,10 +372,7 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
       const idx = inMemPosts.findIndex((p) => p.id === postId);
       if (idx === -1) return false;
       if (inMemPosts[idx].user_id !== userId) throw new Error('FORBIDDEN_NOT_OWNER');
-      const removed = inMemPosts.splice(idx, 1)[0];
-      if (removed) {
-        await cleanupPostMedia(removed.media_url, removed.media_metadata);
-      }
+      inMemPosts.splice(idx, 1);
       return true;
     }
     throw err;
@@ -458,15 +385,6 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
 export async function toggleFeedLike(postId: string, userId: string): Promise<{ liked: boolean; count: number }> {
   try {
     const db = getSql();
-
-    // Ensure user profile exists for foreign key
-    if (userId) {
-      await db`
-        INSERT INTO public.profiles (id, full_name, email, created_at, updated_at)
-        VALUES (${userId}, 'User', ${(userId + '@gittoscale.tech').toLowerCase()}, timezone('utc'::text, now()), timezone('utc'::text, now()))
-        ON CONFLICT (id) DO NOTHING;
-      `.catch(() => {});
-    }
 
     // Check if post exists
     const postCheck = await db`SELECT id FROM public.feed_posts WHERE id = ${postId} LIMIT 1;`;
@@ -593,15 +511,6 @@ export async function addPostComment(data: {
 }): Promise<FeedComment> {
   try {
     const db = getSql();
-
-    // Ensure user profile exists for foreign key
-    if (data.userId) {
-      await db`
-        INSERT INTO public.profiles (id, full_name, email, created_at, updated_at)
-        VALUES (${data.userId}, ${data.authorName || 'User'}, ${(data.authorEmail || `${data.userId}@gittoscale.tech`).toLowerCase()}, timezone('utc'::text, now()), timezone('utc'::text, now()))
-        ON CONFLICT (id) DO NOTHING;
-      `.catch(() => {});
-    }
 
     // Check post exists
     const postCheck = await db`SELECT id FROM public.feed_posts WHERE id = ${data.postId} LIMIT 1;`;
@@ -823,7 +732,6 @@ export async function getUserPosts(
         p.content,
         p.media_url,
         p.media_type,
-        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
@@ -860,7 +768,6 @@ export async function getUserPosts(
       content: r.content,
       media_url: r.media_url,
       media_type: r.media_type,
-      media_metadata: r.media_metadata || null,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
@@ -883,7 +790,6 @@ export async function getUserPosts(
           content: p.content,
           media_url: p.media_url,
           media_type: p.media_type,
-          media_metadata: p.media_metadata || null,
           created_at: p.created_at,
           updated_at: p.updated_at,
           author: {

@@ -28,21 +28,21 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('enforces server-side video duration limit (max 2 minutes / 120 seconds)', async () => {
-    // Generate valid mp4-like header with client-reported duration of 150 seconds (2.5 mins)
-    const validMp4Header = Buffer.alloc(1024);
-    validMp4Header.write('ftyp', 4, 'ascii');
-    const base64Data = `data:video/mp4;base64,${validMp4Header.toString('base64')}`;
+  it('enforces server-side video upload size limit (max 1 MB)', async () => {
+    // Generate buffer exceeding 1 MB (1.2 MB) of mp4-like header
+    const oversizedBuffer = Buffer.alloc(1.2 * 1024 * 1024);
+    oversizedBuffer.write('ftyp', 4, 'ascii');
+    const base64Data = `data:video/mp4;base64,${oversizedBuffer.toString('base64')}`;
 
     const res = await request(app)
       .post('/api/feed/upload')
       .set('Authorization', `Bearer ${user1Token}`)
-      .send({ base64Data, duration: 150 });
+      .send({ base64Data });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('VIDEO_TOO_LONG');
-    expect(res.body.message).toContain('2 minutes');
+    expect(res.body.error).toBe('VIDEO_TOO_LARGE');
+    expect(res.body.message).toContain('1 MB');
   });
 
   it('rejects invalid or fake media files through binary magic byte validation', async () => {
@@ -59,21 +59,9 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(res.body.error).toBe('UNSUPPORTED_MEDIA_TYPE');
   });
 
-  it('compresses image upload to WebP with dimensions and metadata', async () => {
-    // Create a 10x10 valid PNG image buffer using sharp
-    const sharp = (await import('sharp')).default;
-    const testPngBuffer = await sharp({
-      create: {
-        width: 100,
-        height: 100,
-        channels: 4,
-        background: { r: 99, g: 102, b: 241, alpha: 1 },
-      },
-    })
-      .png()
-      .toBuffer();
-
-    const base64Data = `data:image/png;base64,${testPngBuffer.toString('base64')}`;
+  it('accepts valid image uploads with correct magic bytes under limit', async () => {
+    const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00]);
+    const base64Data = `data:image/png;base64,${pngHeader.toString('base64')}`;
 
     const res = await request(app)
       .post('/api/feed/upload')
@@ -83,10 +71,7 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.mediaType).toBe('image');
-    expect(res.body.mediaMetadata).toBeDefined();
-    expect(res.body.mediaMetadata.mimeType).toBe('image/webp');
-    expect(res.body.mediaMetadata.width).toBe(100);
-    expect(res.body.mediaMetadata.height).toBe(100);
+    expect(res.body.url).toMatch(/^\/uploads\/feed\//);
   });
 
   it('supports full lifecycle: create post, like, comment, and strictly enforces IDOR permissions', async () => {
@@ -156,5 +141,5 @@ describe('Social Feed API Endpoints & Security', () => {
 
     expect(ownerDeleteRes.status).toBe(200);
     expect(ownerDeleteRes.body.success).toBe(true);
-  }, 15000);
+  });
 });

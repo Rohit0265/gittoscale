@@ -1,6 +1,5 @@
-export const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50 MB input limit
-export const MAX_IMAGE_BYTES = 25 * 1024 * 1024; // 25 MB input limit
-export const MAX_VIDEO_DURATION_SECONDS = 120; // 2 minutes maximum length
+export const MAX_VIDEO_BYTES = 1 * 1024 * 1024; // 1 MB
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export interface MediaValidationResult {
   valid: boolean;
@@ -25,10 +24,10 @@ export function validateMediaFile(file: File): MediaValidationResult {
 
   if (isVideo) {
     if (file.size > MAX_VIDEO_BYTES) {
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
       return {
         valid: false,
-        error: `Video file (${sizeMb} MB) exceeds maximum upload payload limit of 50 MB.`,
+        error: `Video exceeds the 1 MB size limit (${sizeMb} MB). Please choose a shorter or compressed clip.`,
       };
     }
     return { valid: true, mediaType: 'video' };
@@ -38,41 +37,13 @@ export function validateMediaFile(file: File): MediaValidationResult {
     if (file.size > MAX_IMAGE_BYTES) {
       return {
         valid: false,
-        error: 'Image file size exceeds the 25 MB limit.',
+        error: 'Image file size exceeds the 5 MB limit.',
       };
     }
     return { valid: true, mediaType: 'image' };
   }
 
   return { valid: false, error: 'Invalid file.' };
-}
-
-/**
- * Extracts duration and dimensions from a video file in browser.
- */
-export function getVideoMetadata(file: File): Promise<{ duration: number; width: number; height: number }> {
-  return new Promise((resolve) => {
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    const url = URL.createObjectURL(file);
-
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        duration: video.duration || 0,
-        width: video.videoWidth || 0,
-        height: video.videoHeight || 0,
-      });
-    };
-
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      // Fallback if browser can't decode metadata immediately
-      resolve({ duration: 0, width: 0, height: 0 });
-    };
-
-    video.src = url;
-  });
 }
 
 /**
