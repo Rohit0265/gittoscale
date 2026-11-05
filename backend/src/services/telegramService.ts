@@ -21,8 +21,8 @@ export interface SignupNotificationPayload {
  * Sends a Telegram notification when a new user registers on GitToScale.
  */
 export async function sendSignupTelegramNotification(payload: SignupNotificationPayload): Promise<boolean> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
+  const botToken = process.env.TELEGRAM_BOT_TOKEN1?.trim();
+  const chatId = process.env.TELEGRAM_CHAT_ID1?.trim();
 
   if (!botToken || !chatId) {
     console.log('[Telegram Signup Alert] Skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured.');
