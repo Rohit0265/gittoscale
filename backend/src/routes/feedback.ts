@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import { sendFeedbackTelegramMessage } from '../services/telegramService.js';
 
 const router = Router();
 
@@ -31,74 +32,11 @@ export interface FeedbackItem {
 export const feedbackStore: FeedbackItem[] = [];
 
 /**
- * Escapes characters that have special meaning in HTML mode for Telegram Bot API.
- */
-function escapeTelegramHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/**
  * Dispatches a formatted notification to Telegram using the Telegram Bot API.
  * Reads TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID from environment variables.
  */
 export async function sendTelegramNotification(feedback: FeedbackItem): Promise<boolean> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
-
-  if (!botToken || !chatId) {
-    console.log('[Telegram Notification] Skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured.');
-    return false;
-  }
-
-  const categoryEmoji = feedback.type === 'bug' ? '🐛 Bug Report' : '💡 Recommendation / Idea';
-  const timestamp = new Date(feedback.createdAt).toLocaleString('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
-
-  const formattedMessage = [
-    `<b>🔔 New GitToScale Message Received!</b>`,
-    ``,
-    `<b>👤 Name:</b> ${escapeTelegramHtml(feedback.name)}`,
-    `<b>📧 Email:</b> ${escapeTelegramHtml(feedback.email)}`,
-    `<b>🏷️ Type:</b> ${categoryEmoji}`,
-    ``,
-    `<b>💬 Message:</b>`,
-    `<pre>${escapeTelegramHtml(feedback.message)}</pre>`,
-    ``,
-    `<i>🕒 ${timestamp}</i>`,
-  ].join('\n');
-
-  try {
-    const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: formattedMessage,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
-    });
-
-    const data: any = await res.json();
-    if (!res.ok || !data.ok) {
-      console.error('[Telegram Notification] Error from Telegram API:', data);
-      return false;
-    }
-
-    console.log('[Telegram Notification] Successfully delivered to Telegram chat:', chatId);
-    return true;
-  } catch (error) {
-    console.error('[Telegram Notification] Request error:', error);
-    return false;
-  }
+  return sendFeedbackTelegramMessage(feedback);
 }
 
 /**
