@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageSquare, Share2 } from 'lucide-react';
+import { ThumbsUp, MessageSquare, Share2 } from 'lucide-react';
 
 interface PostActionsProps {
   postId: string;
@@ -36,14 +36,14 @@ export const PostActions: React.FC<PostActionsProps> = ({
           onClick={handleLikeClick}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
             hasLiked
-              ? 'text-rose-600 dark:text-rose-500 bg-rose-50 dark:bg-rose-950/30'
+              ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30'
               : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/60'
           }`}
           title={hasLiked ? 'Unlike' : 'Like'}
         >
-          <Heart
+          <ThumbsUp
             className={`w-4 h-4 transition-transform ${
-              hasLiked ? 'fill-current text-rose-500' : ''
+              hasLiked ? 'fill-current' : ''
             } ${likeAnimating ? 'scale-125' : 'scale-100'}`}
           />
           <span>{likeCount}</span>
