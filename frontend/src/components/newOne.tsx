@@ -57,8 +57,9 @@ export const NewOne: React.FC<NewOneProps> = ({
   onSelectUseRepository,
   onOpenRecommender,
   onStartProject,
-  isDark: _isDark,
+  isDark,
 }) => {
+  const isDarkMode = isDark ?? (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
   const [query, setQuery] = useState('');
   const [placeholder, setPlaceholder] = useState('');
   const [isUserInteracting, setIsUserInteracting] = useState(false);
