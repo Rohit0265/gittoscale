@@ -5,6 +5,7 @@ import { PostActions } from './PostActions';
 import { PostMenu } from './PostMenu';
 import { EditPostModal } from './EditPostModal';
 import { ShareModal } from './ShareModal';
+import { PostMediaGallery } from './PostMediaGallery';
 
 interface PostCardProps {
   post: FeedPost;
@@ -110,27 +111,16 @@ export const PostCard: React.FC<PostCardProps> = ({
           {post.content}
         </div>
 
-        {/* Post Media (Image or Video) */}
-        {post.media_url && (
-          <div className="mb-4 rounded-xl overflow-hidden border border-slate-200/80 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/40 max-h-[500px] flex items-center justify-center">
-            {post.media_type === 'video' ? (
-              <video
-                src={post.media_url}
-                controls
-                playsInline
-                preload="metadata"
-                className="w-full max-h-[480px] rounded-xl object-contain bg-black"
-              />
-            ) : (
-              <img
-                src={post.media_url}
-                alt="Post attachment"
-                loading="lazy"
-                onLoad={() => setIsMediaLoaded(true)}
-                className={`w-full max-h-[480px] object-contain rounded-xl transition-opacity duration-300 ${isMediaLoaded ? 'opacity-100' : 'opacity-80'}`}
-              />
-            )}
-          </div>
+        {/* Post Media Gallery: Desktop Layout (Exact user design) & Mobile Carousel */}
+        {((post.media_items && post.media_items.length > 0) || post.media_url) && (
+          <PostMediaGallery
+            mediaItems={
+              post.media_items && post.media_items.length > 0
+                ? post.media_items
+                : [{ url: post.media_url!, type: post.media_type || 'image' }]
+            }
+            postId={post.id}
+          />
         )}
 
         {/* Post Footer Actions */}

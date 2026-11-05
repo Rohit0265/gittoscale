@@ -11,6 +11,7 @@ export * from './components/CommentPanel';
 export * from './components/PostMenu';
 export * from './components/EditPostModal';
 export * from './components/ShareModal';
+export * from './components/PostMediaGallery';
 export * from './pages/FeedPage';
 export * from './pages/ProfilePage';
 
