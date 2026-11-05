@@ -659,5 +659,19 @@ export const api = {
       console.warn('[API] Failed to sync user profile:', e);
     }
   },
+
+  async getUserProfile(userId: string): Promise<any | null> {
+    try {
+      const res = await fetch(`${API_BASE}/auth/profile/${encodeURIComponent(userId)}`);
+      if (res.ok) {
+        const json = await res.json();
+        return json.profile || null;
+      }
+      return null;
+    } catch (e) {
+      console.warn('[API] Failed to fetch user profile:', e);
+      return null;
+    }
+  },
 };
 

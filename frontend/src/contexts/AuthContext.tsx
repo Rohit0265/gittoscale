@@ -69,35 +69,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
 
-  // Fetch user profile from Supabase
+  // Fetch user profile from Neon database (via backend API) instead of Supabase PostgREST
   const loadProfile = useCallback(async (userId: string, userEmail: string, userMeta?: any) => {
-    if (!isSupabaseConfigured) {
-      setProfile({
-        id: userId,
-        email: userEmail,
-        fullName: userMeta?.full_name || userEmail.split('@')[0],
-      });
-      return;
-    }
-
     try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const dbProfile = await api.getUserProfile(userId);
 
       const resolvedProfile: UserProfile = {
-        id: data?.id || userId,
-        fullName: data?.full_name || userMeta?.full_name || userMeta?.name || userEmail.split('@')[0],
-        email: data?.email || userEmail,
-        avatarUrl: data?.avatar_url || userMeta?.avatar_url || userMeta?.picture,
-        createdAt: data?.created_at || new Date().toISOString(),
+        id: dbProfile?.id || userId,
+        fullName: dbProfile?.full_name || userMeta?.full_name || userMeta?.name || userEmail.split('@')[0],
+        email: dbProfile?.email || userEmail,
+        avatarUrl: dbProfile?.avatar_url || userMeta?.avatar_url || userMeta?.picture,
+        createdAt: dbProfile?.created_at || new Date().toISOString(),
       };
 
       setProfile(resolvedProfile);
 
-      // Persist profile to PostgreSQL (Neon) database
+      // Persist / sync profile to PostgreSQL (Neon) database
       api.syncUserProfile({
         id: resolvedProfile.id,
         email: resolvedProfile.email,
@@ -105,11 +92,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatarUrl: resolvedProfile.avatarUrl,
       });
     } catch (err) {
-      console.error('Failed to load user profile:', err);
+      console.warn('Failed to load user profile from database, using session metadata:', err);
       setProfile({
         id: userId,
         email: userEmail,
-        fullName: userMeta?.full_name || userEmail.split('@')[0],
+        fullName: userMeta?.full_name || userMeta?.name || userEmail.split('@')[0],
+        avatarUrl: userMeta?.avatar_url || userMeta?.picture,
+        createdAt: new Date().toISOString(),
       });
     }
   }, []);
