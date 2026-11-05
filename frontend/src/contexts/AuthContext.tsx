@@ -87,22 +87,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
 
-      if (data && !error) {
-        setProfile({
-          id: data.id,
-          fullName: data.full_name || userMeta?.full_name || userEmail.split('@')[0],
-          email: data.email || userEmail,
-          avatarUrl: data.avatar_url,
-          createdAt: data.created_at,
-        });
-      } else {
-        // Fallback to auth metadata if profile row not ready yet
-        setProfile({
-          id: userId,
-          email: userEmail,
-          fullName: userMeta?.full_name || userEmail.split('@')[0],
-        });
-      }
+      const resolvedProfile: UserProfile = {
+        id: data?.id || userId,
+        fullName: data?.full_name || userMeta?.full_name || userMeta?.name || userEmail.split('@')[0],
+        email: data?.email || userEmail,
+        avatarUrl: data?.avatar_url || userMeta?.avatar_url || userMeta?.picture,
+        createdAt: data?.created_at || new Date().toISOString(),
+      };
+
+      setProfile(resolvedProfile);
+
+      // Persist profile to PostgreSQL (Neon) database
+      api.syncUserProfile({
+        id: resolvedProfile.id,
+        email: resolvedProfile.email,
+        fullName: resolvedProfile.fullName,
+        avatarUrl: resolvedProfile.avatarUrl,
+      });
     } catch (err) {
       console.error('Failed to load user profile:', err);
       setProfile({
