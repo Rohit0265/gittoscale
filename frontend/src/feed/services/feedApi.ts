@@ -96,12 +96,17 @@ export const feedApi = {
   },
 
   /**
-   * Add comment to post
+   * Add comment to post (supports parentId for threaded replies up to 3 tiers)
    */
-  async addComment(postId: string, content: string, token: string): Promise<FeedComment> {
+  async addComment(
+    postId: string,
+    content: string,
+    token: string,
+    parentId?: string | null
+  ): Promise<FeedComment> {
     const res = await axios.post(
       `${API_BASE}/feed/posts/${postId}/comments`,
-      { content },
+      { content, parentId: parentId || null },
       { headers: getAuthHeader(token) }
     );
     return res.data?.data;
@@ -133,6 +138,19 @@ export const feedApi = {
   async getUserPosts(userId: string, token?: string | null): Promise<FeedPost[]> {
     const res = await axios.get(`${API_BASE}/feed/profile/${userId}/posts`, {
       headers: getAuthHeader(token),
+    });
+    return res.data?.data || [];
+  },
+
+  /**
+   * Get posts liked by user
+   */
+  async getUserLikedPosts(userId: string, token?: string | null): Promise<FeedPost[]> {
+    const res = await axios.get(`${API_BASE}/feed/profile/${userId}/likes`, {
+      headers: getAuthHeader(token),
+    });
+    return res.data?.data || [];
+  },
     });
     return res.data?.data || [];
   },
