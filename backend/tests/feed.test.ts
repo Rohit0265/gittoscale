@@ -142,4 +142,81 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(ownerDeleteRes.status).toBe(200);
     expect(ownerDeleteRes.body.success).toBe(true);
   });
+
+  it('enforces YouTube-style 3-tier nested comment limit (depth 0, 1, 2)', async () => {
+    // 1. Create a post
+    const postRes = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: 'Post for comment thread depth test' });
+    const postId = postRes.body.data.id;
+
+    // 2. Add root comment (tier 1 / depth 0)
+    const rootRes = await request(app)
+      .post(`/api/feed/posts/${postId}/comments`)
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: 'Root comment level 0' });
+    expect(rootRes.status).toBe(201);
+    expect(rootRes.body.data.depth).toBe(0);
+    const rootCommentId = rootRes.body.data.id;
+
+    // 3. Reply to root comment (tier 2 / depth 1)
+    const reply1Res = await request(app)
+      .post(`/api/feed/posts/${postId}/comments`)
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({ content: 'First reply level 1', parentId: rootCommentId });
+    expect(reply1Res.status).toBe(201);
+    expect(reply1Res.body.data.depth).toBe(1);
+    expect(reply1Res.body.data.parent_id).toBe(rootCommentId);
+    const reply1Id = reply1Res.body.data.id;
+
+    // 4. Reply to level 1 (tier 3 / depth 2)
+    const reply2Res = await request(app)
+      .post(`/api/feed/posts/${postId}/comments`)
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: 'Sub-reply level 2', parentId: reply1Id });
+    expect(reply2Res.status).toBe(201);
+    expect(reply2Res.body.data.depth).toBe(2);
+    const reply2Id = reply2Res.body.data.id;
+
+    // 5. Reply to level 2 -> MUST BE CAPPED AT DEPTH 2 (YouTube conversation limit)
+    const reply3Res = await request(app)
+      .post(`/api/feed/posts/${postId}/comments`)
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({ content: '@Alice Sub-reply level 3 capped at depth 2', parentId: reply2Id });
+    expect(reply3Res.status).toBe(201);
+    expect(reply3Res.body.data.depth).toBe(2);
+
+    // 6. Verify retrieved comments include parent_id and depth
+    const listRes = await request(app).get(`/api/feed/posts/${postId}/comments`);
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.data.length).toBe(4);
+    const depths = listRes.body.data.map((c: any) => c.depth);
+    expect(depths).toEqual([0, 1, 2, 2]);
+  });
+
+  it('supports retrieving user liked posts via /api/feed/profile/:id/likes', async () => {
+    // 1. Create a post
+    const postRes = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: 'Post to test liked posts endpoint' });
+    const postId = postRes.body.data.id;
+
+    // 2. User 2 likes the post
+    await request(app)
+      .post(`/api/feed/posts/${postId}/like`)
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send();
+
+    // 3. User 2 retrieves their liked posts
+    const likedRes = await request(app)
+      .get('/api/feed/profile/usr_feed_test_2/likes')
+      .set('Authorization', `Bearer ${user2Token}`);
+
+    expect(likedRes.status).toBe(200);
+    expect(likedRes.body.success).toBe(true);
+    expect(Array.isArray(likedRes.body.data)).toBe(true);
+    expect(likedRes.body.data.some((p: any) => p.id === postId)).toBe(true);
+  });
 });
