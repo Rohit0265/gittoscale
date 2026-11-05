@@ -89,15 +89,13 @@ export async function sendSignupTelegramNotification(payload: SignupNotification
   });
 
   const displayName = payload.name?.trim() || payload.email.split('@')[0];
-  const providerLabel = payload.provider ? ` (${payload.provider.toUpperCase()})` : '';
 
   const message = [
-    `🚀 <b>New GitToScale User Registration!</b>`,
+    `✅ <b>User Signed Up!</b>`,
     ``,
     `👤 <b>Name:</b> ${escapeTelegramHtml(displayName)}`,
     `📧 <b>Email:</b> ${escapeTelegramHtml(payload.email)}`,
-    `🔑 <b>Auth Method:</b> ${escapeTelegramHtml(payload.provider || 'Email / Password')}${providerLabel}`,
-    payload.userId ? `🆔 <b>User ID:</b> <code>${escapeTelegramHtml(payload.userId)}</code>` : '',
+    `🔑 <b>Via:</b> ${escapeTelegramHtml(payload.provider || 'Email / Password')}`,
     ``,
     `🕒 <i>${timestamp} UTC</i>`,
   ].filter(Boolean).join('\n');
