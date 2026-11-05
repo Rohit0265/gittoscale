@@ -390,7 +390,7 @@ router.post('/posts/:id/comments', requireAuth, async (req: AuthenticatedRequest
   try {
     const postId = req.params.id;
     const userId = req.user!.id;
-    const { content } = req.body;
+    const { content, parentId } = req.body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       res.status(400).json({
@@ -414,6 +414,7 @@ router.post('/posts/:id/comments', requireAuth, async (req: AuthenticatedRequest
       postId,
       userId,
       content: content.trim(),
+      parentId: parentId || null,
       authorName: req.user?.fullName,
       authorEmail: req.user?.email,
     });
