@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { spawnSync, spawn } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -110,10 +110,10 @@ export async function compressImage(buffer: Buffer): Promise<ImageCompressionRes
 
   try {
     // Process with sharp
-    const sharpInstance = sharp(buffer, { failOnError: false });
+    const sharpInstance = sharp(buffer);
     const originalMeta = await sharpInstance.metadata();
 
-    const outputBuffer = await sharp(buffer, { failOnError: false })
+    const outputBuffer = await sharp(buffer)
       .rotate() // auto-orient based on EXIF before stripping
       .resize({
         width: 1600,
