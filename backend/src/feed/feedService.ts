@@ -291,6 +291,26 @@ export async function createFeedPost(data: {
 }): Promise<FeedPost> {
   try {
     const db = getSql();
+
+    // Ensure user profile exists in public.profiles to satisfy foreign key constraint
+    if (data.userId) {
+      await db`
+        INSERT INTO public.profiles (id, full_name, email, created_at, updated_at)
+        VALUES (
+          ${data.userId},
+          ${data.authorName || 'GitToScale User'},
+          ${(data.authorEmail || `${data.userId}@gittoscale.tech`).toLowerCase()},
+          timezone('utc'::text, now()),
+          timezone('utc'::text, now())
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name),
+          updated_at = timezone('utc'::text, now());
+      `.catch((e: any) => {
+        console.warn('[Feed Service] Profile upsert warning:', e.message);
+      });
+    }
+
     const rows = await db`
       INSERT INTO public.feed_posts (user_id, content, media_url, media_type, media_metadata, created_at, updated_at)
       VALUES (
@@ -439,6 +459,15 @@ export async function toggleFeedLike(postId: string, userId: string): Promise<{ 
   try {
     const db = getSql();
 
+    // Ensure user profile exists for foreign key
+    if (userId) {
+      await db`
+        INSERT INTO public.profiles (id, full_name, email, created_at, updated_at)
+        VALUES (${userId}, 'User', ${(userId + '@gittoscale.tech').toLowerCase()}, timezone('utc'::text, now()), timezone('utc'::text, now()))
+        ON CONFLICT (id) DO NOTHING;
+      `.catch(() => {});
+    }
+
     // Check if post exists
     const postCheck = await db`SELECT id FROM public.feed_posts WHERE id = ${postId} LIMIT 1;`;
     if (!postCheck || postCheck.length === 0) {
@@ -564,6 +593,15 @@ export async function addPostComment(data: {
 }): Promise<FeedComment> {
   try {
     const db = getSql();
+
+    // Ensure user profile exists for foreign key
+    if (data.userId) {
+      await db`
+        INSERT INTO public.profiles (id, full_name, email, created_at, updated_at)
+        VALUES (${data.userId}, ${data.authorName || 'User'}, ${(data.authorEmail || `${data.userId}@gittoscale.tech`).toLowerCase()}, timezone('utc'::text, now()), timezone('utc'::text, now()))
+        ON CONFLICT (id) DO NOTHING;
+      `.catch(() => {});
+    }
 
     // Check post exists
     const postCheck = await db`SELECT id FROM public.feed_posts WHERE id = ${data.postId} LIMIT 1;`;
