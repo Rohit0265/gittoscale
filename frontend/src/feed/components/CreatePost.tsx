@@ -306,10 +306,10 @@ export const CreatePost: React.FC<CreatePostProps> = ({
               }}
               disabled={isSubmitting}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-              title="Add Video (≤ 1MB, shown first)"
+              title="Add Video (≤ 2 Min, shown first)"
             >
               <Video className="w-4 h-4 text-indigo-500" />
-              <span className="hidden sm:inline">Video (≤ 1MB)</span>
+              <span className="hidden sm:inline">Video (≤ 2 Min)</span>
             </button>
           </div>
 
