@@ -2,12 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
-  BarChart3,
-  TrendingUp,
-  Box,
-  Database,
-  Hexagon,
-  Github,
   Sun,
   Moon,
   Cpu,
