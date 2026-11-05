@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Image, Video, X, Send, AlertCircle, Loader2, Play } from 'lucide-react';
-import { validateMediaFile, fileToBase64 } from '../utils/mediaValidation';
+import { validateMediaFile, validateVideoFile, fileToBase64 } from '../utils/mediaValidation';
 import { feedApi } from '../services/feedApi';
 import { MediaItem } from '../types';
 
