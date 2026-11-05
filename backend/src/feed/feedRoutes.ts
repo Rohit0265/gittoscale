@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
 import { uploadToR2 } from '../services/r2Service.js';
+import { compressImage, processAndValidateVideo } from '../services/mediaCompressionService.js';
 import {
   getFeedPosts,
   getPostById,
