@@ -1,9 +1,22 @@
+export interface MediaMetadata {
+  r2Key?: string;
+  mediaUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  originalSizeBytes: number;
+  compressionPercentage: number;
+  width?: number | null;
+  height?: number | null;
+  duration?: number | null;
+}
+
 export interface FeedPost {
   id: string;
   user_id: string;
   content: string;
   media_url?: string | null;
   media_type?: 'image' | 'video' | null;
+  media_metadata?: MediaMetadata | null;
   created_at: string;
   updated_at: string;
   author: {
