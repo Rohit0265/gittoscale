@@ -122,35 +122,47 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
   const cleanName = (typeof name === 'string' && name.trim()) || cleanEmail.split('@')[0];
   const effectiveUserId = (typeof userId === 'string' && userId.trim()) || `usr_${Date.now().toString(36)}`;
 
-  // 1. Persist user in PostgreSQL (Neon) database
+  let isBrandNewUser = true;
+
+  // 1. Check if user already exists in PostgreSQL (Neon) database
   if (isNeonConfigured()) {
     try {
+      const existing = (await getUserProfile(effectiveUserId)) || (await getUserProfileByEmail(cleanEmail));
+      if (existing) {
+        isBrandNewUser = false;
+        console.log('[Auth Route] User already exists in Neon database:', cleanEmail, '(skipping Telegram alert)');
+      }
+
       await upsertUserProfile({
         id: effectiveUserId,
         full_name: cleanName,
         email: cleanEmail,
         avatar_url: typeof avatarUrl === 'string' ? avatarUrl : null,
       });
-      console.log('[Auth Route] Stored user profile in Neon database:', cleanEmail);
+      console.log('[Auth Route] Stored/updated user profile in Neon database:', cleanEmail);
     } catch (dbErr) {
-      console.error('[Auth Route] Failed to save user profile to Neon:', dbErr);
+      console.error('[Auth Route] Failed to check/save user profile in Neon:', dbErr);
     }
   }
 
   try {
-    sendSignupTelegramNotification({
-      name: cleanName,
-      email: cleanEmail,
-      userId: effectiveUserId,
-      provider: typeof provider === 'string' ? provider : undefined,
-      createdAt: typeof createdAt === 'string' ? createdAt : new Date().toISOString(),
-    }).catch((err) => {
-      console.warn('[Auth Route] Telegram signup alert error:', err);
-    });
+    // Only dispatch Telegram notification if user didn't exist in the database yet
+    if (isBrandNewUser) {
+      sendSignupTelegramNotification({
+        name: cleanName,
+        email: cleanEmail,
+        userId: effectiveUserId,
+        provider: typeof provider === 'string' ? provider : undefined,
+        createdAt: typeof createdAt === 'string' ? createdAt : new Date().toISOString(),
+      }).catch((err) => {
+        console.warn('[Auth Route] Telegram signup alert error:', err);
+      });
+    }
 
     return res.json({
       success: true,
-      message: 'Signup stored and notification dispatched.',
+      message: isBrandNewUser ? 'New signup stored and notification sent.' : 'Existing user profile synced.',
+      isNewUser: isBrandNewUser,
       user: {
         id: effectiveUserId,
         name: cleanName,
