@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { Image, Video, X, Send, AlertCircle, Loader2, Play } from 'lucide-react';
+import { Image, Video, X, Send, AlertCircle, Loader2, Play, ChevronLeft, ChevronRight, ArrowLeftRight } from 'lucide-react';
 import { validateMediaFile, validateVideoFile, fileToBase64 } from '../utils/mediaValidation';
 import { feedApi } from '../services/feedApi';
 import { MediaItem } from '../types';
+import { RichPostInput } from './RichPostInput';
 
 interface CreatePostProps {
   user?: any;
@@ -130,6 +131,12 @@ export const CreatePost: React.FC<CreatePostProps> = ({
       return;
     }
 
+    const wordCount = content.trim() ? content.trim().split(/\s+/).filter(Boolean).length : 0;
+    if (wordCount > 2500) {
+      setErrorMessage(`Post exceeds the 2,500 word limit (${wordCount.toLocaleString()} / 2,500 words).`);
+      return;
+    }
+
     if (!token) {
       setErrorMessage('You must be signed in.');
       return;
@@ -172,19 +179,31 @@ export const CreatePost: React.FC<CreatePostProps> = ({
   return (
     <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-6 transition-colors">
       <form onSubmit={handleSubmit}>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-start">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200 dark:border-neutral-700 mt-1"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center uppercase shrink-0 text-xs mt-1">
+              {displayName[0]}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
-            <textarea
+            <RichPostInput
               value={content}
-              onChange={(e) => {
-                setContent(e.target.value);
+              onChange={(val) => {
+                setContent(val);
                 if (errorMessage) setErrorMessage(null);
               }}
               placeholder="What are you designing? Share a system architecture, question, or latency finding..."
               rows={3}
-              maxLength={3000}
-              className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-0 leading-relaxed"
+              disabled={isSubmitting}
+              minHeight="95px"
+              maxWords={2500}
             />
           </div>
         </div>

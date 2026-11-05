@@ -28,6 +28,12 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({
       return;
     }
 
+    const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount > 2500) {
+      setError(`Post content exceeds the 2,500 word limit (${wordCount.toLocaleString()} / 2,500 words).`);
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);

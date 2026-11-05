@@ -28,6 +28,20 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(res.body.success).toBe(false);
   });
 
+  it('strictly enforces 2,500 word limit on post creation', async () => {
+    // Generate content exceeding 2,500 words
+    const longContent = Array(2505).fill('architecture').join(' ');
+    const res = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: longContent });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBe('WORD_LIMIT_EXCEEDED');
+    expect(res.body.message).toContain('2,500');
+  });
+
   it('allows video uploads exceeding 1 MB when duration is under 2 minutes', async () => {
     // 1.2 MB buffer with valid MP4 header and duration under 2 min (e.g. 30 seconds)
     const validVideoBuffer = Buffer.alloc(1.2 * 1024 * 1024);

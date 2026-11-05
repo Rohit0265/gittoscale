@@ -120,9 +120,62 @@ export const PostCard: React.FC<PostCardProps> = ({
           />
         </div>
 
-        {/* Post Content */}
-        <div className="text-sm text-slate-800 dark:text-neutral-200 leading-relaxed whitespace-pre-wrap break-words mb-3.5">
-          {post.content}
+        {/* Post Content with Rich Markdown and 4-5 line Read More */}
+        <div className="relative mb-3.5">
+          <div
+            ref={contentRef}
+            className={`text-sm text-slate-800 dark:text-neutral-200 leading-relaxed break-words transition-all overflow-hidden ${
+              !isExpanded ? 'max-h-[105px]' : ''
+            }`}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                a: ({ node, ...props }) => (
+                  <a
+                    {...props}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ),
+                code: ({ node, inline, children, ...props }: any) => {
+                  if (inline) {
+                    return (
+                      <code className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 font-mono text-xs text-indigo-600 dark:text-indigo-400" {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                  return (
+                    <pre className="p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto my-2 border border-slate-800">
+                      <code {...props}>{children}</code>
+                    </pre>
+                  );
+                },
+              }}
+            >
+              {post.content}
+            </ReactMarkdown>
+          </div>
+
+          {/* Read more / Show less toggle */}
+          {isClamped && (
+            <div className={`pt-1 flex items-center ${!isExpanded ? 'bg-gradient-to-t from-white via-white/80 dark:from-[#0A0A0A] dark:via-[#0A0A0A]/80 to-transparent -mt-5 pt-5 relative z-10' : ''}`}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              >
+                {isExpanded ? 'Show less' : '... Read more'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Post Media Gallery: Desktop Layout (Exact user design) & Mobile Carousel */}
