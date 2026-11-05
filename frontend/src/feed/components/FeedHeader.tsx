@@ -75,19 +75,6 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
             <span className="hidden md:inline">Simulator</span>
           </button>
         )}
-
-        {/* Global Theme Toggle (desktop / fallback) */}
-        {/* {onToggleTheme && (
-          <button
-            onClick={onToggleTheme}
-            className="hidden sm:flex p-2 rounded-lg text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label="Toggle Theme"
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-        )} */}
-
         {/* User Auth Info & Interactive Profile Menu */}
         {user ? (
           <div className="relative" ref={menuRef}>
