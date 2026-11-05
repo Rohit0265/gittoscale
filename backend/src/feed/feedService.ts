@@ -129,6 +129,7 @@ export async function getFeedPosts(
       content: r.content,
       media_url: r.media_url,
       media_type: r.media_type,
+      media_metadata: r.media_metadata || null,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
@@ -807,6 +808,7 @@ export async function getUserPosts(
       content: r.content,
       media_url: r.media_url,
       media_type: r.media_type,
+      media_metadata: r.media_metadata || null,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
