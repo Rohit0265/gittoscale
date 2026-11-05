@@ -400,7 +400,7 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
   try {
     const db = getSql();
     const checkRows = await db`
-      SELECT user_id FROM public.feed_posts WHERE id = ${postId} LIMIT 1;
+      SELECT user_id, media_url, media_metadata FROM public.feed_posts WHERE id = ${postId} LIMIT 1;
     `;
 
     if (!checkRows || checkRows.length === 0) {
@@ -409,6 +409,9 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
     if (checkRows[0].user_id !== userId) {
       throw new Error('FORBIDDEN_NOT_OWNER');
     }
+
+    const postRecord = checkRows[0];
+    await cleanupPostMedia(postRecord.media_url, postRecord.media_metadata);
 
     await db`
       DELETE FROM public.feed_posts WHERE id = ${postId} AND user_id = ${userId};
@@ -419,7 +422,10 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
       const idx = inMemPosts.findIndex((p) => p.id === postId);
       if (idx === -1) return false;
       if (inMemPosts[idx].user_id !== userId) throw new Error('FORBIDDEN_NOT_OWNER');
-      inMemPosts.splice(idx, 1);
+      const removed = inMemPosts.splice(idx, 1)[0];
+      if (removed) {
+        await cleanupPostMedia(removed.media_url, removed.media_metadata);
+      }
       return true;
     }
     throw err;
@@ -779,6 +785,7 @@ export async function getUserPosts(
         p.content,
         p.media_url,
         p.media_type,
+        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
@@ -838,6 +845,7 @@ export async function getUserPosts(
           content: p.content,
           media_url: p.media_url,
           media_type: p.media_type,
+          media_metadata: p.media_metadata || null,
           created_at: p.created_at,
           updated_at: p.updated_at,
           author: {
