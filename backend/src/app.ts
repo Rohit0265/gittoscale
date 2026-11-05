@@ -14,6 +14,7 @@ import authRoute from './routes/auth.js';
 import historyRoute from './routes/history.js';
 import chatRoute from './routes/chat.js';
 import telemetryRoute from './routes/telemetry.js';
+import feedRoute from './feed/feedRoutes.js';
 import { telemetryMiddleware } from './middleware/telemetry.js';
 
 import { loadEnvFiles } from './utils/env.js';
@@ -26,7 +27,7 @@ export function createApp() {
   const app = express();
 
   app.use(cors());
-  app.use(express.json({ limit: '2mb' }));
+  app.use(express.json({ limit: '15mb' }));
   app.use(telemetryMiddleware);
 
   // API Routes
@@ -41,6 +42,14 @@ export function createApp() {
   app.use('/api/history', historyRoute);
   app.use('/api/chat', chatRoute);
   app.use('/api/telemetry', telemetryRoute);
+  app.use('/api/feed', feedRoute);
+
+  // Serve uploaded media
+  const uploadsPath = path.resolve(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+  }
+  app.use('/uploads', express.static(uploadsPath));
 
   // Serve static frontend in production if built
   const frontendDistCandidates = [

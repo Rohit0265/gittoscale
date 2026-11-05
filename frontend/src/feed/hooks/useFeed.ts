@@ -1,0 +1,119 @@
+import { useState, useEffect, useCallback } from 'react';
+import { FeedPost } from '../types';
+import { feedApi } from '../services/feedApi';
+
+interface UseFeedOptions {
+  token?: string | null;
+}
+
+export function useFeed({ token }: UseFeedOptions) {
+  const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPostForComments, setSelectedPostForComments] = useState<FeedPost | null>(null);
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await feedApi.getPosts(token);
+      setPosts(data);
+    } catch (err: any) {
+      console.error('[useFeed] Error loading feed posts:', err);
+      setError(err?.response?.data?.message || err?.message || 'Failed to load feed.');
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  const handleCreatePost = async (content: string, mediaUrl?: string | null, mediaType?: 'image' | 'video' | null) => {
+    if (!token) throw new Error('You must be signed in to post.');
+    const newPost = await feedApi.createPost({ content, mediaUrl, mediaType }, token);
+    setPosts((prev) => [newPost, ...prev]);
+    return newPost;
+  };
+
+  const handleUpdatePost = async (postId: string, newContent: string) => {
+    if (!token) throw new Error('You must be signed in to edit posts.');
+    const updated = await feedApi.updatePost(postId, newContent, token);
+    setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
+    if (selectedPostForComments?.id === postId) {
+      setSelectedPostForComments(updated);
+    }
+    return updated;
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!token) throw new Error('You must be signed in to delete posts.');
+    await feedApi.deletePost(postId, token);
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    if (selectedPostForComments?.id === postId) {
+      setSelectedPostForComments(null);
+    }
+  };
+
+  const handleToggleLike = async (postId: string) => {
+    if (!token) {
+      throw new Error('Please sign in to like posts.');
+    }
+
+    // Optimistic UI update
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const wasLiked = p.has_liked;
+          return {
+            ...p,
+            has_liked: !wasLiked,
+            like_count: wasLiked ? Math.max(0, p.like_count - 1) : p.like_count + 1,
+          };
+        }
+        return p;
+      })
+    );
+
+    try {
+      const res = await feedApi.toggleLike(postId, token);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, has_liked: res.liked, like_count: res.likeCount } : p))
+      );
+    } catch (err) {
+      // Revert on error
+      fetchPosts();
+      throw err;
+    }
+  };
+
+  const handleOpenComments = (post: FeedPost) => {
+    setSelectedPostForComments(post);
+  };
+
+  const handleCloseComments = () => {
+    setSelectedPostForComments(null);
+  };
+
+  const handleCommentCountChange = (postId: string, delta: number) => {
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, comment_count: Math.max(0, p.comment_count + delta) } : p))
+    );
+  };
+
+  return {
+    posts,
+    loading,
+    error,
+    refreshPosts: fetchPosts,
+    createPost: handleCreatePost,
+    updatePost: handleUpdatePost,
+    deletePost: handleDeletePost,
+    toggleLike: handleToggleLike,
+    selectedPostForComments,
+    openComments: handleOpenComments,
+    closeComments: handleCloseComments,
+    notifyCommentChange: handleCommentCountChange,
+  };
+}

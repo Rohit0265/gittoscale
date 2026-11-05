@@ -70,6 +70,12 @@ const NotFoundPage = React.lazy(() =>
 const UnverifiedProjectPage = React.lazy(() =>
   import('./components/UnverifiedProjectPage').then((m) => ({ default: m.UnverifiedProjectPage }))
 );
+const FeedPage = React.lazy(() =>
+  import('./feed/pages/FeedPage').then((m) => ({ default: m.FeedPage }))
+);
+const ProfilePage = React.lazy(() =>
+  import('./feed/pages/ProfilePage').then((m) => ({ default: m.ProfilePage }))
+);
 
 import {
   AppWorkspaceSkeleton,
@@ -163,11 +169,14 @@ export type AppView =
   | 'privacy-policy'
   | 'terms'
   | 'not-found'
-  | 'unverified';
+  | 'unverified'
+  | 'feed'
+  | 'feed-profile';
 
 const isValidAppPath = (path: string): boolean => {
   if (path === '/' || path === '') return true;
   if (path === '/app' || path.startsWith('/app/')) return true;
+  if (path === '/feed' || path.startsWith('/feed')) return true;
   if (path === '/signup' || path === '/signin' || path === '/forgot-password') return true;
   if (path.startsWith('/auth')) return true;
   if (path === '/history') return true;
@@ -206,6 +215,8 @@ const isValidAppPath = (path: string): boolean => {
 const getInitialView = (): AppView => {
   if (typeof window === 'undefined') return 'landing';
   const path = window.location.pathname.toLowerCase();
+  if (path === '/feed') return 'feed';
+  if (path.startsWith('/feed/profile/')) return 'feed-profile';
   if (path === '/signup') return 'signup';
   if (path === '/signin') return 'signin';
   if (path === '/forgot-password') return 'forgot-password';
@@ -260,6 +271,7 @@ export const App: React.FC = () => {
 
   const [activeProject, setActiveProject] = useState<ProjectRouteInfo | null>(() => getProjectRouteInfo());
   const [unverifiedProjectId, setUnverifiedProjectId] = useState<string | null>(null);
+  const authToken = getAuthToken();
 
   // Navigation mode
   const [currentView, setCurrentView] = useState<AppView>(() => getInitialView());
@@ -349,6 +361,12 @@ export const App: React.FC = () => {
     } else if (cleanName === 'history' || cleanName === '/history') {
       window.history.pushState({}, '', '/history');
       setCurrentView('history');
+    } else if (cleanName === 'feed' || cleanName === '/feed') {
+      window.history.pushState({}, '', '/feed');
+      setCurrentView('feed');
+    } else if (cleanName.startsWith('/feed/profile/')) {
+      window.history.pushState({}, '', cleanName);
+      setCurrentView('feed-profile');
     } else if (cleanName === 'simulator' || cleanName === '/app') {
       window.history.pushState({}, '', '/app');
       setCurrentView('simulator');
@@ -430,7 +448,11 @@ export const App: React.FC = () => {
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname.toLowerCase();
-      if (path === '/signup') {
+      if (path === '/feed') {
+        setCurrentView('feed');
+      } else if (path.startsWith('/feed/profile/')) {
+        setCurrentView('feed-profile');
+      } else if (path === '/signup') {
         setCurrentView('signup');
       } else if (path === '/signin') {
         setCurrentView('signin');
@@ -1862,6 +1884,75 @@ export const App: React.FC = () => {
     );
   }
 
+  if (currentView === 'feed') {
+    return (
+      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+        <FeedPage
+          user={user}
+          token={authToken}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onGoHome={handleGoHome}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          onOpenSignUp={() => {
+            window.history.pushState({}, '', '/signup');
+            setCurrentView('signup');
+          }}
+          onSignOut={signOut}
+          onNavigateToSimulator={() => {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
+          onNavigateToProfile={(profileUserId) => {
+            window.history.pushState({}, '', `/feed/profile/${profileUserId}`);
+            setCurrentView('feed-profile');
+          }}
+        />
+      </Suspense>
+    );
+  }
+
+  if (currentView === 'feed-profile') {
+    const rawPath = window.location.pathname;
+    const profileIdFromUrl = rawPath.replace(/^\/feed\/profile\/?/, '').split('/')[0] || user?.id || '';
+    return (
+      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+        <ProfilePage
+          profileId={profileIdFromUrl}
+          user={user}
+          token={authToken}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onGoHome={handleGoHome}
+          onNavigateToFeed={() => {
+            window.history.pushState({}, '', '/feed');
+            setCurrentView('feed');
+          }}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          onOpenSignUp={() => {
+            window.history.pushState({}, '', '/signup');
+            setCurrentView('signup');
+          }}
+          onSignOut={signOut}
+          onNavigateToSimulator={() => {
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
+          onNavigateToProfile={(nextUserId) => {
+            window.history.pushState({}, '', `/feed/profile/${nextUserId}`);
+            setCurrentView('feed-profile');
+          }}
+        />
+      </Suspense>
+    );
+  }
+
   if (currentView === 'cookie-policy' || currentView === 'privacy-policy' || currentView === 'terms') {
     return (
       <Suspense fallback={<LegalPageSkeleton />}>
@@ -2063,6 +2154,10 @@ export const App: React.FC = () => {
         onOpenHistory={() => {
           window.history.pushState({}, '', '/history');
           setCurrentView('history');
+        }}
+        onOpenFeed={() => {
+          window.history.pushState({}, '', '/feed');
+          setCurrentView('feed');
         }}
         user={user}
         onOpenAuth={() => {
