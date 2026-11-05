@@ -40,7 +40,12 @@ export const feedApi = {
    * Create new post
    */
   async createPost(
-    post: { content: string; mediaUrl?: string | null; mediaType?: 'image' | 'video' | null },
+    post: {
+      content: string;
+      mediaUrl?: string | null;
+      mediaType?: 'image' | 'video' | null;
+      mediaItems?: MediaItem[];
+    },
     token: string
   ): Promise<FeedPost> {
     const res = await axios.post(`${API_BASE}/feed/posts`, post, {
