@@ -298,3 +298,39 @@ export async function deleteRepositoryById(id: string, userId: string) {
   `;
   return true;
 }
+
+export async function upsertUserProfile(profile: {
+  id: string;
+  full_name?: string;
+  email: string;
+  avatar_url?: string | null;
+}) {
+  const db = getSql();
+  const rows = await db`
+    INSERT INTO public.profiles (id, full_name, email, avatar_url, created_at, updated_at)
+    VALUES (
+      ${profile.id},
+      ${profile.full_name || profile.email.split('@')[0]},
+      ${profile.email.toLowerCase()},
+      ${profile.avatar_url || null},
+      timezone('utc'::text, now()),
+      timezone('utc'::text, now())
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      full_name = EXCLUDED.full_name,
+      email = EXCLUDED.email,
+      avatar_url = COALESCE(EXCLUDED.avatar_url, public.profiles.avatar_url),
+      updated_at = timezone('utc'::text, now())
+    RETURNING *;
+  `;
+  return rows[0];
+}
+
+export async function getUserProfile(userId: string) {
+  const db = getSql();
+  const rows = await db`
+    SELECT * FROM public.profiles WHERE id = ${userId} LIMIT 1;
+  `;
+  return rows[0] || null;
+}
+
