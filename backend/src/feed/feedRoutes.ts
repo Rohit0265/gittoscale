@@ -17,6 +17,7 @@ import {
   deletePostComment,
   getUserFeedProfile,
   getUserPosts,
+  getUserLikedPosts,
   toggleFollowUser,
 } from './feedService.js';
 
