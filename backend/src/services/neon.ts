@@ -1,3 +1,8 @@
+import dns from 'node:dns';
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch {}
+
 import { neon, NeonQueryFunction } from '@neondatabase/serverless';
 import { loadEnvFiles } from '../utils/env.js';
 

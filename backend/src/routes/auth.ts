@@ -224,7 +224,8 @@ router.get('/profile/:id', async (req: Request, res: Response) => {
       }
       return res.status(404).json({ success: false, error: 'Profile not found' });
     } catch (err: any) {
-      return res.status(500).json({ success: false, error: err.message });
+      console.warn('[Auth Route] Warning fetching user profile from Neon:', err.message);
+      return res.status(404).json({ success: false, error: 'Profile not found' });
     }
   }
 
