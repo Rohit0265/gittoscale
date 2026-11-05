@@ -644,50 +644,101 @@ router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Respo
       return;
     }
 
-    // Strict file size limits:
-    // Video: Maximum 1 MB (1,048,576 bytes)
-    // Image: Maximum 5 MB (5,242,880 bytes)
-    const MAX_VIDEO_BYTES = 1 * 1024 * 1024; // 1 MB strictly enforced
-    const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+    // File size safety ceilings:
+    // Image: max 15 MB before compression
+    // Video: max 100 MB before compression (1 MB restriction removed; duration <= 2 min enforced)
+    const MAX_RAW_IMAGE_BYTES = 15 * 1024 * 1024;
+    const MAX_RAW_VIDEO_BYTES = 100 * 1024 * 1024;
 
-    if (validation.mediaType === 'video' && buffer.length > MAX_VIDEO_BYTES) {
-      res.status(400).json({
-        success: false,
-        error: 'VIDEO_TOO_LARGE',
-        message: `Video file size (${(buffer.length / (1024 * 1024)).toFixed(2)} MB) exceeds the maximum allowed limit of 1 MB.`,
-      });
-      return;
-    }
-
-    if (validation.mediaType === 'image' && buffer.length > MAX_IMAGE_BYTES) {
+    if (validation.mediaType === 'image' && buffer.length > MAX_RAW_IMAGE_BYTES) {
       res.status(400).json({
         success: false,
         error: 'IMAGE_TOO_LARGE',
-        message: `Image file size exceeds the maximum allowed limit of 5 MB.`,
+        message: 'Image file size exceeds maximum limit of 15 MB.',
       });
       return;
     }
 
+    if (validation.mediaType === 'video' && buffer.length > MAX_RAW_VIDEO_BYTES) {
+      res.status(400).json({
+        success: false,
+        error: 'VIDEO_TOO_LARGE',
+        message: 'Video file size exceeds server upload limit of 100 MB.',
+      });
+      return;
+    }
+
+    let compressedBuffer: Buffer;
+    let finalMimeType: string;
+    let finalExt: string;
+    let width: number | null = null;
+    let height: number | null = null;
+    let duration: number | null = null;
+    let compressionPercentage = 0;
+
+    if (validation.mediaType === 'image') {
+      // 1. Sharp Image Compression:
+      // Converts to WebP quality 80, max 1600x1600, strips metadata, preserves transparency
+      const imageResult = await compressImage(buffer);
+      compressedBuffer = imageResult.buffer;
+      finalMimeType = imageResult.mimeType;
+      finalExt = imageResult.extension;
+      width = imageResult.width || null;
+      height = imageResult.height || null;
+      compressionPercentage = imageResult.compressionPercentage;
+    } else {
+      // 2. Video Validation & Compression:
+      // Enforces duration <= 120s (2 minutes). Optimizes via FFmpeg if available.
+      try {
+        const videoResult = await processAndValidateVideo(buffer, {
+          clientDuration: req.body?.duration,
+          mimeType: validation.mimeType,
+        });
+        compressedBuffer = videoResult.buffer;
+        finalMimeType = videoResult.mimeType;
+        finalExt = videoResult.extension;
+        duration = videoResult.duration || null;
+        width = videoResult.width || null;
+        height = videoResult.height || null;
+        compressionPercentage = videoResult.compressionPercentage;
+      } catch (videoErr: any) {
+        if (videoErr?.message?.includes('VIDEO_TOO_LONG')) {
+          res.status(400).json({
+            success: false,
+            error: 'VIDEO_TOO_LONG',
+            message: videoErr.message.replace('VIDEO_TOO_LONG: ', ''),
+          });
+          return;
+        }
+        throw videoErr;
+      }
+    }
+
     // Generate collision-resistant unique filename
-    const ext = validation.mimeType?.split('/')[1] || (validation.mediaType === 'video' ? 'mp4' : 'png');
     const safeBaseName = crypto.randomBytes(16).toString('hex');
-    const diskFilename = `${safeBaseName}.${ext}`;
+    const diskFilename = `${safeBaseName}.${finalExt}`;
     const filePath = path.join(UPLOADS_DIR, diskFilename);
 
-    // Save to server local disk as cache/fallback
-    await fs.promises.writeFile(filePath, buffer);
+    // Save compressed file to server local disk as cache/fallback
+    await fs.promises.writeFile(filePath, compressedBuffer);
 
-    // Upload to Cloudflare R2 object storage if configured
-    const mimeType = validation.mimeType || (validation.mediaType === 'video' ? 'video/mp4' : 'image/png');
-    const r2Url = await uploadToR2(buffer, `feed/${diskFilename}`, mimeType);
+    // Upload compressed file to Cloudflare R2 object storage if configured
+    const r2Key = `feed/${diskFilename}`;
+    const r2Url = await uploadToR2(compressedBuffer, r2Key, finalMimeType);
     const publicUrl = r2Url || `/uploads/feed/${diskFilename}`;
 
     res.json({
       success: true,
       url: publicUrl,
+      r2Key: r2Url ? r2Key : null,
       mediaType: validation.mediaType,
-      sizeBytes: buffer.length,
-      mimeType: validation.mimeType,
+      sizeBytes: compressedBuffer.length,
+      originalSizeBytes: buffer.length,
+      compressionPercentage,
+      mimeType: finalMimeType,
+      width,
+      height,
+      duration,
       storage: r2Url ? 'cloudflare_r2' : 'local',
     });
   } catch (error: any) {
