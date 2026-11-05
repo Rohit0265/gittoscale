@@ -151,9 +151,6 @@ export const feedApi = {
     });
     return res.data?.data || [];
   },
-    });
-    return res.data?.data || [];
-  },
 
   /**
    * Follow or unfollow user
