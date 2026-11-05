@@ -192,3 +192,4 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     </div>
   );
 };
+

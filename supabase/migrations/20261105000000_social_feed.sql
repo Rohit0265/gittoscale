@@ -51,3 +51,4 @@ CREATE TABLE IF NOT EXISTS public.feed_follows (
 );
 CREATE INDEX IF NOT EXISTS idx_feed_follows_follower ON public.feed_follows(follower_id);
 CREATE INDEX IF NOT EXISTS idx_feed_follows_following ON public.feed_follows(following_id);
+

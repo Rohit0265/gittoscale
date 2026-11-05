@@ -282,3 +282,4 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     </div>
   );
 };
+

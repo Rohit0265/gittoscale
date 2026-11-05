@@ -45,3 +45,4 @@ export interface UserProfileFeed {
   is_following?: boolean;
   is_owner?: boolean;
 }
+
