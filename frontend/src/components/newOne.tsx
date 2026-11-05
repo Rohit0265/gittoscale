@@ -151,20 +151,20 @@ export const NewOne: React.FC<NewOneProps> = ({
           <div className="absolute -top-14 -left-12 w-80 h-80 bg-gradient-to-br from-sky-400/15 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
           {/* Main Headline */}
-          <h1 className="font-lora text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-bold tracking-[-0.025em] leading-[1.08] select-none">
-            <span className="block bg-gradient-to-b from-slate-950 via-slate-900 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent drop-shadow-xs">
+          <h1 className="font-lora text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-bold tracking-[-0.025em] leading-[1.08] select-none text-slate-950 dark:text-white">
+            <span className="block drop-shadow-xs">
               Scale your <br />
               system
             </span>
             <span className="block mt-1">
-              <span className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-700 dark:from-slate-200 dark:via-slate-300 dark:to-slate-400 bg-clip-text text-transparent">
+              <span className="text-slate-900 dark:text-slate-200">
                 before{' '}
               </span>
               <span className="relative inline-block">
-                <span className="bg-gradient-to-r from-slate-500 via-slate-600 to-slate-400 dark:from-slate-400 dark:via-slate-300 dark:to-slate-500 bg-clip-text text-transparent font-bold">
+                <span className="text-slate-600 dark:text-slate-300 font-bold">
                   disaster.
                 </span>
-                <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full bg-gradient-to-r from-transparent via-cyan-500/50 dark:via-cyan-400/60 to-transparent" />
+                <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full bg-cyan-500/50 dark:bg-cyan-400/60" />
               </span>
             </span>
           </h1>
@@ -208,7 +208,7 @@ export const NewOne: React.FC<NewOneProps> = ({
               {/* Header Bar */}
               <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/80 dark:border-neutral-800/70">
                 <div className="flex items-center">
-                  <span className="relative font-lora text-sm sm:text-base font-semibold tracking-tight text-slate-900 dark:bg-gradient-to-r dark:from-white dark:via-neutral-200 dark:to-neutral-400 dark:bg-clip-text dark:text-transparent select-none">
+                  <span className="relative font-lora text-sm sm:text-base font-semibold tracking-tight text-slate-900 dark:text-neutral-100 select-none">
                     Text to System Design
                   </span>
                 </div>
