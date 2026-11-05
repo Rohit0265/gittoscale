@@ -109,7 +109,7 @@ router.post('/signup', (req: Request, res: Response) => {
  * Dispatches a Telegram notification when a user signs up via Supabase (OAuth or Email/Password)
  */
 router.post('/notify-signup', async (req: Request, res: Response) => {
-  const { name, email, userId, provider, createdAt } = req.body || {};
+  const { name, email, userId, avatarUrl, provider, createdAt } = req.body || {};
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return res.status(400).json({
@@ -118,11 +118,30 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
     });
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = (typeof name === 'string' && name.trim()) || cleanEmail.split('@')[0];
+  const effectiveUserId = (typeof userId === 'string' && userId.trim()) || `usr_${Date.now().toString(36)}`;
+
+  // 1. Persist user in PostgreSQL (Neon) database
+  if (isNeonConfigured()) {
+    try {
+      await upsertUserProfile({
+        id: effectiveUserId,
+        full_name: cleanName,
+        email: cleanEmail,
+        avatar_url: typeof avatarUrl === 'string' ? avatarUrl : null,
+      });
+      console.log('[Auth Route] Stored user profile in Neon database:', cleanEmail);
+    } catch (dbErr) {
+      console.error('[Auth Route] Failed to save user profile to Neon:', dbErr);
+    }
+  }
+
   try {
     sendSignupTelegramNotification({
-      name: typeof name === 'string' ? name.trim() : undefined,
-      email: email.trim().toLowerCase(),
-      userId: typeof userId === 'string' ? userId : undefined,
+      name: cleanName,
+      email: cleanEmail,
+      userId: effectiveUserId,
       provider: typeof provider === 'string' ? provider : undefined,
       createdAt: typeof createdAt === 'string' ? createdAt : new Date().toISOString(),
     }).catch((err) => {
@@ -131,7 +150,12 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      message: 'Signup notification queued.',
+      message: 'Signup stored and notification dispatched.',
+      user: {
+        id: effectiveUserId,
+        name: cleanName,
+        email: cleanEmail,
+      },
     });
   } catch (err: any) {
     return res.status(500).json({
@@ -139,6 +163,60 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
       error: err?.message || 'Failed to dispatch notification',
     });
   }
+});
+
+/**
+ * POST /api/auth/sync-profile
+ * Saves or updates authenticated user profile in PostgreSQL (Neon)
+ */
+router.post('/sync-profile', async (req: Request, res: Response) => {
+  const { id, email, fullName, avatarUrl } = req.body || {};
+
+  if (!id || !email) {
+    return res.status(400).json({ success: false, error: 'id and email are required' });
+  }
+
+  if (isNeonConfigured()) {
+    try {
+      const profile = await upsertUserProfile({
+        id: String(id),
+        full_name: fullName,
+        email: String(email).trim().toLowerCase(),
+        avatar_url: avatarUrl || null,
+      });
+      return res.json({ success: true, profile });
+    } catch (err: any) {
+      console.error('[Auth Route] Error syncing user profile:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  return res.json({ success: true, message: 'Database not configured, skipped' });
+});
+
+/**
+ * GET /api/auth/profile/:id
+ * Fetches user profile from database
+ */
+router.get('/profile/:id', async (req: Request, res: Response) => {
+  const userId = req.params.id;
+  if (!userId) {
+    return res.status(400).json({ success: false, error: 'userId is required' });
+  }
+
+  if (isNeonConfigured()) {
+    try {
+      const profile = await getUserProfile(userId);
+      if (profile) {
+        return res.json({ success: true, profile });
+      }
+      return res.status(404).json({ success: false, error: 'Profile not found' });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  return res.status(404).json({ success: false, error: 'Profile not found' });
 });
 
 /**
