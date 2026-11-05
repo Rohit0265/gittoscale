@@ -176,7 +176,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="absolute -top-9 right-0 p-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            className="absolute -top-9 right-0 p-1.5 text-slate-400 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -184,15 +184,16 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
 
           {/* Main Card */}
           <div
-            className="w-full rounded-2xl pt-5 pb-6 px-6 sm:pt-6 sm:pb-7 sm:px-7 border border-neutral-800/80 bg-[#12141a]/95 text-gray-200 backdrop-blur-xl shadow-2xl relative"
+            className="w-full rounded-2xl pt-5 pb-6 px-6 sm:pt-6 sm:pb-7 sm:px-7 border border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-[#12141a]/95 text-slate-800 dark:text-gray-200 backdrop-blur-xl shadow-2xl relative"
             style={{
-              boxShadow:
-                '0 0 0 1px rgba(255, 255, 255, 0.08), 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 40px rgba(255, 255, 255, 0.02)',
+              boxShadow: isDarkMode
+                ? '0 0 0 1px rgba(255, 255, 255, 0.08), 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 40px rgba(255, 255, 255, 0.02)'
+                : '0 0 0 1px rgba(0, 0, 0, 0.06), 0 25px 50px -12px rgba(15, 23, 42, 0.2), 0 0 30px rgba(99, 102, 241, 0.04)',
             }}
           >
             {/* Description Subtext & Engine Toggle */}
             <div className="flex items-center justify-between mb-4 gap-2">
-              <p className="text-xs sm:text-sm text-neutral-400 font-sans leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 font-sans leading-relaxed">
                 Enter a prompt for your system idea or import an existing repository to start simulating load and bottlenecks.
               </p>
               <button
@@ -200,22 +201,19 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                 onClick={toggleMercury}
                 className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-medium border transition-all cursor-pointer ${
                   useMercury
-                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
-                    : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                    : 'bg-slate-100 dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                 }`}
                 title={useMercury ? 'Mercury-3 Diffusion LLM Active (1,000+ tok/s)' : 'Click to enable Mercury-3 Diffusion LLM'}
               >
-                <Zap className={`w-3 h-3 ${useMercury ? 'fill-current text-amber-400' : 'text-neutral-500'}`} />
+                <Zap className={`w-3 h-3 ${useMercury ? 'fill-current text-amber-500 dark:text-amber-400' : 'text-slate-400 dark:text-neutral-500'}`} />
                 <span>{useMercury ? 'Mercury-3' : 'Engine: Auto'}</span>
               </button>
             </div>
 
             {/* Input Prompt Box */}
             <form onSubmit={handleSubmit} className="relative group">
-              <div className="relative flex items-center bg-neutral-900/95 border border-neutral-800 rounded-xl p-1.5 focus-within:border-neutral-600 focus-within:ring-1 focus-within:ring-neutral-600 transition-all duration-200">
-                <div className="pl-3.5 pr-2 text-neutral-400 group-focus-within:text-white transition-colors">
-                </div>
-
+              <div className="relative flex items-center bg-slate-50 dark:bg-neutral-900/95 border border-slate-200 dark:border-neutral-800 rounded-xl p-1.5 focus-within:border-indigo-500 dark:focus-within:border-neutral-600 focus-within:ring-1 focus-within:ring-indigo-500/30 dark:focus-within:ring-neutral-600 transition-all duration-200">
                 <input
                   ref={inputRef}
                   type="text"
@@ -226,14 +224,14 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                   }}
                   onFocus={() => setIsUserInteracting(true)}
                   placeholder={placeholder || 'Share your architecture idea or cook a concept...'}
-                  className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-neutral-100 placeholder-neutral-500 focus:outline-none"
+                  className="w-full bg-transparent py-3 px-3 text-sm sm:text-base text-slate-900 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500 focus:outline-none"
                   autoComplete="off"
                 />
 
                 <button
                   type="submit"
                   disabled={!query.trim() && !placeholder}
-                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 hover:bg-white text-neutral-950 hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 shadow-md shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-neutral-100 dark:hover:bg-white dark:text-neutral-950 hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 shadow-md shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Generate Architecture"
                 >
                   <ArrowUp className="w-4 h-4 font-bold" />
@@ -243,10 +241,10 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
 
             {/* Quick Architecture Scenario Chips */}
             <div className="mt-5 pt-1">
-              <div className="flex items-center justify-between text-xs text-neutral-400 mb-2.5 font-mono">
-                <span className="text-neutral-500">Quick architecture scenarios:</span>
-                <span className="hidden sm:inline text-neutral-600">
-                  Press <kbd className="px-1.5 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-neutral-300">Enter ↵</kbd>
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400 mb-2.5 font-mono">
+                <span className="text-slate-600 dark:text-neutral-500 font-medium">Quick architecture scenarios:</span>
+                <span className="hidden sm:inline text-slate-400 dark:text-neutral-600">
+                  Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded text-slate-700 dark:text-neutral-300">Enter ↵</kbd>
                 </span>
               </div>
 
@@ -258,9 +256,9 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                       key={chip.label}
                       type="button"
                       onClick={() => handleChipClick(chip.prompt)}
-                      className="flex items-center space-x-2 bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs px-3 py-2 rounded-lg transition-all duration-150 cursor-pointer group"
+                      className="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 dark:bg-neutral-900/80 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-700 dark:text-neutral-300 text-xs px-3 py-2 rounded-lg transition-all duration-150 cursor-pointer group shadow-2xs"
                     >
-                      <Icon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-emerald-400 transition-colors" />
+                      <Icon className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-emerald-500 transition-colors" />
                       <span>{chip.label}</span>
                     </button>
                   );
@@ -270,19 +268,19 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
           </div>
 
           {/* Import GitHub Repo Bar */}
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between w-full px-4 py-3 rounded-xl bg-neutral-900/60 border border-neutral-800/60 backdrop-blur-md text-gray-200">
-            <div className="flex items-center space-x-2 text-xs sm:text-sm text-neutral-400 mb-2.5 sm:mb-0">
-              <GitBranch className="w-4 h-4 text-neutral-500" />
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between w-full px-4 py-3 rounded-xl bg-slate-50/90 dark:bg-neutral-900/60 border border-slate-200/90 dark:border-neutral-800/60 backdrop-blur-md text-slate-700 dark:text-gray-200">
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-slate-500 dark:text-neutral-400 mb-2.5 sm:mb-0">
+              <GitBranch className="w-4 h-4 text-slate-500 dark:text-neutral-500" />
               <span>Want automated discovery from code?</span>
             </div>
 
             <button
               type="button"
               onClick={handleImportRepoClick}
-              className="group flex items-center space-x-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700/80 hover:border-neutral-600 text-white text-xs px-3.5 py-2 rounded-lg transition-all duration-150 cursor-pointer shadow-xs"
+              className="group flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-slate-700/80 hover:border-slate-600 dark:border-neutral-700/80 dark:hover:border-neutral-600 text-xs px-3.5 py-2 rounded-lg transition-all duration-150 cursor-pointer shadow-xs"
             >
               <span>Import GitHub Repo</span>
-              <span className="text-neutral-400 group-hover:text-white transition-colors">→</span>
+              <span className="text-slate-300 dark:text-neutral-400 group-hover:text-white transition-colors">→</span>
             </button>
           </div>
         </motion.div>
