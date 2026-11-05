@@ -34,8 +34,40 @@ export const CreatePost: React.FC<CreatePostProps> = ({
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSwap = (fromIdx: number, toIdx: number) => {
+    if (toIdx < 0 || toIdx >= selectedMedia.length) return;
+    setSelectedMedia((prev) => {
+      const copy = [...prev];
+      const temp = copy[fromIdx];
+      copy[fromIdx] = copy[toIdx];
+      copy[toIdx] = temp;
+      return copy;
+    });
+  };
+
+  const handleDragStart = (idx: number) => {
+    setDraggedIdx(idx);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (dropIdx: number) => {
+    if (draggedIdx === null || draggedIdx === dropIdx) return;
+    setSelectedMedia((prev) => {
+      const copy = [...prev];
+      const temp = copy[draggedIdx];
+      copy[draggedIdx] = copy[dropIdx];
+      copy[dropIdx] = temp;
+      return copy;
+    });
+    setDraggedIdx(null);
+  };
 
   if (!user) {
     return (
@@ -97,12 +129,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     }
 
     if (newItems.length > 0) {
-      setSelectedMedia((prev) => {
-        const merged = [...prev, ...newItems];
-        // Enforce: "remember if user upload any video keep it at first showing"
-        merged.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
-        return merged;
-      });
+      setSelectedMedia((prev) => [...prev, ...newItems]);
     }
 
     if (fileInputRef.current) fileInputRef.current.value = '';
