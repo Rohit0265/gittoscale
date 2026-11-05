@@ -427,6 +427,19 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900/70 transition-colors text-left cursor-pointer group"
                     >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/60 transition-colors flex items-center justify-center shrink-0">
+                          <Sparkles className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                            AI Recommender
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
+                            Generate architecture suggestions
+                          </span>
+                        </div>
+                      </div>
                     </button>
                   )}
 
@@ -659,7 +672,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Code Viewer Body */}
-              <div className="flex-1 overflow-auto p-4 bg-slate-900 text-slate-100 dark:bg-[#07080a] font-mono text-xs leading-relaxed selection:bg-indigo-600 selection:text-white">
+              <div className="flex-1 overflow-auto p-4 bg-slate-50 dark:bg-[#07080a] text-slate-800 dark:text-slate-100 font-mono text-xs leading-relaxed border-t border-slate-200 dark:border-neutral-800 selection:bg-indigo-600 selection:text-white">
                 <pre className="whitespace-pre overflow-x-auto">
                   {previewTab === 'mermaid'
                     ? generateMermaidDiagram(nodes || [], edges || [], projectName)

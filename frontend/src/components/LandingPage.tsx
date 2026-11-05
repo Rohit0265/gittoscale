@@ -240,7 +240,7 @@ export function Demo({ onLaunch }: { onLaunch: () => void }) {
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
-          className="relative flex-1 min-w-0 w-full overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200/90 dark:border-neutral-800 bg-slate-950 shadow-2xl cursor-pointer group flex items-center justify-center"
+          className="relative flex-1 min-w-0 w-full overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200/90 dark:border-neutral-800 bg-slate-100 dark:bg-slate-950 shadow-2xl cursor-pointer group flex items-center justify-center"
         >
           <AnimatePresence mode="wait">
             <motion.img
