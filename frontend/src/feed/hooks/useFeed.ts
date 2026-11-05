@@ -4,27 +4,34 @@ import { feedApi } from '../services/feedApi';
 
 interface UseFeedOptions {
   token?: string | null;
+  userId?: string | null;
 }
 
-export function useFeed({ token }: UseFeedOptions) {
+export function useFeed({ token, userId }: UseFeedOptions) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'liked'>('all');
   const [selectedPostForComments, setSelectedPostForComments] = useState<FeedPost | null>(null);
 
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await feedApi.getPosts(token);
-      setPosts(data);
+      if (filter === 'liked' && userId) {
+        const data = await feedApi.getUserLikedPosts(userId, token);
+        setPosts(data);
+      } else {
+        const data = await feedApi.getPosts(token);
+        setPosts(data);
+      }
     } catch (err: any) {
       console.error('[useFeed] Error loading feed posts:', err);
       setError(err?.response?.data?.message || err?.message || 'Failed to load feed.');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, filter, userId]);
 
   useEffect(() => {
     fetchPosts();
@@ -106,6 +113,8 @@ export function useFeed({ token }: UseFeedOptions) {
     posts,
     loading,
     error,
+    filter,
+    setFilter,
     refreshPosts: fetchPosts,
     createPost: handleCreatePost,
     updatePost: handleUpdatePost,
