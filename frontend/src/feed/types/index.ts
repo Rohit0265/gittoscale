@@ -1,3 +1,11 @@
+export interface MediaItem {
+  url: string;
+  type: 'image' | 'video';
+  width?: number | null;
+  height?: number | null;
+  duration?: number | null;
+}
+
 export interface FeedAuthor {
   id: string;
   full_name: string;
@@ -11,6 +19,8 @@ export interface FeedPost {
   content: string;
   media_url?: string | null;
   media_type?: 'image' | 'video' | null;
+  media_metadata?: any | null;
+  media_items?: MediaItem[];
   created_at: string;
   updated_at: string;
   author: FeedAuthor;
