@@ -219,4 +219,35 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(Array.isArray(likedRes.body.data)).toBe(true);
     expect(likedRes.body.data.some((p: any) => p.id === postId)).toBe(true);
   });
+
+  it('strictly ensures any video is prioritized at index 0 for first showing in multi-media posts', async () => {
+    const mediaItems = [
+      { url: 'https://cdn.example.com/image1.webp', type: 'image' },
+      { url: 'https://cdn.example.com/video1.mp4', type: 'video' },
+      { url: 'https://cdn.example.com/image2.webp', type: 'image' },
+      { url: 'https://cdn.example.com/image3.webp', type: 'image' },
+      { url: 'https://cdn.example.com/image4.webp', type: 'image' },
+      { url: 'https://cdn.example.com/image5.webp', type: 'image' },
+    ];
+
+    const postRes = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({
+        content: 'Post with multiple media items and video',
+        mediaItems,
+      });
+
+    expect(postRes.status).toBe(201);
+    expect(postRes.body.success).toBe(true);
+    const post = postRes.body.data;
+
+    // Verify video was sorted to position 0 (first showing)
+    expect(post.media_type).toBe('video');
+    expect(post.media_url).toBe('https://cdn.example.com/video1.mp4');
+    expect(Array.isArray(post.media_items)).toBe(true);
+    expect(post.media_items.length).toBe(6);
+    expect(post.media_items[0].type).toBe('video');
+    expect(post.media_items[0].url).toBe('https://cdn.example.com/video1.mp4');
+  });
 });

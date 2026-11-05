@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FeedPost, FeedComment, UserProfileFeed } from '../types';
+import { FeedPost, FeedComment, UserProfileFeed, MediaItem } from '../types';
 
 const RAW_BACKEND_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').trim();
 const CLEAN_URL = RAW_BACKEND_URL.replace(/\/+$/, '');

@@ -29,7 +29,6 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isMediaLoaded, setIsMediaLoaded] = useState(false);
 
   const isOwner = Boolean(currentUserId && currentUserId === post.user_id);
   const author = post.author;
