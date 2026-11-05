@@ -747,6 +747,5 @@ router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Respo
     });
   }
 });
-});
 
 export default router;
