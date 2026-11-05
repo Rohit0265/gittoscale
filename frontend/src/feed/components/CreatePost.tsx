@@ -184,9 +184,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
         });
       }
 
-      // Enforce: "remember if user upload any video keep it at first showing"
-      uploadedItems.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
-
+      // Preserves the user's custom swapped media order
       const primaryUrl = uploadedItems[0]?.url || null;
       const primaryType = uploadedItems[0]?.type || null;
 
