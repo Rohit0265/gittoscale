@@ -51,7 +51,7 @@ export function validateMediaFile(file: File): MediaValidationResult {
  * Extracts duration and dimensions from a video file in browser.
  */
 export function getVideoMetadata(file: File): Promise<{ duration: number; width: number; height: number }> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const video = document.createElement('video');
     video.preload = 'metadata';
     const url = URL.createObjectURL(file);
