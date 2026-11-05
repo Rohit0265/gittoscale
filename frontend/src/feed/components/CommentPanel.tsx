@@ -303,7 +303,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-indigo-500" />
+          <MessageSquare className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">
             Comments ({comments.length})
           </h3>
@@ -327,7 +327,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin text-indigo-500 mb-2" />
+            <Loader2 className="w-6 h-6 animate-spin text-slate-400 mb-2" />
             <span className="text-xs">Loading conversation...</span>
           </div>
         ) : error ? (

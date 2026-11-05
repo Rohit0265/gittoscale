@@ -292,7 +292,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
               title="Add Images (multiple supported)"
             >
-              <Image className="w-4 h-4 text-emerald-500" />
+              <Image className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
               <span className="hidden sm:inline">Images</span>
             </button>
 
@@ -308,7 +308,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
               title="Add Video (≤ 2 Min, shown first)"
             >
-              <Video className="w-4 h-4 text-indigo-500" />
+              <Video className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
               <span className="hidden sm:inline">Video (≤ 2 Min)</span>
             </button>
           </div>

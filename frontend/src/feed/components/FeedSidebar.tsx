@@ -157,7 +157,7 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
           onClick={() => onNavigateToProfile(user.id)}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800/60 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-left cursor-pointer"
         >
-          <FileText className="w-4 h-4 text-indigo-500" />
+          <FileText className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
           <span>Your Posts</span>
           <span className="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400">
             {profile?.posts_count || 0}
@@ -168,7 +168,7 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
           onClick={() => onNavigateToProfile(user.id)}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800/60 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-left cursor-pointer"
         >
-          <Users className="w-4 h-4 text-emerald-500" />
+          <Users className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
           <span>View Public Profile</span>
         </button>
       </div>

@@ -162,7 +162,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
             </div>
           ) : posts.length === 0 ? (
             <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-12 text-center shadow-xs">
-              <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 flex items-center justify-center mx-auto mb-3">
                 <MessageSquare className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">

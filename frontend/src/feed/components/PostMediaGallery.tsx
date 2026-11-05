@@ -118,7 +118,7 @@ export const PostMediaGallery: React.FC<PostMediaGalleryProps> = ({ mediaItems }
           {/* Video badge if video */}
           {sortedItems[activeSlide].type === 'video' && (
             <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-[11px] font-semibold text-white flex items-center gap-1 z-10">
-              <VideoIcon className="w-3 h-3 text-red-500" />
+              <VideoIcon className="w-3 h-3 text-white" />
               <span>Video</span>
             </div>
           )}
@@ -337,7 +337,7 @@ const DesktopMediaCell: React.FC<{
             </div>
           </div>
           <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-[10px] font-semibold text-white flex items-center gap-1">
-            <VideoIcon className="w-3 h-3 text-red-500" />
+            <VideoIcon className="w-3 h-3 text-white" />
             <span>Video</span>
           </div>
         </div>
@@ -458,7 +458,7 @@ const LightboxModal: React.FC<{
               >
                 {item.type === 'video' ? (
                   <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-white">
-                    <VideoIcon className="w-4 h-4 text-red-500" />
+                    <VideoIcon className="w-4 h-4 text-white" />
                   </div>
                 ) : (
                   <img

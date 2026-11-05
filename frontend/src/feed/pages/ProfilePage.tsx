@@ -199,7 +199,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : profile.is_following ? (
                         <>
-                          <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+                          <UserCheck className="w-3.5 h-3.5" />
                           <span>Following</span>
                         </>
                       ) : (
@@ -258,7 +258,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         {/* User's Posts Section */}
         <div className="w-full">
           <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-200 dark:border-neutral-800">
-            <FileText className="w-4 h-4 text-indigo-500" />
+            <FileText className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">
               Posts by {profile?.full_name || 'User'} ({posts.length})
             </h3>

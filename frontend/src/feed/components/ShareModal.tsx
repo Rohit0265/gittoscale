@@ -55,7 +55,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       <div className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0c0d10] p-6 shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-150">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-neutral-800">
           <div className="flex items-center gap-2">
-            <Share2 className="w-4 h-4 text-indigo-500" />
+            <Share2 className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Share</h3>
           </div>
           <button
@@ -104,7 +104,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             onClick={handleNativeShare}
             className="mt-3 w-full py-2.5 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] hover:bg-slate-50 dark:hover:bg-neutral-800 text-xs font-semibold text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
-            <Share2 className="w-3.5 h-3.5 text-indigo-500" />
+            <Share2 className="w-3.5 h-3.5" />
             <span>Open System Share Dialog</span>
           </button>
         )}

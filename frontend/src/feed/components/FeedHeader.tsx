@@ -61,9 +61,6 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
             className="h-7 sm:h-8 w-auto object-contain transition-transform group-hover:scale-105"
           />
         </button>
-        <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/40">
-          Community Feed
-        </span>
       </div>
 
       {/* Right Controls: Simulator Link, Theme Toggle, User Profile / Auth */}
@@ -74,22 +71,22 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             title="Launch Architecture Simulator"
           >
-            <LayoutGrid className="w-3.5 h-3.5 text-indigo-500" />
+            <LayoutGrid className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Simulator</span>
           </button>
         )}
 
         {/* Global Theme Toggle (desktop / fallback) */}
-        {onToggleTheme && (
+        {/* {onToggleTheme && (
           <button
             onClick={onToggleTheme}
             className="hidden sm:flex p-2 rounded-lg text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle Theme"
           >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
-        )}
+        )} */}
 
         {/* User Auth Info & Interactive Profile Menu */}
         {user ? (
@@ -138,7 +135,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 text-left transition-colors cursor-pointer"
                 >
-                  <User className="w-4 h-4 text-indigo-500" />
+                  <User className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                   <span>Profile</span>
                 </button>
 
@@ -151,7 +148,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 text-left transition-colors cursor-pointer"
                   >
-                    <Heart className="w-4 h-4 text-rose-500 fill-rose-500/20" />
+                    <Heart className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                     <span>Your Likes</span>
                   </button>
                 )}
@@ -166,9 +163,9 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                   >
                     <div className="flex items-center gap-2.5">
                       {isDark ? (
-                        <Moon className="w-4 h-4 text-indigo-400" />
+                        <Moon className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                       ) : (
-                        <Sun className="w-4 h-4 text-amber-500" />
+                        <Sun className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                       )}
                       <span>Theme</span>
                     </div>
@@ -188,7 +185,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                       }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-left transition-colors cursor-pointer"
                     >
-                      <LogOut className="w-4 h-4 text-rose-500" />
+                      <LogOut className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                       <span>Sign Out</span>
                     </button>
                   </div>
