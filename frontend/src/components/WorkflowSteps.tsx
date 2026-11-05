@@ -459,36 +459,36 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
   return (
     <section
       id="steps-section"
-      className="relative overflow-hidden bg-black px-4 py-16 text-white sm:px-6 sm:py-24 lg:px-12 select-none font-sans"
+      className="relative overflow-hidden bg-slate-50/60 dark:bg-black px-4 py-16 text-slate-900 dark:text-white sm:px-6 sm:py-24 lg:px-12 select-none font-sans transition-colors"
     >
       <div className="relative mx-auto max-w-7xl">
         {/* Top Header Section */}
         <div className="mb-10 sm:mb-14 text-center max-w-3xl mx-auto flex flex-col items-center">
 
-          <h2 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold leading-[0.96] tracking-[-0.04em] text-white">
+          <h2 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold leading-[0.96] tracking-[-0.04em] text-slate-900 dark:text-white">
             {/* Mobile/Tablet View (< md): 3 lines so every line has its own highlight */}
             <span className="md:hidden flex flex-col items-center">
-              <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-neutral-500/85">
+              <PenHighlight className="mx-auto block w-fit" highlightClassName={isDarkMode ? "bg-neutral-500/85" : "bg-indigo-100 text-slate-900"}>
                 Design, simulate, and
               </PenHighlight>
-              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-neutral-500/85">
+              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName={isDarkMode ? "bg-neutral-500/85" : "bg-indigo-100 text-slate-900"}>
                 scale with visual
               </PenHighlight>
-              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-neutral-500/85">
+              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName={isDarkMode ? "bg-neutral-500/85" : "bg-indigo-100 text-slate-900"}>
                 control.
               </PenHighlight>
             </span>
             {/* Desktop View (>= md): 2 lines */}
             <span className="hidden md:block">
-              <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-neutral-500/85">
+              <PenHighlight className="mx-auto block w-fit" highlightClassName={isDarkMode ? "bg-neutral-500/85" : "bg-indigo-100 text-slate-900"}>
                 Design, simulate, and
               </PenHighlight>
-              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-neutral-500/85">
+              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName={isDarkMode ? "bg-neutral-500/85" : "bg-indigo-100 text-slate-900"}>
                 scale with visual control.
               </PenHighlight>
             </span>
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-neutral-400 max-w-2xl leading-relaxed">
+          <p className="mt-4 text-base sm:text-lg text-slate-600 dark:text-neutral-400 max-w-2xl leading-relaxed">
             A unified visual canvas for drafting distributed architectures from natural language or code,
             stress-testing microservices under synthetic load, and healing bottlenecks with AI.
           </p>
@@ -496,7 +496,7 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
 
         {/* Voiceflow-Style Navigation Tab Switcher */}
         <div className="mb-6 flex items-center justify-center">
-          <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-[#0f0f13] border border-neutral-800 shadow-xl max-w-full overflow-x-auto">
+          <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100/90 dark:bg-[#0f0f13] border border-slate-200 dark:border-neutral-800 shadow-sm max-w-full overflow-x-auto">
             {WORKFLOW_STEPS.map((step, idx) => {
               const isActive = activeStepIndex === idx;
               return (
@@ -509,13 +509,19 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                   }}
                   className={`relative flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-mono text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-neutral-800 text-white shadow-md border border-neutral-700/80'
-                      : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/60'
+                      ? 'bg-white text-slate-900 dark:bg-neutral-800 dark:text-white shadow-sm border border-slate-200 dark:border-neutral-700/80'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-900/60'
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-neutral-600'
+                      isActive
+                        ? isDarkMode
+                          ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]'
+                          : 'bg-indigo-600 shadow-[0_0_6px_rgba(99,102,241,0.6)]'
+                        : isDarkMode
+                        ? 'bg-neutral-600'
+                        : 'bg-slate-400'
                     }`}
                   />
                   <span>{step.tabLabel}</span>
@@ -526,9 +532,9 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
         </div>
 
         {/* Voiceflow-Style Main Workflow Builder Canvas Showcase */}
-        <div className="relative rounded-2xl border border-neutral-800 bg-[#0c0c10] shadow-2xl overflow-hidden mb-12 sm:mb-16">
-          {/* Interactive Canvas Area - Solid Black & Dark Grey Horizontal Tree */}
-          <div className="relative bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '520px' }}>
+        <div className="relative rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0c0c10] shadow-xl overflow-hidden mb-12 sm:mb-16">
+          {/* Interactive Canvas Area */}
+          <div className="relative bg-slate-50/60 dark:bg-[#07070a] p-4 sm:p-6 flex flex-col justify-between" style={{ minHeight: '520px' }}>
             {/* Horizontal Tree Canvas: sending traffic from left to right */}
             <div className="relative z-10 w-full overflow-x-auto py-2" style={{ minHeight: '480px' }}>
               <div
@@ -558,19 +564,25 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                       ? 'rgba(244, 63, 94, 0.3)'
                       : isHealed
                       ? 'rgba(16, 185, 129, 0.3)'
-                      : 'rgba(255, 255, 255, 0.15)';
+                      : isDarkMode
+                      ? 'rgba(255, 255, 255, 0.15)'
+                      : 'rgba(15, 23, 42, 0.12)';
 
                     const dashStroke = isStressed
                       ? '#f43f5e'
                       : isHealed
                       ? '#10b981'
-                      : '#38bdf8';
+                      : isDarkMode
+                      ? '#38bdf8'
+                      : '#4f46e5';
 
                     const particleColor = isStressed
                       ? '#fb7185'
                       : isHealed
                       ? '#34d399'
-                      : '#7dd3fc';
+                      : isDarkMode
+                      ? '#7dd3fc'
+                      : '#6366f1';
 
                     const pathId = `flow-${conn.from}-${conn.to}-${idx}`;
 
@@ -646,21 +658,25 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                   const hasOutgoing = currentStep.connections.some((c) => c.from === node.id);
 
                   const statusStyles = {
-                    normal:
-                      'border-neutral-800 bg-[#121218]/95 text-neutral-200 hover:border-neutral-600 shadow-md',
-                    warning:
-                      'border-amber-700/60 bg-[#16120e]/95 text-amber-200 hover:border-amber-500/80 ring-1 ring-amber-500/30 shadow-lg shadow-amber-950/20',
-                    critical:
-                      'border-rose-700/70 bg-[#180e12]/95 text-rose-200 hover:border-rose-500/90 ring-1 ring-rose-500/40 shadow-lg shadow-rose-950/25',
-                    injected:
-                      'border-emerald-600/70 bg-[#0c1612]/95 text-emerald-200 hover:border-emerald-400 ring-1 ring-emerald-500/50 shadow-lg shadow-emerald-950/30',
+                    normal: isDarkMode
+                      ? 'border-neutral-800 bg-[#121218]/95 text-neutral-200 hover:border-neutral-600 shadow-md'
+                      : 'border-slate-200/90 bg-white/95 text-slate-800 hover:border-slate-300 shadow-sm',
+                    warning: isDarkMode
+                      ? 'border-amber-700/60 bg-[#16120e]/95 text-amber-200 hover:border-amber-500/80 ring-1 ring-amber-500/30 shadow-lg shadow-amber-950/20'
+                      : 'border-amber-300 bg-amber-50/90 text-amber-900 hover:border-amber-400 ring-1 ring-amber-400/30 shadow-sm',
+                    critical: isDarkMode
+                      ? 'border-rose-700/70 bg-[#180e12]/95 text-rose-200 hover:border-rose-500/90 ring-1 ring-rose-500/40 shadow-lg shadow-rose-950/25'
+                      : 'border-rose-300 bg-rose-50/90 text-rose-900 hover:border-rose-400 ring-1 ring-rose-400/30 shadow-sm',
+                    injected: isDarkMode
+                      ? 'border-emerald-600/70 bg-[#0c1612]/95 text-emerald-200 hover:border-emerald-400 ring-1 ring-emerald-500/50 shadow-lg shadow-emerald-950/30'
+                      : 'border-emerald-300 bg-emerald-50/90 text-emerald-900 hover:border-emerald-400 ring-1 ring-emerald-400/30 shadow-sm',
                   }[node.status];
 
                   const badgeStyles = {
-                    normal: 'text-neutral-400 bg-neutral-900 border-neutral-800',
-                    warning: 'text-amber-300 bg-amber-950/80 border-amber-800/60',
-                    critical: 'text-rose-300 bg-rose-950/80 border-rose-800/60',
-                    injected: 'text-emerald-300 bg-emerald-950/80 border-emerald-700/60 font-bold',
+                    normal: isDarkMode ? 'text-neutral-400 bg-neutral-900 border-neutral-800' : 'text-slate-600 bg-slate-100 border-slate-200',
+                    warning: isDarkMode ? 'text-amber-300 bg-amber-950/80 border-amber-800/60' : 'text-amber-700 bg-amber-100 border-amber-200',
+                    critical: isDarkMode ? 'text-rose-300 bg-rose-950/80 border-rose-800/60' : 'text-rose-700 bg-rose-100 border-rose-200',
+                    injected: isDarkMode ? 'text-emerald-300 bg-emerald-950/80 border-emerald-700/60 font-bold' : 'text-emerald-700 bg-emerald-100 border-emerald-200 font-bold',
                   }[node.status];
 
                   return (
@@ -676,7 +692,7 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                       <div
                         onClick={() => setSelectedNodeId(isSelected ? null : node.id)}
                         className={`w-[145px] sm:w-[155px] p-3 rounded-2xl border backdrop-blur-md cursor-pointer transition-transform duration-150 hover:scale-[1.03] select-none ${statusStyles} ${
-                          isSelected ? 'ring-2 ring-white border-white' : ''
+                          isSelected ? (isDarkMode ? 'ring-2 ring-white border-white' : 'ring-2 ring-indigo-500 border-indigo-500') : ''
                         }`}
                       >
                         {/* Input Port (Left Anchor) */}
@@ -690,7 +706,9 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                                 ? 'bg-amber-500 border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.8)]'
                                 : node.status === 'critical'
                                 ? 'bg-rose-500 border-rose-300 shadow-[0_0_8px_rgba(244,63,94,0.8)]'
-                                : 'bg-neutral-800 border-neutral-500'
+                                : isDarkMode
+                                ? 'bg-neutral-800 border-neutral-500'
+                                : 'bg-slate-300 border-slate-400'
                             }`}
                           />
                         )}
@@ -706,15 +724,17 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                                 ? 'bg-amber-500 border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.8)]'
                                 : node.status === 'critical'
                                 ? 'bg-rose-500 border-rose-300 shadow-[0_0_8px_rgba(244,63,94,0.8)]'
-                                : 'bg-neutral-800 border-neutral-500'
+                                : isDarkMode
+                                ? 'bg-neutral-800 border-neutral-500'
+                                : 'bg-slate-300 border-slate-400'
                             }`}
                           />
                         )}
 
                         {/* Node Header: Icon & Badge */}
                         <div className="flex items-center justify-between gap-1.5 mb-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center shrink-0">
-                            <NodeIcon className="w-3.5 h-3.5 text-neutral-300" />
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                            <NodeIcon className="w-3.5 h-3.5" />
                           </div>
                           <span
                             className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full border truncate max-w-[95px] ${badgeStyles}`}
@@ -726,18 +746,18 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
 
                         {/* Node Titles */}
                         <div className="mb-2">
-                          <p className="text-xs font-bold text-white tracking-tight truncate" title={node.label}>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white tracking-tight truncate" title={node.label}>
                             {node.label}
                           </p>
-                          <span className="text-[10px] font-mono text-neutral-300 truncate block">
+                          <span className="text-[10px] font-mono text-slate-500 dark:text-neutral-300 truncate block">
                             {node.type}
                           </span>
                         </div>
 
                         {/* Node Telemetry Footer */}
-                        <div className="pt-1.5 border-t border-neutral-800/80 flex items-center justify-between text-[9.5px] font-mono text-neutral-300">
+                        <div className="pt-1.5 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between text-[9.5px] font-mono text-slate-500 dark:text-neutral-300">
                           <span>{node.latency}</span>
-                          <span className="font-semibold text-neutral-100">{node.load}</span>
+                          <span className="font-semibold text-slate-800 dark:text-neutral-100">{node.load}</span>
                         </div>
                       </div>
                     </div>
@@ -762,15 +782,15 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
                 }}
                 className={`group p-5 sm:p-6 rounded-2xl border transition-all duration-200 flex flex-col justify-between cursor-pointer ${
                   isCurrent
-                    ? 'border-neutral-600 bg-[#121217] shadow-xl'
-                    : 'border-neutral-800/80 bg-[#0c0c10] hover:border-neutral-700 hover:bg-[#101014]'
+                    ? 'border-indigo-400 dark:border-neutral-600 bg-white dark:bg-[#121217] shadow-lg ring-1 ring-indigo-500/20 dark:ring-0'
+                    : 'border-slate-200/90 dark:border-neutral-800/80 bg-white/80 dark:bg-[#0c0c10] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#101014] shadow-xs'
                 }`}
               >
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight mb-2">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-neutral-400 leading-relaxed">
                     {step.description}
                   </p>
                 </div>
