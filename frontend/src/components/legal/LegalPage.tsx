@@ -178,14 +178,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <button
             type="button"
             onClick={() => handleTabClick('cookie')}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
               type === 'cookie'
-                ? isDark
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-900 text-white'
+                ? 'bg-blue-600 text-white shadow-xs'
                 : isDark
-                ? 'text-neutral-400'
-                : 'text-slate-600'
+                ? 'text-neutral-400 hover:text-white'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Cookie className="w-3.5 h-3.5 group-hover:text-amber-500 transition-colors" />
@@ -194,14 +192,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <button
             type="button"
             onClick={() => handleTabClick('privacy')}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
               type === 'privacy'
-                ? isDark
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-900 text-white'
+                ? 'bg-blue-600 text-white shadow-xs'
                 : isDark
-                ? 'text-neutral-400'
-                : 'text-slate-600'
+                ? 'text-neutral-400 hover:text-white'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Shield className="w-3.5 h-3.5 group-hover:text-emerald-500 transition-colors" />
@@ -210,14 +206,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <button
             type="button"
             onClick={() => handleTabClick('terms')}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
               type === 'terms'
-                ? isDark
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-900 text-white'
+                ? 'bg-blue-600 text-white shadow-xs'
                 : isDark
-                ? 'text-neutral-400'
-                : 'text-slate-600'
+                ? 'text-neutral-400 hover:text-white'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <FileText className="w-3.5 h-3.5 group-hover:text-blue-500 transition-colors" />
