@@ -186,6 +186,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         p.content,
         p.media_url,
         p.media_type,
+        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
@@ -218,12 +219,15 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
 
     if (!rows || rows.length === 0) return null;
     const r = rows[0];
+    const media = formatPostMedia(r.media_url, r.media_type, r.media_metadata);
     return {
       id: r.id,
       user_id: r.user_id,
       content: r.content,
-      media_url: r.media_url,
-      media_type: r.media_type,
+      media_url: media.media_url,
+      media_type: media.media_type,
+      media_metadata: media.media_metadata,
+      media_items: media.media_items,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
