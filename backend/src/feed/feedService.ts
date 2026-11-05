@@ -450,6 +450,8 @@ export async function getPostComments(postId: string): Promise<FeedComment[]> {
         c.post_id,
         c.user_id,
         c.content,
+        c.parent_id,
+        COALESCE(c.depth, 0)::int as depth,
         c.created_at,
         c.updated_at,
         pr.full_name as author_name,
@@ -467,6 +469,8 @@ export async function getPostComments(postId: string): Promise<FeedComment[]> {
       post_id: r.post_id,
       user_id: r.user_id,
       content: r.content,
+      parent_id: r.parent_id || null,
+      depth: typeof r.depth === 'number' ? r.depth : 0,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
@@ -485,6 +489,8 @@ export async function getPostComments(postId: string): Promise<FeedComment[]> {
           post_id: c.post_id,
           user_id: c.user_id,
           content: c.content,
+          parent_id: c.parent_id || null,
+          depth: c.depth ?? 0,
           created_at: c.created_at,
           updated_at: c.updated_at,
           author: {
@@ -506,6 +512,7 @@ export async function addPostComment(data: {
   postId: string;
   userId: string;
   content: string;
+  parentId?: string | null;
   authorName?: string;
   authorEmail?: string;
 }): Promise<FeedComment> {
@@ -518,12 +525,36 @@ export async function addPostComment(data: {
       throw new Error('POST_NOT_FOUND');
     }
 
+    let parentId: string | null = data.parentId || null;
+    let depth = 0;
+
+    if (parentId) {
+      const parentRow = await db`SELECT id, parent_id, depth FROM public.feed_comments WHERE id = ${parentId} LIMIT 1;`;
+      if (parentRow && parentRow.length > 0) {
+        const p = parentRow[0];
+        const pDepth = typeof p.depth === 'number' ? p.depth : 0;
+        // Limit of max 3 tree conversation (0, 1, 2) like YouTube
+        if (pDepth >= 2) {
+          depth = 2;
+          parentId = p.id;
+        } else {
+          depth = pDepth + 1;
+          parentId = p.id;
+        }
+      } else {
+        parentId = null;
+        depth = 0;
+      }
+    }
+
     const insertRows = await db`
-      INSERT INTO public.feed_comments (post_id, user_id, content, created_at, updated_at)
+      INSERT INTO public.feed_comments (post_id, user_id, content, parent_id, depth, created_at, updated_at)
       VALUES (
         ${data.postId},
         ${data.userId},
         ${data.content.trim()},
+        ${parentId},
+        ${depth},
         timezone('utc'::text, now()),
         timezone('utc'::text, now())
       )
@@ -538,6 +569,8 @@ export async function addPostComment(data: {
         c.post_id,
         c.user_id,
         c.content,
+        c.parent_id,
+        COALESCE(c.depth, 0)::int as depth,
         c.created_at,
         c.updated_at,
         pr.full_name as author_name,
@@ -556,6 +589,8 @@ export async function addPostComment(data: {
       post_id: r.post_id,
       user_id: r.user_id,
       content: r.content,
+      parent_id: r.parent_id || null,
+      depth: typeof r.depth === 'number' ? r.depth : 0,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
@@ -570,6 +605,18 @@ export async function addPostComment(data: {
       const postExists = inMemPosts.some((p) => p.id === data.postId);
       if (!postExists) throw new Error('POST_NOT_FOUND');
 
+      let parentId: string | null = data.parentId || null;
+      let depth = 0;
+      if (parentId) {
+        const parent = inMemComments.find((c) => c.id === parentId);
+        if (parent) {
+          const pDepth = parent.depth ?? 0;
+          depth = Math.min(pDepth + 1, 2);
+        } else {
+          parentId = null;
+        }
+      }
+
       const newId = crypto.randomUUID();
       const now = new Date().toISOString();
       const inMem: any = {
@@ -577,6 +624,8 @@ export async function addPostComment(data: {
         post_id: data.postId,
         user_id: data.userId,
         content: data.content.trim(),
+        parent_id: parentId,
+        depth: depth,
         created_at: now,
         updated_at: now,
         author_name: data.authorName || 'Commenter',
@@ -591,6 +640,8 @@ export async function addPostComment(data: {
         post_id: inMem.post_id,
         user_id: inMem.user_id,
         content: inMem.content,
+        parent_id: inMem.parent_id,
+        depth: inMem.depth,
         created_at: inMem.created_at,
         updated_at: inMem.updated_at,
         author: {
@@ -784,6 +835,99 @@ export async function getUserPosts(
     if (isDbConnectionError(err)) {
       return inMemPosts
         .filter((p) => p.user_id === targetUserId)
+        .map((p) => ({
+          id: p.id,
+          user_id: p.user_id,
+          content: p.content,
+          media_url: p.media_url,
+          media_type: p.media_type,
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+          author: {
+            id: p.user_id,
+            full_name: p.author_name || 'Anonymous',
+            username: p.author_username || deriveUsername(p.author_name, p.author_email),
+            avatar_url: p.author_avatar || null,
+          },
+          like_count: inMemLikes.filter((l) => l.post_id === p.id).length,
+          comment_count: inMemComments.filter((c) => c.post_id === p.id).length,
+          has_liked: viewerUserId ? inMemLikes.some((l) => l.post_id === p.id && l.user_id === viewerUserId) : false,
+        }));
+    }
+    throw err;
+  }
+}
+
+/**
+ * Get all posts liked by a user.
+ */
+export async function getUserLikedPosts(
+  targetUserId: string,
+  viewerUserId?: string
+): Promise<FeedPost[]> {
+  try {
+    const db = getSql();
+    const rows = await db`
+      SELECT 
+        p.id,
+        p.user_id,
+        p.content,
+        p.media_url,
+        p.media_type,
+        p.created_at,
+        p.updated_at,
+        pr.full_name as author_name,
+        pr.username as author_username,
+        pr.avatar_url as author_avatar,
+        pr.email as author_email,
+        COALESCE(l_count.count, 0)::int as like_count,
+        COALESCE(c_count.count, 0)::int as comment_count,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_liked
+      FROM public.feed_likes ul
+      JOIN public.feed_posts p ON p.id = ul.post_id
+      JOIN public.profiles pr ON pr.id = p.user_id
+      LEFT JOIN (
+        SELECT post_id, count(*)::int as count 
+        FROM public.feed_likes 
+        GROUP BY post_id
+      ) l_count ON l_count.post_id = p.id
+      LEFT JOIN (
+        SELECT post_id, count(*)::int as count 
+        FROM public.feed_comments 
+        GROUP BY post_id
+      ) c_count ON c_count.post_id = p.id
+      LEFT JOIN public.feed_likes user_likes 
+        ON user_likes.post_id = p.id AND user_likes.user_id = ${viewerUserId || null}::text
+      WHERE ul.user_id = ${targetUserId}
+      ORDER BY ul.created_at DESC;
+    `;
+
+    return rows.map((r: any) => ({
+      id: r.id,
+      user_id: r.user_id,
+      content: r.content,
+      media_url: r.media_url,
+      media_type: r.media_type,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      author: {
+        id: r.user_id,
+        full_name: r.author_name || r.author_email?.split('@')[0] || 'Anonymous',
+        username: r.author_username || deriveUsername(r.author_name, r.author_email),
+        avatar_url: r.author_avatar || null,
+      },
+      like_count: Number(r.like_count) || 0,
+      comment_count: Number(r.comment_count) || 0,
+      has_liked: Boolean(r.has_liked),
+    }));
+  } catch (err: any) {
+    if (isDbConnectionError(err)) {
+      const likedPostIds = inMemLikes.filter((l) => l.user_id === targetUserId).map((l) => l.post_id);
+      return inMemPosts
+        .filter((p) => likedPostIds.includes(p.id))
         .map((p) => ({
           id: p.id,
           user_id: p.user_id,
