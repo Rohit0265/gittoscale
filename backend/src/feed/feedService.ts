@@ -285,18 +285,20 @@ export async function createFeedPost(data: {
   content: string;
   mediaUrl?: string | null;
   mediaType?: 'image' | 'video' | null;
+  mediaMetadata?: any;
   authorName?: string;
   authorEmail?: string;
 }): Promise<FeedPost> {
   try {
     const db = getSql();
     const rows = await db`
-      INSERT INTO public.feed_posts (user_id, content, media_url, media_type, created_at, updated_at)
+      INSERT INTO public.feed_posts (user_id, content, media_url, media_type, media_metadata, created_at, updated_at)
       VALUES (
         ${data.userId},
         ${data.content.trim()},
         ${data.mediaUrl || null},
         ${data.mediaType || null},
+        ${data.mediaMetadata ? JSON.stringify(data.mediaMetadata) : null}::jsonb,
         timezone('utc'::text, now()),
         timezone('utc'::text, now())
       )
@@ -317,6 +319,7 @@ export async function createFeedPost(data: {
         content: data.content.trim(),
         media_url: data.mediaUrl || null,
         media_type: data.mediaType || null,
+        media_metadata: data.mediaMetadata || null,
         created_at: now,
         updated_at: now,
         author_name: data.authorName || 'GitToScale User',
@@ -331,6 +334,7 @@ export async function createFeedPost(data: {
         content: inMem.content,
         media_url: inMem.media_url,
         media_type: inMem.media_type,
+        media_metadata: inMem.media_metadata,
         created_at: inMem.created_at,
         updated_at: inMem.updated_at,
         author: {
