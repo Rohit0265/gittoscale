@@ -869,6 +869,7 @@ export async function getUserPosts(
         p.content,
         p.media_url,
         p.media_type,
+        p.media_metadata,
         p.created_at,
         p.updated_at,
         pr.full_name as author_name,
@@ -899,24 +900,29 @@ export async function getUserPosts(
       ORDER BY p.created_at DESC;
     `;
 
-    return rows.map((r: any) => ({
-      id: r.id,
-      user_id: r.user_id,
-      content: r.content,
-      media_url: r.media_url,
-      media_type: r.media_type,
-      created_at: r.created_at,
-      updated_at: r.updated_at,
-      author: {
-        id: r.user_id,
-        full_name: r.author_name || r.author_email?.split('@')[0] || 'Anonymous',
-        username: r.author_username || deriveUsername(r.author_name, r.author_email),
-        avatar_url: r.author_avatar || null,
-      },
-      like_count: Number(r.like_count) || 0,
-      comment_count: Number(r.comment_count) || 0,
-      has_liked: Boolean(r.has_liked),
-    }));
+    return rows.map((r: any) => {
+      const media = formatPostMedia(r.media_url, r.media_type, r.media_metadata);
+      return {
+        id: r.id,
+        user_id: r.user_id,
+        content: r.content,
+        media_url: media.media_url,
+        media_type: media.media_type,
+        media_metadata: media.media_metadata,
+        media_items: media.media_items,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        author: {
+          id: r.user_id,
+          full_name: r.author_name || r.author_email?.split('@')[0] || 'Anonymous',
+          username: r.author_username || deriveUsername(r.author_name, r.author_email),
+          avatar_url: r.author_avatar || null,
+        },
+        like_count: Number(r.like_count) || 0,
+        comment_count: Number(r.comment_count) || 0,
+        has_liked: Boolean(r.has_liked),
+      };
+    });
   } catch (err: any) {
     if (isDbConnectionError(err)) {
       return inMemPosts
