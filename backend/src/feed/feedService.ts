@@ -1,5 +1,6 @@
 import { getSql } from '../services/neon.js';
 import { FeedPost, FeedComment, UserProfileFeed, MediaItem } from './types.js';
+import { extractR2KeyFromUrl } from '../services/r2Service.js';
 import crypto from 'node:crypto';
 
 // In-memory fallbacks when Neon is offline (e.g. unit testing or network timeouts)
@@ -19,19 +20,40 @@ function formatPostMedia(mediaUrl?: string | null, mediaType?: string | null, me
 } {
   let items: MediaItem[] = [];
   if (metadata?.items && Array.isArray(metadata.items) && metadata.items.length > 0) {
-    items = metadata.items;
+    items = metadata.items.map((it: any) => ({
+      ...it,
+      r2Key: it.r2Key || extractR2KeyFromUrl(it.url) || null,
+    }));
   } else if (mediaUrl) {
-    items = [{ url: mediaUrl, type: (mediaType as 'image' | 'video') || 'image' }];
+    items = [
+      {
+        url: mediaUrl,
+        type: (mediaType as 'image' | 'video') || 'image',
+        r2Key: metadata?.r2Key || extractR2KeyFromUrl(mediaUrl) || null,
+      },
+    ];
   }
 
   // Enforce: "remember if user upload any video keep it at first showing"
   items.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
 
+  const primaryR2Key = metadata?.r2Key || items[0]?.r2Key || extractR2KeyFromUrl(items[0]?.url || mediaUrl) || null;
+  const enrichedMetadata = metadata
+    ? {
+        ...metadata,
+        items,
+        r2Key: metadata.r2Key || primaryR2Key,
+        publicUrl: metadata.publicUrl || items[0]?.url || mediaUrl || null,
+      }
+    : items.length > 0
+    ? { items, r2Key: primaryR2Key, publicUrl: items[0]?.url || mediaUrl || null }
+    : null;
+
   return {
     media_url: items[0]?.url || mediaUrl || null,
     media_type: items[0]?.type || (mediaType as 'image' | 'video') || null,
     media_items: items,
-    media_metadata: metadata || null,
+    media_metadata: enrichedMetadata,
   };
 }
 
@@ -289,16 +311,30 @@ export async function createFeedPost(data: {
     // Organize items: video must always show first
     let items: MediaItem[] = [];
     if (data.mediaItems && Array.isArray(data.mediaItems) && data.mediaItems.length > 0) {
-      items = [...data.mediaItems];
+      items = data.mediaItems.map((item) => ({
+        ...item,
+        r2Key: item.r2Key || extractR2KeyFromUrl(item.url) || null,
+      }));
     } else if (data.mediaUrl) {
-      items = [{ url: data.mediaUrl, type: data.mediaType || 'image' }];
+      items = [
+        {
+          url: data.mediaUrl,
+          type: data.mediaType || 'image',
+          r2Key: extractR2KeyFromUrl(data.mediaUrl) || null,
+        },
+      ];
     }
     // "remember if user upload any video keep it at first showing"
     items.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
 
     const primaryUrl = items[0]?.url || data.mediaUrl || null;
     const primaryType = items[0]?.type || data.mediaType || null;
-    const metadataJson = items.length > 0 ? JSON.stringify({ items }) : null;
+    const primaryR2Key = items[0]?.r2Key || extractR2KeyFromUrl(primaryUrl) || null;
+
+    const metadataPayload = items.length > 0
+      ? { items, r2Key: primaryR2Key, publicUrl: primaryUrl }
+      : null;
+    const metadataJson = metadataPayload ? JSON.stringify(metadataPayload) : null;
 
     let rows: any[];
     if (metadataJson) {
@@ -339,14 +375,27 @@ export async function createFeedPost(data: {
     if (isDbConnectionError(err)) {
       let items: MediaItem[] = [];
       if (data.mediaItems && Array.isArray(data.mediaItems) && data.mediaItems.length > 0) {
-        items = [...data.mediaItems];
+        items = data.mediaItems.map((item) => ({
+          ...item,
+          r2Key: item.r2Key || extractR2KeyFromUrl(item.url) || null,
+        }));
       } else if (data.mediaUrl) {
-        items = [{ url: data.mediaUrl, type: data.mediaType || 'image' }];
+        items = [
+          {
+            url: data.mediaUrl,
+            type: data.mediaType || 'image',
+            r2Key: extractR2KeyFromUrl(data.mediaUrl) || null,
+          },
+        ];
       }
       items.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
 
       const primaryUrl = items[0]?.url || data.mediaUrl || null;
       const primaryType = items[0]?.type || data.mediaType || null;
+      const primaryR2Key = items[0]?.r2Key || extractR2KeyFromUrl(primaryUrl) || null;
+      const metadataPayload = items.length > 0
+        ? { items, r2Key: primaryR2Key, publicUrl: primaryUrl }
+        : null;
 
       const newId = crypto.randomUUID();
       const now = new Date().toISOString();
@@ -357,7 +406,7 @@ export async function createFeedPost(data: {
         media_url: primaryUrl,
         media_type: primaryType,
         media_items: items,
-        media_metadata: items.length > 0 ? { items } : null,
+        media_metadata: metadataPayload,
         created_at: now,
         updated_at: now,
         author_name: data.authorName || 'GitToScale User',

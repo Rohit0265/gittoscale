@@ -4,6 +4,7 @@ export interface MediaItem {
   width?: number | null;
   height?: number | null;
   duration?: number | null;
+  r2Key?: string | null;
 }
 
 export interface FeedAuthor {

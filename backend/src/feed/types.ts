@@ -4,10 +4,12 @@ export interface MediaItem {
   width?: number | null;
   height?: number | null;
   duration?: number | null;
+  r2Key?: string | null;
 }
 
 export interface MediaMetadata {
-  r2Key?: string;
+  r2Key?: string | null;
+  publicUrl?: string | null;
   mediaUrl?: string;
   mimeType?: string;
   sizeBytes?: number;

@@ -161,6 +161,17 @@ export async function compressImage(buffer: Buffer): Promise<ImageCompressionRes
 }
 
 /**
+ * Ensures a dedicated temporary directory exists inside /tmp for media processing.
+ */
+function ensureTempDir(): string {
+  const tmpDir = path.join(os.tmpdir(), 'gitoscale_media');
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  }
+  return tmpDir;
+}
+
+/**
  * Validates video duration and optimizes/transcodes if FFmpeg is available.
  * Maximum duration allowed: 120 seconds (2 minutes).
  */
@@ -180,7 +191,8 @@ export async function processAndValidateVideo(
 
   // If ffprobe is available, get exact duration and dimensions
   if (isFfprobeAvailable()) {
-    const tmpInput = path.join(os.tmpdir(), `ffprobe_${crypto.randomUUID()}.mp4`);
+    const tmpDir = ensureTempDir();
+    const tmpInput = path.join(tmpDir, `ffprobe_${crypto.randomUUID()}.mp4`);
     try {
       await fs.promises.writeFile(tmpInput, buffer);
       const probeRes = spawnSync(
@@ -233,9 +245,10 @@ export async function processAndValidateVideo(
 
   // Attempt FFmpeg compression if available
   if (isFfmpegAvailable()) {
+    const tmpDir = ensureTempDir();
     const tmpId = crypto.randomUUID();
-    const tmpIn = path.join(os.tmpdir(), `ffmpeg_in_${tmpId}.mp4`);
-    const tmpOut = path.join(os.tmpdir(), `ffmpeg_out_${tmpId}.mp4`);
+    const tmpIn = path.join(tmpDir, `ffmpeg_in_${tmpId}.mp4`);
+    const tmpOut = path.join(tmpDir, `ffmpeg_out_${tmpId}.mp4`);
 
     try {
       await fs.promises.writeFile(tmpIn, buffer);

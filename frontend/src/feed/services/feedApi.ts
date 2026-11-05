@@ -175,7 +175,7 @@ export const feedApi = {
   /**
    * Upload media file (image / video <= 1MB)
    */
-  async uploadMedia(base64Data: string, token: string): Promise<{ url: string; mediaType: 'image' | 'video' }> {
+  async uploadMedia(base64Data: string, token: string): Promise<{ url: string; mediaType: 'image' | 'video'; r2Key?: string | null }> {
     const res = await axios.post(
       `${API_BASE}/feed/upload`,
       { base64Data },
@@ -184,6 +184,7 @@ export const feedApi = {
     return {
       url: res.data?.url,
       mediaType: res.data?.mediaType,
+      r2Key: res.data?.r2Key,
     };
   },
 };

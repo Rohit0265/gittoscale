@@ -270,4 +270,16 @@ export async function deleteFromR2(key: string): Promise<boolean> {
   });
 }
 
+/**
+ * Extracts the R2 object key from a public URL or relative path.
+ * E.g.: "https://pub-bba590e0e77e4af6862ad1f1eae15ba1.r2.dev/feed/abc.webp" -> "feed/abc.webp"
+ *       "/uploads/feed/abc.webp" -> "feed/abc.webp"
+ */
+export function extractR2KeyFromUrl(url?: string | null): string | null {
+  if (!url || typeof url !== 'string') return null;
+  const match = url.match(/(feed\/[a-zA-Z0-9_\-\.]+)/);
+  if (match) return match[1];
+  return null;
+}
+
 

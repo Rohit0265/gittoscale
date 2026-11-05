@@ -1,6 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import crypto from 'node:crypto';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
@@ -23,12 +24,6 @@ import {
 } from './feedService.js';
 
 const router = Router();
-
-// Ensure local uploads directory exists
-const UPLOADS_DIR = path.resolve(process.cwd(), 'uploads', 'feed');
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
 
 /**
  * Optional authentication middleware:
@@ -730,15 +725,38 @@ router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Respo
     // Generate collision-resistant unique filename
     const safeBaseName = crypto.randomBytes(16).toString('hex');
     const diskFilename = `${safeBaseName}.${finalExt}`;
-    const filePath = path.join(UPLOADS_DIR, diskFilename);
-
-    // Save compressed file to server local disk as cache/fallback
-    await fs.promises.writeFile(filePath, compressedBuffer);
-
-    // Upload compressed file to Cloudflare R2 object storage if configured
     const r2Key = `feed/${diskFilename}`;
+
+    // Upload compressed file buffer directly to Cloudflare R2 object storage
     const r2Url = await uploadToR2(compressedBuffer, r2Key, finalMimeType);
-    const publicUrl = r2Url || `/uploads/feed/${diskFilename}`;
+    let publicUrl = r2Url;
+
+    if (!publicUrl) {
+      // Local development or offline fallback (when Cloudflare R2 is unconfigured or unreachable)
+      const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+      const targetDir = isServerless
+        ? path.join(os.tmpdir(), 'uploads', 'feed')
+        : path.resolve(process.cwd(), 'uploads', 'feed');
+
+      try {
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+        await fs.promises.writeFile(path.join(targetDir, diskFilename), compressedBuffer);
+      } catch (writeErr: any) {
+        console.warn('[Feed API] Local disk write fallback failed:', writeErr?.message);
+        if (!isServerless) {
+          try {
+            const fallbackTmp = path.join(os.tmpdir(), 'uploads', 'feed');
+            if (!fs.existsSync(fallbackTmp)) {
+              fs.mkdirSync(fallbackTmp, { recursive: true });
+            }
+            await fs.promises.writeFile(path.join(fallbackTmp, diskFilename), compressedBuffer);
+          } catch {}
+        }
+      }
+      publicUrl = `/uploads/feed/${diskFilename}`;
+    }
 
     res.json({
       success: true,

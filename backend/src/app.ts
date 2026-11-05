@@ -7,6 +7,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import healthRoute from './routes/health.js';
 import architectureRoute from './routes/architecture.js';
@@ -50,12 +51,35 @@ export function createApp() {
   app.use('/api/telemetry', telemetryRoute);
   app.use('/api/feed', feedRoute);
 
-  // Serve uploaded media
-  const uploadsPath = path.resolve(process.cwd(), 'uploads');
-  if (!fs.existsSync(uploadsPath)) {
-    fs.mkdirSync(uploadsPath, { recursive: true });
+  // Serve uploaded media if present (in development or non-Vercel environments)
+  const localUploadsPath = path.resolve(process.cwd(), 'uploads');
+  const tmpUploadsPath = path.join(os.tmpdir(), 'uploads');
+
+  if (!process.env.VERCEL) {
+    try {
+      if (!fs.existsSync(localUploadsPath)) {
+        fs.mkdirSync(localUploadsPath, { recursive: true });
+      }
+    } catch (err: any) {
+      console.warn('[App] Local uploads directory not initialized:', err?.message);
+    }
   }
-  app.use('/uploads', express.static(uploadsPath));
+
+  // Ensure tmp directory exists safely using recursive: true
+  try {
+    if (!fs.existsSync(tmpUploadsPath)) {
+      fs.mkdirSync(tmpUploadsPath, { recursive: true });
+    }
+  } catch (err: any) {
+    console.warn('[App] Tmp uploads directory not initialized:', err?.message);
+  }
+
+  if (fs.existsSync(localUploadsPath)) {
+    app.use('/uploads', express.static(localUploadsPath));
+  }
+  if (fs.existsSync(tmpUploadsPath)) {
+    app.use('/uploads', express.static(tmpUploadsPath));
+  }
 
   // Serve static frontend in production if built
   const frontendDistCandidates = [

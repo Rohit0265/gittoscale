@@ -181,6 +181,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
         uploadedItems.push({
           url: uploadResult.url,
           type: uploadResult.mediaType,
+          r2Key: uploadResult.r2Key,
         });
       }
 
