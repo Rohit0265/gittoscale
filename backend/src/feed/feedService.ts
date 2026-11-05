@@ -1,5 +1,5 @@
 import { getSql } from '../services/neon.js';
-import { FeedPost, FeedComment, UserProfileFeed } from './types.js';
+import { FeedPost, FeedComment, UserProfileFeed, MediaItem } from './types.js';
 import crypto from 'node:crypto';
 
 // In-memory fallbacks when Neon is offline (e.g. unit testing or network timeouts)
@@ -7,6 +7,33 @@ const inMemPosts: any[] = [];
 const inMemLikes: { post_id: string; user_id: string }[] = [];
 const inMemComments: any[] = [];
 const inMemFollows: { follower_id: string; following_id: string }[] = [];
+
+/**
+ * Normalizes media items for a post, strictly prioritizing video to show first.
+ */
+function formatPostMedia(mediaUrl?: string | null, mediaType?: string | null, metadata?: any): {
+  media_url: string | null;
+  media_type: 'image' | 'video' | null;
+  media_items: MediaItem[];
+  media_metadata: any | null;
+} {
+  let items: MediaItem[] = [];
+  if (metadata?.items && Array.isArray(metadata.items) && metadata.items.length > 0) {
+    items = metadata.items;
+  } else if (mediaUrl) {
+    items = [{ url: mediaUrl, type: (mediaType as 'image' | 'video') || 'image' }];
+  }
+
+  // Enforce: "remember if user upload any video keep it at first showing"
+  items.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
+
+  return {
+    media_url: items[0]?.url || mediaUrl || null,
+    media_type: items[0]?.type || (mediaType as 'image' | 'video') || null,
+    media_items: items,
+    media_metadata: metadata || null,
+  };
+}
 
 /**
  * Normalizes username from full_name or email if not explicitly set.
