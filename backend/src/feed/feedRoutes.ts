@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
 import { uploadToR2 } from '../services/r2Service.js';
+import { compressImage, processAndValidateVideo } from '../services/mediaCompressionService.js';
 import {
   getFeedPosts,
   getPostById,
@@ -161,7 +162,7 @@ router.get('/posts', optionalAuth, async (req: AuthenticatedRequest, res: Respon
 router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { content, mediaUrl, mediaType } = req.body;
+    const { content, mediaUrl, mediaType, mediaMetadata } = req.body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       res.status(400).json({
@@ -191,6 +192,7 @@ router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Respon
       content: content.trim(),
       mediaUrl: mediaUrl || null,
       mediaType: sanitizedMediaType,
+      mediaMetadata: mediaMetadata || null,
       authorName: req.user?.fullName,
       authorEmail: req.user?.email,
     });
