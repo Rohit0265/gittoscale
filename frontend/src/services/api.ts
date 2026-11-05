@@ -620,5 +620,24 @@ export const api = {
 
     return { success: true, reply: accumulated, actionDone };
   },
+
+  async notifySignup(payload: {
+    name?: string;
+    email: string;
+    userId?: string;
+    provider?: string;
+  }): Promise<void> {
+    try {
+      await fetch(`${API_BASE}/auth/notify-signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      console.warn('[API] Could not notify backend of signup:', e);
+    }
+  },
 };
 

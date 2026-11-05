@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { sendSignupTelegramNotification } from '../services/telegramService.js';
 
 const router = Router();
 
@@ -77,6 +78,17 @@ router.post('/signup', (req: Request, res: Response) => {
 
   mockUsers.push(user);
 
+  // Send Telegram alert for new mock user signup
+  sendSignupTelegramNotification({
+    name: user.name,
+    email: user.email,
+    userId: user.id,
+    provider: 'Mock / Dev',
+    createdAt: user.createdAt,
+  }).catch((err) => {
+    console.warn('[Auth Route] Failed to send Telegram notification:', err);
+  });
+
   const mockToken = `mock_jwt_${Buffer.from(JSON.stringify({ id: user.id, email: user.email })).toString('base64')}`;
 
   return res.status(201).json({
@@ -89,6 +101,43 @@ router.post('/signup', (req: Request, res: Response) => {
       name: user.name,
     },
   });
+});
+
+/**
+ * POST /api/auth/notify-signup
+ * Dispatches a Telegram notification when a user signs up via Supabase (OAuth or Email/Password)
+ */
+router.post('/notify-signup', async (req: Request, res: Response) => {
+  const { name, email, userId, provider, createdAt } = req.body || {};
+
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return res.status(400).json({
+      success: false,
+      error: 'Valid email is required',
+    });
+  }
+
+  try {
+    sendSignupTelegramNotification({
+      name: typeof name === 'string' ? name.trim() : undefined,
+      email: email.trim().toLowerCase(),
+      userId: typeof userId === 'string' ? userId : undefined,
+      provider: typeof provider === 'string' ? provider : undefined,
+      createdAt: typeof createdAt === 'string' ? createdAt : new Date().toISOString(),
+    }).catch((err) => {
+      console.warn('[Auth Route] Telegram signup alert error:', err);
+    });
+
+    return res.json({
+      success: true,
+      message: 'Signup notification queued.',
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: err?.message || 'Failed to dispatch notification',
+    });
+  }
 });
 
 /**
