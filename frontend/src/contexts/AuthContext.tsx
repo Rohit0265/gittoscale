@@ -459,6 +459,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
         } catch {}
+
+        // Notify via Telegram about new user registration
+        api.notifySignup({
+          name: mockProfile.fullName,
+          email: mockProfile.email,
+          userId: mockProfile.id,
+          provider: 'Local / Mock',
+        });
+
         setIsLoading(false);
         return { error: null };
       }
@@ -488,6 +497,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(data.user);
           setSession(data.session);
           await loadProfile(data.user.id, data.user.email || '', data.user.user_metadata);
+
+          // Notify via Telegram about new user registration
+          api.notifySignup({
+            name: fullName.trim() || data.user.email?.split('@')[0],
+            email: data.user.email || email.trim(),
+            userId: data.user.id,
+            provider: 'Email / Password',
+          });
         }
 
         setIsLoading(false);
@@ -527,6 +544,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
         } catch {}
+
+        // Notify via Telegram about new user registration
+        api.notifySignup({
+          name: mockProfile.fullName,
+          email: mockProfile.email,
+          userId: mockProfile.id,
+          provider: 'Local / Mock',
+        });
+
         setIsLoading(false);
         return { error: null };
       }
@@ -546,6 +572,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(data.user);
           setSession(data.session);
           await loadProfile(data.user.id, data.user.email || '', data.user.user_metadata);
+
+          // Notify via Telegram about new user registration
+          api.notifySignup({
+            name: fullName.trim() || data.user.email?.split('@')[0],
+            email: data.user.email || email.trim(),
+            userId: data.user.id,
+            provider: 'Email / Password',
+          });
         }
 
         setIsLoading(false);
