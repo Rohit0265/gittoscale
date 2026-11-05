@@ -279,23 +279,57 @@ export async function createFeedPost(data: {
   content: string;
   mediaUrl?: string | null;
   mediaType?: 'image' | 'video' | null;
+  mediaItems?: MediaItem[];
   authorName?: string;
   authorEmail?: string;
 }): Promise<FeedPost> {
   try {
     const db = getSql();
-    const rows = await db`
-      INSERT INTO public.feed_posts (user_id, content, media_url, media_type, created_at, updated_at)
-      VALUES (
-        ${data.userId},
-        ${data.content.trim()},
-        ${data.mediaUrl || null},
-        ${data.mediaType || null},
-        timezone('utc'::text, now()),
-        timezone('utc'::text, now())
-      )
-      RETURNING id;
-    `;
+
+    // Organize items: video must always show first
+    let items: MediaItem[] = [];
+    if (data.mediaItems && Array.isArray(data.mediaItems) && data.mediaItems.length > 0) {
+      items = [...data.mediaItems];
+    } else if (data.mediaUrl) {
+      items = [{ url: data.mediaUrl, type: data.mediaType || 'image' }];
+    }
+    // "remember if user upload any video keep it at first showing"
+    items.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
+
+    const primaryUrl = items[0]?.url || data.mediaUrl || null;
+    const primaryType = items[0]?.type || data.mediaType || null;
+    const metadataJson = items.length > 0 ? JSON.stringify({ items }) : null;
+
+    let rows: any[];
+    if (metadataJson) {
+      rows = await db`
+        INSERT INTO public.feed_posts (user_id, content, media_url, media_type, media_metadata, created_at, updated_at)
+        VALUES (
+          ${data.userId},
+          ${data.content.trim()},
+          ${primaryUrl},
+          ${primaryType},
+          ${metadataJson}::jsonb,
+          timezone('utc'::text, now()),
+          timezone('utc'::text, now())
+        )
+        RETURNING id;
+      `;
+    } else {
+      rows = await db`
+        INSERT INTO public.feed_posts (user_id, content, media_url, media_type, media_metadata, created_at, updated_at)
+        VALUES (
+          ${data.userId},
+          ${data.content.trim()},
+          ${primaryUrl},
+          ${primaryType},
+          NULL,
+          timezone('utc'::text, now()),
+          timezone('utc'::text, now())
+        )
+        RETURNING id;
+      `;
+    }
 
     const newPostId = rows[0].id;
     const post = await getPostById(newPostId, data.userId);
@@ -303,14 +337,27 @@ export async function createFeedPost(data: {
     return post;
   } catch (err: any) {
     if (isDbConnectionError(err)) {
+      let items: MediaItem[] = [];
+      if (data.mediaItems && Array.isArray(data.mediaItems) && data.mediaItems.length > 0) {
+        items = [...data.mediaItems];
+      } else if (data.mediaUrl) {
+        items = [{ url: data.mediaUrl, type: data.mediaType || 'image' }];
+      }
+      items.sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
+
+      const primaryUrl = items[0]?.url || data.mediaUrl || null;
+      const primaryType = items[0]?.type || data.mediaType || null;
+
       const newId = crypto.randomUUID();
       const now = new Date().toISOString();
       const inMem: any = {
         id: newId,
         user_id: data.userId,
         content: data.content.trim(),
-        media_url: data.mediaUrl || null,
-        media_type: data.mediaType || null,
+        media_url: primaryUrl,
+        media_type: primaryType,
+        media_items: items,
+        media_metadata: items.length > 0 ? { items } : null,
         created_at: now,
         updated_at: now,
         author_name: data.authorName || 'GitToScale User',
@@ -325,6 +372,8 @@ export async function createFeedPost(data: {
         content: inMem.content,
         media_url: inMem.media_url,
         media_type: inMem.media_type,
+        media_metadata: inMem.media_metadata,
+        media_items: inMem.media_items,
         created_at: inMem.created_at,
         updated_at: inMem.updated_at,
         author: {
