@@ -232,6 +232,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       content: r.content,
       media_url: r.media_url,
       media_type: r.media_type,
+      media_metadata: r.media_metadata || null,
       created_at: r.created_at,
       updated_at: r.updated_at,
       author: {
@@ -258,6 +259,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         content: found.content,
         media_url: found.media_url,
         media_type: found.media_type,
+        media_metadata: found.media_metadata || null,
         created_at: found.created_at,
         updated_at: found.updated_at,
         author: {
