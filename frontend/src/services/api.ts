@@ -625,6 +625,7 @@ export const api = {
     name?: string;
     email: string;
     userId?: string;
+    avatarUrl?: string;
     provider?: string;
   }): Promise<void> {
     try {
@@ -637,6 +638,25 @@ export const api = {
       });
     } catch (e) {
       console.warn('[API] Could not notify backend of signup:', e);
+    }
+  },
+
+  async syncUserProfile(profile: {
+    id: string;
+    email: string;
+    fullName?: string;
+    avatarUrl?: string;
+  }): Promise<void> {
+    try {
+      await fetch(`${API_BASE}/auth/sync-profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profile),
+      });
+    } catch (e) {
+      console.warn('[API] Failed to sync user profile:', e);
     }
   },
 };
