@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -239,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (async () => {
         try {
           const redirectUrl = `${window.location.origin}/auth/callback`;
-          const { data, error } = await supabase.auth.signInWithOAuth({
+          const { data } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
               redirectTo: redirectUrl,
@@ -492,7 +492,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ? `${window.location.origin}/auth/callback`
           : undefined;
 
-        const { data, error } = await supabase.auth.signUp({
+        const { data } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
@@ -565,7 +565,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
