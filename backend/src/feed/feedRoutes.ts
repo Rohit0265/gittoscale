@@ -536,6 +536,29 @@ router.get('/profile/:id/posts', optionalAuth, async (req: AuthenticatedRequest,
 });
 
 // ============================================================================
+// 12. GET /api/feed/profile/:id/likes - User's liked posts
+// ============================================================================
+router.get('/profile/:id/likes', optionalAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const targetUserId = req.params.id;
+    const viewerUserId = req.user?.id;
+
+    const posts = await getUserLikedPosts(targetUserId, viewerUserId);
+    res.json({
+      success: true,
+      data: posts,
+      count: posts.length,
+    });
+  } catch (error: any) {
+    console.error('[Feed API] Failed to fetch liked posts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch liked posts for user.',
+    });
+  }
+});
+
+// ============================================================================
 // 12. POST /api/feed/profile/:id/follow - Follow / Unfollow user
 // ============================================================================
 router.post('/profile/:id/follow', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
