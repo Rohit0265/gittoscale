@@ -112,7 +112,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
         {/* Post Media (Image or Video) */}
         {post.media_url && (
-          <div className="mb-4 rounded-xl overflow-hidden border border-slate-200/80 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/40 max-h-[500px] flex items-center justify-center">
+          <div className="relative mb-4 rounded-xl overflow-hidden border border-slate-200/80 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/40 max-h-[500px] flex items-center justify-center">
             {post.media_type === 'video' ? (
               <video
                 src={post.media_url}
@@ -129,6 +129,13 @@ export const PostCard: React.FC<PostCardProps> = ({
                 onLoad={() => setIsMediaLoaded(true)}
                 className={`w-full max-h-[480px] object-contain rounded-xl transition-opacity duration-300 ${isMediaLoaded ? 'opacity-100' : 'opacity-80'}`}
               />
+            )}
+            {post.media_metadata && (
+              <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-[10px] text-white/90 font-mono tracking-tight pointer-events-none">
+                {post.media_type === 'image'
+                  ? `WebP${post.media_metadata.width ? ` · ${post.media_metadata.width}×${post.media_metadata.height}` : ''}`
+                  : `${post.media_metadata.duration ? `${Math.floor(post.media_metadata.duration / 60)}m ${Math.round(post.media_metadata.duration % 60)}s` : 'MP4'}`}
+              </div>
             )}
           </div>
         )}
