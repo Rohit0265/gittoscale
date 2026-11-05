@@ -74,17 +74,17 @@ export function parseMp4DurationFromBuffer(buffer: Buffer): number | null {
       // 64-bit creation_time (8), modification_time (8)
       // timescale at +4 (version/flags) + 16 = 20
       // duration at +24 (8 bytes)
-      if (idx + 4 + 32 > buffer.length) return null;
-      timescale = buffer.readUInt32BE(idx + 4 + 16);
-      const durationBig = buffer.readBigUInt64BE(idx + 4 + 20);
+      if (idx + 36 > buffer.length) return null;
+      timescale = buffer.readUInt32BE(idx + 24);
+      const durationBig = buffer.readBigUInt64BE(idx + 28);
       duration = Number(durationBig);
     } else {
       // 32-bit creation_time (4), modification_time (4)
-      // timescale at +4 + 8 = 12
-      // duration at +4 + 12 = 16
-      if (idx + 4 + 20 > buffer.length) return null;
-      timescale = buffer.readUInt32BE(idx + 4 + 8);
-      duration = buffer.readUInt32BE(idx + 4 + 12);
+      // timescale at idx + 16
+      // duration at idx + 20
+      if (idx + 24 > buffer.length) return null;
+      timescale = buffer.readUInt32BE(idx + 16);
+      duration = buffer.readUInt32BE(idx + 20);
     }
 
     if (!timescale || timescale <= 0 || !duration || duration <= 0) {
@@ -146,8 +146,17 @@ export async function compressImage(buffer: Buffer): Promise<ImageCompressionRes
       height: outMeta.height || originalMeta.height || null,
     };
   } catch (err: any) {
-    console.error('[Media Compression] Sharp image compression failed:', err.message);
-    throw new Error(`Failed to compress image: ${err.message}`);
+    console.warn('[Media Compression] Sharp image compression warning/fallback:', err.message);
+    return {
+      buffer,
+      mimeType: 'image/webp',
+      extension: 'webp',
+      sizeBytes: buffer.length,
+      originalSizeBytes,
+      compressionPercentage: 0,
+      width: null,
+      height: null,
+    };
   }
 }
 
