@@ -126,6 +126,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         onOpenSignUp={onOpenSignUp}
         onSignOut={onSignOut}
         onNavigateToSimulator={onNavigateToSimulator}
+        onNavigateToProfile={onNavigateToProfile}
+        onViewLikes={onNavigateToFeed}
       />
 
       <div className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 py-6 flex flex-col items-center">
@@ -285,10 +287,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
       </div>
 
-      {/* Comments Drawer / Modal */}
+      {/* Comments Drawer / Mobile Bottom Sheet */}
       {selectedPostForComments && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg h-[650px] max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setSelectedPostForComments(null)}
+          />
+          <div className="relative w-full max-w-2xl h-[55vh] sm:h-[650px] max-h-[85vh] rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col z-50 transform transition-transform duration-300 ease-out animate-in slide-in-from-bottom">
             <CommentPanel
               post={selectedPostForComments}
               currentUserId={user?.id}
