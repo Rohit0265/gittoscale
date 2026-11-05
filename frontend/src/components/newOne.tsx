@@ -198,19 +198,17 @@ export const NewOne: React.FC<NewOneProps> = ({
           <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
             {/* Architect AI Card Component */}
             <div
-              className="w-full rounded-2xl p-6 sm:p-7 border border-neutral-800/80 transition-all duration-300 hover:border-neutral-700/80"
+              className="w-full rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-neutral-800/80 bg-white/85 dark:bg-[#12141a]/75 transition-all duration-300 hover:border-slate-300 dark:hover:border-neutral-700/80 backdrop-blur-xl"
               style={{
-                background: 'rgba(18, 20, 26, 0.75)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                boxShadow:
-                  '0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.015)',
+                boxShadow: isDarkMode
+                  ? '0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.015)'
+                  : '0 0 0 1px rgba(0, 0, 0, 0.05), 0 20px 45px -12px rgba(15, 23, 42, 0.12), 0 0 25px rgba(99, 102, 241, 0.03)',
               }}
             >
               {/* Header Bar */}
-              <div className="flex items-center justify-between pb-4 mb-5 border-b border-neutral-800/70">
+              <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/80 dark:border-neutral-800/70">
                 <div className="flex items-center">
-                  <span className="relative font-lora text-sm sm:text-base font-medium tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(255,255,255,0.12)] select-none">
+                  <span className="relative font-lora text-sm sm:text-base font-semibold tracking-tight text-slate-900 dark:bg-gradient-to-r dark:from-white dark:via-neutral-200 dark:to-neutral-400 dark:bg-clip-text dark:text-transparent select-none">
                     Text to System Design
                   </span>
                 </div>
@@ -219,11 +217,9 @@ export const NewOne: React.FC<NewOneProps> = ({
               {/* Input Prompt Box */}
               <form onSubmit={handleSubmit} className="relative group">
                 <div
-                  className="relative flex items-center bg-neutral-900/90 border border-neutral-800 rounded-xl p-1.5 focus-within:border-neutral-700 transition-all duration-200"
+                  className="relative flex items-center bg-slate-50 dark:bg-neutral-900/90 border border-slate-200 dark:border-neutral-800 rounded-xl p-1.5 focus-within:border-indigo-500 dark:focus-within:border-neutral-700 transition-all duration-200"
                   style={{ outline: 'none', boxShadow: 'none' }}
                 >
-              
-
                   <input
                     ref={inputRef}
                     id="prompt-input"
@@ -239,19 +235,19 @@ export const NewOne: React.FC<NewOneProps> = ({
                         setIsUserInteracting(false);
                       }
                     }}
-                    className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-neutral-100 placeholder-neutral-400 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none shadow-none"
+                    className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-slate-900 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-400 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none shadow-none"
                     style={{ outline: 'none', boxShadow: 'none' }}
                     placeholder={placeholder || 'Describe your system idea (e.g. "Design Uber ride-matching at scale")...'}
                     autoComplete="off"
                     aria-label="Describe your system idea for architecture generation"
                   />
 
-                  {/* Off-white / Dark Charcoal Action Button */}
+                  {/* Submit Action Button */}
                   <button
                     id="submit-btn"
                     type="submit"
                     aria-label="Generate Architecture"
-                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 hover:bg-white text-neutral-950 hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 shadow-md shrink-0 cursor-pointer"
+                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-neutral-100 dark:hover:bg-white dark:text-neutral-950 hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 shadow-md shrink-0 cursor-pointer"
                     title="Analyze Architecture"
                   >
                     <ArrowUp className="w-4 h-4 text-sm font-bold" />
@@ -261,11 +257,11 @@ export const NewOne: React.FC<NewOneProps> = ({
 
               {/* Quick Architecture Scenario Chips */}
               <div className="mt-5 pt-1">
-                <div className="flex items-center justify-between text-xs text-neutral-300 mb-3 font-mono">
-                  <span className="text-neutral-300">Quick scenarios:</span>
-                  <span className="hidden sm:inline text-neutral-400">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-neutral-300 mb-3 font-mono">
+                  <span className="text-slate-600 dark:text-neutral-300 font-medium">Quick scenarios:</span>
+                  <span className="hidden sm:inline text-slate-400 dark:text-neutral-400">
                     Press{' '}
-                    <kbd className="px-1.5 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-neutral-200 font-mono text-[10px]">
+                    <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded text-slate-700 dark:text-neutral-200 font-mono text-[10px]">
                       Enter ↵
                     </kbd>
                   </span>
@@ -279,9 +275,9 @@ export const NewOne: React.FC<NewOneProps> = ({
                         key={chip.label}
                         type="button"
                         onClick={() => handleSetPrompt(chip.prompt)}
-                        className="chip-btn min-h-[44px] flex items-center space-x-2 bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs px-3.5 py-2.5 rounded-lg transition-all duration-150 cursor-pointer"
+                        className="chip-btn min-h-[44px] flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 dark:bg-neutral-900/80 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-700 dark:text-neutral-300 text-xs px-3.5 py-2.5 rounded-lg transition-all duration-150 cursor-pointer shadow-2xs"
                       >
-                        <Icon className="text-neutral-300 text-xs w-3.5 h-3.5" />
+                        <Icon className="text-slate-500 dark:text-neutral-300 text-xs w-3.5 h-3.5" />
                         <span>{chip.label}</span>
                       </button>
                     );
@@ -291,20 +287,20 @@ export const NewOne: React.FC<NewOneProps> = ({
             </div>
 
             {/* Import GitHub Repo Interactive Button / Footer Bar */}
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between w-full px-3 py-2.5 rounded-xl bg-neutral-900/40 border border-neutral-800/50 backdrop-blur-md">
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-neutral-300 mb-2 sm:mb-0">
-                <GitBranch className="w-4 h-4 text-neutral-400" />
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between w-full px-3 py-2.5 rounded-xl bg-slate-50/80 dark:bg-neutral-900/40 border border-slate-200/80 dark:border-neutral-800/50 backdrop-blur-md">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-slate-600 dark:text-neutral-300 mb-2 sm:mb-0">
+                <GitBranch className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                 <span>Have an existing codebase?</span>
               </div>
 
               <button
                 type="button"
                 onClick={onSelectUseRepository}
-                className="group min-h-[44px] flex items-center space-x-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 hover:border-neutral-500 px-4 py-2.5 rounded-lg text-xs sm:text-sm text-neutral-200 hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
+                className="group min-h-[44px] flex items-center space-x-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-700/80 hover:border-slate-300 dark:hover:border-neutral-500 px-4 py-2.5 rounded-lg text-xs sm:text-sm text-slate-800 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
               >
-                <Github className="w-4 h-4 text-base text-neutral-300 group-hover:text-white transition-colors" />
+                <Github className="w-4 h-4 text-base text-slate-700 dark:text-neutral-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
                 <span className="font-medium">Scan GitHub repository</span>
-                <ArrowUpRight className="w-3 h-3 text-[10px] text-neutral-400 group-hover:text-neutral-200 transition-colors ml-0.5" />
+                <ArrowUpRight className="w-3 h-3 text-[10px] text-slate-400 dark:text-neutral-400 group-hover:text-slate-700 dark:group-hover:text-neutral-200 transition-colors ml-0.5" />
               </button>
             </div>
           </div>
