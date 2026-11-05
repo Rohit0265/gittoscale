@@ -62,7 +62,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     );
   }
 
-  const handleSelectFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -75,6 +75,15 @@ export const CreatePost: React.FC<CreatePostProps> = ({
       if (!validation.valid || !validation.mediaType) {
         setErrorMessage(validation.error || `File "${file.name}" is invalid.`);
         continue;
+      }
+
+      // If video, validate length <= 2 minutes (120s)
+      if (validation.mediaType === 'video') {
+        const videoValidation = await validateVideoFile(file);
+        if (!videoValidation.valid) {
+          setErrorMessage(videoValidation.error || 'Video exceeds the 2 minute maximum length restriction.');
+          continue;
+        }
       }
 
       const previewUrl = URL.createObjectURL(file);
