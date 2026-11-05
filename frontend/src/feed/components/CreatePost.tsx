@@ -240,48 +240,87 @@ export const CreatePost: React.FC<CreatePostProps> = ({
               <span className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
                 Attached Media ({selectedMedia.length})
               </span>
-              <span className="text-[11px] text-slate-400">
-                Videos are automatically positioned first
-              </span>
+              {selectedMedia.length > 1 && (
+                <span className="text-[11px] text-slate-400 dark:text-neutral-500">
+                  Click arrows or drag to swap places
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {selectedMedia.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-neutral-700 bg-black aspect-video flex items-center justify-center"
+                  draggable
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(idx)}
+                  className={`relative group rounded-lg overflow-hidden border border-slate-200 dark:border-neutral-700 bg-black aspect-video flex items-center justify-center cursor-grab active:cursor-grabbing transition-all ${
+                    draggedIdx === idx ? 'opacity-40 ring-2 ring-indigo-500 scale-95' : 'hover:border-slate-400 dark:hover:border-neutral-500'
+                  }`}
                 >
                   {item.type === 'video' ? (
                     <div className="w-full h-full relative flex items-center justify-center">
                       <video
                         src={item.previewUrl}
-                        className="w-full h-full object-cover opacity-80"
+                        className="w-full h-full object-cover opacity-80 pointer-events-none"
                       />
-                      <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <Play className="w-6 h-6 text-white drop-shadow-md" />
                       </div>
-                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-sm bg-red-600 text-[10px] font-bold text-white uppercase tracking-wider">
-                        Video 1st
-                      </span>
                     </div>
                   ) : (
                     <img
                       src={item.previewUrl}
                       alt="Attachment preview"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover pointer-events-none select-none"
                     />
                   )}
 
-                  {/* Slot Number Badge */}
-                  <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-black/70 text-[10px] font-bold text-white flex items-center justify-center font-mono">
-                    {idx + 1}
-                  </span>
+                  {/* Swap & Reorder Controls */}
+                  {selectedMedia.length > 1 && (
+                    <div className="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between pointer-events-auto opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSwap(idx, idx - 1);
+                        }}
+                        disabled={idx === 0}
+                        className="p-1 rounded-md bg-black/80 hover:bg-black text-white disabled:opacity-30 disabled:hover:bg-black/80 transition-colors cursor-pointer disabled:cursor-not-allowed shadow-xs"
+                        title="Swap with previous (move left)"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+
+                      <span className="text-[10px] text-white/80 bg-black/60 px-1.5 py-0.5 rounded-xs backdrop-blur-xs flex items-center gap-0.5">
+                        <ArrowLeftRight className="w-2.5 h-2.5" />
+                        <span>Swap</span>
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSwap(idx, idx + 1);
+                        }}
+                        disabled={idx === selectedMedia.length - 1}
+                        className="p-1 rounded-md bg-black/80 hover:bg-black text-white disabled:opacity-30 disabled:hover:bg-black/80 transition-colors cursor-pointer disabled:cursor-not-allowed shadow-xs"
+                        title="Swap with next (move right)"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
 
                   {/* Remove Button */}
                   <button
                     type="button"
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="absolute top-1 right-1 p-1 rounded-full bg-black/80 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveItem(item.id);
+                    }}
+                    className="absolute top-1 right-1 p-1 rounded-full bg-black/80 hover:bg-rose-600 text-white transition-colors cursor-pointer z-10"
                     title="Remove this media"
                   >
                     <X className="w-3.5 h-3.5" />
