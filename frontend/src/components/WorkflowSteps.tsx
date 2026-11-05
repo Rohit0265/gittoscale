@@ -421,7 +421,9 @@ const WorkflowStepsComponent: React.FC<WorkflowStepsProps> = ({
   onSelectTestSite: _onSelectTestSite,
   onSelectUseRepository: _onSelectUseRepository,
   onOpenRecommender: _onOpenRecommender,
+  isDark,
 }) => {
+  const isDarkMode = isDark ?? (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
