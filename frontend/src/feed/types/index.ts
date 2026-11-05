@@ -24,6 +24,8 @@ export interface FeedComment {
   post_id: string;
   user_id: string;
   content: string;
+  parent_id?: string | null;
+  depth?: number;
   created_at: string;
   updated_at: string;
   author: FeedAuthor;
