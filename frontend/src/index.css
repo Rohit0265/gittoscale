@@ -44,20 +44,7 @@
   }
 }
 
-/* Outline typography for landing page step watermark numbers */
-.outline-text {
-  color: transparent;
-  -webkit-text-stroke: 2px #cbd5e1;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  font-variant-numeric: tabular-nums;
-}
-
-.dark .outline-text {
-  color: transparent;
-  -webkit-text-stroke: 2px #262626;
-}
-
-/* Custom Excel-like grid styling & clean scrollbars */
+/* Custom clean scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -87,17 +74,6 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
-}
-
-.excel-grid {
-  background-image: 
-    linear-gradient(to right, rgba(203, 213, 225, 0.45) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(203, 213, 225, 0.45) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-.dark .excel-grid {
-  background-image: none;
 }
 
 /* Skeleton Loading Shimmer Animation (Slow network simulation) */

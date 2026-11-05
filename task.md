@@ -8,11 +8,16 @@ so havre to make url path /feed whwere others users fed will show
 
 at that /feed the ui will as follows the header stays at same location or sticky but remove the options in the header
 
+
+also when there is an user do share the share url must be feed/profile/:id;
+
 the feed main screen will be the center and at the left it show the logined user profile:
 in profile first avaatr than name than username than followeres following than your posyt option.
 
 
- and at the center section where the post and vidoe will come the first part is input where user can write anything add images and video and video length not more than 1 mb.
+
+
+and at the center section where the post and vidoe will come the first part is input where user can write anything add images and video and video length not more than 1 mb.
 
 . and now the the feed card display page first the avatar url and username on first line also with 3 doths at other end
 

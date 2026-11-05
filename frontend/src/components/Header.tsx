@@ -52,7 +52,6 @@ interface HeaderProps {
   isDark?: boolean;
   onToggleTheme?: () => void;
   isLeftCollapsed?: boolean;
-  onToggleLeftSidebar?: () => void;
   nodes?: ArchitectureNode[];
   edges?: ArchitectureEdge[];
   projectName?: string;
@@ -80,7 +79,6 @@ export const Header: React.FC<HeaderProps> = ({
   isDark = false,
   onToggleTheme,
   isLeftCollapsed: _isLeftCollapsed = false,
-  onToggleLeftSidebar: _onToggleLeftSidebar,
   nodes = [],
   edges = [],
   projectName = 'GitToScale System Design',

@@ -280,16 +280,6 @@ export async function queryRepositoryHistory(
   };
 }
 
-export async function getRepositoryById(id: string, userId: string) {
-  const db = getSql();
-  const rows = await db`
-    SELECT * FROM public.repository_history
-    WHERE id = ${id} AND user_id = ${userId}
-    LIMIT 1;
-  `;
-  return rows[0] || null;
-}
-
 export async function deleteRepositoryById(id: string, userId: string) {
   const db = getSql();
   await db`

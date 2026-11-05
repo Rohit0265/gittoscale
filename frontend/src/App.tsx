@@ -596,16 +596,6 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  const handleToggleLeft = useCallback(() => {
-    setIsLeftCollapsed((prev) => {
-      const next = !prev;
-      if (!next && window.innerWidth < 768) {
-        setIsRightCollapsed(true);
-      }
-      return next;
-    });
-  }, []);
-
   const handleOpenRight = useCallback(() => {
     setIsRightCollapsed(false);
     if (window.innerWidth < 768) {
@@ -2091,7 +2081,6 @@ export const App: React.FC = () => {
         isDark={isDark}
         onToggleTheme={handleToggleTheme}
         isLeftCollapsed={isLeftCollapsed}
-        onToggleLeftSidebar={handleToggleLeft}
         nodes={nodes}
         edges={edges}
         projectName={activePromptText || defaultArchitecture?.description || 'GitToScale System Architecture'}
