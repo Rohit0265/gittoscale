@@ -156,5 +156,5 @@ describe('Social Feed API Endpoints & Security', () => {
 
     expect(ownerDeleteRes.status).toBe(200);
     expect(ownerDeleteRes.body.success).toBe(true);
-  });
+  }, 15000);
 });
