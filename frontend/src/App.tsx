@@ -177,6 +177,7 @@ const isValidAppPath = (path: string): boolean => {
   if (path === '/' || path === '') return true;
   if (path === '/app' || path.startsWith('/app/')) return true;
   if (path === '/feed' || path.startsWith('/feed')) return true;
+  if (path === '/profile' || path.startsWith('/profile')) return true;
   if (path === '/signup' || path === '/signin' || path === '/forgot-password') return true;
   if (path.startsWith('/auth')) return true;
   if (path === '/history') return true;
@@ -216,7 +217,7 @@ const getInitialView = (): AppView => {
   if (typeof window === 'undefined') return 'landing';
   const path = window.location.pathname.toLowerCase();
   if (path === '/feed') return 'feed';
-  if (path.startsWith('/feed/profile/')) return 'feed-profile';
+  if (path === '/profile' || path.startsWith('/profile') || path.startsWith('/feed/profile/')) return 'feed-profile';
   if (path === '/signup') return 'signup';
   if (path === '/signin') return 'signin';
   if (path === '/forgot-password') return 'forgot-password';
