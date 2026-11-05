@@ -173,17 +173,6 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-6 transition-colors">
       <form onSubmit={handleSubmit}>
         <div className="flex gap-3">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-neutral-700 shrink-0"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center uppercase shrink-0">
-              {displayName[0]}
-            </div>
-          )}
 
           <div className="flex-1 min-w-0">
             <textarea
@@ -195,7 +184,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
               placeholder="What are you designing? Share a system architecture, question, or latency finding..."
               rows={3}
               maxLength={3000}
-              className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-hidden resize-none leading-relaxed"
+              className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-0 leading-relaxed"
             />
           </div>
         </div>
@@ -337,8 +326,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                 </>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Post</span>
+                  <span>Publish</span>
                 </>
               )}
             </button>
