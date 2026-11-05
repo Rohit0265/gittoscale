@@ -28,11 +28,36 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('enforces server-side video upload size limit (max 1 MB)', async () => {
-    // Generate buffer exceeding 1 MB (1.2 MB) of mp4-like header
-    const oversizedBuffer = Buffer.alloc(1.2 * 1024 * 1024);
-    oversizedBuffer.write('ftyp', 4, 'ascii');
-    const base64Data = `data:video/mp4;base64,${oversizedBuffer.toString('base64')}`;
+  it('allows video uploads exceeding 1 MB when duration is under 2 minutes', async () => {
+    // 1.2 MB buffer with valid MP4 header and duration under 2 min (e.g. 30 seconds)
+    const validVideoBuffer = Buffer.alloc(1.2 * 1024 * 1024);
+    validVideoBuffer.write('ftypisom', 4, 'ascii');
+    validVideoBuffer.write('mvhd', 20, 'ascii');
+    validVideoBuffer.writeUInt8(0, 24); // version 0
+    validVideoBuffer.writeUInt32BE(1000, 36); // timescale
+    validVideoBuffer.writeUInt32BE(30000, 40); // 30 seconds duration
+    const base64Data = `data:video/mp4;base64,${validVideoBuffer.toString('base64')}`;
+
+    const res = await request(app)
+      .post('/api/feed/upload')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ base64Data });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.mediaType).toBe('video');
+    expect(res.body.duration).toBe(30);
+  });
+
+  it('rejects videos exceeding the 2-minute (120 seconds) maximum duration restriction', async () => {
+    // MP4 buffer with duration > 120s (e.g., 180 seconds / 3 minutes)
+    const longVideoBuffer = Buffer.alloc(200);
+    longVideoBuffer.write('ftypisom', 4, 'ascii');
+    longVideoBuffer.write('mvhd', 20, 'ascii');
+    longVideoBuffer.writeUInt8(0, 24); // version 0
+    longVideoBuffer.writeUInt32BE(1000, 36); // timescale
+    longVideoBuffer.writeUInt32BE(180000, 40); // 180 seconds duration
+    const base64Data = `data:video/mp4;base64,${longVideoBuffer.toString('base64')}`;
 
     const res = await request(app)
       .post('/api/feed/upload')
@@ -41,8 +66,8 @@ describe('Social Feed API Endpoints & Security', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('VIDEO_TOO_LARGE');
-    expect(res.body.message).toContain('1 MB');
+    expect(res.body.error).toBe('VIDEO_TOO_LONG');
+    expect(res.body.message).toContain('2 minutes');
   });
 
   it('rejects invalid or fake media files through binary magic byte validation', async () => {
