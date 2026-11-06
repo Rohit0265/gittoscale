@@ -1,5 +1,5 @@
 import { getSql } from '../services/neon.js';
-import { FeedPost, FeedComment, UserProfileFeed, MediaItem } from './types.js';
+import { FeedPost, FeedComment, UserProfileFeed, MediaItem, UpdateProfileInput } from './types.js';
 import { extractR2KeyFromUrl } from '../services/r2Service.js';
 import crypto from 'node:crypto';
 
@@ -8,6 +8,7 @@ const inMemPosts: any[] = [];
 const inMemLikes: { post_id: string; user_id: string }[] = [];
 const inMemComments: any[] = [];
 const inMemFollows: { follower_id: string; following_id: string }[] = [];
+const inMemProfiles: Record<string, any> = {};
 
 /**
  * Normalizes media items for a post, strictly prioritizing video to show first.
@@ -831,6 +832,7 @@ export async function getUserFeedProfile(
         p.username,
         p.email,
         p.avatar_url,
+        p.banner_url,
         p.bio,
         COALESCE(followers.count, 0)::int as followers_count,
         COALESCE(following.count, 0)::int as following_count,
@@ -870,6 +872,7 @@ export async function getUserFeedProfile(
       username: r.username || deriveUsername(r.full_name, r.email),
       email: r.email,
       avatar_url: r.avatar_url || null,
+      banner_url: r.banner_url || null,
       bio: r.bio || '',
       followers_count: Number(r.followers_count) || 0,
       following_count: Number(r.following_count) || 0,
@@ -883,14 +886,16 @@ export async function getUserFeedProfile(
       const followingCount = inMemFollows.filter((f) => f.follower_id === targetUserId).length;
       const postsCount = inMemPosts.filter((p) => p.user_id === targetUserId).length;
       const isFollowing = viewerUserId ? inMemFollows.some((f) => f.follower_id === viewerUserId && f.following_id === targetUserId) : false;
+      const inMem = inMemProfiles[targetUserId] || {};
 
       return {
         id: targetUserId,
-        full_name: 'Mock Architect',
-        username: 'mock_architect',
-        email: 'user@gittoscale.tech',
-        avatar_url: null,
-        bio: 'Distributed systems architect',
+        full_name: inMem.full_name || 'Mock Architect',
+        username: inMem.username || 'mock_architect',
+        email: inMem.email || 'user@gittoscale.tech',
+        avatar_url: inMem.avatar_url !== undefined ? inMem.avatar_url : null,
+        banner_url: inMem.banner_url !== undefined ? inMem.banner_url : null,
+        bio: inMem.bio !== undefined ? inMem.bio : 'Distributed systems architect',
         followers_count: followersCount,
         following_count: followingCount,
         posts_count: postsCount,
@@ -898,6 +903,122 @@ export async function getUserFeedProfile(
         is_owner: viewerUserId ? viewerUserId === targetUserId : false,
       };
     }
+    throw err;
+  }
+}
+
+/**
+ * Update user profile details (name, username, bio, avatar, banner).
+ * Enforces strict username uniqueness case-insensitively across all users.
+ */
+export async function updateUserProfile(
+  userId: string,
+  input: UpdateProfileInput,
+  userEmail?: string
+): Promise<UserProfileFeed> {
+  const cleanUsername = input.username !== undefined ? input.username.trim().toLowerCase() : undefined;
+
+  // Validate username format if supplied
+  if (cleanUsername !== undefined) {
+    if (cleanUsername.length < 3 || cleanUsername.length > 30 || !/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
+      const err: any = new Error('Username must be 3-30 characters long and can only contain letters, numbers, and underscores.');
+      err.code = 'INVALID_USERNAME';
+      err.status = 400;
+      throw err;
+    }
+  }
+
+  const cleanFullName = input.full_name !== undefined ? input.full_name.trim().slice(0, 100) : undefined;
+  const cleanBio = input.bio !== undefined ? input.bio.trim().slice(0, 500) : undefined;
+
+  try {
+    const db = getSql();
+
+    // 1. Enforce unique username check (case-insensitive)
+    if (cleanUsername) {
+      const conflictRows = await db`
+        SELECT id FROM public.profiles 
+        WHERE LOWER(username) = LOWER(${cleanUsername}) 
+          AND id != ${userId} 
+        LIMIT 1;
+      `;
+      if (conflictRows && conflictRows.length > 0) {
+        const err: any = new Error('This username is already taken. Please choose another username.');
+        err.code = 'USERNAME_TAKEN';
+        err.status = 409;
+        throw err;
+      }
+    }
+
+    // 2. Upsert profile record
+    await db`
+      INSERT INTO public.profiles (id, full_name, username, email, avatar_url, banner_url, bio, updated_at)
+      VALUES (
+        ${userId},
+        ${cleanFullName || ''},
+        ${cleanUsername || null},
+        ${userEmail || ''},
+        ${input.avatar_url || null},
+        ${input.banner_url || null},
+        ${cleanBio || ''},
+        timezone('utc'::text, now())
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        full_name = CASE WHEN ${cleanFullName !== undefined} THEN ${cleanFullName} ELSE public.profiles.full_name END,
+        username = CASE WHEN ${cleanUsername !== undefined} THEN ${cleanUsername} ELSE public.profiles.username END,
+        bio = CASE WHEN ${cleanBio !== undefined} THEN ${cleanBio} ELSE public.profiles.bio END,
+        avatar_url = CASE WHEN ${input.avatar_url !== undefined} THEN ${input.avatar_url} ELSE public.profiles.avatar_url END,
+        banner_url = CASE WHEN ${input.banner_url !== undefined} THEN ${input.banner_url} ELSE public.profiles.banner_url END,
+        updated_at = timezone('utc'::text, now());
+    `;
+
+    const updated = await getUserFeedProfile(userId, userId);
+    if (!updated) {
+      throw new Error('Failed to retrieve updated profile');
+    }
+    return updated;
+  } catch (err: any) {
+    if (err.code === 'USERNAME_TAKEN' || err.code === 'INVALID_USERNAME') {
+      throw err;
+    }
+
+    if (isDbConnectionError(err)) {
+      // In-memory fallback
+      if (cleanUsername) {
+        const conflict = Object.entries(inMemProfiles).find(
+          ([id, p]) => id !== userId && p.username?.toLowerCase() === cleanUsername
+        );
+        if (conflict) {
+          const conflictErr: any = new Error('This username is already taken. Please choose another username.');
+          conflictErr.code = 'USERNAME_TAKEN';
+          conflictErr.status = 409;
+          throw conflictErr;
+        }
+      }
+
+      const prev = inMemProfiles[userId] || {
+        id: userId,
+        full_name: 'Mock Architect',
+        username: 'mock_architect',
+        email: userEmail || 'user@gittoscale.tech',
+        avatar_url: null,
+        banner_url: null,
+        bio: 'Distributed systems architect',
+      };
+
+      inMemProfiles[userId] = {
+        ...prev,
+        full_name: cleanFullName !== undefined ? cleanFullName : prev.full_name,
+        username: cleanUsername !== undefined ? cleanUsername : prev.username,
+        bio: cleanBio !== undefined ? cleanBio : prev.bio,
+        avatar_url: input.avatar_url !== undefined ? input.avatar_url : prev.avatar_url,
+        banner_url: input.banner_url !== undefined ? input.banner_url : prev.banner_url,
+      };
+
+      const updated = await getUserFeedProfile(userId, userId);
+      return updated!;
+    }
+
     throw err;
   }
 }
