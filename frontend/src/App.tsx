@@ -13,6 +13,7 @@ import {
 import { LandingPage } from './components/LandingPage';
 import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
 import { useAuth } from './contexts/AuthContext';
+import { isOAuthPopup } from './utils/oauthHelper';
 import { toVerticalTree } from './utils/treeLayout';
 import { executeArchitectureCommand, isArchitectureGenerationRequest } from './services/aiAgentExecutor';
 import { buildDetailedArchitecture } from './utils/detailedArchitecture';
@@ -215,6 +216,7 @@ const isValidAppPath = (path: string): boolean => {
 
 const getInitialView = (): AppView => {
   if (typeof window === 'undefined') return 'landing';
+  if (isOAuthPopup()) return 'auth-callback';
   const path = window.location.pathname.toLowerCase();
   if (path === '/feed') return 'feed';
   if (path === '/profile' || path.startsWith('/profile') || path.startsWith('/feed/profile/')) return 'feed-profile';
