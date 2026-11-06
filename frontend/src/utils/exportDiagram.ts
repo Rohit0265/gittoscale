@@ -1,4 +1,5 @@
-import { ArchitectureNode, ArchitectureEdge } from '../types';
+import { ArchitectureNode, ArchitectureEdge, ComponentType } from '../types';
+import { toVerticalTree } from './treeLayout';
 
 /**
  * Generates valid Mermaid flowchart syntax from architecture nodes and edges.
