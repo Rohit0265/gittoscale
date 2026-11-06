@@ -289,4 +289,67 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(post.media_items[0].type).toBe('video');
     expect(post.media_items[0].url).toBe('https://cdn.example.com/video1.mp4');
   });
+
+  it('supports updating profile (name, username, avatar, banner, bio) and enforces strict username uniqueness', async () => {
+    // 1. User 1 updates profile with a unique username
+    const updateRes1 = await request(app)
+      .put('/api/feed/profile')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({
+        full_name: 'Alice Senior Architect',
+        username: 'alice_cloud',
+        bio: 'Designing multi-region serverless infrastructure.',
+        avatar_url: 'https://cdn.example.com/avatar1.webp',
+        banner_url: 'https://cdn.example.com/banner1.webp',
+      });
+
+    expect(updateRes1.status).toBe(200);
+    expect(updateRes1.body.success).toBe(true);
+    expect(updateRes1.body.data.full_name).toBe('Alice Senior Architect');
+    expect(updateRes1.body.data.username).toBe('alice_cloud');
+    expect(updateRes1.body.data.bio).toBe('Designing multi-region serverless infrastructure.');
+    expect(updateRes1.body.data.avatar_url).toBe('https://cdn.example.com/avatar1.webp');
+    expect(updateRes1.body.data.banner_url).toBe('https://cdn.example.com/banner1.webp');
+
+    // 2. User 2 attempts to use the same username (case-insensitive test: ALICE_CLOUD)
+    const duplicateRes = await request(app)
+      .put('/api/feed/profile')
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({
+        full_name: 'Bob Impersonator',
+        username: 'ALICE_CLOUD',
+      });
+
+    expect(duplicateRes.status).toBe(409);
+    expect(duplicateRes.body.success).toBe(false);
+    expect(duplicateRes.body.error).toBe('USERNAME_TAKEN');
+    expect(duplicateRes.body.message).toContain('already taken');
+
+    // 3. User 2 rejects invalid characters or short username
+    const invalidRes = await request(app)
+      .put('/api/feed/profile')
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({
+        username: 'bo!', // invalid character and too short
+      });
+
+    expect(invalidRes.status).toBe(400);
+    expect(invalidRes.body.success).toBe(false);
+    expect(invalidRes.body.error).toBe('INVALID_USERNAME');
+
+    // 4. User 2 picks a valid unique username
+    const updateRes2 = await request(app)
+      .put('/api/feed/profile')
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({
+        full_name: 'Bob Lead Engineer',
+        username: 'bob_cloud',
+        banner_url: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)',
+      });
+
+    expect(updateRes2.status).toBe(200);
+    expect(updateRes2.body.success).toBe(true);
+    expect(updateRes2.body.data.username).toBe('bob_cloud');
+    expect(updateRes2.body.data.banner_url).toContain('linear-gradient');
+  });
 });
