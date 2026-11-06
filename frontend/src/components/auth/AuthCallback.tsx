@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../services/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { isOAuthPopup, broadcastOAuthMessage } from '../../utils/oauthHelper';
 import { Loader2, CheckCircle2, AlertCircle, Lock, ArrowRight } from 'lucide-react';
 
 interface AuthCallbackProps {

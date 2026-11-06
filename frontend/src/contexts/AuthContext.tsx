@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured, crossDomainStorage } from '../services/supabase';
 import { api } from '../services/api';
+import { listenOAuthMessage, broadcastOAuthMessage } from '../utils/oauthHelper';
 
 export interface UserProfile {
   id: string;
@@ -175,7 +176,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   </div>
   <script>
     function pick(name,email){
-      if(window.opener) window.opener.postMessage({type:'GTS_OAUTH_DONE',user:{id:'usr_'+Math.random().toString(36).slice(2,10),email:email,fullName:name}},'*');
+      var payload = {type:'GTS_OAUTH_DONE',user:{id:'usr_'+Math.random().toString(36).slice(2,10),email:email,fullName:name}};
+      if(window.opener) {
+        try { window.opener.postMessage(payload,'*'); } catch(e){}
+      }
+      try {
+        var bc = new BroadcastChannel('gts_oauth_channel');
+        bc.postMessage(payload);
+        bc.close();
+      } catch(e){}
+      try {
+        localStorage.setItem('gts_oauth_event', JSON.stringify(Object.assign({}, payload, {timestamp: Date.now()})));
+      } catch(e){}
       window.close();
     }
     function toggleCustom(){var b=document.getElementById('customBox');b.style.display=b.style.display==='block'?'none':'block';if(b.style.display==='block')document.getElementById('custName').focus();}
@@ -194,40 +206,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         popup.document.close();
 
         let timer: ReturnType<typeof setInterval>;
-        const onMsg = (ev: MessageEvent) => {
-          if (ev.data?.type === 'GTS_OAUTH_DONE') {
-            cleanup();
-            const u = ev.data.user;
-            // Build a proper mock Supabase User shape so route guards work
-            const mockUser = {
-              id: u.id,
-              email: u.email,
-              user_metadata: { full_name: u.fullName },
-              app_metadata: {},
-              aud: 'authenticated',
-              created_at: new Date().toISOString(),
-            } as unknown as import('@supabase/supabase-js').User;
-            setUser(mockUser);
-            setProfile({ id: u.id, email: u.email, fullName: u.fullName });
-            try { crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(u)); } catch {}
-            resolve({ error: null });
+        let isDone = false;
+
+        const handleMockDone = (u: any) => {
+          if (isDone) return;
+          isDone = true;
+          cleanup();
+          if (popup && !popup.closed) {
+            try { popup.close(); } catch {}
           }
+          const mockUser = {
+            id: u.id,
+            email: u.email,
+            user_metadata: { full_name: u.fullName },
+            app_metadata: {},
+            aud: 'authenticated',
+            created_at: new Date().toISOString(),
+          } as unknown as import('@supabase/supabase-js').User;
+          setUser(mockUser);
+          setProfile({ id: u.id, email: u.email, fullName: u.fullName });
+          try { crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(u)); } catch {}
+          resolve({ error: null });
         };
-        const cleanup = () => { clearInterval(timer); window.removeEventListener('message', onMsg); };
+
+        const unlisten = listenOAuthMessage((msg) => {
+          if (msg.type === 'GTS_OAUTH_DONE' && msg.user) {
+            handleMockDone(msg.user);
+          }
+        });
+
+        const cleanup = () => {
+          clearInterval(timer);
+          unlisten();
+        };
+
         timer = setInterval(() => {
           if (popup.closed) {
             cleanup();
-            resolve({ error: new Error('Sign-in cancelled') });
+            if (!isDone) {
+              resolve({ error: new Error('Sign-in cancelled') });
+            }
           }
         }, 400);
-        window.addEventListener('message', onMsg);
         return;
       }
 
       // ── CASE 2: Supabase configured → real OAuth popup ──
       (async () => {
         try {
-          const redirectUrl = `${window.location.origin}/auth/callback`;
+          // Explicitly pass popup=true in redirect so callback knows it's running inside a popup
+          const redirectUrl = `${window.location.origin}/auth/callback?popup=true`;
           const { data, error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
@@ -239,89 +267,102 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           if (error || !data?.url) { resolve({ error: error ?? new Error('No OAuth URL returned') }); return; }
 
+          try {
+            sessionStorage.setItem('gts_oauth_popup_flag', 'true');
+          } catch {}
+
           const popup = window.open(data.url, `${provider}_oauth`, features);
-          if (!popup) { window.location.href = data.url; resolve({ error: null }); return; }
+          if (!popup) {
+            // Popup blocked: gracefully fallback to full browser redirect
+            window.location.href = data.url;
+            resolve({ error: null });
+            return;
+          }
 
           let timer: ReturnType<typeof setInterval>;
-          const cleanup = () => { clearInterval(timer); window.removeEventListener('message', onMsg); };
+          let isResolved = false;
 
-          const onMsg = async (ev: MessageEvent) => {
-            if (ev.origin === window.location.origin) {
-              if (ev.data?.type === 'GTS_OAUTH_SUCCESS') {
-                cleanup();
-                const sessionUser = ev.data.session?.user || ev.data.user;
-                if (sessionUser) {
-                  // If user account was created within the last 60 seconds, treat as new signup
-                  const createdAtTs = new Date(sessionUser.created_at || 0).getTime();
-                  const isNewUser = Date.now() - createdAtTs < 60000;
-                  if (isNewUser) {
-                    api.notifySignup({
-                      name: sessionUser.user_metadata?.full_name || sessionUser.user_metadata?.name || sessionUser.email?.split('@')[0],
-                      email: sessionUser.email,
-                      userId: sessionUser.id,
-                      provider: provider,
-                    });
-                  }
-                }
-                if (ev.data.session) {
-                  setSession(ev.data.session);
-                  setUser(ev.data.session.user);
-                  if (ev.data.session.provider_token) {
-                    try {
-                      localStorage.setItem('gts_github_token', ev.data.session.provider_token);
-                    } catch {}
-                  }
-                  await loadProfile(
-                    ev.data.session.user.id,
-                    ev.data.session.user.email || '',
-                    ev.data.session.user.user_metadata
-                  );
-                } else {
-                  const { data: { session: curSession } } = await supabase.auth.getSession();
-                  if (curSession?.user) {
-                    setSession(curSession);
-                    setUser(curSession.user);
-                    if (curSession.provider_token) {
-                      try {
-                        localStorage.setItem('gts_github_token', curSession.provider_token);
-                      } catch {}
-                    }
-                    await loadProfile(
-                      curSession.user.id,
-                      curSession.user.email || '',
-                      curSession.user.user_metadata
-                    );
-                  }
-                }
-                resolve({ error: null });
-              } else if (ev.data?.type === 'GTS_OAUTH_ERROR') {
-                cleanup();
-                resolve({ error: new Error(ev.data.error || 'Authentication failed') });
+          const handleAuthSuccess = async (sessionData: any) => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+
+            // Immediately close popup window from main window
+            if (popup && !popup.closed) {
+              try { popup.close(); } catch {}
+            }
+
+            const sessionUser = sessionData?.session?.user || sessionData?.user;
+            if (sessionUser) {
+              const createdAtTs = new Date(sessionUser.created_at || 0).getTime();
+              const isNewUser = Date.now() - createdAtTs < 60000;
+              if (isNewUser) {
+                api.notifySignup({
+                  name: sessionUser.user_metadata?.full_name || sessionUser.user_metadata?.name || sessionUser.email?.split('@')[0],
+                  email: sessionUser.email,
+                  userId: sessionUser.id,
+                  provider: provider,
+                });
               }
             }
+
+            const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;
+            if (curSession?.user) {
+              setSession(curSession);
+              setUser(curSession.user);
+              if (curSession.provider_token) {
+                try {
+                  localStorage.setItem('gts_github_token', curSession.provider_token);
+                } catch {}
+              }
+              await loadProfile(
+                curSession.user.id,
+                curSession.user.email || '',
+                curSession.user.user_metadata
+              );
+            }
+            resolve({ error: null });
+          };
+
+          const handleAuthError = (errMessage?: string) => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+            if (popup && !popup.closed) {
+              try { popup.close(); } catch {}
+            }
+            resolve({ error: new Error(errMessage || 'Authentication failed') });
+          };
+
+          // Multi-channel listener: receives broadcast from popup via BroadcastChannel, storage event, or postMessage
+          const unlisten = listenOAuthMessage((msg) => {
+            if (msg.type === 'GTS_OAUTH_SUCCESS') {
+              handleAuthSuccess(msg);
+            } else if (msg.type === 'GTS_OAUTH_ERROR') {
+              handleAuthError(msg.error);
+            }
+          });
+
+          const cleanup = () => {
+            clearInterval(timer);
+            unlisten();
           };
 
           timer = setInterval(async () => {
             if (popup.closed) {
-              cleanup();
-              // Check if session was stored in localStorage by callback before popup closed
-              const { data: { session: curSession } } = await supabase.auth.getSession();
-              if (curSession?.user) {
-                setSession(curSession);
-                setUser(curSession.user);
-                await loadProfile(
-                  curSession.user.id,
-                  curSession.user.email || '',
-                  curSession.user.user_metadata
-                );
-                resolve({ error: null });
-              } else {
-                resolve({ error: new Error('Sign-in cancelled') });
-              }
+              clearInterval(timer);
+              // Wait 350ms in case message is in transit
+              setTimeout(async () => {
+                if (isResolved) return;
+                const { data: { session: curSession } } = await supabase.auth.getSession();
+                if (curSession?.user) {
+                  handleAuthSuccess({ session: curSession, user: curSession.user });
+                } else {
+                  handleAuthError('Sign-in cancelled');
+                }
+              }, 350);
             }
           }, 500);
-
-          window.addEventListener('message', onMsg);
         } catch (err: any) {
           resolve({ error: err });
         }
