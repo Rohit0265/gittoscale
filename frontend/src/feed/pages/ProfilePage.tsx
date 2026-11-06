@@ -4,6 +4,7 @@ import { FeedHeader } from '../components/FeedHeader';
 import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { ShareModal } from '../components/ShareModal';
+import { EditProfileModal } from '../components/EditProfileModal';
 import {
   ArrowLeft,
   Share2,
@@ -12,6 +13,8 @@ import {
   Loader2,
   AlertCircle,
   FileText,
+  Camera,
+  Edit3,
 } from 'lucide-react';
 import { FeedPost } from '../types';
 import { feedApi } from '../services/feedApi';
@@ -45,13 +48,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onNavigateToSimulator,
   onNavigateToProfile,
 }) => {
-  const { profile, posts, loading, error, toggleFollow, setPosts } = useProfile({
+  const { profile, setProfile, posts, loading, error, toggleFollow, setPosts } = useProfile({
     userId: profileId,
     token,
   });
 
   const [selectedPostForComments, setSelectedPostForComments] = useState<FeedPost | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
 
   const profileShareUrl = `${window.location.origin}/feed/profile/${profileId}`;
@@ -154,100 +158,147 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <h4 className="text-sm font-bold text-rose-800 dark:text-rose-200">{error}</h4>
           </div>
         ) : profile ? (
-          <div className="w-full rounded-3xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-6 sm:p-8 shadow-xs mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            {/* Avatar */}
-            <div className="shrink-0">
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-indigo-500/20 shadow-md"
-                />
+          <div className="w-full rounded-3xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] overflow-hidden shadow-xs mb-6">
+            {/* Profile Cover Banner */}
+            <div className="relative h-36 sm:h-52 w-full bg-slate-100 dark:bg-neutral-900 overflow-hidden group">
+              {profile.banner_url ? (
+                profile.banner_url.startsWith('linear-gradient') ? (
+                  <div className="w-full h-full" style={{ background: profile.banner_url }} />
+                ) : (
+                  <img
+                    src={profile.banner_url}
+                    alt="Profile banner"
+                    className="w-full h-full object-cover"
+                  />
+                )
               ) : (
-                <div className="w-24 h-24 rounded-full bg-indigo-600 text-white text-3xl font-bold flex items-center justify-center uppercase shadow-md">
-                  {(profile.full_name || 'U')[0]}
-                </div>
+                <div className="w-full h-full bg-gradient-to-r from-slate-200 to-slate-300 dark:from-neutral-900 dark:to-neutral-800" />
+              )}
+
+              {/* Edit Banner Shortcut Button if Owner */}
+              {isOwner && (
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 text-white text-xs font-semibold flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-md"
+                  title="Change background cover"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Edit Cover</span>
+                </button>
               )}
             </div>
 
-            {/* Info & Stats */}
-            <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-3">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                    {profile.full_name}
-                  </h2>
-                  <span className="text-xs text-slate-500 dark:text-neutral-400 font-mono">
-                    @{profile.username}
-                  </span>
-                </div>
+            {/* Profile Info & Avatar */}
+            <div className="p-6 sm:p-8 pt-0 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              {/* Avatar Overlapping Banner */}
+              <div className="shrink-0 -mt-12 sm:-mt-16 relative group">
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name}
+                    className="w-24 sm:w-28 h-24 sm:h-28 rounded-full object-cover border-4 border-white dark:border-[#0A0A0A] shadow-lg"
+                  />
+                ) : (
+                  <div className="w-24 sm:w-28 h-24 sm:h-28 rounded-full bg-indigo-600 text-white text-3xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-lg">
+                    {(profile.full_name || 'U')[0]}
+                  </div>
+                )}
 
-                {/* Actions: Follow / Share */}
-                <div className="flex items-center gap-2">
-                  {!isOwner ? (
-                    <button
-                      onClick={handleFollowClick}
-                      disabled={isFollowLoading}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer ${
-                        profile.is_following
-                          ? 'border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600'
-                          : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                      }`}
-                    >
-                      {isFollowLoading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : profile.is_following ? (
-                        <>
-                          <UserCheck className="w-3.5 h-3.5" />
-                          <span>Following</span>
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-3.5 h-3.5" />
-                          <span>Follow</span>
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40">
-                      Your Profile
-                    </span>
-                  )}
-
+                {isOwner && (
                   <button
-                    onClick={() => setIsShareModalOpen(true)}
-                    className="p-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-                    title="Share Profile Link"
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white cursor-pointer"
+                    title="Change Avatar"
                   >
-                    <Share2 className="w-4 h-4" />
+                    <Camera className="w-6 h-6 drop-shadow-md" />
                   </button>
-                </div>
+                )}
               </div>
 
-              {/* Bio */}
-              <p className="text-xs text-slate-600 dark:text-neutral-300 mt-3 leading-relaxed max-w-xl">
-                {profile.bio || 'Cloud system architect exploring scalable distributed designs on GitToScale.'}
-              </p>
+              {/* Info & Stats */}
+              <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start text-center sm:text-left mt-2 sm:mt-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-3">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                      {profile.full_name}
+                    </h2>
+                    <span className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 font-mono">
+                      @{profile.username}
+                    </span>
+                  </div>
 
-              {/* Counts */}
-              <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-neutral-800/80 w-full justify-center sm:justify-start">
-                <div>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white mr-1.5">
-                    {profile.posts_count}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-neutral-400">Posts</span>
+                  {/* Actions: Edit Profile / Follow / Share */}
+                  <div className="flex items-center gap-2">
+                    {isOwner ? (
+                      <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700 text-slate-800 dark:text-white shadow-xs transition-colors cursor-pointer"
+                        title="Edit profile name, username, avatar, cover and bio"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Edit Profile</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleFollowClick}
+                        disabled={isFollowLoading}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer ${
+                          profile.is_following
+                            ? 'border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600'
+                            : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                        }`}
+                      >
+                        {isFollowLoading ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : profile.is_following ? (
+                          <>
+                            <UserCheck className="w-3.5 h-3.5" />
+                            <span>Following</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-3.5 h-3.5" />
+                            <span>Follow</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="p-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                      title="Share Profile Link"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white mr-1.5">
-                    {profile.followers_count}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-neutral-400">Followers</span>
-                </div>
-                <div>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white mr-1.5">
-                    {profile.following_count}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-neutral-400">Following</span>
+
+                {/* Bio */}
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-neutral-300 mt-3 leading-relaxed max-w-xl">
+                  {profile.bio || 'Cloud system architect exploring scalable distributed designs on GitToScale.'}
+                </p>
+
+                {/* Counts */}
+                <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-neutral-800/80 w-full justify-center sm:justify-start">
+                  <div>
+                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mr-1.5">
+                      {profile.posts_count}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-neutral-400">Posts</span>
+                  </div>
+                  <div>
+                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mr-1.5">
+                      {profile.followers_count}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-neutral-400">Followers</span>
+                  </div>
+                  <div>
+                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mr-1.5">
+                      {profile.following_count}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-neutral-400">Following</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -323,6 +374,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           shareUrl={profileShareUrl}
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
+
+      {/* Edit Profile Modal */}
+      {profile && isOwner && token && (
+        <EditProfileModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          profile={profile}
+          token={token}
+          onProfileUpdated={(updated) => {
+            setProfile(updated);
+          }}
         />
       )}
     </div>
