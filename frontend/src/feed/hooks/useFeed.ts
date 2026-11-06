@@ -11,7 +11,13 @@ export function useFeed({ token, userId }: UseFeedOptions) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'liked'>('all');
+  const [filter, setFilter] = useState<'all' | 'liked'>(() => {
+    if (typeof window !== 'undefined') {
+      const param = new URLSearchParams(window.location.search).get('filter');
+      if (param === 'liked') return 'liked';
+    }
+    return 'all';
+  });
   const [selectedPostForComments, setSelectedPostForComments] = useState<FeedPost | null>(null);
 
   const fetchPosts = useCallback(async () => {

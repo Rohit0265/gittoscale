@@ -62,6 +62,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
       {/* 1. Feed Header */}
       <FeedHeader
         user={user}
+        token={token}
         isDark={isDark}
         onToggleTheme={onToggleTheme}
         onGoHome={onGoHome}

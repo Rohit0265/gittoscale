@@ -123,6 +123,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
       <FeedHeader
         user={user}
+        token={token}
         isDark={isDark}
         onToggleTheme={onToggleTheme}
         onGoHome={onGoHome}
