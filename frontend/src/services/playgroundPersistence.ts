@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { ArchitectureNode, ArchitectureEdge } from '../types';
 import { api } from './api';
+import { formatArchitectureForDb } from '../utils/exportDiagram';
 
 export interface PlaygroundPersistenceState {
   projectId?: string;
@@ -175,14 +176,17 @@ export async function syncPlaygroundToDatabase(
         selectedAnswers: state.selectedAnswers || {},
         timestamp: state.timestamp,
       },
-      architectureData: {
-        nodes: state.nodes,
-        edges: state.edges,
-        basicGraph: state.basicGraph,
-        detailedGraph: state.detailedGraph,
-        incomingTrafficRate: state.incomingTrafficRate,
-        durationSeconds: state.durationSeconds,
-      },
+      architectureData: formatArchitectureForDb(
+        state.nodes,
+        state.edges,
+        state.title || state.prompt,
+        {
+          basicGraph: state.basicGraph,
+          detailedGraph: state.detailedGraph,
+          incomingTrafficRate: state.incomingTrafficRate,
+          durationSeconds: state.durationSeconds,
+        }
+      ),
       status: 'completed',
     };
 
