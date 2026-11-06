@@ -137,9 +137,8 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
       });
       return;
     } catch (err: any) {
-      console.error('[History API] Supabase fetch error:', err);
-      res.status(500).json({ error: 'Failed to fetch architecture history', message: err.message });
-      return;
+      console.warn('[History API] Supabase fetch failed, falling through to in-memory store:', err?.message || err);
+      // Fall through to in-memory store
     }
   }
 
@@ -292,9 +291,8 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
       res.status(201).json({ success: true, data });
       return;
     } catch (err: any) {
-      console.error('[History API] Failed to insert architecture history:', err);
-      res.status(500).json({ error: 'Failed to persist architecture history', message: err.message });
-      return;
+      console.warn('[History API] Supabase insert failed, falling through to in-memory store:', err?.message || err);
+      // Fall through to in-memory store
     }
   }
 
@@ -661,9 +659,8 @@ router.post('/repositories', requireAuth, async (req: AuthenticatedRequest, res:
       res.status(201).json({ success: true, data });
       return;
     } catch (err: any) {
-      console.error('[History API] Failed to insert repo history:', err);
-      res.status(500).json({ error: 'Failed to persist repository history', message: err.message });
-      return;
+      console.warn('[History API] Supabase repo insert failed, falling through to in-memory store:', err?.message || err);
+      // Fall through to in-memory store
     }
   }
 
