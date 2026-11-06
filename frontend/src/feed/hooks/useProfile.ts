@@ -71,6 +71,7 @@ export function useProfile({ userId, token }: UseProfileOptions) {
 
   return {
     profile,
+    setProfile,
     posts,
     loading,
     error,

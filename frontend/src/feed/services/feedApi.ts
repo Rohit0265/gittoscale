@@ -138,6 +138,28 @@ export const feedApi = {
   },
 
   /**
+   * Update current user profile details (name, username, bio, avatar, banner)
+   */
+  async updateProfile(
+    profileData: {
+      full_name?: string;
+      username?: string;
+      bio?: string;
+      avatar_url?: string | null;
+      banner_url?: string | null;
+    },
+    token: string
+  ): Promise<UserProfileFeed> {
+    const res = await axios.put(`${API_BASE}/feed/profile`, profileData, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(token),
+      },
+    });
+    return res.data?.data;
+  },
+
+  /**
    * Get posts by user
    */
   async getUserPosts(userId: string, token?: string | null): Promise<FeedPost[]> {
