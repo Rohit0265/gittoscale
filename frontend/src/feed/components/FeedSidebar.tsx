@@ -19,12 +19,7 @@ interface FeedSidebarProps {
 export const FeedSidebar: React.FC<FeedSidebarProps> = ({
   user,
   token,
-  isDark = false,
-  onToggleTheme,
-  onSignOut,
   onNavigateToProfile,
-  onViewLikes,
-  activeFilter = 'all',
   onOpenSignIn,
   onOpenSignUp,
 }) => {
