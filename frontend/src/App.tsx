@@ -21,6 +21,10 @@ import {
   usePlaygroundPersistence,
   loadPlaygroundFromBrowserStorage,
 } from './services/playgroundPersistence';
+import {
+  restoreArchitectureFromDb,
+  formatArchitectureForDb,
+} from './utils/exportDiagram';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
 
 // Code-split heavy interactive canvas & simulator modules so initial landing page bundle is tiny & ultra-fast
