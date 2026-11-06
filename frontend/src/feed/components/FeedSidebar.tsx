@@ -187,9 +187,22 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
           )}
         </div>
 
-        {/* 3. Social Stats: Followers & Following */}
-        <div className="pt-3 border-t border-slate-100 dark:border-neutral-800/80 grid grid-cols-2 gap-2 text-center">
-          <div className="flex flex-col">
+        {/* 3. Social Stats: Posts, Followers & Following */}
+        <div className="pt-3 border-t border-slate-100 dark:border-neutral-800/80 grid grid-cols-3 gap-1 text-center">
+          <button
+            type="button"
+            onClick={() => onNavigateToProfile(user.id)}
+            className="flex flex-col items-center p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer group"
+            title="View your posts"
+          >
+            <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              {loading ? '—' : profile?.posts_count ?? 0}
+            </span>
+            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
+              Posts
+            </span>
+          </button>
+          <div className="flex flex-col items-center p-1.5">
             <span className="text-base font-bold text-slate-900 dark:text-white">
               {loading ? '—' : profile?.followers_count ?? 0}
             </span>
@@ -197,7 +210,7 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
               Followers
             </span>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center p-1.5">
             <span className="text-base font-bold text-slate-900 dark:text-white">
               {loading ? '—' : profile?.following_count ?? 0}
             </span>
@@ -207,74 +220,31 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
           </div>
         </div>
 
-        {/* 4. Profile Actions: Profile at Top, Your Likes, Theme Change, Logout */}
-        <div className="pt-3 border-t border-slate-100 dark:border-neutral-800/80 flex flex-col gap-1">
-          {/* Profile row */}
+        {/* 4. Redesigned Profile Action */}
+        <div className="pt-3 border-t border-slate-100 dark:border-neutral-800/80">
           <button
             onClick={() => onNavigateToProfile(user.id)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800/60 transition-colors text-left cursor-pointer"
+            className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200/80 dark:border-neutral-800 bg-slate-50/70 dark:bg-neutral-900/60 hover:bg-slate-100 dark:hover:bg-neutral-800/80 hover:border-indigo-500/40 dark:hover:border-indigo-500/40 transition-all cursor-pointer group shadow-2xs"
+            title="View your profile"
           >
             <div className="flex items-center gap-2.5">
-              <User className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
-              <span>Profile</span>
-            </div>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 font-mono">
-              {profile?.posts_count ?? 0} posts
-            </span>
-          </button>
-
-          {/* Your Likes row */}
-          {onViewLikes && (
-            <button
-              onClick={onViewLikes}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors text-left cursor-pointer ${
-                activeFilter === 'liked'
-                  ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
-                  : 'text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800/60'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Heart className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
-                <span>Your Likes</span>
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/60 dark:border-indigo-800/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
+                <User className="w-4 h-4" />
               </div>
-              {activeFilter === 'liked' && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500 text-white font-bold">
-                  Active
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  My Profile
                 </span>
-              )}
-            </button>
-          )}
-
-          {/* Theme change row */}
-          {onToggleTheme && (
-            <button
-              onClick={onToggleTheme}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-800/60 transition-colors text-left cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5">
-                {isDark ? (
-                  <Moon className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
-                ) : (
-                  <Sun className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
-                )}
-                <span>Theme</span>
+                <span className="text-[10px] text-slate-500 dark:text-neutral-400">
+                  View posts & activity
+                </span>
               </div>
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400">
-                {isDark ? 'Dark Mode' : 'Light Mode'}
-              </span>
-            </button>
-          )}
+            </div>
 
-          {/* Logout row */}
-          {onSignOut && (
-            <button
-              onClick={onSignOut}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors text-left cursor-pointer mt-1"
-            >
-              <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-500" />
-              <span>Logout</span>
-            </button>
-          )}
+            <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all">
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </button>
         </div>
       </div>
     </aside>
