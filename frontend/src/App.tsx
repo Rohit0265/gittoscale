@@ -292,6 +292,7 @@ export const App: React.FC = () => {
     return route?.prompt || '';
   });
   const [isGeneratingArchitecture, setIsGeneratingArchitecture] = useState<boolean>(false);
+  const loadedHistoryProjectsRef = useRef<Set<string>>(new Set());
 
   // Selected mandatory parameters for AI Architect chat
   const [selectedAnswers, setSelectedAnswers] = useState<{
@@ -770,6 +771,10 @@ export const App: React.FC = () => {
           }
           if (savedPlayground.prompt) {
             setActivePromptText(savedPlayground.prompt);
+            lastGeneratedPromptRef.current = savedPlayground.prompt;
+          }
+          if (route?.projectId) {
+            loadedHistoryProjectsRef.current.add(route.projectId);
           }
           baseBasicGraphRef.current = { nodes: verticalNodes, edges: savedPlayground.edges || [] };
           basicGraphCacheRef.current = { nodes: verticalNodes, edges: savedPlayground.edges || [] };
@@ -781,7 +786,7 @@ export const App: React.FC = () => {
           return;
         }
 
-        // 2. Recover from Cloud Database if user is authenticated and project exists
+        // 3. Recover from Cloud Database if user is authenticated and project exists
         if (route?.projectId && getAuthToken) {
           const token = getAuthToken();
           if (token) {
@@ -792,19 +797,37 @@ export const App: React.FC = () => {
                 setCurrentView('unverified');
                 return;
               }
-              if (verifyRes.status === 'verified' && verifyRes.data?.architecture_data?.nodes?.length > 0) {
-                const archData = verifyRes.data.architecture_data;
-                const genConfig = verifyRes.data.generation_config;
-                const verticalNodes = toVerticalTree(archData.nodes, archData.edges || []);
-                setNodes(verticalNodes);
-                setEdges(archData.edges || []);
-                if (archData.incomingTrafficRate) setIncomingTrafficRate(archData.incomingTrafficRate);
-                if (genConfig?.viewMode) setViewMode(genConfig.viewMode);
-                if (verifyRes.data.prompt) setActivePromptText(verifyRes.data.prompt);
-                baseBasicGraphRef.current = { nodes: verticalNodes, edges: archData.edges || [] };
-                basicGraphCacheRef.current = { nodes: verticalNodes, edges: archData.edges || [] };
-                queueSimulation(verticalNodes, archData.edges || [], archData.incomingTrafficRate || 1000, 60);
-                return;
+              if (verifyRes.status === 'verified' && verifyRes.data?.architecture_data) {
+                const restored = restoreArchitectureFromDb(
+                  verifyRes.data.architecture_data,
+                  verifyRes.data.prompt
+                );
+                if (restored.nodes.length > 0) {
+                  const genConfig = verifyRes.data.generation_config;
+                  const verticalNodes = restored.nodes;
+                  setNodes(verticalNodes);
+                  setEdges(restored.edges || []);
+                  if (genConfig?.incomingTrafficRate) {
+                    setIncomingTrafficRate(genConfig.incomingTrafficRate);
+                  }
+                  if (genConfig?.viewMode) {
+                    setViewMode(genConfig.viewMode);
+                  }
+                  if (verifyRes.data.prompt) {
+                    setActivePromptText(verifyRes.data.prompt);
+                    lastGeneratedPromptRef.current = verifyRes.data.prompt;
+                  }
+                  loadedHistoryProjectsRef.current.add(route.projectId);
+                  baseBasicGraphRef.current = { nodes: verticalNodes, edges: restored.edges || [] };
+                  basicGraphCacheRef.current = { nodes: verticalNodes, edges: restored.edges || [] };
+                  queueSimulation(
+                    verticalNodes,
+                    restored.edges || [],
+                    genConfig?.incomingTrafficRate || 1000,
+                    60
+                  );
+                  return;
+                }
               }
             } catch (dbErr) {
               console.warn('Could not load architecture from database:', dbErr);
@@ -957,11 +980,28 @@ export const App: React.FC = () => {
         if (user) {
           const token = getAuthToken();
           const projId = targetProjectId || activeProject?.projectId;
+          const dbPayload = formatArchitectureForDb(
+            verticalBasicNodes,
+            res.edges,
+            promptText,
+            {
+              basicGraph: { nodes: verticalBasicNodes, edges: res.edges },
+              detailedGraph: { nodes: verticalDetailedNodes, edges: detailed.edges },
+              incomingTrafficRate,
+              durationSeconds,
+            }
+          );
           api.saveArchitectureHistory(token, {
             title: promptText.slice(0, 60),
             prompt: promptText,
-            generationConfig: { ...customAnswers, projectId: projId },
-            architectureData: { nodes: verticalBasicNodes, edges: res.edges },
+            generationConfig: {
+              ...customAnswers,
+              projectId: projId,
+              incomingTrafficRate,
+              durationSeconds,
+              viewMode,
+            },
+            architectureData: dbPayload,
             status: 'completed',
           }).catch((histErr) => {
             console.warn('Could not persist architecture history:', histErr);
@@ -1345,6 +1385,16 @@ export const App: React.FC = () => {
     const route = getProjectRouteInfo();
     if (route?.prompt && lastGeneratedPromptRef.current !== route.prompt) {
       if (currentView === 'unverified') return;
+      // Do not send LLM request if project is loaded from history or has existing architecture cached
+      if (
+        route.projectId &&
+        (loadedHistoryProjectsRef.current.has(route.projectId) ||
+          localStorage.getItem(`gitoscale_arch_${route.projectId}`) ||
+          localStorage.getItem(`gitoscale_project_state_${route.projectId}`))
+      ) {
+        lastGeneratedPromptRef.current = route.prompt;
+        return;
+      }
       lastGeneratedPromptRef.current = route.prompt;
       handleGenerateFromPrompt(route.prompt, undefined, route.projectId);
     }
@@ -1741,17 +1791,46 @@ export const App: React.FC = () => {
   const handleOpenArchitectureFromHistory = useCallback(
     (archData: any, prompt: string, _title?: string, id?: string) => {
       if (!archData) return;
-      const rawNodes = archData.nodes || (Array.isArray(archData) ? archData : []);
-      const rawEdges = archData.edges || [];
-      const verticalNodes = toVerticalTree(rawNodes, rawEdges);
+      // 1. Reconstruct architecture directly from DB data (Markdown or JSON) without calling LLM
+      const restored = restoreArchitectureFromDb(archData, prompt || _title);
+      const verticalNodes =
+        restored.nodes.length > 0
+          ? restored.nodes
+          : toVerticalTree(archData.nodes || [], archData.edges || []);
+      const rawEdges = restored.edges.length > 0 ? restored.edges : (archData.edges || []);
 
       const targetId = id || 'arch_' + Date.now().toString(36);
+      loadedHistoryProjectsRef.current.add(targetId);
+      lastGeneratedPromptRef.current = prompt || '';
+
       if (typeof window !== 'undefined') {
         if (prompt) {
           localStorage.setItem(`gitoscale_project_${targetId}`, prompt);
         }
         try {
-          localStorage.setItem(`gitoscale_arch_${targetId}`, JSON.stringify(archData));
+          const dbPayload = formatArchitectureForDb(verticalNodes, rawEdges, prompt || _title, {
+            basicGraph: { nodes: verticalNodes, edges: rawEdges },
+            detailedGraph: archData.detailedGraph,
+          });
+          localStorage.setItem(`gitoscale_arch_${targetId}`, JSON.stringify(dbPayload));
+          localStorage.setItem(
+            `gitoscale_project_state_${targetId}`,
+            JSON.stringify({
+              projectId: targetId,
+              prompt,
+              title: _title,
+              nodes: verticalNodes,
+              edges: rawEdges,
+              markdown: restored.markdown,
+              incomingTrafficRate,
+              viewMode: 'basic',
+              timestamp: Date.now(),
+              lastSavedIso: new Date().toISOString(),
+            })
+          );
+          if (user?.id) {
+            localStorage.setItem(`gitoscale_project_owner_${targetId}`, user.id);
+          }
         } catch (e) {
           console.warn('Failed to cache architecture in localStorage:', e);
         }
@@ -1767,7 +1846,57 @@ export const App: React.FC = () => {
       setIsGeneratingArchitecture(true);
       setCurrentView('simulator');
 
-      // Once loading animation completes, hydrate the canvas and trigger simulation
+      // Once loading animation completes, hydrate canvas directly from DB data with 0 LLM calls
+      setTimeout(() => {
+        setNodes(verticalNodes);
+        setEdges(rawEdges);
+        baseBasicGraphRef.current = { nodes: verticalNodes, edges: rawEdges };
+        basicGraphCacheRef.current = { nodes: verticalNodes, edges: rawEdges };
+        baseDetailedGraphRef.current = archData.detailedGraph || null;
+        detailedGraphCacheRef.current = archData.detailedGraph || null;
+        triggerSimulation(verticalNodes, rawEdges, incomingTrafficRate, durationSeconds);
+        setIsGeneratingArchitecture(false);
+      }, 750);
+    },
+    [incomingTrafficRate, durationSeconds, triggerSimulation, user?.id]
+  );
+
+  const handleOpenRepositoryFromHistory = useCallback(
+    (archData: any, _repoName: string, _repoUrl: string, id?: string) => {
+      if (!archData) return;
+      // 1. Reconstruct repository architecture directly from DB data without calling LLM
+      const restored = restoreArchitectureFromDb(archData, _repoName);
+      const rawNodes = restored.nodes.length > 0 ? restored.nodes : (archData.nodes || []);
+      const rawEdges = restored.edges.length > 0 ? restored.edges : (archData.edges || []);
+      const verticalNodes = toVerticalTree(rawNodes, rawEdges);
+
+      const targetId = id || 'repo_' + (_repoName || 'repo').toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      loadedHistoryProjectsRef.current.add(targetId);
+      lastGeneratedPromptRef.current = _repoName;
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`gitoscale_project_${targetId}`, _repoName);
+        try {
+          const dbPayload = formatArchitectureForDb(verticalNodes, rawEdges, _repoName);
+          localStorage.setItem(`gitoscale_arch_${targetId}`, JSON.stringify(dbPayload));
+          if (user?.id) {
+            localStorage.setItem(`gitoscale_project_owner_${targetId}`, user.id);
+          }
+        } catch (e) {
+          console.warn('Failed to cache repo architecture in localStorage:', e);
+        }
+      }
+
+      // Enter simulator view with Skeleton loading state (Do NOT pass ?repo= to avoid re-triggering LLM analyzer!)
+      const targetUrl = `/product/${targetId}`;
+      window.history.pushState({ projectId: targetId, prompt: _repoName }, '', targetUrl);
+      setActiveProject({ projectId: targetId, prompt: _repoName });
+      setActivePromptText(_repoName);
+      setSelectedNodeId(null);
+      setViewMode('basic');
+      setIsGeneratingArchitecture(true);
+      setCurrentView('simulator');
+
       setTimeout(() => {
         setNodes(verticalNodes);
         setEdges(rawEdges);
@@ -1779,35 +1908,7 @@ export const App: React.FC = () => {
         setIsGeneratingArchitecture(false);
       }, 750);
     },
-    [incomingTrafficRate, durationSeconds, triggerSimulation]
-  );
-
-  const handleOpenRepositoryFromHistory = useCallback(
-    (archData: any, _repoName: string, repoUrl: string) => {
-      if (!archData) return;
-      const rawNodes = archData.nodes || (Array.isArray(archData) ? archData : []);
-      const rawEdges = archData.edges || [];
-
-      // Enter simulator view with Skeleton loading state
-      setIsGeneratingArchitecture(true);
-      setSelectedNodeId(null);
-      setViewMode('basic');
-      const url = repoUrl ? `/app?repo=${encodeURIComponent(repoUrl)}` : '/app';
-      window.history.pushState({}, '', url);
-      setCurrentView('simulator');
-
-      setTimeout(() => {
-        setNodes(rawNodes);
-        setEdges(rawEdges);
-        baseBasicGraphRef.current = { nodes: rawNodes, edges: rawEdges };
-        basicGraphCacheRef.current = { nodes: rawNodes, edges: rawEdges };
-        baseDetailedGraphRef.current = null;
-        detailedGraphCacheRef.current = null;
-        triggerSimulation(rawNodes, rawEdges, incomingTrafficRate, durationSeconds);
-        setIsGeneratingArchitecture(false);
-      }, 750);
-    },
-    [incomingTrafficRate, durationSeconds, triggerSimulation]
+    [incomingTrafficRate, durationSeconds, triggerSimulation, user?.id]
   );
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
