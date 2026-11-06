@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { User, Heart, Moon, Sun, LogOut, Camera, LogIn, UserPlus } from 'lucide-react';
+import { User, Camera, LogIn, UserPlus, ArrowRight } from 'lucide-react';
 import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
 
