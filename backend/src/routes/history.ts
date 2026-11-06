@@ -14,6 +14,7 @@ import {
 } from '../services/neon.js';
 
 const router = Router();
+const useRemoteDb = () => process.env.NODE_ENV !== 'test';
 
 // In-memory fallback stores when neither Neon nor Supabase is configured (e.g. testing)
 interface InMemArch {
@@ -83,7 +84,7 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
   const offset = parseInt(req.query.offset as string, 10) || 0;
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured()) {
+  if (isNeonConfigured() && useRemoteDb()) {
     try {
       const { rows, total } = await queryArchitectureHistory(userId, {
         query,
@@ -107,7 +108,7 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
   }
 
   // 2. Supabase PostgreSQL
-  if (isServerSupabaseConfigured) {
+  if (isServerSupabaseConfigured && useRemoteDb()) {
     try {
       let sbQuery = supabaseServer
         .from('architecture_history')
@@ -199,7 +200,7 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
   };
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured()) {
+  if (isNeonConfigured() && useRemoteDb()) {
     try {
       const db = getSql();
       // Check if existing record exists for this user and project/prompt to prevent duplicates
@@ -240,7 +241,7 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
   }
 
   // 2. Supabase PostgreSQL
-  if (isServerSupabaseConfigured) {
+  if (isServerSupabaseConfigured && useRemoteDb()) {
     try {
       // Check if existing record exists for this user and project/prompt to prevent duplicates
       let existingQuery = supabaseServer
@@ -331,7 +332,7 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
   const userId = req.user?.id;
   const { id } = req.params;
 
-  if (isNeonConfigured()) {
+  if (isNeonConfigured() && useRemoteDb()) {
     try {
       const data = await getArchByIdNeon(id, userId!);
       if (data) {
@@ -371,7 +372,7 @@ router.get('/architectures/:id', requireAuth, async (req: AuthenticatedRequest, 
     }
   }
 
-  if (isServerSupabaseConfigured) {
+  if (isServerSupabaseConfigured && useRemoteDb()) {
     try {
       // Check primary key id or projectId in generation_config
       const { data } = await supabaseServer
@@ -441,7 +442,7 @@ router.delete('/architectures/:id', requireAuth, async (req: AuthenticatedReques
   const userId = req.user?.id;
   const { id } = req.params;
 
-  if (isNeonConfigured()) {
+  if (isNeonConfigured() && useRemoteDb()) {
     try {
       await deleteArchByIdNeon(id, userId!);
       res.json({ success: true, message: 'Architecture history entry removed' });
@@ -451,7 +452,7 @@ router.delete('/architectures/:id', requireAuth, async (req: AuthenticatedReques
     }
   }
 
-  if (isServerSupabaseConfigured) {
+  if (isServerSupabaseConfigured && useRemoteDb()) {
     try {
       const { error } = await supabaseServer
         .from('architecture_history')
@@ -498,7 +499,7 @@ router.get('/repositories', requireAuth, async (req: AuthenticatedRequest, res: 
   const offset = parseInt(req.query.offset as string, 10) || 0;
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured()) {
+  if (isNeonConfigured() && useRemoteDb()) {
     try {
       const { rows, total } = await queryRepositoryHistory(userId, {
         query,
@@ -520,7 +521,7 @@ router.get('/repositories', requireAuth, async (req: AuthenticatedRequest, res: 
   }
 
   // 2. Supabase PostgreSQL
-  if (isServerSupabaseConfigured) {
+  if (isServerSupabaseConfigured && useRemoteDb()) {
     try {
       let sbQuery = supabaseServer
         .from('repository_history')
@@ -636,7 +637,7 @@ router.post('/repositories', requireAuth, async (req: AuthenticatedRequest, res:
   };
 
   // 1. Neon PostgreSQL
-  if (isNeonConfigured()) {
+  if (isNeonConfigured() && useRemoteDb()) {
     try {
       const data = await insertRepositoryHistory(newRecord);
       res.status(201).json({ success: true, data });
@@ -647,7 +648,7 @@ router.post('/repositories', requireAuth, async (req: AuthenticatedRequest, res:
   }
 
   // 2. Supabase PostgreSQL
-  if (isServerSupabaseConfigured) {
+  if (isServerSupabaseConfigured && useRemoteDb()) {
     try {
       const { data, error } = await supabaseServer
         .from('repository_history')
@@ -683,7 +684,7 @@ router.delete('/repositories/:id', requireAuth, async (req: AuthenticatedRequest
   const userId = req.user?.id;
   const { id } = req.params;
 
-  if (isNeonConfigured()) {
+  if (isNeonConfigured() && useRemoteDb()) {
     try {
       await deleteRepoByIdNeon(id, userId!);
       res.json({ success: true, message: 'Repository history entry removed' });
@@ -693,7 +694,7 @@ router.delete('/repositories/:id', requireAuth, async (req: AuthenticatedRequest
     }
   }
 
-  if (isServerSupabaseConfigured) {
+  if (isServerSupabaseConfigured && useRemoteDb()) {
     try {
       const { error } = await supabaseServer
         .from('repository_history')
