@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured, crossDomainStorage } from '../services/supabase';
 import { api } from '../services/api';
-import { listenOAuthMessage, broadcastOAuthMessage } from '../utils/oauthHelper';
+import { listenOAuthMessage } from '../utils/oauthHelper';
 
 export interface UserProfile {
   id: string;
