@@ -65,11 +65,20 @@ export interface UserProfileFeed {
   username: string;
   email: string;
   avatar_url?: string | null;
+  banner_url?: string | null;
   bio?: string;
   followers_count: number;
   following_count: number;
   posts_count: number;
   is_following?: boolean;
   is_owner?: boolean;
+}
+
+export interface UpdateProfileInput {
+  full_name?: string;
+  username?: string;
+  bio?: string;
+  avatar_url?: string | null;
+  banner_url?: string | null;
 }
 
