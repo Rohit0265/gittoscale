@@ -21,6 +21,7 @@ import {
   getUserPosts,
   getUserLikedPosts,
   toggleFollowUser,
+  updateUserProfile,
 } from './feedService.js';
 
 const router = Router();
@@ -490,6 +491,56 @@ router.delete('/comments/:id', requireAuth, async (req: AuthenticatedRequest, re
     });
   }
 });
+
+// ============================================================================
+// 9.5 PUT & PATCH /api/feed/profile - Update current user profile
+// ============================================================================
+const handleUpdateProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const userEmail = req.user!.email;
+    const { full_name, username, bio, avatar_url, banner_url } = req.body;
+
+    const updatedProfile = await updateUserProfile(
+      userId,
+      { full_name, username, bio, avatar_url, banner_url },
+      userEmail
+    );
+
+    res.json({
+      success: true,
+      data: updatedProfile,
+      message: 'Profile updated successfully.',
+    });
+  } catch (error: any) {
+    if (error?.code === 'USERNAME_TAKEN' || error?.status === 409 || error?.message?.includes('already taken')) {
+      res.status(409).json({
+        success: false,
+        error: 'USERNAME_TAKEN',
+        message: 'This username is already taken. Please choose another username.',
+      });
+      return;
+    }
+    if (error?.code === 'INVALID_USERNAME' || error?.status === 400) {
+      res.status(400).json({
+        success: false,
+        error: 'INVALID_USERNAME',
+        message: error.message || 'Invalid username format.',
+      });
+      return;
+    }
+
+    console.error('[Feed API] Failed to update profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'UPDATE_PROFILE_FAILED',
+      message: error?.message || 'Failed to update user profile.',
+    });
+  }
+};
+
+router.put('/profile', requireAuth, handleUpdateProfile);
+router.patch('/profile', requireAuth, handleUpdateProfile);
 
 // ============================================================================
 // 10. GET /api/feed/profile/:id - Profile details & stats
