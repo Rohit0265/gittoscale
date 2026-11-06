@@ -16,7 +16,7 @@ interface FeedHeaderProps {
 
 export const FeedHeader: React.FC<FeedHeaderProps> = ({
   user,
-  isDark = false,
+  isDark = true,
   onToggleTheme,
   onGoHome,
   onOpenAuth,

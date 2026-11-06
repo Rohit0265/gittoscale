@@ -22,7 +22,7 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
   onSimulate,
   onGoHome,
   onGoToSimulator,
-  isDark = false,
+  isDark = true,
   onToggleTheme,
 }) => {
   const [recommendation, setRecommendation] = useState<ArchitectureRecommendation | null>(null);

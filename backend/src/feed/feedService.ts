@@ -82,9 +82,30 @@ function isDbConnectionError(err: any): boolean {
     msg.includes('enotfound') ||
     msg.includes('etimedout') ||
     msg.includes('database_url is not set') ||
-    msg.includes('neon')
+    msg.includes('neon') ||
+    err.code === '42703'
   );
 }
+
+let hasEnsuredColumns = false;
+export async function ensureFeedSchema(): Promise<void> {
+  if (hasEnsuredColumns) return;
+  try {
+    const db = getSql();
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username TEXT;`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS banner_url TEXT;`;
+    await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username_unique ON public.profiles (LOWER(username)) WHERE username IS NOT NULL;`;
+    hasEnsuredColumns = true;
+  } catch (err: any) {
+    if (!isDbConnectionError(err)) {
+      console.warn('[Feed Schema] Auto-migration check warning:', err?.message || err);
+    }
+  }
+}
+
+// Ensure schema columns are available asynchronously on boot
+ensureFeedSchema().catch(() => {});
 
 /**
  * Fetch feed posts with author profiles, like counts, comment counts, and like status.

@@ -326,7 +326,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
   onOpenSignUp,
   onStartProject,
   children,
-  isDark = false,
+  isDark = true,
   onToggleTheme,
   isAppDomain: isAppDomainProp,
   user,

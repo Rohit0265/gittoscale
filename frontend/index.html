@@ -1,9 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GitToScale — Turn Code into Interactive System Architectures & Capacity Simulations</title>
+
+    <!-- Theme initialization (Defaults to dark mode) -->
+    <script>
+      try {
+        var theme = localStorage.getItem('gitoscale-theme');
+        if (theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z5YL7EX8M"></script>

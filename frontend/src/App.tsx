@@ -307,15 +307,27 @@ export const App: React.FC = () => {
     region: 'deploy_single',
   });
 
-  // Theme state: light | dark with persistence & system preference detection
+  // Theme state: dark mode as default across all users & visitors
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gitoscale-theme');
       if (saved) return saved === 'dark';
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // Default to dark mode
+      return true;
     }
-    return false;
+    return true;
   });
+
+  // When an authenticated user is present, ensure they always see dark mode by default
+  useEffect(() => {
+    if (user) {
+      setIsDark(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gitoscale-theme', 'dark');
+        document.documentElement.classList.add('dark');
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -330,13 +342,13 @@ export const App: React.FC = () => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
       const saved = localStorage.getItem('gitoscale-theme');
-      if (!saved) {
+      if (!saved && !user) {
         setIsDark(e.matches);
       }
     };
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  }, [user]);
 
   const handleToggleTheme = useCallback(() => {
     setIsDark((prev) => {
@@ -2279,6 +2291,16 @@ export const App: React.FC = () => {
           setCurrentView('feed');
         }}
         user={user}
+        token={authToken}
+        onNavigateToProfile={(profileUserId) => {
+          const targetUrl = user?.id && profileUserId === user.id ? '/profile' : `/feed/profile/${profileUserId}`;
+          window.history.pushState({}, '', targetUrl);
+          setCurrentView('feed-profile');
+        }}
+        onViewLikes={() => {
+          window.history.pushState({}, '', '/feed?filter=liked');
+          setCurrentView('feed');
+        }}
         onOpenAuth={() => {
           window.history.pushState({}, '', '/signin');
           setCurrentView('signin');

@@ -3,14 +3,7 @@ import {
   Play,
   Pause,
   RotateCcw,
-  FolderGit2,
-  Sun,
-  Moon,
-  History,
-  LogOut,
   User,
-  LogIn,
-  UserPlus,
   ChevronDown,
   Download,
   FileCode,
@@ -28,6 +21,7 @@ import {
   copyToClipboard,
 } from '../utils/exportDiagram';
 import { AutoSaveStatus } from '../services/playgroundPersistence';
+import { UserDropdownMenu } from './UserDropdownMenu';
 
 interface HeaderProps {
   scenarios: ScenarioFixture[];
@@ -43,6 +37,9 @@ interface HeaderProps {
   onOpenHistory?: () => void;
   onOpenFeed?: () => void;
   user?: any;
+  token?: string | null;
+  onNavigateToProfile?: (userId: string) => void;
+  onViewLikes?: () => void;
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
   onSignOut?: () => void;
@@ -68,17 +65,20 @@ export const Header: React.FC<HeaderProps> = ({
   isRunning = true,
   onToggleRun,
   onReset,
-  onOpenImportRepo,
+  onOpenImportRepo: _onOpenImportRepo,
   onOpenNewProject,
   onOpenRecommender: _onOpenRecommender,
-  onOpenHistory,
+  onOpenHistory: _onOpenHistory,
   onOpenFeed: _onOpenFeed,
   user,
+  token,
+  onNavigateToProfile,
+  onViewLikes,
   onOpenAuth,
   onOpenSignUp,
   onSignOut,
   onGoHome,
-  isDark = false,
+  isDark = true,
   onToggleTheme,
   isLeftCollapsed: _isLeftCollapsed = false,
   nodes = [],
@@ -336,183 +336,20 @@ export const Header: React.FC<HeaderProps> = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.96 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
-                className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl shadow-2xl shadow-slate-300/40 dark:shadow-black/70 p-3.5 z-50 flex flex-col gap-3"
+                className="absolute right-0 top-full mt-2 z-50"
               >
-                {/* 1. User Profile or Auth */}
-                {user ? (
-                  <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-100/70 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/60">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 flex items-center justify-center font-bold text-sm shrink-0">
-                      {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U').toUpperCase()}
-                    </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                        {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                      </span>
-                      <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
-                        {user.email}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 p-1">
-                    <div className="px-1 pb-1">
-                      <p className="text-xs font-semibold text-slate-900 dark:text-white">Account</p>
-                      <p className="text-[11px] text-slate-500 dark:text-neutral-400">
-                        Sign in to save your architecture simulations
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          onOpenAuth?.();
-                        }}
-                        className="group flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#141416] text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-[#1e1e22] transition-colors cursor-pointer shadow-xs"
-                      >
-                        <LogIn className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
-                        <span>Log In</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          if (onOpenSignUp) {
-                            onOpenSignUp();
-                          } else if (onOpenAuth) {
-                            onOpenAuth();
-                          }
-                        }}
-                        className="group flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
-                      >
-                        <UserPlus className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 group-hover:text-indigo-400 dark:group-hover:text-indigo-600 transition-colors" />
-                        <span>Sign Up</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* 2. Workspace Actions: Import Repo & History */}
-                <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 px-1 uppercase tracking-wider">
-                    More Options
-                  </span>
-
-                  {/* Import Repository */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      onOpenImportRepo();
-                    }}
-                    className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900/70 transition-colors text-left cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/60 transition-colors flex items-center justify-center shrink-0">
-                        <FolderGit2 className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-                          Import Repository
-                        </span>
-                        <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
-                          Scan GitHub or local codebase
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* History */}
-                  {onOpenHistory && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onOpenHistory();
-                      }}
-                      className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900/70 transition-colors text-left cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60 transition-colors flex items-center justify-center shrink-0">
-                          <History className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                            Your History
-                          </span>
-                          <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">
-                            Saved systems &amp; snapshots
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  )}
-                </div>
-
-                {/* 3. Sign Out (below remaining options, above Appearance) */}
-                {user && onSignOut && (
-                  <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onSignOut();
-                      }}
-                      className="group flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-                    >
-                      <LogOut className="w-4 h-4 text-red-500 transition-colors" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* 4. Appearance / Theme */}
-                {onToggleTheme && (
-                  <div className="border-t border-slate-200/80 dark:border-neutral-800/80 pt-2.5 flex flex-col gap-1.5">
-                    <div className="px-1 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-600 dark:text-neutral-400">
-                        Appearance
-                      </span>
-                      <span className="text-[11px] font-medium text-slate-400 dark:text-neutral-500">
-                        {isDark ? 'Dark Theme' : 'Light Theme'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100/70 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/60">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isDark) onToggleTheme();
-                        }}
-                        className={`group flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                          !isDark
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white'
-                        }`}
-                      >
-                        <Sun className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 group-hover:text-amber-500 transition-colors" />
-                        <span>Light</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!isDark) onToggleTheme();
-                        }}
-                        className={`group flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                          isDark
-                            ? 'bg-[#1e1e22] text-white shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white'
-                        }`}
-                      >
-                        <Moon className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 group-hover:text-blue-400 transition-colors" />
-                        <span>Dark</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <UserDropdownMenu
+                  user={user}
+                  token={token}
+                  isDark={isDark}
+                  onToggleTheme={onToggleTheme}
+                  onNavigateToProfile={onNavigateToProfile}
+                  onViewLikes={onViewLikes}
+                  onSignOut={onSignOut}
+                  onClose={() => setIsMenuOpen(false)}
+                  onOpenAuth={onOpenAuth}
+                  onOpenSignUp={onOpenSignUp}
+                />
               </motion.div>
             )}
           </AnimatePresence>

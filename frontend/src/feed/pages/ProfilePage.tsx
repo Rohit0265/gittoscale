@@ -38,7 +38,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   profileId,
   user,
   token,
-  isDark = false,
+  isDark = true,
   onToggleTheme,
   onGoHome,
   onNavigateToFeed,

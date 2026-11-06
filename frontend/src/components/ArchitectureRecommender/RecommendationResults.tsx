@@ -36,7 +36,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
   onEditPrompt,
   onRefine,
   isRefining,
-  isDark = false,
+  isDark = true,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('diagram');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);

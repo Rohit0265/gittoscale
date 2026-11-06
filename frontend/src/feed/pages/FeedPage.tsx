@@ -23,7 +23,7 @@ interface FeedPageProps {
 export const FeedPage: React.FC<FeedPageProps> = ({
   user,
   token,
-  isDark = false,
+  isDark = true,
   onToggleTheme,
   onGoHome,
   onOpenAuth,
