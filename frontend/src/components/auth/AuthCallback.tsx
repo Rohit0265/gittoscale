@@ -28,6 +28,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
       const hash = window.location.hash;
       const search = new URLSearchParams(window.location.search);
       const isRecovery = hash.includes('type=recovery') || search.get('type') === 'recovery';
+      const inPopup = isOAuthPopup();
 
       if (isRecovery) {
         if (mounted) setStatus('recovery');
@@ -35,6 +36,12 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
       }
 
       if (!isSupabaseConfigured) {
+        if (inPopup) {
+          broadcastOAuthMessage({ type: 'GTS_OAUTH_SUCCESS' });
+          window.close();
+          if (mounted) setStatus('success');
+          return;
+        }
         if (mounted) {
           setStatus('success');
           setTimeout(() => {
@@ -49,11 +56,13 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          if (window.opener && window.opener !== window) {
-            try {
-              window.opener.postMessage({ type: 'GTS_OAUTH_ERROR', error: error.message }, window.location.origin);
-            } catch {}
+          if (inPopup) {
+            broadcastOAuthMessage({ type: 'GTS_OAUTH_ERROR', error: error.message });
             window.close();
+            if (mounted) {
+              setStatus('error');
+              setErrorMessage(error.message);
+            }
             return;
           }
           if (mounted) {
@@ -69,17 +78,20 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
               localStorage.setItem('gts_github_token', (session as any).provider_token);
             } catch {}
           }
-          if (window.opener && window.opener !== window) {
-            try {
-              window.opener.postMessage({
-                type: 'GTS_OAUTH_SUCCESS',
-                session: session,
-                user: session.user,
-              }, window.location.origin);
-            } catch {}
+          if (inPopup) {
+            broadcastOAuthMessage({
+              type: 'GTS_OAUTH_SUCCESS',
+              session: session,
+              user: session.user,
+            });
             window.close();
+            // NEVER navigate inside a popup window!
+            if (mounted) {
+              setStatus('success');
+            }
             return;
           }
+          // Only redirect if running as a primary window/tab
           if (mounted) {
             setStatus('success');
             setTimeout(() => {
@@ -93,15 +105,14 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
           const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
             if (newSession && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
               authListener.subscription.unsubscribe();
-              if (window.opener && window.opener !== window) {
-                try {
-                  window.opener.postMessage({
-                    type: 'GTS_OAUTH_SUCCESS',
-                    session: newSession,
-                    user: newSession.user,
-                  }, window.location.origin);
-                } catch {}
+              if (inPopup) {
+                broadcastOAuthMessage({
+                  type: 'GTS_OAUTH_SUCCESS',
+                  session: newSession,
+                  user: newSession.user,
+                });
                 window.close();
+                if (mounted) setStatus('success');
                 return;
               }
               if (mounted) {
@@ -118,12 +129,21 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
           // Timeout fallback
           setTimeout(() => {
             if (mounted && status === 'verifying') {
-              window.history.pushState({}, '', '/app');
-              onNavigate('simulator');
+              if (inPopup) {
+                broadcastOAuthMessage({ type: 'GTS_OAUTH_ERROR', error: 'Authentication timeout' });
+                window.close();
+              } else {
+                window.history.pushState({}, '', '/app');
+                onNavigate('simulator');
+              }
             }
-          }, 3000);
+          }, 3500);
         }
       } catch (err: any) {
+        if (inPopup) {
+          broadcastOAuthMessage({ type: 'GTS_OAUTH_ERROR', error: err?.message || 'Authentication failed' });
+          window.close();
+        }
         if (mounted) {
           setStatus('error');
           setErrorMessage(err?.message || 'Authentication callback failed.');
