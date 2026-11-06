@@ -453,6 +453,10 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const handlePopState = () => {
+      if (isOAuthPopup()) {
+        setCurrentView('auth-callback');
+        return;
+      }
       const path = window.location.pathname.toLowerCase();
       if (path === '/feed') {
         setCurrentView('feed');
