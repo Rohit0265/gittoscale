@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Camera, Loader2, AlertCircle, Check, User, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { X, Camera, Loader2, AlertCircle, Check, User, Trash2 } from 'lucide-react';
 import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
 
