@@ -745,10 +745,6 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
       >
         <div className="mx-auto w-full max-w-6xl">
           <div className="mb-12 max-w-2xl">
-            {/* <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 mb-3">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Target Audiences</span>
-            </div> */}
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-[0.94] tracking-tight text-slate-900 dark:text-white">
               {/* Mobile View (< sm): separate highlight per line */}
               <span className="sm:hidden flex flex-col items-start">

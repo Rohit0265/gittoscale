@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Layers,
-  Cpu,
-  AlertTriangle,
   PanelRight,
   Sliders,
   ArrowRight,
@@ -104,14 +101,13 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('components')}
-              className={`group flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'components'
                   ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
               title="Components Library"
             >
-              <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />
               <span>Components</span>
             </button>
 
@@ -119,14 +115,13 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('inspector')}
-              className={`group flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'inspector'
                   ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
               title="Inspect Selected Component"
             >
-              <Cpu className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-blue-500 transition-colors" />
               <span>Inspector</span>
               {selectedNode && (
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-600 dark:bg-neutral-300 shrink-0" />
@@ -137,14 +132,13 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('bottlenecks')}
-              className={`group flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'bottlenecks'
                   ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
                   : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
               }`}
               title="Performance Bottlenecks"
             >
-              <AlertTriangle className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-amber-500 transition-colors" />
               <span>Issues</span>
               {bottlenecksCount > 0 && (
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 font-mono font-bold">

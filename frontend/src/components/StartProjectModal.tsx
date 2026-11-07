@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowUp,
-  Zap,
-  Database,
-  Layers,
-  ShieldCheck,
   GitBranch,
   X,
 } from 'lucide-react';
@@ -20,33 +16,29 @@ export interface StartProjectModalProps {
 }
 
 const IDEAS = [
-  'Cook your next big system architecture...',
-  'Share your architecture idea or blueprint...',
-  'Where are the single points of failure under 200k RPS?',
-  'How should we scale microservices for event streaming?',
-  'Cook a low-latency caching layer idea...',
+  'Distributed event-driven architecture with Kafka and Go workers...',
+  'High-throughput API gateway with Redis rate limiting and PostgreSQL...',
+  'Resilient message queue architecture for asynchronous order processing...',
+  'Microservices architecture for multi-region financial transactions...',
+  'Low-latency caching topology for global session persistence...',
 ];
 
 const SCENARIO_CHIPS = [
   {
-    label: '10x Traffic',
+    label: '10x Traffic Spike',
     prompt: 'How do we handle a 10x Traffic Spike without downtime?',
-    icon: Zap,
   },
   {
-    label: 'Redis Cache',
+    label: 'Redis Caching',
     prompt: 'Analyze Redis Caching strategies for session persistence',
-    icon: Database,
   },
   {
-    label: 'Queue Spike',
+    label: 'Queue Tolerance',
     prompt: 'Design fault tolerance for queue spikes with SQS and Workers',
-    icon: Layers,
   },
   {
-    label: 'DB Pool',
+    label: 'DB Connection Pool',
     prompt: 'Optimize DB Connection Pooling under heavy concurrent writes',
-    icon: ShieldCheck,
   },
 ];
 
@@ -199,15 +191,14 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
               <button
                 type="button"
                 onClick={toggleMercury}
-                className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-medium border transition-all cursor-pointer ${
+                className={`shrink-0 flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-medium border transition-colors cursor-pointer ${
                   useMercury
-                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                    ? 'bg-slate-200 dark:bg-neutral-800 border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-neutral-100'
                     : 'bg-slate-100 dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                 }`}
-                title={useMercury ? 'Mercury-3 Diffusion LLM Active (1,000+ tok/s)' : 'Click to enable Mercury-3 Diffusion LLM'}
+                title={useMercury ? 'Mercury-3 Active' : 'Click to toggle Engine'}
               >
-                <Zap className={`w-3 h-3 ${useMercury ? 'fill-current text-amber-500 dark:text-amber-400' : 'text-slate-400 dark:text-neutral-500'}`} />
-                <span>{useMercury ? 'Mercury-3' : 'Engine: Auto'}</span>
+                <span>{useMercury ? 'Model: Mercury-3' : 'Model: Auto'}</span>
               </button>
             </div>
 
@@ -223,7 +214,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                     setIsUserInteracting(true);
                   }}
                   onFocus={() => setIsUserInteracting(true)}
-                  placeholder={placeholder || 'Share your architecture idea or cook a concept...'}
+                  placeholder={placeholder || 'Describe your system architecture requirements...'}
                   className="w-full bg-transparent py-3 px-3 text-sm sm:text-base text-slate-900 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-500 focus:outline-none"
                   autoComplete="off"
                 />
@@ -231,7 +222,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
                 <button
                   type="submit"
                   disabled={!query.trim() && !placeholder}
-                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-neutral-100 dark:hover:bg-white dark:text-neutral-950 hover:scale-[1.03] active:scale-[0.97] transition-all duration-150 shadow-md shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-neutral-100 dark:hover:bg-white dark:text-neutral-950 transition-colors shadow-xs shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Generate Architecture"
                 >
                   <ArrowUp className="w-4 h-4 font-bold" />
@@ -249,20 +240,16 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {SCENARIO_CHIPS.map((chip) => {
-                  const Icon = chip.icon;
-                  return (
-                    <button
-                      key={chip.label}
-                      type="button"
-                      onClick={() => handleChipClick(chip.prompt)}
-                      className="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 dark:bg-neutral-900/80 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-700 dark:text-neutral-300 text-xs px-3 py-2 rounded-lg transition-all duration-150 cursor-pointer group shadow-2xs"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-emerald-500 transition-colors" />
-                      <span>{chip.label}</span>
-                    </button>
-                  );
-                })}
+                {SCENARIO_CHIPS.map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => handleChipClick(chip.prompt)}
+                    className="flex items-center bg-slate-50 hover:bg-slate-100 dark:bg-neutral-900/80 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-700 dark:text-neutral-300 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <span>{chip.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

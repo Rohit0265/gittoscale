@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowUp,
-  Bot,
   PanelLeftClose,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -542,11 +541,9 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
     >
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800/80 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="group w-7 h-7 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 flex items-center justify-center font-bold">
-            <Bot className="w-4 h-4 group-hover:text-indigo-500 transition-colors" />
-          </div>
-        </div>
+        <span className="text-xs font-semibold text-slate-900 dark:text-white">
+          Architecture Copilot
+        </span>
         <div className="flex items-center gap-1.5">
           {onToggleCollapse && (
             <button

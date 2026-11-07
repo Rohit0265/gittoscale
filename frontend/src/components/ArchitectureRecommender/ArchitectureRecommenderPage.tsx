@@ -8,7 +8,7 @@ import {
 } from '../../types';
 import { RequirementsForm } from './RequirementsForm';
 import { RecommendationResults } from './RecommendationResults';
-import { AlertCircle, RefreshCw, Sun, Moon, ArrowLeft, Sparkles } from 'lucide-react';
+import { AlertCircle, RefreshCw, Sun, Moon, ArrowLeft, Loader2 } from 'lucide-react';
 
 interface ArchitectureRecommenderPageProps {
   onSimulate: (nodes: ArchitectureNode[], edges: ArchitectureEdge[]) => void;
@@ -92,8 +92,7 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
           </button>
           <div className="h-4 w-px bg-slate-200 dark:border-neutral-800 hidden sm:block" />
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-neutral-200">
-            <Sparkles className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300 hover:text-amber-500 transition-colors" />
-            <span className="hidden xs:inline">AI Architecture Recommender</span>
+            <span className="hidden xs:inline">Architecture Recommender</span>
           </div>
         </div>
 
@@ -155,7 +154,7 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-neutral-800/70">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-500 animate-spin" />
+                      <Loader2 className="w-4 h-4 text-slate-500 animate-spin" />
                       <span className="text-sm font-semibold text-slate-800 dark:text-neutral-200">
                         Synthesizing Architecture Recommendation...
                       </span>

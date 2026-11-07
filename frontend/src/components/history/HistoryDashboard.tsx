@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import {
-  Sparkles,
   FolderGit2,
   Search,
   ExternalLink,
@@ -249,7 +248,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                   : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Layers className="w-3.5 h-3.5" />
               <span>Prompt Architectures ({totalArch})</span>
             </button>
 
@@ -374,7 +373,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
             {architectures.length === 0 ? (
               <div className="text-center py-16 px-4 bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 rounded-2xl flex flex-col items-center">
                 <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 flex items-center justify-center text-slate-700 dark:text-neutral-300 mb-3">
-                  <Sparkles className="w-6 h-6 text-slate-700 dark:text-neutral-300 hover:text-blue-500 transition-colors" />
+                  <Layers className="w-6 h-6 text-slate-700 dark:text-neutral-300" />
                 </div>
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-neutral-200 mb-1">
                   No architecture history found

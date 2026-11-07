@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ShieldAlert, ArrowLeft, Home, LogIn, Lock, Sparkles } from 'lucide-react';
+import { ShieldAlert, ArrowLeft, Home, LogIn, Lock, Layers } from 'lucide-react';
 import { Fotter } from './Fotter';
 
 interface UnverifiedProjectPageProps {
@@ -152,7 +152,7 @@ export const UnverifiedProjectPage: React.FC<UnverifiedProjectPageProps> = ({
                     : 'border-slate-300 bg-white hover:bg-slate-100 text-slate-800 hover:border-slate-400 shadow-xs'
                 }`}
               >
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <Layers className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                 Start New Architecture
               </button>
             )}

@@ -25,7 +25,7 @@ import {
   restoreArchitectureFromDb,
   formatArchitectureForDb,
 } from './utils/exportDiagram';
-import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Sparkles } from 'lucide-react';
+import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Layers } from 'lucide-react';
 
 // Code-split heavy interactive canvas & simulator modules so initial landing page bundle is tiny & ultra-fast
 const Header = React.lazy(() => import('./components/Header').then((m) => ({ default: m.Header })));
@@ -2404,11 +2404,11 @@ export const App: React.FC = () => {
             <>
               {nodes.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 p-4">
-                  <div className="pointer-events-auto flex flex-col items-center p-6 sm:p-7 rounded-2xl bg-white/90 dark:bg-[#12141a]/90 border border-slate-200 dark:border-neutral-800 shadow-2xl backdrop-blur-xl max-w-sm text-center">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800/80 flex items-center justify-center mb-3">
-                      <Sparkles className="w-5 h-5 text-amber-500" />
+                  <div className="pointer-events-auto flex flex-col items-center p-6 sm:p-7 rounded-2xl bg-white/95 dark:bg-[#12141a]/95 border border-slate-200 dark:border-neutral-800 shadow-xl max-w-sm text-center">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center mb-3">
+                      <Layers className="w-5 h-5 text-slate-700 dark:text-neutral-300" />
                     </div>
-                    <h3 className="font-lora text-base font-semibold text-slate-900 dark:text-white mb-1.5">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1.5">
                       Ready to design your system
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-neutral-400 mb-4 leading-relaxed">

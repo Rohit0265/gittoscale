@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Home, Sparkles } from 'lucide-react';
+import { Home, Layers } from 'lucide-react';
 
 interface NotFoundPageProps {
   isDark?: boolean;
@@ -188,7 +188,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
                 : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            <Layers className="w-3.5 h-3.5" />
             <span>Simulator</span>
           </button>
 
