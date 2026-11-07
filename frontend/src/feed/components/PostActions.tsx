@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Bookmark, MessageSquare } from 'lucide-react';
 
 interface PostActionsProps {
   postId: string;
@@ -7,8 +7,10 @@ interface PostActionsProps {
   commentCount: number;
   hasLiked?: boolean;
   hasDisliked?: boolean;
+  hasBookmarked?: boolean;
   onLike: () => void;
   onDislike: () => void;
+  onBookmark?: () => void;
   onOpenComments: () => void;
 }
 
@@ -17,12 +19,15 @@ export const PostActions: React.FC<PostActionsProps> = ({
   commentCount,
   hasLiked = false,
   hasDisliked = false,
+  hasBookmarked = false,
   onLike,
   onDislike,
+  onBookmark,
   onOpenComments,
 }) => {
   const [likeAnimating, setLikeAnimating] = useState(false);
   const [dislikeAnimating, setDislikeAnimating] = useState(false);
+  const [bookmarkAnimating, setBookmarkAnimating] = useState(false);
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,9 +43,17 @@ export const PostActions: React.FC<PostActionsProps> = ({
     onDislike();
   };
 
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onBookmark) return;
+    setBookmarkAnimating(true);
+    setTimeout(() => setBookmarkAnimating(false), 300);
+    onBookmark();
+  };
+
   return (
     <div className="flex items-center justify-between pt-3 border-t border-slate-200/60 dark:border-neutral-800/60">
-      {/* Left: Like & Dislike */}
+      {/* Left: Like, Dislike & Bookmark */}
       <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Like Button (shows count) */}
         <button
@@ -80,6 +93,27 @@ export const PostActions: React.FC<PostActionsProps> = ({
             } ${dislikeAnimating ? 'scale-125' : 'scale-100'}`}
           />
         </button>
+
+        {/* Bookmark Button */}
+        {onBookmark && (
+          <button
+            type="button"
+            onClick={handleBookmarkClick}
+            className={`flex items-center justify-center p-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              hasBookmarked
+                ? 'text-amber-500 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/40'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100/60 dark:hover:bg-neutral-800/40'
+            }`}
+            title={hasBookmarked ? 'Remove Bookmark' : 'Bookmark post'}
+            aria-label={hasBookmarked ? 'Remove Bookmark' : 'Bookmark post'}
+          >
+            <Bookmark
+              className={`w-4 h-4 transition-transform ${
+                hasBookmarked ? 'fill-current' : ''
+              } ${bookmarkAnimating ? 'scale-125' : 'scale-100'}`}
+            />
+          </button>
+        )}
       </div>
 
       {/* Right: Comments Button */}
