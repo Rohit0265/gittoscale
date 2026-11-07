@@ -1248,7 +1248,11 @@ export async function getUserPosts(
         CASE 
           WHEN ${viewerUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_disliked
+        END as has_disliked,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_bookmarked
       FROM public.feed_posts p
       JOIN public.profiles pr ON pr.id = p.user_id
       LEFT JOIN (
@@ -1265,6 +1269,8 @@ export async function getUserPosts(
         ON user_likes.post_id = p.id AND user_likes.user_id = ${viewerUserId || null}::text
       LEFT JOIN public.feed_dislikes user_dislikes 
         ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${viewerUserId || null}::text
+      LEFT JOIN public.feed_bookmarks user_bookmarks 
+        ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${viewerUserId || null}::text
       WHERE p.user_id = ${targetUserId}
       ORDER BY p.created_at DESC;
     `;
@@ -1291,6 +1297,7 @@ export async function getUserPosts(
         comment_count: Number(r.comment_count) || 0,
         has_liked: Boolean(r.has_liked),
         has_disliked: Boolean(r.has_disliked),
+        has_bookmarked: Boolean(r.has_bookmarked),
       };
     });
   } catch (err: any) {
@@ -1315,6 +1322,7 @@ export async function getUserPosts(
           comment_count: inMemComments.filter((c) => c.post_id === p.id).length,
           has_liked: viewerUserId ? inMemLikes.some((l) => l.post_id === p.id && l.user_id === viewerUserId) : false,
           has_disliked: viewerUserId ? inMemDislikes.some((d) => d.post_id === p.id && d.user_id === viewerUserId) : false,
+          has_bookmarked: viewerUserId ? inMemBookmarks.some((b) => b.post_id === p.id && b.user_id === viewerUserId) : false,
         }));
     }
     throw err;
@@ -1353,7 +1361,11 @@ export async function getUserLikedPosts(
         CASE 
           WHEN ${viewerUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_disliked
+        END as has_disliked,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_bookmarked
       FROM public.feed_likes ul
       JOIN public.feed_posts p ON p.id = ul.post_id
       JOIN public.profiles pr ON pr.id = p.user_id
@@ -1371,6 +1383,8 @@ export async function getUserLikedPosts(
         ON user_likes.post_id = p.id AND user_likes.user_id = ${viewerUserId || null}::text
       LEFT JOIN public.feed_dislikes user_dislikes 
         ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${viewerUserId || null}::text
+      LEFT JOIN public.feed_bookmarks user_bookmarks 
+        ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${viewerUserId || null}::text
       WHERE ul.user_id = ${targetUserId}
       ORDER BY ul.created_at DESC;
     `;
@@ -1397,6 +1411,7 @@ export async function getUserLikedPosts(
         comment_count: Number(r.comment_count) || 0,
         has_liked: Boolean(r.has_liked),
         has_disliked: Boolean(r.has_disliked),
+        has_bookmarked: Boolean(r.has_bookmarked),
       };
     });
   } catch (err: any) {
@@ -1422,6 +1437,122 @@ export async function getUserLikedPosts(
           comment_count: inMemComments.filter((c) => c.post_id === p.id).length,
           has_liked: viewerUserId ? inMemLikes.some((l) => l.post_id === p.id && l.user_id === viewerUserId) : false,
           has_disliked: viewerUserId ? inMemDislikes.some((d) => d.post_id === p.id && d.user_id === viewerUserId) : false,
+          has_bookmarked: viewerUserId ? inMemBookmarks.some((b) => b.post_id === p.id && b.user_id === viewerUserId) : false,
+        }));
+    }
+    throw err;
+  }
+}
+
+/**
+ * Get all posts bookmarked/saved by a user.
+ */
+export async function getUserSavedPosts(
+  targetUserId: string,
+  viewerUserId?: string
+): Promise<FeedPost[]> {
+  try {
+    const db = getSql();
+    const rows = await db`
+      SELECT 
+        p.id,
+        p.user_id,
+        p.content,
+        p.media_url,
+        p.media_type,
+        p.media_metadata,
+        p.created_at,
+        p.updated_at,
+        pr.full_name as author_name,
+        pr.username as author_username,
+        pr.avatar_url as author_avatar,
+        pr.email as author_email,
+        COALESCE(l_count.count, 0)::int as like_count,
+        COALESCE(c_count.count, 0)::int as comment_count,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_liked,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_disliked,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_bookmarked
+      FROM public.feed_bookmarks ub
+      JOIN public.feed_posts p ON p.id = ub.post_id
+      JOIN public.profiles pr ON pr.id = p.user_id
+      LEFT JOIN (
+        SELECT post_id, count(*)::int as count 
+        FROM public.feed_likes 
+        GROUP BY post_id
+      ) l_count ON l_count.post_id = p.id
+      LEFT JOIN (
+        SELECT post_id, count(*)::int as count 
+        FROM public.feed_comments 
+        GROUP BY post_id
+      ) c_count ON c_count.post_id = p.id
+      LEFT JOIN public.feed_likes user_likes 
+        ON user_likes.post_id = p.id AND user_likes.user_id = ${viewerUserId || null}::text
+      LEFT JOIN public.feed_dislikes user_dislikes 
+        ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${viewerUserId || null}::text
+      LEFT JOIN public.feed_bookmarks user_bookmarks 
+        ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${viewerUserId || null}::text
+      WHERE ub.user_id = ${targetUserId}
+      ORDER BY ub.created_at DESC;
+    `;
+
+    return rows.map((r: any) => {
+      const media = formatPostMedia(r.media_url, r.media_type, r.media_metadata);
+      return {
+        id: r.id,
+        user_id: r.user_id,
+        content: r.content,
+        media_url: media.media_url,
+        media_type: media.media_type,
+        media_metadata: media.media_metadata,
+        media_items: media.media_items,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        author: {
+          id: r.user_id,
+          full_name: r.author_name || r.author_email?.split('@')[0] || 'Anonymous',
+          username: r.author_username || deriveUsername(r.author_name, r.author_email),
+          avatar_url: r.author_avatar || null,
+        },
+        like_count: Number(r.like_count) || 0,
+        comment_count: Number(r.comment_count) || 0,
+        has_liked: Boolean(r.has_liked),
+        has_disliked: Boolean(r.has_disliked),
+        has_bookmarked: Boolean(r.has_bookmarked),
+      };
+    });
+  } catch (err: any) {
+    if (isDbConnectionError(err)) {
+      const savedPostIds = inMemBookmarks.filter((b) => b.user_id === targetUserId).map((b) => b.post_id);
+      return inMemPosts
+        .filter((p) => savedPostIds.includes(p.id))
+        .map((p) => ({
+          id: p.id,
+          user_id: p.user_id,
+          content: p.content,
+          media_url: p.media_url,
+          media_type: p.media_type,
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+          author: {
+            id: p.user_id,
+            full_name: p.author_name || 'Anonymous',
+            username: p.author_username || deriveUsername(p.author_name, p.author_email),
+            avatar_url: p.author_avatar || null,
+          },
+          like_count: inMemLikes.filter((l) => l.post_id === p.id).length,
+          comment_count: inMemComments.filter((c) => c.post_id === p.id).length,
+          has_liked: viewerUserId ? inMemLikes.some((l) => l.post_id === p.id && l.user_id === viewerUserId) : false,
+          has_disliked: viewerUserId ? inMemDislikes.some((d) => d.post_id === p.id && d.user_id === viewerUserId) : false,
+          has_bookmarked: viewerUserId ? inMemBookmarks.some((b) => b.post_id === p.id && b.user_id === viewerUserId) : false,
         }));
     }
     throw err;
