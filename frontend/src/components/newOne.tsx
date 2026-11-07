@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
+  ArrowUpRight,
   Play,
+  Github,
   ArrowUp,
   Zap,
   Database,
   Layers,
   ShieldCheck,
+  GitBranch,
   Plus,
 } from 'lucide-react';
 
@@ -53,7 +56,7 @@ const SCENARIO_CHIPS = [
 
 export const NewOne: React.FC<NewOneProps> = ({
   onSelectTestSite: _onSelectTestSite,
-  onSelectUseRepository: _onSelectUseRepository,
+  onSelectUseRepository,
   onOpenRecommender,
   onStartProject,
   onStartBlankProject,
@@ -296,6 +299,24 @@ export const NewOne: React.FC<NewOneProps> = ({
                   })}
                 </div>
               </div>
+            </div>
+
+            {/* Import GitHub Repo Interactive Button / Footer Bar */}
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between w-full px-3 py-2.5 rounded-xl bg-slate-50/80 dark:bg-neutral-900/40 border border-slate-200/80 dark:border-neutral-800/50 backdrop-blur-md">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-slate-600 dark:text-neutral-300 mb-2 sm:mb-0">
+                <GitBranch className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
+                <span>Have an existing codebase?</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onSelectUseRepository}
+                className="group min-h-[44px] flex items-center space-x-2.5 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-700/80 hover:border-slate-300 dark:hover:border-neutral-500 px-4 py-2.5 rounded-lg text-xs sm:text-sm text-slate-800 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
+              >
+                <Github className="w-4 h-4 text-base text-slate-700 dark:text-neutral-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                <span className="font-medium">Scan GitHub repository</span>
+                <ArrowUpRight className="w-3 h-3 text-[10px] text-slate-400 dark:text-neutral-400 group-hover:text-slate-700 dark:group-hover:text-neutral-200 transition-colors ml-0.5" />
+              </button>
             </div>
           </div>
         </div>
