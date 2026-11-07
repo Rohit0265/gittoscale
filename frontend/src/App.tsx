@@ -2639,6 +2639,7 @@ export const App: React.FC = () => {
               setIsStartProjectModalOpen(false);
               setIsImportRepoOpen(true);
             }}
+            onStartBlankProject={handleStartBlankProject}
             onGoHome={handleGoHome}
             isDark={isDark}
           />
