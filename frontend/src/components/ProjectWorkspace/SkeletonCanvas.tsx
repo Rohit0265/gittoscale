@@ -116,7 +116,7 @@ function vEdgePath(nodes: SkeletonNode[], from: string, to: string): string {
 
 export const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({
   activePrompt,
-  viewMode = 'basic',
+  viewMode = 'detailed',
 }) => {
   const nodes  = viewMode === 'detailed' ? DETAIL_NODES  : BASIC_NODES;
   const edges  = viewMode === 'detailed' ? DETAIL_EDGES  : BASIC_EDGES;

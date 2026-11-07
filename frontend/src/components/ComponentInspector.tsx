@@ -40,8 +40,8 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
   onDeleteEdge,
   onChangeIncomingTrafficRate,
   incomingTrafficRate,
-  onNavigateToParent,
-  viewMode,
+  onNavigateToParent: _onNavigateToParent,
+  viewMode: _viewMode,
   allNodes = [],
   onToggleCollapse,
   embedded = false,
@@ -108,7 +108,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
       <div className="flex items-center justify-between px-0.5 pt-0.5">
         <div className="min-w-0 flex-1 mr-2">
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
-            INSPECTOR {viewMode ? `• ${viewMode === 'detailed' ? 'Detailed' : 'Basic'}` : ''}
+            INSPECTOR
           </span>
           <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 tracking-tight truncate">{node.name}</h3>
         </div>
@@ -160,7 +160,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
 
         {/* Parent Link if present */}
         {Boolean(node.parentId) && (
-          <div className="p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50/60 dark:bg-indigo-950/20 space-y-2">
+          <div className="p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50/60 dark:bg-indigo-950/20">
             <div className="flex items-center justify-between">
               <span className="font-bold text-indigo-700 dark:text-indigo-300 text-[10px] uppercase tracking-wider">
                 Parent Service
@@ -172,15 +172,6 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
                 {parentDisplayName}
               </span>
             </div>
-            {onNavigateToParent && (
-              <button
-                onClick={() => onNavigateToParent(node.parentId!)}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors shadow-none cursor-pointer"
-              >
-                <span>View in Basic View</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
         )}
 

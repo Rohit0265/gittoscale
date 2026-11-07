@@ -483,7 +483,7 @@ export function executeArchitectureCommand(
   currentTrafficRate: number,
   simulationResult: SimulationResult | null,
   _contextHistory: Array<{ text: string; sender: string }> = [],
-  viewMode: 'basic' | 'detailed' = 'basic'
+  viewMode: 'basic' | 'detailed' = 'detailed'
 ): AgentCommandExecutionResult {
   const text = command.trim();
   const lower = text.toLowerCase();

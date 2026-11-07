@@ -42,7 +42,7 @@ export function computePlaygroundHash(state: Partial<PlaygroundPersistenceState>
     .sort()
     .join('|');
 
-  return `${state.projectId || ''}#${state.prompt || ''}#${state.incomingTrafficRate || 1000}#${state.viewMode || 'basic'}#${nodeSummary}#${edgeSummary}`;
+  return `${state.projectId || ''}#${state.prompt || ''}#${state.incomingTrafficRate || 1000}#${state.viewMode || 'detailed'}#${nodeSummary}#${edgeSummary}`;
 }
 
 /**
@@ -122,7 +122,7 @@ export function loadPlaygroundFromBrowserStorage(
             nodes,
             edges: parsedArch.edges || [],
             incomingTrafficRate: 1000,
-            viewMode: 'basic',
+            viewMode: 'detailed',
             timestamp: Date.now(),
             lastSavedIso: new Date().toISOString(),
           };
@@ -171,7 +171,7 @@ export async function syncPlaygroundToDatabase(
       prompt: state.prompt || 'Custom Scalable Architecture',
       generationConfig: {
         projectId: state.projectId,
-        viewMode: state.viewMode || 'basic',
+        viewMode: state.viewMode || 'detailed',
         incomingTrafficRate: state.incomingTrafficRate || 1000,
         selectedAnswers: state.selectedAnswers || {},
         timestamp: state.timestamp,
@@ -240,7 +240,7 @@ export function usePlaygroundPersistence(options: UsePlaygroundPersistenceOption
     edges,
     incomingTrafficRate,
     durationSeconds,
-    viewMode = 'basic',
+    viewMode = 'detailed',
     selectedAnswers,
     basicGraph,
     detailedGraph,

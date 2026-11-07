@@ -74,7 +74,7 @@ export const AppWorkspaceSkeleton: React.FC<{ isDark?: boolean }> = ({ isDark = 
       <div className="flex flex-1 overflow-hidden relative w-full h-full">
         {/* Full Canvas with Architecture Diagram Skeleton */}
         <main className="w-full h-full absolute inset-0 overflow-hidden bg-slate-50 dark:bg-[#090B10]">
-          <SkeletonCanvas viewMode="basic" isDark={isDark} />
+          <SkeletonCanvas viewMode="detailed" isDark={isDark} />
         </main>
 
         {/* Left Floating Sidebar Skeleton (AI Architect Chat) */}

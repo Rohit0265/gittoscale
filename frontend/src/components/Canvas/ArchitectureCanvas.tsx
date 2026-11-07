@@ -34,7 +34,6 @@ interface ArchitectureCanvasProps {
   selectedEdgeId?: string | null;
   onSelectEdge?: (edgeId: string | null) => void;
   viewMode?: 'basic' | 'detailed';
-  onToggleViewMode?: (mode: 'basic' | 'detailed') => void;
   isDark?: boolean;
   isRunning?: boolean;
   isLeftCollapsed?: boolean;
@@ -120,7 +119,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   selectedEdgeId,
   onSelectEdge,
   viewMode = 'detailed',
-  onToggleViewMode,
   isDark: propIsDark,
   isRunning = true,
   isLeftCollapsed = false,

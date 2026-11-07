@@ -813,14 +813,15 @@ export const App: React.FC = () => {
                 return;
               }
               if (verifyRes.status === 'verified' && verifyRes.data?.architecture_data) {
+                const archData = verifyRes.data.architecture_data;
                 const restored = restoreArchitectureFromDb(
-                  verifyRes.data.architecture_data,
+                  archData,
                   verifyRes.data.prompt
                 );
                 if (restored.nodes.length > 0) {
                   const genConfig = verifyRes.data.generation_config;
-                  const targetDetailed = restored.detailedGraph && restored.detailedGraph.nodes?.length
-                    ? restored.detailedGraph
+                  const targetDetailed = archData.detailedGraph && archData.detailedGraph.nodes?.length
+                    ? archData.detailedGraph
                     : buildDetailedArchitecture(restored.nodes, restored.edges || [], verifyRes.data.prompt);
                   const verticalNodes = toVerticalTree(targetDetailed.nodes, targetDetailed.edges || []);
                   setNodes(verticalNodes);
@@ -1684,10 +1685,7 @@ export const App: React.FC = () => {
   };
 
   const handleNavigateToParent = (parentId: string) => {
-    handleToggleViewMode('basic');
-    setTimeout(() => {
-      setSelectedNodeId(parentId);
-    }, 150);
+    setSelectedNodeId(parentId);
   };
 
   // 9. Repository Import handler
@@ -1815,6 +1813,11 @@ export const App: React.FC = () => {
           : toVerticalTree(archData.nodes || [], archData.edges || []);
       const rawEdges = restored.edges.length > 0 ? restored.edges : (archData.edges || []);
 
+      const targetDetailed = archData.detailedGraph && archData.detailedGraph.nodes?.length
+        ? archData.detailedGraph
+        : buildDetailedArchitecture(verticalNodes, rawEdges, prompt || _title);
+      const verticalDetailedNodes = toVerticalTree(targetDetailed.nodes, targetDetailed.edges || []);
+
       const targetId = id || 'arch_' + Date.now().toString(36);
       loadedHistoryProjectsRef.current.add(targetId);
       lastGeneratedPromptRef.current = prompt || '';
@@ -1824,9 +1827,9 @@ export const App: React.FC = () => {
           localStorage.setItem(`gitoscale_project_${targetId}`, prompt);
         }
         try {
-          const dbPayload = formatArchitectureForDb(verticalNodes, rawEdges, prompt || _title, {
+          const dbPayload = formatArchitectureForDb(verticalDetailedNodes, targetDetailed.edges || [], prompt || _title, {
             basicGraph: { nodes: verticalNodes, edges: rawEdges },
-            detailedGraph: archData.detailedGraph,
+            detailedGraph: targetDetailed,
           });
           localStorage.setItem(`gitoscale_arch_${targetId}`, JSON.stringify(dbPayload));
           localStorage.setItem(
@@ -1835,11 +1838,11 @@ export const App: React.FC = () => {
               projectId: targetId,
               prompt,
               title: _title,
-              nodes: verticalNodes,
-              edges: rawEdges,
+              nodes: verticalDetailedNodes,
+              edges: targetDetailed.edges || [],
               markdown: restored.markdown,
               incomingTrafficRate,
-              viewMode: 'basic',
+              viewMode: 'detailed',
               timestamp: Date.now(),
               lastSavedIso: new Date().toISOString(),
             })
@@ -1858,19 +1861,19 @@ export const App: React.FC = () => {
       setActiveProject({ projectId: targetId, prompt });
       setActivePromptText(prompt || '');
       setSelectedNodeId(null);
-      setViewMode('basic');
+      setViewMode('detailed');
       setIsGeneratingArchitecture(true);
       setCurrentView('simulator');
 
       // Once loading animation completes, hydrate canvas directly from DB data with 0 LLM calls
       setTimeout(() => {
-        setNodes(verticalNodes);
-        setEdges(rawEdges);
+        setNodes(verticalDetailedNodes);
+        setEdges(targetDetailed.edges || []);
         baseBasicGraphRef.current = { nodes: verticalNodes, edges: rawEdges };
         basicGraphCacheRef.current = { nodes: verticalNodes, edges: rawEdges };
-        baseDetailedGraphRef.current = archData.detailedGraph || null;
-        detailedGraphCacheRef.current = archData.detailedGraph || null;
-        triggerSimulation(verticalNodes, rawEdges, incomingTrafficRate, durationSeconds);
+        baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: targetDetailed.edges || [] };
+        detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: targetDetailed.edges || [] };
+        triggerSimulation(verticalDetailedNodes, targetDetailed.edges || [], incomingTrafficRate, durationSeconds);
         setIsGeneratingArchitecture(false);
       }, 750);
     },
@@ -1886,6 +1889,11 @@ export const App: React.FC = () => {
       const rawEdges = restored.edges.length > 0 ? restored.edges : (archData.edges || []);
       const verticalNodes = toVerticalTree(rawNodes, rawEdges);
 
+      const targetDetailed = archData.detailedGraph && archData.detailedGraph.nodes?.length
+        ? archData.detailedGraph
+        : buildDetailedArchitecture(verticalNodes, rawEdges, _repoName);
+      const verticalDetailedNodes = toVerticalTree(targetDetailed.nodes, targetDetailed.edges || []);
+
       const targetId = id || 'repo_' + (_repoName || 'repo').toLowerCase().replace(/[^a-z0-9_]/g, '_');
       loadedHistoryProjectsRef.current.add(targetId);
       lastGeneratedPromptRef.current = _repoName;
@@ -1893,7 +1901,10 @@ export const App: React.FC = () => {
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gitoscale_project_${targetId}`, _repoName);
         try {
-          const dbPayload = formatArchitectureForDb(verticalNodes, rawEdges, _repoName);
+          const dbPayload = formatArchitectureForDb(verticalDetailedNodes, targetDetailed.edges || [], _repoName, {
+            basicGraph: { nodes: verticalNodes, edges: rawEdges },
+            detailedGraph: targetDetailed,
+          });
           localStorage.setItem(`gitoscale_arch_${targetId}`, JSON.stringify(dbPayload));
           if (user?.id) {
             localStorage.setItem(`gitoscale_project_owner_${targetId}`, user.id);
@@ -1909,18 +1920,18 @@ export const App: React.FC = () => {
       setActiveProject({ projectId: targetId, prompt: _repoName });
       setActivePromptText(_repoName);
       setSelectedNodeId(null);
-      setViewMode('basic');
+      setViewMode('detailed');
       setIsGeneratingArchitecture(true);
       setCurrentView('simulator');
 
       setTimeout(() => {
-        setNodes(verticalNodes);
-        setEdges(rawEdges);
+        setNodes(verticalDetailedNodes);
+        setEdges(targetDetailed.edges || []);
         baseBasicGraphRef.current = { nodes: verticalNodes, edges: rawEdges };
         basicGraphCacheRef.current = { nodes: verticalNodes, edges: rawEdges };
-        baseDetailedGraphRef.current = null;
-        detailedGraphCacheRef.current = null;
-        triggerSimulation(verticalNodes, rawEdges, incomingTrafficRate, durationSeconds);
+        baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: targetDetailed.edges || [] };
+        detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: targetDetailed.edges || [] };
+        triggerSimulation(verticalDetailedNodes, targetDetailed.edges || [], incomingTrafficRate, durationSeconds);
         setIsGeneratingArchitecture(false);
       }, 750);
     },
@@ -2248,16 +2259,19 @@ export const App: React.FC = () => {
             const basicToUse = { nodes: recNodes, edges: recEdges };
             baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
             basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
-            baseDetailedGraphRef.current = null;
-            detailedGraphCacheRef.current = null;
 
-            setViewMode('basic');
-            setNodes(recNodes);
-            setEdges(recEdges);
+            const detailed = buildDetailedArchitecture(recNodes, recEdges, activePromptText || 'Recommended Architecture');
+            const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges || []);
+            baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges || [] };
+            detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges || [] };
+
+            setViewMode('detailed');
+            setNodes(verticalDetailedNodes);
+            setEdges(detailed.edges || []);
             setSelectedNodeId(null);
             window.history.pushState({}, '', '/app');
             setCurrentView('simulator');
-            triggerSimulation(recNodes, recEdges, incomingTrafficRate, durationSeconds);
+            triggerSimulation(verticalDetailedNodes, detailed.edges || [], incomingTrafficRate, durationSeconds);
           }}
         />
       </Suspense>
@@ -2441,7 +2455,6 @@ export const App: React.FC = () => {
                 onDeleteEdge={handleDeleteEdge}
                 onUpdateEdge={handleUpdateEdge}
                 viewMode={viewMode}
-                onToggleViewMode={handleToggleViewMode}
                 isDark={isDark}
                 isRunning={isRunning}
                 isLeftCollapsed={isLeftCollapsed}

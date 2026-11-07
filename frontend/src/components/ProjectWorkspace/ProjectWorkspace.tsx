@@ -674,7 +674,6 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   }
                 }}
                 viewMode={viewMode}
-                onToggleViewMode={setViewMode}
                 isDark={isDark}
               />
             )}
