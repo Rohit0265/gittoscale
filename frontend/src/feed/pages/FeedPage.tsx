@@ -141,13 +141,13 @@ export const FeedPage: React.FC<FeedPageProps> = ({
 
           {/* Active Filter Banner when viewing 'Yours Saved' */}
           {filter === 'saved' && (
-            <div className="mb-4 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 flex items-center justify-between">
-              <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+            <div className="mb-4 p-3 rounded-2xl bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
                 Viewing your saved posts & architectures
               </span>
               <button
                 onClick={() => setFilter('all')}
-                className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+                className="text-xs font-bold text-slate-900 dark:text-white hover:underline cursor-pointer"
               >
                 Back to All Posts
               </button>
