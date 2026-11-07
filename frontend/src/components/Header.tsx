@@ -313,6 +313,15 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <button
                   type="button"
+                  onClick={handleDownloadReport}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/70 transition-colors cursor-pointer text-left"
+                >
+                  <FileText className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
+                  <span>Download Report (.md)</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleDownloadMermaid}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/70 transition-colors cursor-pointer text-left"
                 >
@@ -327,6 +336,20 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                   <Code2 className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                   <span>Download JSON (.json)</span>
+                </button>
+
+                <div className="my-1 border-t border-slate-100 dark:border-neutral-800/80" />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportOpen(false);
+                    setIsPreviewModalOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors cursor-pointer text-left"
+                >
+                  <FileCode className="w-4 h-4" />
+                  <span>Preview & Export Report</span>
                 </button>
               </motion.div>
             )}
@@ -427,6 +450,7 @@ export const Header: React.FC<HeaderProps> = ({
                     type="button"
                     onClick={() => {
                       if (previewTab === 'mermaid') handleCopyMermaid();
+                      else if (previewTab === 'report') handleCopyReport();
                       else handleCopyJson();
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
@@ -439,7 +463,9 @@ export const Header: React.FC<HeaderProps> = ({
                     ) : (
                       <>
                         <Copy className="w-3.5 h-3.5" />
-                        <span>Copy {previewTab === 'mermaid' ? 'Mermaid' : 'JSON'}</span>
+                        <span>
+                          Copy {previewTab === 'mermaid' ? 'Mermaid' : previewTab === 'report' ? 'Report' : 'JSON'}
+                        </span>
                       </>
                     )}
                   </button>
@@ -448,6 +474,7 @@ export const Header: React.FC<HeaderProps> = ({
                     type="button"
                     onClick={() => {
                       if (previewTab === 'mermaid') handleDownloadMermaid();
+                      else if (previewTab === 'report') handleDownloadReport();
                       else handleDownloadJson();
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
@@ -467,11 +494,23 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Tabs */}
-              <div className="flex items-center gap-2 px-5 pt-3 pb-2 border-b border-slate-100 dark:border-neutral-800/60 bg-slate-50/50 dark:bg-neutral-900/30">
+              <div className="flex items-center gap-2 px-5 pt-3 pb-2 border-b border-slate-100 dark:border-neutral-800/60 bg-slate-50/50 dark:bg-neutral-900/30 overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setPreviewTab('report')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    previewTab === 'report'
+                      ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                      : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>System Design Report (.md)</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setPreviewTab('mermaid')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                     previewTab === 'mermaid'
                       ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-xs'
                       : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
@@ -483,7 +522,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => setPreviewTab('json')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                     previewTab === 'json'
                       ? 'bg-white dark:bg-neutral-800 text-emerald-600 dark:text-emerald-400 shadow-xs'
                       : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
@@ -499,6 +538,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <pre className="whitespace-pre overflow-x-auto">
                   {previewTab === 'mermaid'
                     ? generateMermaidDiagram(nodes || [], edges || [], projectName)
+                    : previewTab === 'report'
+                    ? generateSystemDesignReport(nodes || [], edges || [], projectName)
                     : generateArchitectureJson(nodes || [], edges || [], projectName)}
                 </pre>
               </div>
