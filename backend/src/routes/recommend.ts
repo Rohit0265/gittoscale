@@ -1,8 +1,23 @@
 import { Router, Request, Response } from 'express';
 import { recommenderInputSchema } from '../services/recommenderTypes.js';
 import { recommendArchitecture } from '../services/architectureRecommender.js';
+import { generateSystemDesignReport } from '../services/aiSystemDesignArchitect.js';
 
 const router = Router();
+
+// Endpoint for AI System Design Architect 7-Phase Report
+router.post('/design-report', async (req: Request, res: Response) => {
+  try {
+    const report = await generateSystemDesignReport(req.body);
+    return res.json(report);
+  } catch (err: any) {
+    console.error('[AI System Design Architect Error]', err);
+    return res.status(500).json({
+      error: 'System Design Generation Failed',
+      message: err.message || 'Failed to generate system design report.',
+    });
+  }
+});
 
 // In-memory cache for fast repeated prompts
 const recommendationCache = new Map<string, any>();
