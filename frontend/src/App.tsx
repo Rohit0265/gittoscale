@@ -101,7 +101,7 @@ export interface ProjectRouteInfo {
 
 const getProjectRouteInfo = (): ProjectRouteInfo | null => {
   if (typeof window === 'undefined') return null;
-  const match = window.location.pathname.match(/\/(?:project|product)\/([a-zA-Z0-9_-]+)/);
+  const match = window.location.pathname.match(/\/(?:project|product|app)\/([a-zA-Z0-9_-]+)/);
   const search = new URLSearchParams(window.location.search);
   const promptQuery = search.get('prompt') || undefined;
   if (match && match[1]) {
@@ -1373,6 +1373,26 @@ export const App: React.FC = () => {
     },
     [user, savePendingAction, selectedAnswers, handleGenerateFromPrompt]
   );
+
+  const handleStartBlankProject = useCallback(() => {
+    const projectId = 'prj_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+    const projectPath = `/app/${projectId}`;
+
+    setIsStartProjectModalOpen(false);
+    lastGeneratedPromptRef.current = null;
+    window.history.pushState({ projectId, prompt: '' }, '', projectPath);
+    setActiveProject({ projectId, prompt: '' });
+    setCurrentView('simulator');
+    setNodes([]);
+    setEdges([]);
+    setSelectedNodeId(null);
+    setSimulationResult(null);
+    baseBasicGraphRef.current = { nodes: [], edges: [] };
+    basicGraphCacheRef.current = { nodes: [], edges: [] };
+    baseDetailedGraphRef.current = { nodes: [], edges: [] };
+    detailedGraphCacheRef.current = { nodes: [], edges: [] };
+    setActivePromptText('Blank System Design');
+  }, []);
 
   const handleRequireAuthForRepo = useCallback(
     (repoUrl: string, llmConfig?: any) => {
