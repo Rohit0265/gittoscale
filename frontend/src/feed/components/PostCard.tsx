@@ -14,6 +14,7 @@ interface PostCardProps {
   currentUserId?: string;
   onLike: (postId: string) => void;
   onDislike?: (postId: string) => void;
+  onBookmark?: (postId: string) => void;
   onOpenComments: (post: FeedPost) => void;
   onUpdatePost: (postId: string, newContent: string) => Promise<any>;
   onDeletePost: (postId: string) => Promise<any>;
@@ -25,6 +26,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   currentUserId,
   onLike,
   onDislike,
+  onBookmark,
   onOpenComments,
   onUpdatePost,
   onDeletePost,
@@ -199,8 +201,10 @@ export const PostCard: React.FC<PostCardProps> = ({
           commentCount={post.comment_count}
           hasLiked={post.has_liked}
           hasDisliked={post.has_disliked}
+          hasBookmarked={post.has_bookmarked}
           onLike={() => onLike(post.id)}
           onDislike={() => onDislike?.(post.id)}
+          onBookmark={onBookmark ? () => onBookmark(post.id) : undefined}
           onOpenComments={() => onOpenComments(post)}
         />
       </article>
