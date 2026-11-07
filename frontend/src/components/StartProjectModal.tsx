@@ -157,6 +157,11 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
     onOpenImportRepo();
   };
 
+  const handleBlankProjectClick = () => {
+    onClose();
+    onStartBlankProject?.();
+  };
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -257,20 +262,44 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
             </div>
           </div>
 
-          {/* Import GitHub Repo Bar */}
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between w-full px-4 py-3 rounded-xl bg-slate-50/90 dark:bg-neutral-900/60 border border-slate-200/90 dark:border-neutral-800/60 backdrop-blur-md text-slate-700 dark:text-gray-200">
-            <div className="flex items-center space-x-2 text-xs sm:text-sm text-slate-500 dark:text-neutral-400 mb-2.5 sm:mb-0">
-              <GitBranch className="w-4 h-4 text-slate-500 dark:text-neutral-500" />
-              <span>Want automated discovery from code?</span>
-            </div>
+          {/* Quick Alternative Entry Points: Blank Project & Import GitHub Repo */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+            {/* Blank Project Option */}
+            <button
+              type="button"
+              onClick={handleBlankProjectClick}
+              className="group flex items-center justify-between p-3 rounded-xl bg-slate-50/90 dark:bg-neutral-900/60 hover:bg-slate-100 dark:hover:bg-neutral-800/80 border border-slate-200/90 dark:border-neutral-800/60 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-700 dark:text-gray-200 transition-all cursor-pointer shadow-xs text-left"
+              title="Start with an empty canvas without AI generation"
+            >
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-slate-200/80 dark:bg-neutral-800 flex items-center justify-center text-slate-700 dark:text-neutral-300 shrink-0">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div className="truncate">
+                  <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">Blank Project</div>
+                  <div className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">Start with empty canvas</div>
+                </div>
+              </div>
+              <span className="text-slate-400 dark:text-neutral-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-xs ml-2 shrink-0">→</span>
+            </button>
 
+            {/* Import GitHub Repo Option */}
             <button
               type="button"
               onClick={handleImportRepoClick}
-              className="group flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-slate-700/80 hover:border-slate-600 dark:border-neutral-700/80 dark:hover:border-neutral-600 text-xs px-3.5 py-2 rounded-lg transition-all duration-150 cursor-pointer shadow-xs"
+              className="group flex items-center justify-between p-3 rounded-xl bg-slate-50/90 dark:bg-neutral-900/60 hover:bg-slate-100 dark:hover:bg-neutral-800/80 border border-slate-200/90 dark:border-neutral-800/60 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-700 dark:text-gray-200 transition-all cursor-pointer shadow-xs text-left"
+              title="Extract architecture directly from your GitHub codebase"
             >
-              <span>Import GitHub Repo</span>
-              <span className="text-slate-300 dark:text-neutral-400 group-hover:text-white transition-colors">→</span>
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-slate-200/80 dark:bg-neutral-800 flex items-center justify-center text-slate-700 dark:text-neutral-300 shrink-0">
+                  <GitBranch className="w-4 h-4" />
+                </div>
+                <div className="truncate">
+                  <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">Import GitHub Repo</div>
+                  <div className="text-[11px] text-slate-500 dark:text-neutral-400 truncate">Scan codebase manifests</div>
+                </div>
+              </div>
+              <span className="text-slate-400 dark:text-neutral-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-xs ml-2 shrink-0">→</span>
             </button>
           </div>
         </motion.div>
