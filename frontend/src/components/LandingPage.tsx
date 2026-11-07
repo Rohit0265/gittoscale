@@ -30,6 +30,7 @@ interface LandingPageProps {
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
   onStartProject?: (prompt: string) => void;
+  onStartBlankProject?: () => void;
   children?: React.ReactNode;
   isDark?: boolean;
   onToggleTheme?: () => void;
@@ -326,6 +327,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
   onOpenAuth,
   onOpenSignUp,
   onStartProject,
+  onStartBlankProject,
   children,
   isDark = true,
   onToggleTheme,
@@ -697,12 +699,13 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
             {/* New UI Section */}
             <NewOne
               onSelectTestSite={onSelectTestSite}
-            onSelectUseRepository={onSelectUseRepository}
-            onOpenRecommender={onOpenRecommender}
-            onOpenAuth={onOpenAuth}
-            onStartProject={onStartProject}
-            isDark={isDark}
-          />
+              onSelectUseRepository={onSelectUseRepository}
+              onOpenRecommender={onOpenRecommender}
+              onOpenAuth={onOpenAuth}
+              onStartProject={onStartProject}
+              onStartBlankProject={onStartBlankProject}
+              isDark={isDark}
+            />
 
           {/* Hero Body Grid */}
     
