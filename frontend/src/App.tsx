@@ -2206,6 +2206,7 @@ export const App: React.FC = () => {
             setCurrentView('signup');
           }}
           onStartProject={handleStartProject}
+          onStartBlankProject={handleStartBlankProject}
           onSelectTestSite={() => {
             window.history.pushState({}, '', '/app');
             setCurrentView('simulator');
@@ -2319,6 +2320,7 @@ export const App: React.FC = () => {
         onOpenCompare={() => setIsCompareOpen(true)}
         onOpenImportRepo={() => setIsImportRepoOpen(true)}
         onOpenNewProject={() => setIsStartProjectModalOpen(true)}
+        onStartBlankProject={handleStartBlankProject}
         onOpenRecommender={() => {
           window.history.pushState({}, '', '/recommender');
           setCurrentView('recommender');
