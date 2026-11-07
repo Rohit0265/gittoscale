@@ -3,6 +3,7 @@ import {
   ArrowUp,
   GitBranch,
   X,
+  Plus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,6 +12,7 @@ export interface StartProjectModalProps {
   onClose: () => void;
   onSubmitPrompt: (prompt: string) => void;
   onOpenImportRepo: () => void;
+  onStartBlankProject?: () => void;
   onGoHome?: () => void;
   isDark?: boolean;
 }
@@ -47,6 +49,7 @@ export const StartProjectModal: React.FC<StartProjectModalProps> = ({
   onClose,
   onSubmitPrompt,
   onOpenImportRepo,
+  onStartBlankProject,
   onGoHome: _onGoHome,
   isDark,
 }) => {
