@@ -892,6 +892,7 @@ export const App: React.FC = () => {
       duration: number
     ) => {
       if (!isRunning) return;
+      if (!currentNodes || currentNodes.length === 0) return;
       try {
         setLoading(true);
         setError(null);

@@ -397,7 +397,10 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   );
 
   return (
-    <div className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors">
+    <div
+      className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors"
+      style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%' }}
+    >
       {/* Floating Two-Mode Toggle & Flow Modes Legend Above Canvas */}
       <div className="absolute top-2.5 sm:top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
         <div className="flex items-center gap-1 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200 dark:border-neutral-800">
@@ -458,6 +461,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
       </div>
 
       <ReactFlow
+        style={{ width: '100%', height: '100%' }}
         nodes={rfNodes}
         edges={rfEdges}
         nodeTypes={nodeTypes}

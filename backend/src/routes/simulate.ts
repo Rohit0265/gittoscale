@@ -9,14 +9,16 @@ router.post('/', (req: Request, res: Response, next: NextFunction) => {
   try {
     let body = req.body;
 
-    // If nodes/edges are not provided, fall back to architecture fixture
-    if (!body.nodes || !body.edges) {
+    // If nodes/edges are not provided or empty, fall back to architecture fixture
+    if (!body.nodes || !Array.isArray(body.nodes) || body.nodes.length === 0) {
       const defaultArch = getArchitectureFixture();
       body = {
         ...body,
-        nodes: body.nodes || defaultArch.nodes,
-        edges: body.edges || defaultArch.edges,
+        nodes: defaultArch.nodes,
+        edges: body.edges && Array.isArray(body.edges) ? body.edges : defaultArch.edges,
       };
+    } else if (!body.edges || !Array.isArray(body.edges)) {
+      body.edges = [];
     }
 
     const parseResult = simulationInputSchema.safeParse(body);

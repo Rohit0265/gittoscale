@@ -261,18 +261,14 @@ export const RichPostInput: React.FC<RichPostInputProps> = ({
                       className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
                     />
                   ),
-                  code: ({ node, inline, children, ...props }: any) => {
-                    if (inline) {
-                      return (
-                        <code className="px-1 py-0.5 rounded-sm bg-slate-200 dark:bg-neutral-800 font-mono text-[11px]" {...props}>
-                          {children}
-                        </code>
-                      );
-                    }
+                  pre: ({ node, ...props }: any) => (
+                    <pre className="p-2.5 rounded-lg bg-slate-900 text-slate-100 font-mono text-[11px] overflow-x-auto my-1.5" {...props} />
+                  ),
+                  code: ({ node, className, children, ...props }: any) => {
                     return (
-                      <pre className="p-2.5 rounded-lg bg-slate-900 text-slate-100 font-mono text-[11px] overflow-x-auto my-1.5">
-                        <code {...props}>{children}</code>
-                      </pre>
+                      <code className={className || "px-1 py-0.5 rounded-sm bg-slate-200 dark:bg-neutral-800 font-mono text-[11px]"} {...props}>
+                        {children}
+                      </code>
                     );
                   },
                 }}

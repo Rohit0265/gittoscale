@@ -145,18 +145,14 @@ export const PostCard: React.FC<PostCardProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   />
                 ),
-                code: ({ node, inline, children, ...props }: any) => {
-                  if (inline) {
-                    return (
-                      <code className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 font-mono text-xs text-indigo-600 dark:text-indigo-400" {...props}>
-                        {children}
-                      </code>
-                    );
-                  }
+                pre: ({ node, ...props }: any) => (
+                  <pre className="p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto my-2 border border-slate-800" {...props} />
+                ),
+                code: ({ node, className, children, ...props }: any) => {
                   return (
-                    <pre className="p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto my-2 border border-slate-800">
-                      <code {...props}>{children}</code>
-                    </pre>
+                    <code className={className || "px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 font-mono text-xs text-indigo-600 dark:text-indigo-400"} {...props}>
+                      {children}
+                    </code>
                   );
                 },
               }}

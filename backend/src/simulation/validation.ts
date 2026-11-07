@@ -16,16 +16,51 @@ export const nodeConfigSchema = z.object({
 export const architectureNodeSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  type: z.enum(['load_generator', 'gateway', 'service', 'cache', 'database']),
-  position: z.object({
-    x: z.number(),
-    y: z.number(),
-  }),
-  capacityPerSecond: z.number().min(0),
-  workerCount: z.number().int().min(1),
-  enabled: z.boolean().default(true),
-  config: nodeConfigSchema,
-});
+  type: z.preprocess(
+    (val) => {
+      if (typeof val === 'string') {
+        const lower = val.toLowerCase();
+        if (['load_generator', 'loadgenerator', 'client', 'source'].includes(lower)) return 'load_generator';
+        if (['gateway', 'api_gateway', 'apigateway', 'ingress', 'router', 'load_balancer', 'loadbalancer'].includes(lower)) return 'gateway';
+        if (['cache', 'redis', 'memcached'].includes(lower)) return 'cache';
+        if (['database', 'db', 'storage', 'postgres', 'mysql', 'mongodb'].includes(lower)) return 'database';
+        return 'service';
+      }
+      return 'service';
+    },
+    z.enum(['load_generator', 'gateway', 'service', 'cache', 'database'])
+  ),
+  position: z.preprocess(
+    (val: any) => ({
+      x: typeof val?.x === 'number' ? val.x : 0,
+      y: typeof val?.y === 'number' ? val.y : 0,
+    }),
+    z.object({
+      x: z.number(),
+      y: z.number(),
+    })
+  ),
+  capacityPerSecond: z.preprocess(
+    (val) => (typeof val === 'number' && !isNaN(val) ? Math.max(0, val) : 1000),
+    z.number().min(0)
+  ),
+  workerCount: z.preprocess(
+    (val) => (typeof val === 'number' && !isNaN(val) && val >= 1 ? Math.floor(val) : 1),
+    z.number().int().min(1)
+  ),
+  enabled: z.preprocess((val) => (typeof val === 'boolean' ? val : true), z.boolean().default(true)),
+  config: z.preprocess(
+    (val: any) => ({
+      baselineLatencyMs: typeof val?.baselineLatencyMs === 'number' ? val.baselineLatencyMs : 10,
+      maxQueueSize: typeof val?.maxQueueSize === 'number' ? val.maxQueueSize : 2000,
+      overflowPolicy: val?.overflowPolicy === 'drop' ? 'drop' : 'reject',
+      isSource: Boolean(val?.isSource),
+      defaultTrafficRate: typeof val?.defaultTrafficRate === 'number' ? val.defaultTrafficRate : undefined,
+      ...(typeof val === 'object' && val !== null ? val : {}),
+    }),
+    nodeConfigSchema
+  ),
+}).passthrough();
 
 export const architectureEdgeSchema = z.object({
   id: z.string().min(1),
