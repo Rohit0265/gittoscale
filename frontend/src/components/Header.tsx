@@ -40,6 +40,7 @@ interface HeaderProps {
   token?: string | null;
   onNavigateToProfile?: (userId: string) => void;
   onViewLikes?: () => void;
+  onViewSaved?: () => void;
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
   onSignOut?: () => void;

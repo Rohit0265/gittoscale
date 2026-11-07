@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Heart, Moon, Sun, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, UserPlus } from 'lucide-react';
 import { UserProfileFeed } from '../feed/types';
 import { feedApi } from '../feed/services/feedApi';
 
@@ -10,6 +10,9 @@ export interface UserDropdownMenuProps {
   onToggleTheme?: () => void;
   onNavigateToProfile?: (userId: string) => void;
   onViewLikes?: () => void;
+  onViewSaved?: () => void;
+  onOpenImportRepo?: () => void;
+  onOpenHistory?: () => void;
   onSignOut?: () => void;
   onClose?: () => void;
   onOpenAuth?: () => void;
@@ -23,6 +26,9 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
   onToggleTheme,
   onNavigateToProfile,
   onViewLikes,
+  onViewSaved,
+  onOpenImportRepo,
+  onOpenHistory,
   onSignOut,
   onClose,
   onOpenAuth,
@@ -201,6 +207,23 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
           </span>
         </button>
 
+        {/* Yours Saved */}
+        {onViewSaved && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.();
+              onViewSaved();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group text-left"
+          >
+            <Bookmark className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-amber-500 transition-colors" />
+            <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+              Yours Saved
+            </span>
+          </button>
+        )}
+
         {/* Your Likes */}
         <button
           type="button"
@@ -215,6 +238,46 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
             Your Likes
           </span>
         </button>
+
+        {(onOpenImportRepo || onOpenHistory) && (
+          <div className="my-1 border-t border-slate-100 dark:border-neutral-800/70" />
+        )}
+
+        {/* Import Repository */}
+        {onOpenImportRepo && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.();
+              onOpenImportRepo();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group text-left"
+          >
+            <FolderGit2 className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+            <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+              Import Repository
+            </span>
+          </button>
+        )}
+
+        {/* Your History */}
+        {onOpenHistory && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.();
+              onOpenHistory();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group text-left"
+          >
+            <History className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+            <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+              Your History
+            </span>
+          </button>
+        )}
+
+        <div className="my-1 border-t border-slate-100 dark:border-neutral-800/70" />
 
         {/* Theme */}
         <div className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200">
