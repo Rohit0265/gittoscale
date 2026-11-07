@@ -294,6 +294,12 @@ export const App: React.FC = () => {
   const [isGeneratingArchitecture, setIsGeneratingArchitecture] = useState<boolean>(false);
   const loadedHistoryProjectsRef = useRef<Set<string>>(new Set());
 
+  // Pending post to be pre-populated when sharing system design to feed
+  const [pendingFeedPost, setPendingFeedPost] = useState<{
+    content?: string;
+    media?: import('./feed/components/CreatePost').InitialPostMedia[];
+  } | null>(null);
+
   // Selected mandatory parameters for AI Architect chat
   const [selectedAnswers, setSelectedAnswers] = useState<{
     scale?: string;
