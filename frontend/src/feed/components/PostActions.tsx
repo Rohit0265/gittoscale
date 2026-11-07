@@ -101,15 +101,15 @@ export const PostActions: React.FC<PostActionsProps> = ({
             onClick={handleBookmarkClick}
             className={`flex items-center justify-center p-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               hasBookmarked
-                ? 'text-amber-500 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/40'
-                : 'text-slate-600 dark:text-neutral-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100/60 dark:hover:bg-neutral-800/40'
+                ? 'text-white dark:text-white bg-slate-900 dark:bg-white/15'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-neutral-800/40'
             }`}
             title={hasBookmarked ? 'Remove Bookmark' : 'Bookmark post'}
             aria-label={hasBookmarked ? 'Remove Bookmark' : 'Bookmark post'}
           >
             <Bookmark
               className={`w-4 h-4 transition-transform ${
-                hasBookmarked ? 'fill-current' : ''
+                hasBookmarked ? 'fill-white text-white' : ''
               } ${bookmarkAnimating ? 'scale-125' : 'scale-100'}`}
             />
           </button>
