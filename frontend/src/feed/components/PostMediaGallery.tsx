@@ -1,6 +1,87 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, X, Play, Maximize2, Video as VideoIcon } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ChevronLeft, ChevronRight, X, Play, Maximize2, Video as VideoIcon, Volume2, VolumeX } from 'lucide-react';
 import { MediaItem } from '../types';
+
+/**
+ * Viewport-aware autoplay video player with loop, playsInline and audio toggle
+ */
+export const FeedVideoPlayer: React.FC<{
+  src: string;
+  className?: string;
+  controls?: boolean;
+  loop?: boolean;
+  showMuteButton?: boolean;
+}> = ({ src, className = '', controls = true, loop = true, showMuteButton = true }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  // Strictly enforce muted in DOM so browser autoplay policies never block playback
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+      videoRef.current.defaultMuted = true;
+    }
+  }, [isMuted]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.35) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: [0, 0.35, 0.7] }
+    );
+
+    observer.observe(video);
+    return () => {
+      observer.disconnect();
+    };
+  }, [src]);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      const nextMuted = !videoRef.current.muted;
+      videoRef.current.muted = nextMuted;
+      setIsMuted(nextMuted);
+    }
+  };
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center bg-black group/videoplayer">
+      <video
+        ref={videoRef}
+        src={src}
+        autoPlay
+        muted
+        loop={loop}
+        playsInline
+        controls={controls}
+        preload="auto"
+        className={className}
+      />
+      {showMuteButton && (
+        <button
+          type="button"
+          onClick={toggleMute}
+          className="absolute bottom-3 right-3 p-2 rounded-full bg-black/75 hover:bg-black text-white backdrop-blur-md opacity-80 hover:opacity-100 transition-all cursor-pointer z-20 shadow-md group-hover/videoplayer:opacity-100"
+          title={isMuted ? 'Unmute' : 'Mute'}
+          aria-label={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-indigo-400" />}
+        </button>
+      )}
+    </div>
+  );
+};
 
 interface PostMediaGalleryProps {
   mediaItems: MediaItem[];
@@ -46,11 +127,8 @@ export const PostMediaGallery: React.FC<PostMediaGalleryProps> = ({ mediaItems }
     return (
       <div className="mb-4 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-neutral-800 bg-black/90 relative group">
         {item.type === 'video' ? (
-          <video
+          <FeedVideoPlayer
             src={item.url}
-            controls
-            playsInline
-            preload="metadata"
             className="w-full max-h-[500px] object-contain rounded-2xl bg-black"
           />
         ) : (
@@ -99,11 +177,8 @@ export const PostMediaGallery: React.FC<PostMediaGalleryProps> = ({ mediaItems }
         {/* Slide Item */}
         <div className="w-full h-full flex items-center justify-center relative">
           {sortedItems[activeSlide].type === 'video' ? (
-            <video
+            <FeedVideoPlayer
               src={sortedItems[activeSlide].url}
-              controls
-              playsInline
-              preload="metadata"
               className="w-full h-full object-contain bg-black"
             />
           ) : (
@@ -267,7 +342,11 @@ export const PostMediaGallery: React.FC<PostMediaGalleryProps> = ({ mediaItems }
                 {sortedItems[4].type === 'video' ? (
                   <video
                     src={sortedItems[4].url}
-                    preload="metadata"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
