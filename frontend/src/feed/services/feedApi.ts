@@ -105,6 +105,18 @@ export const feedApi = {
   },
 
   /**
+   * Toggle bookmark / save for a post
+   */
+  async toggleBookmark(postId: string, token: string): Promise<{ bookmarked: boolean }> {
+    const res = await axios.post(`${API_BASE}/feed/posts/${postId}/bookmark`, {}, {
+      headers: getAuthHeader(token),
+    });
+    return {
+      bookmarked: res.data?.bookmarked,
+    };
+  },
+
+  /**
    * Get post comments
    */
   async getComments(postId: string): Promise<FeedComment[]> {
@@ -186,6 +198,16 @@ export const feedApi = {
    */
   async getUserLikedPosts(userId: string, token?: string | null): Promise<FeedPost[]> {
     const res = await axios.get(`${API_BASE}/feed/profile/${userId}/likes`, {
+      headers: getAuthHeader(token),
+    });
+    return res.data?.data || [];
+  },
+
+  /**
+   * Get posts saved/bookmarked by user
+   */
+  async getUserSavedPosts(userId: string, token?: string | null): Promise<FeedPost[]> {
+    const res = await axios.get(`${API_BASE}/feed/profile/${userId}/saved`, {
       headers: getAuthHeader(token),
     });
     return res.data?.data || [];

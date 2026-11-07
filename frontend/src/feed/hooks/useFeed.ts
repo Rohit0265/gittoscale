@@ -11,10 +11,11 @@ export function useFeed({ token, userId }: UseFeedOptions) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'liked'>(() => {
+  const [filter, setFilter] = useState<'all' | 'liked' | 'saved'>(() => {
     if (typeof window !== 'undefined') {
       const param = new URLSearchParams(window.location.search).get('filter');
       if (param === 'liked') return 'liked';
+      if (param === 'saved') return 'saved';
     }
     return 'all';
   });
@@ -26,6 +27,9 @@ export function useFeed({ token, userId }: UseFeedOptions) {
       setError(null);
       if (filter === 'liked' && userId) {
         const data = await feedApi.getUserLikedPosts(userId, token);
+        setPosts(data);
+      } else if (filter === 'saved' && userId) {
+        const data = await feedApi.getUserSavedPosts(userId, token);
         setPosts(data);
       } else {
         const data = await feedApi.getPosts(token);
