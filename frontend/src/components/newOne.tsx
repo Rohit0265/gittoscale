@@ -8,7 +8,6 @@ import {
   Database,
   Layers,
   ShieldCheck,
-  GitBranch,
   Plus,
 } from 'lucide-react';
 
