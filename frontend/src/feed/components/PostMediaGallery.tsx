@@ -189,19 +189,6 @@ export const PostMediaGallery: React.FC<PostMediaGalleryProps> = ({ mediaItems }
               className="w-full h-full object-contain cursor-zoom-in"
             />
           )}
-
-          {/* Video badge if video */}
-          {sortedItems[activeSlide].type === 'video' && (
-            <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-[11px] font-semibold text-white flex items-center gap-1 z-10">
-              <VideoIcon className="w-3 h-3 text-white" />
-              <span>Video</span>
-            </div>
-          )}
-
-          {/* Counter Badge */}
-          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-[11px] font-semibold text-white z-10 font-mono">
-            {activeSlide + 1} / {count}
-          </div>
         </div>
 
         {/* Carousel Prev Button */}
@@ -231,8 +218,8 @@ export const PostMediaGallery: React.FC<PostMediaGalleryProps> = ({ mediaItems }
               key={idx}
               className={`h-1.5 rounded-full transition-all duration-200 ${
                 activeSlide === idx
-                  ? 'w-4 bg-indigo-500 shadow-xs'
-                  : 'w-1.5 bg-white/50'
+                  ? 'w-4 bg-neutral-300 dark:bg-neutral-300 shadow-xs'
+                  : 'w-1.5 bg-neutral-600/70 dark:bg-neutral-600/70'
               }`}
             />
           ))}
@@ -439,10 +426,6 @@ const DesktopMediaCell: React.FC<{
             preload="auto"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-[10px] font-semibold text-white flex items-center gap-1 z-10">
-            <VideoIcon className="w-3 h-3 text-white" />
-            <span>Video</span>
-          </div>
         </div>
       ) : (
         <div className="w-full h-full relative">
