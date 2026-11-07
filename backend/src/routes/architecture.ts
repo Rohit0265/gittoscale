@@ -1,7 +1,17 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getArchitectureFixture, getDetailedArchitectureFixture } from '../fixtures/loader.js';
+import { generateSystemDesignReport } from '../services/aiSystemDesignArchitect.js';
 
 const router = Router();
+
+router.post('/design-report', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const report = await generateSystemDesignReport(req.body);
+    return res.json(report);
+  } catch (err: any) {
+    next(err);
+  }
+});
 
 router.get('/', (req: Request, res: Response, next: NextFunction) => {
   try {
