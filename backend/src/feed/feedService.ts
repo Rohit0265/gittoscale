@@ -716,6 +716,58 @@ export async function toggleFeedDislike(postId: string, userId: string): Promise
 }
 
 /**
+ * Toggle bookmark/save for a post. Returns whether it is currently bookmarked.
+ */
+export async function toggleFeedBookmark(postId: string, userId: string): Promise<{ bookmarked: boolean }> {
+  try {
+    const db = getSql();
+
+    const postCheck = await db`SELECT id FROM public.feed_posts WHERE id = ${postId} LIMIT 1;`;
+    if (!postCheck || postCheck.length === 0) {
+      throw new Error('POST_NOT_FOUND');
+    }
+
+    const existingBookmark = await db`
+      SELECT id FROM public.feed_bookmarks WHERE post_id = ${postId} AND user_id = ${userId} LIMIT 1;
+    `;
+
+    let bookmarked = false;
+    if (existingBookmark && existingBookmark.length > 0) {
+      await db`
+        DELETE FROM public.feed_bookmarks WHERE post_id = ${postId} AND user_id = ${userId};
+      `;
+      bookmarked = false;
+    } else {
+      await db`
+        INSERT INTO public.feed_bookmarks (post_id, user_id, created_at)
+        VALUES (${postId}, ${userId}, timezone('utc'::text, now()))
+        ON CONFLICT (post_id, user_id) DO NOTHING;
+      `;
+      bookmarked = true;
+    }
+
+    return { bookmarked };
+  } catch (err: any) {
+    if (isDbConnectionError(err)) {
+      const postExists = inMemPosts.some((p) => p.id === postId);
+      if (!postExists) throw new Error('POST_NOT_FOUND');
+
+      const idx = inMemBookmarks.findIndex((b) => b.post_id === postId && b.user_id === userId);
+      let bookmarked = false;
+      if (idx !== -1) {
+        inMemBookmarks.splice(idx, 1);
+        bookmarked = false;
+      } else {
+        inMemBookmarks.push({ post_id: postId, user_id: userId });
+        bookmarked = true;
+      }
+      return { bookmarked };
+    }
+    throw err;
+  }
+}
+
+/**
  * Get comments for a post.
  */
 export async function getPostComments(postId: string): Promise<FeedComment[]> {
