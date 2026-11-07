@@ -8,6 +8,7 @@ import {
   Download,
   FileCode,
   Code2,
+  FileText,
   Copy,
   Check,
   X,
@@ -19,6 +20,7 @@ import { ScenarioFixture, ArchitectureNode, ArchitectureEdge } from '../types';
 import {
   generateMermaidDiagram,
   generateArchitectureJson,
+  generateSystemDesignReport,
   downloadFile,
   copyToClipboard,
 } from '../utils/exportDiagram';
@@ -99,8 +101,8 @@ export const Header: React.FC<HeaderProps> = ({
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [previewTab, setPreviewTab] = useState<'mermaid' | 'json'>('mermaid');
-  const [copiedType, setCopiedType] = useState<'mermaid' | 'json' | null>(null);
+  const [previewTab, setPreviewTab] = useState<'mermaid' | 'json' | 'report'>('mermaid');
+  const [copiedType, setCopiedType] = useState<'mermaid' | 'json' | 'report' | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -178,6 +180,21 @@ export const Header: React.FC<HeaderProps> = ({
     const success = await copyToClipboard(content);
     if (success) {
       setCopiedType('json');
+      setTimeout(() => setCopiedType(null), 2000);
+    }
+  };
+
+  const handleDownloadReport = () => {
+    const content = generateSystemDesignReport(nodes, edges, projectName);
+    downloadFile(content, `${safeFilename}_system_design.md`, 'text/markdown;charset=utf-8');
+    setIsExportOpen(false);
+  };
+
+  const handleCopyReport = async () => {
+    const content = generateSystemDesignReport(nodes, edges, projectName);
+    const success = await copyToClipboard(content);
+    if (success) {
+      setCopiedType('report');
       setTimeout(() => setCopiedType(null), 2000);
     }
   };

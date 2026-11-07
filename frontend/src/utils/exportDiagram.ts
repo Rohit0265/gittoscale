@@ -2,14 +2,15 @@ import { ArchitectureNode, ArchitectureEdge, ComponentType } from '../types';
 import { toVerticalTree } from './treeLayout';
 
 /**
- * Generates valid Mermaid flowchart syntax from architecture nodes and edges.
+ * Generates valid Mermaid flowchart syntax from architecture nodes and edges,
+ * organized into logical architectural subgraphs matching Senior Architect design standards.
  */
 export function generateMermaidDiagram(
   nodes: ArchitectureNode[] = [],
   edges: ArchitectureEdge[] = [],
   title?: string
 ): string {
-  const lines: string[] = ['flowchart TD'];
+  const lines: string[] = ['flowchart TB'];
 
   if (title) {
     const cleanTitle = title.replace(/[\r\n]+/g, ' ').slice(0, 80);
@@ -25,8 +26,7 @@ export function generateMermaidDiagram(
   const sanitizeId = (id: string) =>
     'node_' + id.toLowerCase().replace(/[^a-z0-9_]/g, '_');
 
-  // 1. Declare nodes with appropriate semantic shapes
-  nodes.forEach((node) => {
+  const renderNodeDeclaration = (node: ArchitectureNode, indent = '    ') => {
     const sId = sanitizeId(node.id);
     const safeName = (node.name || node.id).replace(/"/g, "'");
     const safeCapacity = `${Number(node.capacityPerSecond || 0).toLocaleString()} req/s`;
@@ -34,28 +34,104 @@ export function generateMermaidDiagram(
 
     switch (node.type) {
       case 'database':
-        // Cylinder for database
-        lines.push(`  ${sId}[(${label})]:::database`);
-        break;
+        return `${indent}${sId}[(${label})]:::database`;
       case 'cache':
-        // Subroutine / database box for cache
-        lines.push(`  ${sId}[[${label}]]:::cache`);
-        break;
+        return `${indent}${sId}[[${label}]]:::cache`;
       case 'gateway':
-        // Stadium shape for entry gateway
-        lines.push(`  ${sId}([${label}]):::gateway`);
-        break;
+        return `${indent}${sId}([${label}]):::gateway`;
       case 'load_generator':
-        // Asymmetric / Parallelogram for user client traffic
-        lines.push(`  ${sId}[/${label}/\\]:::client`);
-        break;
+        return `${indent}${sId}([${label}]):::client`;
       case 'service':
-      default:
-        // Standard rectangle for microservice / worker
-        lines.push(`  ${sId}[${label}]:::service`);
-        break;
+      default: {
+        const lowerName = (node.name || '').toLowerCase();
+        if (lowerName.includes('external') || lowerName.includes('third party') || lowerName.includes('github') || lowerName.includes('stripe')) {
+          return `${indent}${sId}([${label}]):::external`;
+        }
+        return `${indent}${sId}[${label}]:::service`;
+      }
     }
-  });
+  };
+
+  // Group nodes into logical architectural layers
+  const clientNodes = nodes.filter((n) => n.type === 'load_generator');
+  const ingressNodes = nodes.filter(
+    (n) => n.type === 'gateway' || n.category === 'API gateway' || n.id.includes('gateway')
+  );
+  const cacheAndMsgNodes = nodes.filter(
+    (n) =>
+      n.type === 'cache' ||
+      n.id.includes('queue') ||
+      n.id.includes('kafka') ||
+      n.name.toLowerCase().includes('queue') ||
+      n.name.toLowerCase().includes('broker')
+  );
+  const dataNodes = nodes.filter(
+    (n) =>
+      n.type === 'database' ||
+      n.id.includes('postgres') ||
+      n.id.includes('storage') ||
+      n.id.includes('mongo')
+  );
+  const externalNodes = nodes.filter(
+    (n) =>
+      !clientNodes.includes(n) &&
+      !ingressNodes.includes(n) &&
+      !cacheAndMsgNodes.includes(n) &&
+      !dataNodes.includes(n) &&
+      (n.category === 'External Services' ||
+        n.name.toLowerCase().includes('third') ||
+        n.name.toLowerCase().includes('github') ||
+        n.name.toLowerCase().includes('telegram') ||
+        n.name.toLowerCase().includes('supabase') ||
+        n.name.toLowerCase().includes('stripe') ||
+        n.name.toLowerCase().includes('llm') ||
+        n.name.toLowerCase().includes('gemini'))
+  );
+  const appNodes = nodes.filter(
+    (n) =>
+      !clientNodes.includes(n) &&
+      !ingressNodes.includes(n) &&
+      !cacheAndMsgNodes.includes(n) &&
+      !dataNodes.includes(n) &&
+      !externalNodes.includes(n)
+  );
+
+  // 1. Declare Layer Subgraphs
+  if (clientNodes.length > 0) {
+    lines.push('\n  subgraph CLIENT["Client Layer"]');
+    clientNodes.forEach((n) => lines.push(renderNodeDeclaration(n)));
+    lines.push('  end');
+  }
+
+  if (ingressNodes.length > 0) {
+    lines.push('\n  subgraph INGRESS["Edge & Ingress Layer"]');
+    ingressNodes.forEach((n) => lines.push(renderNodeDeclaration(n)));
+    lines.push('  end');
+  }
+
+  if (appNodes.length > 0) {
+    lines.push('\n  subgraph APP["Application & Services Layer"]');
+    appNodes.forEach((n) => lines.push(renderNodeDeclaration(n)));
+    lines.push('  end');
+  }
+
+  if (cacheAndMsgNodes.length > 0) {
+    lines.push('\n  subgraph CACHE_MSG["Cache & Messaging Layer"]');
+    cacheAndMsgNodes.forEach((n) => lines.push(renderNodeDeclaration(n)));
+    lines.push('  end');
+  }
+
+  if (dataNodes.length > 0) {
+    lines.push('\n  subgraph DATA["Data & Persistence Layer"]');
+    dataNodes.forEach((n) => lines.push(renderNodeDeclaration(n)));
+    lines.push('  end');
+  }
+
+  if (externalNodes.length > 0) {
+    lines.push('\n  subgraph EXT["External Upstream Services"]');
+    externalNodes.forEach((n) => lines.push(renderNodeDeclaration(n)));
+    lines.push('  end');
+  }
 
   lines.push('');
 
@@ -71,10 +147,17 @@ export function generateMermaidDiagram(
         : '';
     const fullLabel = rawLabel || multiplier ? `${rawLabel}${multiplier}`.trim() : '';
 
+    const isObservability =
+      rawLabel.toLowerCase().includes('telemetry') ||
+      rawLabel.toLowerCase().includes('trace') ||
+      rawLabel.toLowerCase().includes('alert');
+
+    const arrow = isObservability ? '-.->' : '-->';
+
     if (fullLabel) {
-      lines.push(`  ${sSource} -->|"${fullLabel}"| ${sTarget}`);
+      lines.push(`  ${sSource} ${arrow}|"${fullLabel}"| ${sTarget}`);
     } else {
-      lines.push(`  ${sSource} --> ${sTarget}`);
+      lines.push(`  ${sSource} ${arrow} ${sTarget}`);
     }
   });
 
@@ -88,8 +171,129 @@ export function generateMermaidDiagram(
   lines.push('  classDef service fill:#172554,stroke:#3b82f6,stroke-width:2px,color:#dbeafe;');
   lines.push('  classDef cache fill:#431407,stroke:#f97316,stroke-width:2px,color:#ffedd5;');
   lines.push('  classDef database fill:#422006,stroke:#eab308,stroke-width:2px,color:#fef9c3;');
+  lines.push('  classDef external fill:#2e1065,stroke:#a855f7,stroke-width:2px,color:#f3e8ff;');
 
   return lines.join('\n');
+}
+
+/**
+ * Generates a publication-grade System Design Report in Markdown matching the
+ * Senior Software Architect 7-Phase specification.
+ */
+export function generateSystemDesignReport(
+  nodes: ArchitectureNode[] = [],
+  edges: ArchitectureEdge[] = [],
+  projectName: string = 'System Architecture Design',
+  metrics?: {
+    trafficRate?: number;
+    p99Latency?: number;
+    throughput?: number;
+  }
+): string {
+  const title = projectName || 'System Architecture Design';
+  const cleanTitle = title.replace(/[\r\n]+/g, ' ').slice(0, 80);
+  const mermaid = generateMermaidDiagram(nodes, edges, cleanTitle);
+
+  const trafficRate = metrics?.trafficRate || 1000;
+  const dailyRequests = trafficRate * 86400;
+  const averageRps = trafficRate;
+  const peakMultiplier = 10;
+  const peakRps = averageRps * peakMultiplier;
+  const bandwidthMbps = Math.round((peakRps * 25 * 8) / 1000);
+  const storageGbPerMonth = Math.round((dailyRequests * 0.00002 * 30));
+
+  // Build component responsibilities
+  const componentRows = nodes.map((node) => {
+    let layer = 'Application Layer';
+    if (node.type === 'load_generator') layer = 'Client Layer';
+    else if (node.type === 'gateway') layer = 'Edge & Ingress Layer';
+    else if (node.type === 'cache') layer = 'Cache & Messaging Layer';
+    else if (node.type === 'database') layer = 'Data & Persistence Layer';
+    else if (node.category === 'External Services') layer = 'External Services';
+
+    const resp =
+      node.config?.reason ||
+      (node.type === 'database'
+        ? 'Persistent relational/document storage with transaction guarantees.'
+        : node.type === 'cache'
+        ? 'High-speed in-memory caching to reduce database read pressure.'
+        : node.type === 'gateway'
+        ? 'Ingress routing, auth verification, and rate limiting.'
+        : node.type === 'load_generator'
+        ? 'User entrypoint generating simulated client traffic.'
+        : 'Domain business logic and asynchronous job execution.');
+
+    return `| **${node.name}** | ${layer} | ${resp} |`;
+  }).join('\n');
+
+  // Request flow
+  const entryNode = nodes.find((n) => n.type === 'load_generator') || nodes[0];
+  const gatewayNode = nodes.find((n) => n.type === 'gateway');
+  const serviceNodes = nodes.filter((n) => n.type === 'service');
+  const cacheNode = nodes.find((n) => n.type === 'cache');
+  const dbNode = nodes.find((n) => n.type === 'database');
+
+  const requestFlowSteps: string[] = [
+    `1. User traffic enters from **${entryNode?.name || 'Client Layer'}**.`,
+  ];
+  if (gatewayNode) {
+    requestFlowSteps.push(`2. Ingress traffic is processed by **${gatewayNode.name}** for routing, TLS termination, and authentication.`);
+  }
+  if (serviceNodes.length > 0) {
+    requestFlowSteps.push(`3. Requests are dispatched to **${serviceNodes[0].name}** for domain logic processing.`);
+  }
+  if (cacheNode) {
+    requestFlowSteps.push(`4. The service queries **${cacheNode.name}** to check for hot cached data before hitting persistence.`);
+  }
+  if (dbNode) {
+    requestFlowSteps.push(`5. On cache miss or write operations, queries are committed to **${dbNode.name}**.`);
+  }
+  requestFlowSteps.push(`6. Response payload is serialized and returned to the caller.`);
+  requestFlowSteps.push(`7. Asynchronous event propagation and telemetry tracing continue in the background.`);
+
+  return `# ${cleanTitle} — System Design Architecture
+
+## 1. System Overview
+This production-oriented architecture diagram models the end-to-end component topology for **${cleanTitle}**. The system is organized into modular layers separating user ingress, application services, low-latency caching, and persistent storage.
+
+## 2. Architecture Diagram
+\`\`\`mermaid
+${mermaid}
+\`\`\`
+
+## 3. Component Responsibilities
+| Component | Layer | Primary Responsibility |
+|---|---|---|
+${componentRows || '| **API Gateway** | Edge / Ingress | Routes authenticated traffic and enforces rate limits |'}
+
+## 4. Request Flow
+${requestFlowSteps.join('\n')}
+
+## 5. Capacity Estimation
+### Traffic & Workload Calculations
+- **Baseline Traffic Rate:** ${averageRps.toLocaleString()} req/s ($${dailyRequests.toLocaleString()}$ daily requests)
+- **Peak Multiplier (Assumed):** ${peakMultiplier}×
+- **Peak Throughput Target:** ${peakRps.toLocaleString()} req/s
+- **Estimated Network Bandwidth (Peak):** ~${bandwidthMbps.toLocaleString()} Mbps
+- **Projected Storage Volume:** ~${Math.max(10, storageGbPerMonth).toLocaleString()} GB/month
+
+*Calculated based on standard 86,400 seconds/day distribution with horizontal autoscaling container pools.*
+
+## 6. Key Architecture Decisions
+| Decision | Rationale | Trade-offs Considered |
+|---|---|---|
+| **Stateless Services** | Allows linear horizontal autoscaling behind load balancers | Requires externalized session storage |
+| **In-Memory Caching Tier** | Absorbs high-frequency read spikes to protect persistent storage | Requires cache invalidation on writes |
+| **Decoupled Asynchronous Workers** | Prevents long-running jobs from blocking HTTP requests | Introduces eventual consistency |
+| **Database Read Replicas** | Isolates analytical and read traffic from transactional writes | Replication lag must be tolerated |
+| **Distributed Telemetry** | Injects trace IDs for end-to-end latency and bottleneck visibility | Marginal header overhead |
+
+## 7. Assumptions
+- Traffic flows form a Directed Acyclic Graph (DAG) with validated acyclicity.
+- Peak multiplier of 10× is assumed for peak marketing or batch periods.
+- Caching layer achieves at least 70–80% hit rate on read-heavy workflows.
+- Containers autoscale horizontally when worker capacity utilization exceeds 75%.
+`;
 }
 
 /**
