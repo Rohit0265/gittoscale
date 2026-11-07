@@ -13,6 +13,7 @@ interface PostCardProps {
   post: FeedPost;
   currentUserId?: string;
   onLike: (postId: string) => void;
+  onDislike?: (postId: string) => void;
   onOpenComments: (post: FeedPost) => void;
   onUpdatePost: (postId: string, newContent: string) => Promise<any>;
   onDeletePost: (postId: string) => Promise<any>;
@@ -23,6 +24,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   post,
   currentUserId,
   onLike,
+  onDislike,
   onOpenComments,
   onUpdatePost,
   onDeletePost,
@@ -73,7 +75,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   return (
     <>
-      <article className={`w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-4 transition-all duration-200 ${isDeleting ? 'opacity-40 pointer-events-none' : ''}`}>
+      <article className={`w-full rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-transparent p-4 sm:p-5 shadow-none mb-4 transition-all duration-200 ${isDeleting ? 'opacity-40 pointer-events-none' : ''}`}>
         {/* Post Header */}
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -163,7 +165,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
           {/* Read more / Show less toggle */}
           {isClamped && (
-            <div className={`pt-1 flex items-center ${!isExpanded ? 'bg-gradient-to-t from-white via-white/80 dark:from-[#0A0A0A] dark:via-[#0A0A0A]/80 to-transparent -mt-5 pt-5 relative z-10' : ''}`}>
+            <div className="pt-1.5 flex items-center">
               <button
                 type="button"
                 onClick={(e) => {
@@ -196,9 +198,10 @@ export const PostCard: React.FC<PostCardProps> = ({
           likeCount={post.like_count}
           commentCount={post.comment_count}
           hasLiked={post.has_liked}
+          hasDisliked={post.has_disliked}
           onLike={() => onLike(post.id)}
+          onDislike={() => onDislike?.(post.id)}
           onOpenComments={() => onOpenComments(post)}
-          onShare={() => setIsShareOpen(true)}
         />
       </article>
 

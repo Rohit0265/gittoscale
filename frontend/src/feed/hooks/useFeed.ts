@@ -87,6 +87,7 @@ export function useFeed({ token, userId }: UseFeedOptions) {
           return {
             ...p,
             has_liked: !wasLiked,
+            has_disliked: !wasLiked ? false : p.has_disliked,
             like_count: wasLiked ? Math.max(0, p.like_count - 1) : p.like_count + 1,
           };
         }
@@ -97,10 +98,43 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     try {
       const res = await feedApi.toggleLike(postId, token);
       setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, has_liked: res.liked, like_count: res.likeCount } : p))
+        prev.map((p) => (p.id === postId ? { ...p, has_liked: res.liked, has_disliked: res.liked ? false : p.has_disliked, like_count: res.likeCount } : p))
       );
     } catch (err) {
       // Revert on error
+      fetchPosts();
+      throw err;
+    }
+  };
+
+  const handleToggleDislike = async (postId: string) => {
+    if (!token) {
+      throw new Error('Please sign in to react to posts.');
+    }
+
+    // Optimistic UI update
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const wasDisliked = Boolean(p.has_disliked);
+          const wasLiked = Boolean(p.has_liked);
+          return {
+            ...p,
+            has_disliked: !wasDisliked,
+            has_liked: !wasDisliked ? false : wasLiked,
+            like_count: (!wasDisliked && wasLiked) ? Math.max(0, p.like_count - 1) : p.like_count,
+          };
+        }
+        return p;
+      })
+    );
+
+    try {
+      const res = await feedApi.toggleDislike(postId, token);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, has_disliked: res.disliked, has_liked: res.disliked ? false : p.has_liked } : p))
+      );
+    } catch (err) {
       fetchPosts();
       throw err;
     }
@@ -131,6 +165,7 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     updatePost: handleUpdatePost,
     deletePost: handleDeletePost,
     toggleLike: handleToggleLike,
+    toggleDislike: handleToggleDislike,
     selectedPostForComments,
     openComments: handleOpenComments,
     closeComments: handleCloseComments,

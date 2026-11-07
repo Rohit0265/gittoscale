@@ -43,6 +43,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     updatePost,
     deletePost,
     toggleLike,
+    toggleDislike,
     selectedPostForComments,
     openComments,
     closeComments,
@@ -183,6 +184,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                   post={post}
                   currentUserId={user?.id}
                   onLike={toggleLike}
+                  onDislike={toggleDislike}
                   onOpenComments={openComments}
                   onUpdatePost={updatePost}
                   onDeletePost={deletePost}

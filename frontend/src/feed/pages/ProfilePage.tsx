@@ -100,7 +100,39 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     try {
       const res = await feedApi.toggleLike(postId, token);
       setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, has_liked: res.liked, like_count: res.likeCount } : p))
+        prev.map((p) => (p.id === postId ? { ...p, has_liked: res.liked, has_disliked: res.liked ? false : p.has_disliked, like_count: res.likeCount } : p))
+      );
+    } catch {
+      // Revert if error
+    }
+  };
+
+  const handlePostDislike = async (postId: string) => {
+    if (!token) {
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
+
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const wasDisliked = Boolean(p.has_disliked);
+          const wasLiked = Boolean(p.has_liked);
+          return {
+            ...p,
+            has_disliked: !wasDisliked,
+            has_liked: !wasDisliked ? false : wasLiked,
+            like_count: (!wasDisliked && wasLiked) ? Math.max(0, p.like_count - 1) : p.like_count,
+          };
+        }
+        return p;
+      })
+    );
+
+    try {
+      const res = await feedApi.toggleDislike(postId, token);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, has_disliked: res.disliked, has_liked: res.disliked ? false : p.has_liked } : p))
       );
     } catch {
       // Revert if error
@@ -327,6 +359,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   post={post}
                   currentUserId={user?.id}
                   onLike={handlePostLike}
+                  onDislike={handlePostDislike}
                   onOpenComments={(p) => setSelectedPostForComments(p)}
                   onUpdatePost={handleUpdatePost}
                   onDeletePost={handleDeletePost}

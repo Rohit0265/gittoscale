@@ -14,6 +14,7 @@ import {
   updateFeedPost,
   deleteFeedPost,
   toggleFeedLike,
+  toggleFeedDislike,
   getPostComments,
   addPostComment,
   deletePostComment,
@@ -369,6 +370,37 @@ router.post('/posts/:id/like', requireAuth, async (req: AuthenticatedRequest, re
     res.status(500).json({
       success: false,
       error: 'Failed to update like status.',
+    });
+  }
+});
+
+// ============================================================================
+// 6b. POST /api/feed/posts/:id/dislike - Toggle dislike
+// ============================================================================
+router.post('/posts/:id/dislike', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user!.id;
+
+    const result = await toggleFeedDislike(postId, userId);
+    res.json({
+      success: true,
+      disliked: result.disliked,
+    });
+  } catch (error: any) {
+    if (error?.message === 'POST_NOT_FOUND') {
+      res.status(404).json({
+        success: false,
+        error: 'POST_NOT_FOUND',
+        message: 'Post does not exist.',
+      });
+      return;
+    }
+
+    console.error('[Feed API] Failed to toggle dislike:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update dislike status.',
     });
   }
 });

@@ -259,6 +259,37 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(likedRes.body.data.some((p: any) => p.id === postId)).toBe(true);
   });
 
+  it('supports toggling dislike on a post via /api/feed/posts/:id/dislike', async () => {
+    const postRes = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: 'Post to test dislike' });
+    const postId = postRes.body.data.id;
+
+    // Dislike the post
+    const disRes = await request(app)
+      .post(`/api/feed/posts/${postId}/dislike`)
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send();
+    expect(disRes.status).toBe(200);
+    expect(disRes.body.success).toBe(true);
+    expect(disRes.body.disliked).toBe(true);
+
+    // Verify post has_disliked is true
+    const getRes = await request(app)
+      .get(`/api/feed/posts/${postId}`)
+      .set('Authorization', `Bearer ${user2Token}`);
+    expect(getRes.body.data.has_disliked).toBe(true);
+
+    // Untoggle dislike
+    const unDisRes = await request(app)
+      .post(`/api/feed/posts/${postId}/dislike`)
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send();
+    expect(unDisRes.status).toBe(200);
+    expect(unDisRes.body.disliked).toBe(false);
+  });
+
   it('strictly ensures any video is prioritized at index 0 for first showing in multi-media posts', async () => {
     const mediaItems = [
       { url: 'https://cdn.example.com/image1.webp', type: 'image' },

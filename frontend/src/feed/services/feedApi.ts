@@ -93,6 +93,18 @@ export const feedApi = {
   },
 
   /**
+   * Toggle post dislike
+   */
+  async toggleDislike(postId: string, token: string): Promise<{ disliked: boolean }> {
+    const res = await axios.post(`${API_BASE}/feed/posts/${postId}/dislike`, {}, {
+      headers: getAuthHeader(token),
+    });
+    return {
+      disliked: res.data?.disliked,
+    };
+  },
+
+  /**
    * Get post comments
    */
   async getComments(postId: string): Promise<FeedComment[]> {

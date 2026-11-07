@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 // In-memory fallbacks when Neon is offline (e.g. unit testing or network timeouts)
 const inMemPosts: any[] = [];
 const inMemLikes: { post_id: string; user_id: string }[] = [];
+const inMemDislikes: { post_id: string; user_id: string }[] = [];
 const inMemComments: any[] = [];
 const inMemFollows: { follower_id: string; following_id: string }[] = [];
 const inMemProfiles: Record<string, any> = {};
@@ -96,6 +97,15 @@ export async function ensureFeedSchema(): Promise<void> {
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username TEXT;`;
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS banner_url TEXT;`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username_unique ON public.profiles (LOWER(username)) WHERE username IS NOT NULL;`;
+    await db`
+      CREATE TABLE IF NOT EXISTS public.feed_dislikes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        post_id UUID NOT NULL REFERENCES public.feed_posts(id) ON DELETE CASCADE,
+        user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+        UNIQUE(post_id, user_id)
+      );
+    `;
     hasEnsuredColumns = true;
   } catch (err: any) {
     if (!isDbConnectionError(err)) {
@@ -138,7 +148,11 @@ export async function getFeedPosts(
         CASE 
           WHEN ${currentUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_liked
+        END as has_liked,
+        CASE 
+          WHEN ${currentUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_disliked
       FROM public.feed_posts p
       JOIN public.profiles pr ON pr.id = p.user_id
       LEFT JOIN (
@@ -153,6 +167,8 @@ export async function getFeedPosts(
       ) c_count ON c_count.post_id = p.id
       LEFT JOIN public.feed_likes user_likes 
         ON user_likes.post_id = p.id AND user_likes.user_id = ${currentUserId || null}::text
+      LEFT JOIN public.feed_dislikes user_dislikes
+        ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${currentUserId || null}::text
       ORDER BY p.created_at DESC
       LIMIT ${limit} OFFSET ${offset};
     `;
@@ -178,6 +194,7 @@ export async function getFeedPosts(
         like_count: Number(r.like_count) || 0,
         comment_count: Number(r.comment_count) || 0,
         has_liked: Boolean(r.has_liked),
+        has_disliked: Boolean(r.has_disliked),
       };
     });
   } catch (err: any) {
@@ -192,6 +209,7 @@ export async function getFeedPosts(
         const likeCount = inMemLikes.filter((l) => l.post_id === r.id).length;
         const commentCount = inMemComments.filter((c) => c.post_id === r.id).length;
         const hasLiked = currentUserId ? inMemLikes.some((l) => l.post_id === r.id && l.user_id === currentUserId) : false;
+        const hasDisliked = currentUserId ? inMemDislikes.some((d) => d.post_id === r.id && d.user_id === currentUserId) : false;
 
         return {
           id: r.id,
@@ -210,6 +228,7 @@ export async function getFeedPosts(
           like_count: likeCount,
           comment_count: commentCount,
           has_liked: hasLiked,
+          has_disliked: hasDisliked,
         };
       });
     }
@@ -242,7 +261,11 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         CASE 
           WHEN ${currentUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_liked
+        END as has_liked,
+        CASE 
+          WHEN ${currentUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_disliked
       FROM public.feed_posts p
       JOIN public.profiles pr ON pr.id = p.user_id
       LEFT JOIN (
@@ -257,6 +280,8 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       ) c_count ON c_count.post_id = p.id
       LEFT JOIN public.feed_likes user_likes 
         ON user_likes.post_id = p.id AND user_likes.user_id = ${currentUserId || null}::text
+      LEFT JOIN public.feed_dislikes user_dislikes
+        ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${currentUserId || null}::text
       WHERE p.id = ${postId}
       LIMIT 1;
     `;
@@ -283,6 +308,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       like_count: Number(r.like_count) || 0,
       comment_count: Number(r.comment_count) || 0,
       has_liked: Boolean(r.has_liked),
+      has_disliked: Boolean(r.has_disliked),
     };
   } catch (err: any) {
     if (isDbConnectionError(err)) {
@@ -291,6 +317,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       const likeCount = inMemLikes.filter((l) => l.post_id === postId).length;
       const commentCount = inMemComments.filter((c) => c.post_id === postId).length;
       const hasLiked = currentUserId ? inMemLikes.some((l) => l.post_id === postId && l.user_id === currentUserId) : false;
+      const hasDisliked = currentUserId ? inMemDislikes.some((d) => d.post_id === postId && d.user_id === currentUserId) : false;
 
       return {
         id: found.id,
@@ -309,6 +336,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         like_count: likeCount,
         comment_count: commentCount,
         has_liked: hasLiked,
+        has_disliked: hasDisliked,
       };
     }
     throw err;
@@ -565,6 +593,10 @@ export async function toggleFeedLike(postId: string, userId: string): Promise<{ 
         VALUES (${postId}, ${userId}, timezone('utc'::text, now()))
         ON CONFLICT (post_id, user_id) DO NOTHING;
       `;
+      // When liking, remove any dislike
+      await db`
+        DELETE FROM public.feed_dislikes WHERE post_id = ${postId} AND user_id = ${userId};
+      `;
       liked = true;
     }
 
@@ -587,9 +619,69 @@ export async function toggleFeedLike(postId: string, userId: string): Promise<{ 
       } else {
         inMemLikes.push({ post_id: postId, user_id: userId });
         liked = true;
+        const disIdx = inMemDislikes.findIndex((d) => d.post_id === postId && d.user_id === userId);
+        if (disIdx !== -1) inMemDislikes.splice(disIdx, 1);
       }
       const count = inMemLikes.filter((l) => l.post_id === postId).length;
       return { liked, count };
+    }
+    throw err;
+  }
+}
+
+/**
+ * Toggle dislike for a post. Returns whether it is currently disliked.
+ */
+export async function toggleFeedDislike(postId: string, userId: string): Promise<{ disliked: boolean }> {
+  try {
+    const db = getSql();
+
+    const postCheck = await db`SELECT id FROM public.feed_posts WHERE id = ${postId} LIMIT 1;`;
+    if (!postCheck || postCheck.length === 0) {
+      throw new Error('POST_NOT_FOUND');
+    }
+
+    const existingDislike = await db`
+      SELECT id FROM public.feed_dislikes WHERE post_id = ${postId} AND user_id = ${userId} LIMIT 1;
+    `;
+
+    let disliked = false;
+    if (existingDislike && existingDislike.length > 0) {
+      await db`
+        DELETE FROM public.feed_dislikes WHERE post_id = ${postId} AND user_id = ${userId};
+      `;
+      disliked = false;
+    } else {
+      await db`
+        INSERT INTO public.feed_dislikes (post_id, user_id, created_at)
+        VALUES (${postId}, ${userId}, timezone('utc'::text, now()))
+        ON CONFLICT (post_id, user_id) DO NOTHING;
+      `;
+      // When disliking, remove like if any
+      await db`
+        DELETE FROM public.feed_likes WHERE post_id = ${postId} AND user_id = ${userId};
+      `;
+      disliked = true;
+    }
+
+    return { disliked };
+  } catch (err: any) {
+    if (isDbConnectionError(err)) {
+      const postExists = inMemPosts.some((p) => p.id === postId);
+      if (!postExists) throw new Error('POST_NOT_FOUND');
+
+      const idx = inMemDislikes.findIndex((d) => d.post_id === postId && d.user_id === userId);
+      let disliked = false;
+      if (idx !== -1) {
+        inMemDislikes.splice(idx, 1);
+        disliked = false;
+      } else {
+        inMemDislikes.push({ post_id: postId, user_id: userId });
+        disliked = true;
+        const likeIdx = inMemLikes.findIndex((l) => l.post_id === postId && l.user_id === userId);
+        if (likeIdx !== -1) inMemLikes.splice(likeIdx, 1);
+      }
+      return { disliked };
     }
     throw err;
   }
@@ -1072,7 +1164,11 @@ export async function getUserPosts(
         CASE 
           WHEN ${viewerUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_liked
+        END as has_liked,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_disliked
       FROM public.feed_posts p
       JOIN public.profiles pr ON pr.id = p.user_id
       LEFT JOIN (
@@ -1087,6 +1183,8 @@ export async function getUserPosts(
       ) c_count ON c_count.post_id = p.id
       LEFT JOIN public.feed_likes user_likes 
         ON user_likes.post_id = p.id AND user_likes.user_id = ${viewerUserId || null}::text
+      LEFT JOIN public.feed_dislikes user_dislikes 
+        ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${viewerUserId || null}::text
       WHERE p.user_id = ${targetUserId}
       ORDER BY p.created_at DESC;
     `;
@@ -1112,6 +1210,7 @@ export async function getUserPosts(
         like_count: Number(r.like_count) || 0,
         comment_count: Number(r.comment_count) || 0,
         has_liked: Boolean(r.has_liked),
+        has_disliked: Boolean(r.has_disliked),
       };
     });
   } catch (err: any) {
@@ -1135,6 +1234,7 @@ export async function getUserPosts(
           like_count: inMemLikes.filter((l) => l.post_id === p.id).length,
           comment_count: inMemComments.filter((c) => c.post_id === p.id).length,
           has_liked: viewerUserId ? inMemLikes.some((l) => l.post_id === p.id && l.user_id === viewerUserId) : false,
+          has_disliked: viewerUserId ? inMemDislikes.some((d) => d.post_id === p.id && d.user_id === viewerUserId) : false,
         }));
     }
     throw err;
@@ -1169,7 +1269,11 @@ export async function getUserLikedPosts(
         CASE 
           WHEN ${viewerUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_liked
+        END as has_liked,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_disliked
       FROM public.feed_likes ul
       JOIN public.feed_posts p ON p.id = ul.post_id
       JOIN public.profiles pr ON pr.id = p.user_id
@@ -1185,6 +1289,8 @@ export async function getUserLikedPosts(
       ) c_count ON c_count.post_id = p.id
       LEFT JOIN public.feed_likes user_likes 
         ON user_likes.post_id = p.id AND user_likes.user_id = ${viewerUserId || null}::text
+      LEFT JOIN public.feed_dislikes user_dislikes 
+        ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${viewerUserId || null}::text
       WHERE ul.user_id = ${targetUserId}
       ORDER BY ul.created_at DESC;
     `;
@@ -1210,6 +1316,7 @@ export async function getUserLikedPosts(
         like_count: Number(r.like_count) || 0,
         comment_count: Number(r.comment_count) || 0,
         has_liked: Boolean(r.has_liked),
+        has_disliked: Boolean(r.has_disliked),
       };
     });
   } catch (err: any) {
@@ -1234,6 +1341,7 @@ export async function getUserLikedPosts(
           like_count: inMemLikes.filter((l) => l.post_id === p.id).length,
           comment_count: inMemComments.filter((c) => c.post_id === p.id).length,
           has_liked: viewerUserId ? inMemLikes.some((l) => l.post_id === p.id && l.user_id === viewerUserId) : false,
+          has_disliked: viewerUserId ? inMemDislikes.some((d) => d.post_id === p.id && d.user_id === viewerUserId) : false,
         }));
     }
     throw err;

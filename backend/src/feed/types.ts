@@ -40,6 +40,7 @@ export interface FeedPost {
   like_count: number;
   comment_count: number;
   has_liked?: boolean;
+  has_disliked?: boolean;
 }
 
 export interface FeedComment {
