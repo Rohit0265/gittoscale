@@ -14,6 +14,7 @@ import {
   X,
   Share2,
   Loader2,
+  Plus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture, ArchitectureNode, ArchitectureEdge } from '../types';
@@ -38,6 +39,7 @@ interface HeaderProps {
   onOpenCompare?: () => void;
   onOpenImportRepo: () => void;
   onOpenNewProject?: () => void;
+  onStartBlankProject?: () => void;
   onOpenRecommender?: () => void;
   onOpenHistory?: () => void;
   onOpenFeed?: () => void;
@@ -74,6 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
   onReset,
   onOpenImportRepo,
   onOpenNewProject,
+  onStartBlankProject: _onStartBlankProject,
   onOpenRecommender: _onOpenRecommender,
   onOpenHistory,
   onOpenFeed: _onOpenFeed,
