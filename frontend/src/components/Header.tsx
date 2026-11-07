@@ -11,6 +11,9 @@ import {
   Copy,
   Check,
   X,
+  Share2,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture, ArchitectureNode, ArchitectureEdge } from '../types';
@@ -20,6 +23,7 @@ import {
   downloadFile,
   copyToClipboard,
 } from '../utils/exportDiagram';
+import { captureArchitectureSnapshot } from '../utils/captureSnapshot';
 import { AutoSaveStatus } from '../services/playgroundPersistence';
 import { UserDropdownMenu } from './UserDropdownMenu';
 
@@ -57,6 +61,7 @@ interface HeaderProps {
   saveStatus?: AutoSaveStatus;
   lastSaved?: Date | null;
   onForceSync?: () => void;
+  onShareToFeed?: (snapshotDataUrl: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -89,15 +94,32 @@ export const Header: React.FC<HeaderProps> = ({
   saveStatus: _saveStatus,
   lastSaved: _lastSaved,
   onForceSync: _onForceSync,
+  onShareToFeed,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewTab, setPreviewTab] = useState<'mermaid' | 'json'>('mermaid');
   const [copiedType, setCopiedType] = useState<'mermaid' | 'json' | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
+
+  const handleShareToFeed = async () => {
+    try {
+      setIsCapturing(true);
+      const snapshotDataUrl = await captureArchitectureSnapshot(nodes || [], edges || [], projectName, isDark);
+      setIsExportOpen(false);
+      if (onShareToFeed) {
+        onShareToFeed(snapshotDataUrl);
+      }
+    } catch (err) {
+      console.error('[Header] Failed to capture snapshot:', err);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -257,6 +279,32 @@ export const Header: React.FC<HeaderProps> = ({
                 transition={{ duration: 0.15, ease: 'easeOut' }}
                 className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-slate-200/90 dark:border-neutral-800/90 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl shadow-xl shadow-slate-300/40 dark:shadow-black/70 p-2 z-50 flex flex-col gap-1.5"
               >
+                {/* Option 0: Share to Community Feed */}
+                <div className="p-1.5 rounded-lg border border-indigo-200/70 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/30 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <p className="text-[11px] font-bold text-slate-900 dark:text-white">Community Feed</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleShareToFeed}
+                    disabled={isCapturing}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {isCapturing ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Capturing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-3 h-3" />
+                        <span>Share to Feed</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 {/* Option 1: Mermaid Diagram */}
                 <div className="p-1.5 rounded-lg border border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-neutral-900/40 flex flex-col gap-1">
                   <div className="flex items-center gap-2">

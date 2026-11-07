@@ -18,6 +18,11 @@ interface FeedPageProps {
   onSignOut?: () => void;
   onNavigateToSimulator?: () => void;
   onNavigateToProfile: (userId: string) => void;
+  pendingPost?: {
+    content?: string;
+    media?: import('../components/CreatePost').InitialPostMedia[];
+  } | null;
+  onClearPendingPost?: () => void;
 }
 
 export const FeedPage: React.FC<FeedPageProps> = ({
@@ -31,6 +36,8 @@ export const FeedPage: React.FC<FeedPageProps> = ({
   onSignOut,
   onNavigateToSimulator,
   onNavigateToProfile,
+  pendingPost,
+  onClearPendingPost,
 }) => {
   const {
     posts,
@@ -66,6 +73,12 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     }
     setFilter('saved');
   };
+
+  React.useEffect(() => {
+    if (pendingPost) {
+      setFilter('all');
+    }
+  }, [pendingPost, setFilter]);
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
@@ -148,6 +161,9 @@ export const FeedPage: React.FC<FeedPageProps> = ({
               token={token}
               onPostCreated={createPost}
               onOpenSignIn={onOpenAuth}
+              initialContent={pendingPost?.content}
+              initialMedia={pendingPost?.media}
+              onClearInitialMedia={onClearPendingPost}
             />
           )}
 

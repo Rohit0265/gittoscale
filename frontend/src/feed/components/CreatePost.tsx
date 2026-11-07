@@ -5,6 +5,12 @@ import { feedApi } from '../services/feedApi';
 import { MediaItem } from '../types';
 import { RichPostInput } from './RichPostInput';
 
+export interface InitialPostMedia {
+  file: File;
+  previewUrl: string;
+  type: 'image' | 'video';
+}
+
 interface CreatePostProps {
   user?: any;
   token?: string | null;
@@ -15,6 +21,9 @@ interface CreatePostProps {
     mediaItems?: MediaItem[]
   ) => Promise<any>;
   onOpenSignIn?: () => void;
+  initialContent?: string;
+  initialMedia?: InitialPostMedia[];
+  onClearInitialMedia?: () => void;
 }
 
 interface SelectedMedia {
@@ -29,14 +38,47 @@ export const CreatePost: React.FC<CreatePostProps> = ({
   token,
   onPostCreated,
   onOpenSignIn,
+  initialContent,
+  initialMedia,
+  onClearInitialMedia,
 }) => {
-  const [content, setContent] = useState('');
-  const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
+  const [content, setContent] = useState(initialContent || '');
+  const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>(() => {
+    if (initialMedia && initialMedia.length > 0) {
+      return initialMedia.map((m, i) => ({
+        id: `init-${Date.now()}-${i}`,
+        file: m.file,
+        previewUrl: m.previewUrl,
+        type: m.type,
+      }));
+    }
+    return [];
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formContainerRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (initialContent) {
+      setContent(initialContent);
+    }
+    if (initialMedia && initialMedia.length > 0) {
+      setSelectedMedia(
+        initialMedia.map((m, i) => ({
+          id: `init-${Date.now()}-${i}`,
+          file: m.file,
+          previewUrl: m.previewUrl,
+          type: m.type,
+        }))
+      );
+      setTimeout(() => {
+        formContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+  }, [initialContent, initialMedia]);
 
   const handleSwap = (fromIdx: number, toIdx: number) => {
     if (toIdx < 0 || toIdx >= selectedMedia.length) return;
@@ -148,6 +190,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     selectedMedia.forEach((m) => URL.revokeObjectURL(m.previewUrl));
     setSelectedMedia([]);
     setErrorMessage(null);
+    onClearInitialMedia?.();
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -200,7 +243,10 @@ export const CreatePost: React.FC<CreatePostProps> = ({
   };
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-6 transition-colors">
+    <div
+      ref={formContainerRef}
+      className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-6 transition-colors"
+    >
       <form onSubmit={handleSubmit}>
         <div className="flex gap-3 items-start">
           <div className="flex-1 min-w-0">
