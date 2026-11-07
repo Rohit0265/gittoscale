@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ArrowLeft,
-  Layers,
-  Network,
   Play,
   Download,
   Sun,
@@ -74,8 +72,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   // View state: 'skeleton' (loading state) | 'hydrated' (concrete diagram)
   const [viewState, setViewState] = useState<'skeleton' | 'hydrated'>('skeleton');
 
-  // View mode: 'basic' | 'detailed'
-  const [viewMode, setViewMode] = useState<'basic' | 'detailed'>('basic');
+  // View mode: 'detailed' (only detailed design)
+  const [viewMode, setViewMode] = useState<'basic' | 'detailed'>('detailed');
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -543,36 +541,6 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Basic View vs Detailed View Toggle */}
-          <div className="hidden sm:flex items-center p-0.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:neutral-900 text-xs">
-            <button
-              type="button"
-              onClick={() => setViewMode('basic')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === 'basic'
-                  ? 'bg-slate-700 dark:bg-neutral-800 text-white dark:text-neutral-100 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-              }`}
-              title="High-level architecture overview"
-            >
-              <Layers className="w-3 h-3 text-slate-300 dark:text-neutral-300 transition-colors" />
-              <span>Basic View</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('detailed')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === 'detailed'
-                  ? 'bg-slate-700 dark:bg-neutral-800 text-white dark:text-neutral-100 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-              }`}
-              title="Decomposed architecture: controllers, pools, worker queues & replicas"
-            >
-              <Network className="w-3 h-3 text-slate-300 dark:text-neutral-300 transition-colors" />
-              <span>Detailed View</span>
-            </button>
-          </div>
-
           {/* Universal Auto-Save Status Indicator */}
           {activeNodes.length > 0 && (
             <AutoSaveIndicator

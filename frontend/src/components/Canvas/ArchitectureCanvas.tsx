@@ -400,65 +400,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
       className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors"
       style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%' }}
     >
-      {/* Floating Two-Mode Toggle & Flow Modes Legend Above Canvas */}
-      <div className="absolute top-2.5 sm:top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-auto">
-        <div className="flex items-center gap-1 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xs p-1 rounded-xl shadow-md border border-slate-200 dark:border-neutral-800">
-          <button
-            onClick={() => onToggleViewMode?.('basic')}
-            className={`group flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
-              viewMode === 'basic'
-                ? 'bg-slate-900 text-white dark:bg-neutral-800 dark:text-neutral-100 shadow-xs'
-                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-900'
-            }`}
-            title="Basic View: High-level overview of services, gateways, datastores, and external services"
-          >
-            <Layers className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-300 group-hover:text-indigo-500 transition-colors" />
-            <span>Basic View</span>
-          </button>
-          <button
-            onClick={() => onToggleViewMode?.('detailed')}
-            className={`group flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
-              viewMode === 'detailed'
-                ? 'bg-slate-900 text-white dark:bg-neutral-800 dark:text-neutral-100 shadow-xs'
-                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-900'
-            }`}
-            title="Detailed View: Repository-derived architecture flow exposing controllers, middleware, models & external flow"
-          >
-            <Network className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-300 group-hover:text-indigo-500 transition-colors" />
-            <span>Detailed View</span>
-          </button>
-
-          {/* {viewMode === 'detailed' && (
-            <span className="ml-2 pl-2 border-l border-slate-200 dark:border-neutral-800 text-[10px] text-slate-500 dark:text-neutral-400 font-medium hidden sm:inline-block">
-              {nodes.length} components • {edges.length} flow paths
-            </span>
-          )} */}
-        </div>
-
-        {/* Edge Modes Legend Bar */}
-        {/* <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur-xs rounded-full border border-slate-200 dark:border-neutral-800 shadow-xs text-[10px] text-slate-600 dark:text-neutral-400">
-          <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-            Edge Styles:
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-0.5 bg-black dark:bg-white rounded"></span>
-            <span className="font-sans font-medium text-slate-700 dark:text-neutral-300">Synchronous</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-black dark:border-white"></span>
-            <span className="font-sans font-medium text-slate-700 dark:text-neutral-300">Queue / Async</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3.5 h-0 border-t-2 border-dotted border-black dark:border-white"></span>
-            <span className="font-sans font-medium text-slate-700 dark:text-neutral-300">WebSocket</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-black dark:border-white"></span>
-            <span className="font-sans font-medium text-slate-700 dark:text-neutral-300">Cloud API</span>
-          </span>
-        </div> */}
-      </div>
-
       <ReactFlow
         style={{ width: '100%', height: '100%' }}
         nodes={rfNodes}

@@ -608,8 +608,8 @@ export const App: React.FC = () => {
   const [scenarios, setScenarios] = useState<ScenarioFixture[]>([]);
   const [currentScenarioId, setCurrentScenarioId] = useState<string>('normal-traffic');
 
-  // Architecture view mode: 'basic' (default) | 'detailed'
-  const [viewMode, setViewMode] = useState<'basic' | 'detailed'>('basic');
+  // Architecture view mode: 'detailed' (only detailed design)
+  const [viewMode, setViewMode] = useState<'basic' | 'detailed'>('detailed');
 
   // Caches for instant switching between Basic and Detailed views
   const basicGraphCacheRef = useRef<{ nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null>(null);
@@ -778,15 +778,16 @@ export const App: React.FC = () => {
         // 2. Recover from Browser Storage (Instant recovery upon sudden PC shutdown or refresh)
         const savedPlayground = loadPlaygroundFromBrowserStorage(route?.projectId, user?.id);
         if (savedPlayground && savedPlayground.nodes && savedPlayground.nodes.length > 0) {
-          const verticalNodes = toVerticalTree(savedPlayground.nodes, savedPlayground.edges || []);
+          const targetDetailed = savedPlayground.detailedGraph && savedPlayground.detailedGraph.nodes?.length
+            ? savedPlayground.detailedGraph
+            : buildDetailedArchitecture(savedPlayground.nodes, savedPlayground.edges || [], savedPlayground.prompt);
+          const verticalNodes = toVerticalTree(targetDetailed.nodes, targetDetailed.edges || []);
           setNodes(verticalNodes);
-          setEdges(savedPlayground.edges || []);
+          setEdges(targetDetailed.edges || []);
           if (savedPlayground.incomingTrafficRate) {
             setIncomingTrafficRate(savedPlayground.incomingTrafficRate);
           }
-          if (savedPlayground.viewMode) {
-            setViewMode(savedPlayground.viewMode);
-          }
+          setViewMode('detailed');
           if (savedPlayground.prompt) {
             setActivePromptText(savedPlayground.prompt);
             lastGeneratedPromptRef.current = savedPlayground.prompt;
@@ -794,13 +795,9 @@ export const App: React.FC = () => {
           if (route?.projectId) {
             loadedHistoryProjectsRef.current.add(route.projectId);
           }
-          baseBasicGraphRef.current = { nodes: verticalNodes, edges: savedPlayground.edges || [] };
-          basicGraphCacheRef.current = { nodes: verticalNodes, edges: savedPlayground.edges || [] };
-          if (savedPlayground.detailedGraph) {
-            detailedGraphCacheRef.current = savedPlayground.detailedGraph;
-            baseDetailedGraphRef.current = savedPlayground.detailedGraph;
-          }
-          queueSimulation(verticalNodes, savedPlayground.edges || [], savedPlayground.incomingTrafficRate || 1000, 60);
+          baseDetailedGraphRef.current = { nodes: verticalNodes, edges: targetDetailed.edges || [] };
+          detailedGraphCacheRef.current = { nodes: verticalNodes, edges: targetDetailed.edges || [] };
+          queueSimulation(verticalNodes, targetDetailed.edges || [], savedPlayground.incomingTrafficRate || 1000, 60);
           return;
         }
 
@@ -822,25 +819,26 @@ export const App: React.FC = () => {
                 );
                 if (restored.nodes.length > 0) {
                   const genConfig = verifyRes.data.generation_config;
-                  const verticalNodes = restored.nodes;
+                  const targetDetailed = restored.detailedGraph && restored.detailedGraph.nodes?.length
+                    ? restored.detailedGraph
+                    : buildDetailedArchitecture(restored.nodes, restored.edges || [], verifyRes.data.prompt);
+                  const verticalNodes = toVerticalTree(targetDetailed.nodes, targetDetailed.edges || []);
                   setNodes(verticalNodes);
-                  setEdges(restored.edges || []);
+                  setEdges(targetDetailed.edges || []);
                   if (genConfig?.incomingTrafficRate) {
                     setIncomingTrafficRate(genConfig.incomingTrafficRate);
                   }
-                  if (genConfig?.viewMode) {
-                    setViewMode(genConfig.viewMode);
-                  }
+                  setViewMode('detailed');
                   if (verifyRes.data.prompt) {
                     setActivePromptText(verifyRes.data.prompt);
                     lastGeneratedPromptRef.current = verifyRes.data.prompt;
                   }
                   loadedHistoryProjectsRef.current.add(route.projectId);
-                  baseBasicGraphRef.current = { nodes: verticalNodes, edges: restored.edges || [] };
-                  basicGraphCacheRef.current = { nodes: verticalNodes, edges: restored.edges || [] };
+                  baseDetailedGraphRef.current = { nodes: verticalNodes, edges: targetDetailed.edges || [] };
+                  detailedGraphCacheRef.current = { nodes: verticalNodes, edges: targetDetailed.edges || [] };
                   queueSimulation(
                     verticalNodes,
-                    restored.edges || [],
+                    targetDetailed.edges || [],
                     genConfig?.incomingTrafficRate || 1000,
                     60
                   );
@@ -860,7 +858,7 @@ export const App: React.FC = () => {
 
         if (search.has('demo')) {
           // Apply normal traffic scenario by default for explicit demo
-          applyScenario('normal-traffic', arch, scens, 'basic');
+          applyScenario('normal-traffic', arch, scens, 'detailed');
         } else {
           // Do NOT show pre-canned playground on /app by default: prompt user for idea or repo
           const currentPath = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
@@ -979,21 +977,16 @@ export const App: React.FC = () => {
         baseBasicGraphRef.current = { nodes: verticalBasicNodes, edges: res.edges };
         basicGraphCacheRef.current = { nodes: verticalBasicNodes, edges: res.edges };
 
-        // Decomposed detailed graph organized as a vertical tree
+        // Detailed architecture topology
         const detailed = buildDetailedArchitecture(res.nodes, res.edges, promptText);
         const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
         baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
         detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
 
-        if (viewMode === 'detailed') {
-          setNodes(verticalDetailedNodes);
-          setEdges(detailed.edges);
-          triggerSimulation(verticalDetailedNodes, detailed.edges, incomingTrafficRate, durationSeconds);
-        } else {
-          setNodes(verticalBasicNodes);
-          setEdges(res.edges);
-          triggerSimulation(verticalBasicNodes, res.edges, incomingTrafficRate, durationSeconds);
-        }
+        setViewMode('detailed');
+        setNodes(verticalDetailedNodes);
+        setEdges(detailed.edges);
+        triggerSimulation(verticalDetailedNodes, detailed.edges, incomingTrafficRate, durationSeconds);
 
         // Persist to architecture history in PostgreSQL if user is authenticated
         if (user) {
@@ -1729,10 +1722,14 @@ export const App: React.FC = () => {
       setSelectedNodeId(null);
       setSimulationResult(null);
 
-      setViewMode('basic');
-      setNodes(basicToUse.nodes);
-      setEdges(basicToUse.edges);
-      triggerSimulation(basicToUse.nodes, basicToUse.edges, incomingTrafficRate, durationSeconds);
+      const detailedToUse = detailedGraph && detailedGraph.nodes?.length
+        ? detailedGraph
+        : buildDetailedArchitecture(basicToUse.nodes, basicToUse.edges, promptLabel);
+
+      setViewMode('detailed');
+      setNodes(detailedToUse.nodes);
+      setEdges(detailedToUse.edges);
+      triggerSimulation(detailedToUse.nodes, detailedToUse.edges, incomingTrafficRate, durationSeconds);
 
       // Persist to repository history if user is authenticated and repoUrl provided
       if (user && repoUrl) {
