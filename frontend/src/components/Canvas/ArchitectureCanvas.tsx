@@ -18,7 +18,6 @@ import {
 import { ArchitectureCustomNode } from './CustomNodes';
 import { CustomEdge, resolveEdgeMode, getEdgeStyleConfig } from './CustomEdge';
 import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, EdgeSimulationResult } from '../../types';
-import { Layers, Network } from 'lucide-react';
 
 interface ArchitectureCanvasProps {
   nodes: ArchitectureNode[];
@@ -120,7 +119,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   onUpdateEdge,
   selectedEdgeId,
   onSelectEdge,
-  viewMode = 'basic',
+  viewMode = 'detailed',
   onToggleViewMode,
   isDark: propIsDark,
   isRunning = true,
