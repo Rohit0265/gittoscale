@@ -54,3 +54,25 @@ CREATE TABLE IF NOT EXISTS public.feed_follows (
 CREATE INDEX IF NOT EXISTS idx_feed_follows_follower ON public.feed_follows(follower_id);
 CREATE INDEX IF NOT EXISTS idx_feed_follows_following ON public.feed_follows(following_id);
 
+-- Feed Dislikes
+CREATE TABLE IF NOT EXISTS public.feed_dislikes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID NOT NULL REFERENCES public.feed_posts(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+  UNIQUE(post_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_feed_dislikes_post_id ON public.feed_dislikes(post_id);
+CREATE INDEX IF NOT EXISTS idx_feed_dislikes_user_id ON public.feed_dislikes(user_id);
+
+-- Feed Bookmarks / Saved Posts
+CREATE TABLE IF NOT EXISTS public.feed_bookmarks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID NOT NULL REFERENCES public.feed_posts(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+  UNIQUE(post_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_feed_bookmarks_post_id ON public.feed_bookmarks(post_id);
+CREATE INDEX IF NOT EXISTS idx_feed_bookmarks_user_id ON public.feed_bookmarks(user_id);
+
