@@ -26,7 +26,7 @@ import {
   restoreArchitectureFromDb,
   formatArchitectureForDb,
 } from './utils/exportDiagram';
-import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Layers } from 'lucide-react';
+import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Layers, Plus } from 'lucide-react';
 
 // Code-split heavy interactive canvas & simulator modules so initial landing page bundle is tiny & ultra-fast
 const Header = React.lazy(() => import('./components/Header').then((m) => ({ default: m.Header })));
@@ -2446,20 +2446,27 @@ export const App: React.FC = () => {
                       Ready to design your system
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-neutral-400 mb-4 leading-relaxed">
-                      Enter an architecture idea or import a repository to generate interactive topology.
+                      Start building components on your blank canvas, enter an architecture idea, or import a repository.
                     </p>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleAddNode('gateway', 'API Gateway')}
+                        className="px-3.5 py-2 bg-slate-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold rounded-lg hover:scale-[1.03] transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Component</span>
+                      </button>
                       <button
                         onClick={() => setIsStartProjectModalOpen(true)}
-                        className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-semibold rounded-lg hover:scale-[1.03] transition-all shadow-xs cursor-pointer"
+                        className="px-3.5 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200/60 dark:border-neutral-700/60"
                       >
                         Enter Idea
                       </button>
                       <button
                         onClick={() => setIsImportRepoOpen(true)}
-                        className="px-4 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200/60 dark:border-neutral-700/60"
+                        className="px-3.5 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200/60 dark:border-neutral-700/60"
                       >
-                        Import GitHub Repo
+                        Import Repo
                       </button>
                     </div>
                   </div>
