@@ -11,6 +11,7 @@ import {
   RecommenderInput,
 } from './types';
 import { LandingPage } from './components/LandingPage';
+import { FloatingFeedbackButton } from './components/FloatingFeedbackButton';
 import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
 import { useAuth } from './contexts/AuthContext';
 import { isOAuthPopup } from './utils/oauthHelper';
@@ -2635,6 +2636,9 @@ export const App: React.FC = () => {
           </Suspense>
         </div>
       )}
+
+      {/* Floating Feedback & Recommendations Button (stuck to bottom-right) */}
+      <FloatingFeedbackButton />
     </div>
     </Suspense>
   );

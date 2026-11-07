@@ -17,6 +17,7 @@ import {
   History,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
+import { FloatingFeedbackButton } from './FloatingFeedbackButton';
 import NewOne from './newOne';
 import WorkflowSteps from './WorkflowSteps';
 import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
@@ -855,6 +856,9 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
     <div id="footer" className="relative w-full">
         <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
       </div>
+
+      {/* Sticky Floating Feedback & Recommendation Button */}
+      <FloatingFeedbackButton />
     </div>
   );
 };

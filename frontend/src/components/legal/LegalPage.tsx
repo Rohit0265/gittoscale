@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { ArrowLeft, Cookie, Shield, FileText, Sun, Moon } from 'lucide-react';
 import { Fotter } from '../Fotter';
+import { FloatingFeedbackButton } from '../FloatingFeedbackButton';
 
 export type LegalDocType = 'cookie' | 'privacy' | 'terms';
 
@@ -229,6 +230,9 @@ export const LegalPage: React.FC<LegalPageProps> = ({
 
       {/* Footer */}
       <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
+
+      {/* Sticky Floating Feedback Button */}
+      <FloatingFeedbackButton />
     </div>
   );
 };
