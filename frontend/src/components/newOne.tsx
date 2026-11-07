@@ -9,6 +9,7 @@ import {
   Layers,
   ShieldCheck,
   GitBranch,
+  Plus,
 } from 'lucide-react';
 
 export interface NewOneProps {
@@ -17,6 +18,7 @@ export interface NewOneProps {
   onOpenRecommender?: () => void;
   onOpenAuth?: () => void;
   onStartProject?: (prompt: string) => void;
+  onStartBlankProject?: () => void;
   isDark?: boolean;
 }
 
@@ -57,6 +59,7 @@ export const NewOne: React.FC<NewOneProps> = ({
   onSelectUseRepository,
   onOpenRecommender,
   onStartProject,
+  onStartBlankProject,
   isDark,
 }) => {
   const isDarkMode = isDark ?? (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
@@ -176,6 +179,18 @@ export const NewOne: React.FC<NewOneProps> = ({
 
           {/* Action Button Row */}
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-8 sm:mt-9">
+            {/* Primary Action: Start Blank Project */}
+            {onStartBlankProject && (
+              <button
+                type="button"
+                onClick={onStartBlankProject}
+                className="px-5 sm:px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-950 text-xs sm:text-sm font-semibold shadow-xs hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer group"
+                title="Start designing on a blank architecture canvas"
+              >
+                <Plus className="w-4 h-4 text-slate-300 dark:text-neutral-700 group-hover:text-white dark:group-hover:text-black transition-colors" />
+                <span>Start Blank Project</span>
+              </button>
+            )}
 
             {/* Secondary Action: See how it works */}
             <button
