@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { ShieldAlert, ArrowLeft, Home, LogIn, Lock, Layers } from 'lucide-react';
 import { Fotter } from './Fotter';
+import { FloatingFeedbackButton } from './FloatingFeedbackButton';
 
 interface UnverifiedProjectPageProps {
   projectId: string;
@@ -167,6 +168,9 @@ export const UnverifiedProjectPage: React.FC<UnverifiedProjectPageProps> = ({
 
       {/* Global Footer */}
       <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
+
+      {/* Sticky Floating Feedback Button */}
+      <FloatingFeedbackButton />
     </div>
   );
 };
