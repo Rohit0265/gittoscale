@@ -124,44 +124,6 @@ export const FeedPage: React.FC<FeedPageProps> = ({
               : 'md:col-span-8 lg:col-span-7'
           } flex flex-col`}
         >
-          {/* Mobile Quick Filter Segmented Control (Visible only on small screens) */}
-          {user && (
-            <div className="md:hidden flex items-center p-0.5 rounded-xl bg-slate-200/70 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 mb-3 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setFilter('all')}
-                className={`flex-1 py-1.5 px-2.5 rounded-lg text-center transition-all cursor-pointer ${
-                  filter === 'all'
-                    ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white'
-                }`}
-              >
-                All Feed
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleFilter}
-                className={`flex-1 py-1.5 px-2.5 rounded-lg text-center transition-all cursor-pointer ${
-                  filter === 'liked'
-                    ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white'
-                }`}
-              >
-                Liked
-              </button>
-              <button
-                type="button"
-                onClick={handleViewSaved}
-                className={`flex-1 py-1.5 px-2.5 rounded-lg text-center transition-all cursor-pointer ${
-                  filter === 'saved'
-                    ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white'
-                }`}
-              >
-                Saved
-              </button>
-            </div>
-          )}
           {/* Active Filter Banner when viewing 'Your Likes' */}
           {filter === 'liked' && (
             <div className="mb-4 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center justify-between">

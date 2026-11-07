@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  ArrowUpRight,
   Play,
-  Github,
   ArrowUp,
   Zap,
   Database,
