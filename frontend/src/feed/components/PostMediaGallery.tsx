@@ -397,6 +397,31 @@ const DesktopMediaCell: React.FC<{
   item: MediaItem;
   onClick: () => void;
 }> = ({ item, onClick }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (item.type !== 'video' || !videoRef.current) return;
+    videoRef.current.muted = true;
+    videoRef.current.defaultMuted = true;
+
+    const video = videoRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [item.type, item.url]);
+
   return (
     <div
       onClick={onClick}
@@ -405,17 +430,16 @@ const DesktopMediaCell: React.FC<{
       {item.type === 'video' ? (
         <div className="w-full h-full relative flex items-center justify-center bg-black">
           <video
+            ref={videoRef}
             src={item.url}
-            preload="metadata"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          {/* Centered subtle play icon */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/10 transition-colors">
-            <div className="w-11 h-11 rounded-full bg-black/70 backdrop-blur-xs flex items-center justify-center text-white border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
-              <Play className="w-5 h-5 fill-white ml-0.5" />
-            </div>
-          </div>
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-[10px] font-semibold text-white flex items-center gap-1">
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-[10px] font-semibold text-white flex items-center gap-1 z-10">
             <VideoIcon className="w-3 h-3 text-white" />
             <span>Video</span>
           </div>
