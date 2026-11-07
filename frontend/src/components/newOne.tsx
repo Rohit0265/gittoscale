@@ -302,18 +302,6 @@ export const NewOne: React.FC<NewOneProps> = ({
 
             {/* Quick Actions Footer Bar: Blank Project & Scan GitHub */}
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-between w-full p-2 sm:p-2.5 gap-2 rounded-xl bg-slate-50/80 dark:bg-neutral-900/40 border border-slate-200/80 dark:border-neutral-800/50 backdrop-blur-md">
-              {onStartBlankProject && (
-                <button
-                  type="button"
-                  onClick={onStartBlankProject}
-                  className="w-full sm:w-auto flex-1 min-h-[44px] flex items-center justify-center space-x-2 bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800 border border-slate-200 dark:border-neutral-700/80 hover:border-slate-300 dark:hover:border-neutral-500 px-3.5 py-2.5 rounded-lg text-xs sm:text-sm text-slate-800 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
-                  title="Start from scratch with a blank canvas"
-                >
-                  <Plus className="w-4 h-4 text-slate-600 dark:text-neutral-300" />
-                  <span className="font-medium">Blank Project</span>
-                </button>
-              )}
-
               <button
                 type="button"
                 onClick={onSelectUseRepository}
