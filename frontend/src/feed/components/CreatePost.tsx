@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Image, Video, X, Send, AlertCircle, Loader2, Play, ChevronLeft, ChevronRight, ArrowLeftRight } from 'lucide-react';
+import { Image, Video, X, Send, AlertCircle, Loader2, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { validateMediaFile, validateVideoFile, fileToBase64 } from '../utils/mediaValidation';
 import { feedApi } from '../services/feedApi';
 import { MediaItem } from '../types';
@@ -113,10 +113,10 @@ export const CreatePost: React.FC<CreatePostProps> = ({
 
   if (!user) {
     return (
-      <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-6">
-        <div className="flex items-center justify-between gap-4">
+      <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400 shrink-0">
               <Send className="w-4 h-4" />
             </div>
             <div>
@@ -127,7 +127,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
           {onOpenSignIn && (
             <button
               onClick={onOpenSignIn}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-colors shrink-0 cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-colors shrink-0 cursor-pointer text-center"
             >
               Sign In to Post
             </button>
@@ -242,13 +242,31 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     }
   };
 
+  const avatarUrl = user?.user_metadata?.avatar_url;
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+
   return (
     <div
       ref={formContainerRef}
-      className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-6 transition-colors"
+      className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-3.5 sm:p-5 shadow-xs mb-4 sm:mb-6 transition-colors"
     >
       <form onSubmit={handleSubmit}>
         <div className="flex gap-3 items-start">
+          {/* User Avatar: Desktop only so small screen retains 100% input width */}
+          <div className="hidden sm:block shrink-0 pt-0.5">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-neutral-700"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs">
+                {displayName[0]}
+              </div>
+            )}
+          </div>
+
           <div className="flex-1 min-w-0">
             <RichPostInput
               value={content}
@@ -256,7 +274,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                 setContent(val);
                 if (errorMessage) setErrorMessage(null);
               }}
-              placeholder="What are you designing? Share a system architecture, question, or latency finding..."
+              placeholder="What are you designing? Share an architecture, question, or latency finding..."
               rows={3}
               disabled={isSubmitting}
               minHeight="95px"
@@ -274,7 +292,8 @@ export const CreatePost: React.FC<CreatePostProps> = ({
               </span>
               {selectedMedia.length > 1 && (
                 <span className="text-[11px] text-slate-400 dark:text-neutral-500">
-                  Click arrows or drag to swap places
+                  <span className="hidden sm:inline">Click arrows or drag to swap places</span>
+                  <span className="sm:hidden">Tap arrows to reorder</span>
                 </span>
               )}
             </div>
@@ -302,7 +321,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                         className="w-full h-full object-cover opacity-80 pointer-events-none"
                       />
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <Play className="w-6 h-6 text-white drop-shadow-md" />
+                        <Play className="w-5 h-5 text-white drop-shadow-md" />
                       </div>
                     </div>
                   ) : (
@@ -313,9 +332,9 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                     />
                   )}
 
-                  {/* Swap & Reorder Controls */}
+                  {/* Clean Reorder Arrows: compact, positioned at bottom corners without blocking the preview image */}
                   {selectedMedia.length > 1 && (
-                    <div className="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between pointer-events-auto opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between pointer-events-auto">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -323,16 +342,12 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                           handleSwap(idx, idx - 1);
                         }}
                         disabled={idx === 0}
-                        className="p-1 rounded-md bg-black/80 hover:bg-black text-white disabled:opacity-30 disabled:hover:bg-black/80 transition-colors cursor-pointer disabled:cursor-not-allowed shadow-xs"
-                        title="Swap with previous (move left)"
+                        className="p-1 rounded-md bg-black/80 hover:bg-black text-white disabled:opacity-25 transition-colors cursor-pointer disabled:cursor-not-allowed shadow-xs"
+                        title="Move left"
+                        aria-label="Move left"
                       >
                         <ChevronLeft className="w-3.5 h-3.5" />
                       </button>
-
-                      <span className="text-[10px] text-white/80 bg-black/60 px-1.5 py-0.5 rounded-xs backdrop-blur-xs flex items-center gap-0.5">
-                        <ArrowLeftRight className="w-2.5 h-2.5" />
-                        <span>Swap</span>
-                      </span>
 
                       <button
                         type="button"
@@ -341,8 +356,9 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                           handleSwap(idx, idx + 1);
                         }}
                         disabled={idx === selectedMedia.length - 1}
-                        className="p-1 rounded-md bg-black/80 hover:bg-black text-white disabled:opacity-30 disabled:hover:bg-black/80 transition-colors cursor-pointer disabled:cursor-not-allowed shadow-xs"
-                        title="Swap with next (move right)"
+                        className="p-1 rounded-md bg-black/80 hover:bg-black text-white disabled:opacity-25 transition-colors cursor-pointer disabled:cursor-not-allowed shadow-xs"
+                        title="Move right"
+                        aria-label="Move right"
                       >
                         <ChevronRight className="w-3.5 h-3.5" />
                       </button>
@@ -358,6 +374,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                     }}
                     className="absolute top-1 right-1 p-1 rounded-full bg-black/80 hover:bg-rose-600 text-white transition-colors cursor-pointer z-10"
                     title="Remove this media"
+                    aria-label="Remove media"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -385,9 +402,9 @@ export const CreatePost: React.FC<CreatePostProps> = ({
           className="hidden"
         />
 
-        {/* Footer Actions */}
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between">
-          <div className="flex items-center gap-1">
+        {/* Footer Actions: Touch-friendly heights and responsive spacing */}
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => {
@@ -397,11 +414,12 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                 }
               }}
               disabled={isSubmitting}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 border border-transparent hover:border-slate-200 dark:hover:border-neutral-700 transition-colors cursor-pointer"
               title="Add Images (multiple supported)"
+              aria-label="Add Images"
             >
-              <Image className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
-              <span className="hidden sm:inline">Images</span>
+              <Image className="w-4 h-4 text-slate-500 dark:text-neutral-400 shrink-0" />
+              <span className="text-xs">Photo</span>
             </button>
 
             <button
@@ -413,11 +431,12 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                 }
               }}
               disabled={isSubmitting}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-              title="Add Video (≤ 2 Min, shown first)"
+              className="flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 border border-transparent hover:border-slate-200 dark:hover:border-neutral-700 transition-colors cursor-pointer"
+              title="Add Video (≤ 2 Min)"
+              aria-label="Add Video"
             >
-              <Video className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
-              <span className="hidden sm:inline">Video (≤ 2 Min)</span>
+              <Video className="w-4 h-4 text-slate-500 dark:text-neutral-400 shrink-0" />
+              <span className="text-xs">Video</span>
             </button>
           </div>
 
@@ -427,7 +446,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                 type="button"
                 onClick={handleResetForm}
                 disabled={isSubmitting}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
+                className="h-8 sm:h-9 px-3 rounded-lg text-xs font-medium text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -436,7 +455,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || (!content.trim() && selectedMedia.length === 0)}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 h-8 sm:h-9 px-4 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white shadow-xs transition-all cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -444,9 +463,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                   <span>Publishing...</span>
                 </>
               ) : (
-                <>
-                  <span>Publish</span>
-                </>
+                <span>Publish</span>
               )}
             </button>
           </div>
@@ -455,4 +472,3 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     </div>
   );
 };
-
