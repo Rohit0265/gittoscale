@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight, X, Play, Maximize2, Video as VideoIcon, Volume2, VolumeX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Maximize2, Video as VideoIcon, Volume2, VolumeX } from 'lucide-react';
 import { MediaItem } from '../types';
 
 /**
@@ -514,6 +514,7 @@ const LightboxModal: React.FC<{
             src={current.url}
             controls
             autoPlay
+            loop
             playsInline
             className="max-h-[82vh] max-w-full rounded-xl shadow-2xl bg-black"
           />

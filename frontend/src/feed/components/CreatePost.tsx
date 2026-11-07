@@ -249,6 +249,10 @@ export const CreatePost: React.FC<CreatePostProps> = ({
                     <div className="w-full h-full relative flex items-center justify-center">
                       <video
                         src={item.previewUrl}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
                         className="w-full h-full object-cover opacity-80 pointer-events-none"
                       />
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
