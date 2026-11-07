@@ -162,7 +162,11 @@ export async function getFeedPosts(
         CASE 
           WHEN ${currentUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_disliked
+        END as has_disliked,
+        CASE 
+          WHEN ${currentUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_bookmarked
       FROM public.feed_posts p
       JOIN public.profiles pr ON pr.id = p.user_id
       LEFT JOIN (
@@ -179,6 +183,8 @@ export async function getFeedPosts(
         ON user_likes.post_id = p.id AND user_likes.user_id = ${currentUserId || null}::text
       LEFT JOIN public.feed_dislikes user_dislikes
         ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${currentUserId || null}::text
+      LEFT JOIN public.feed_bookmarks user_bookmarks
+        ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${currentUserId || null}::text
       ORDER BY p.created_at DESC
       LIMIT ${limit} OFFSET ${offset};
     `;
@@ -275,7 +281,11 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         CASE 
           WHEN ${currentUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
           ELSE false 
-        END as has_disliked
+        END as has_disliked,
+        CASE 
+          WHEN ${currentUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
+          ELSE false 
+        END as has_bookmarked
       FROM public.feed_posts p
       JOIN public.profiles pr ON pr.id = p.user_id
       LEFT JOIN (
@@ -292,6 +302,8 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         ON user_likes.post_id = p.id AND user_likes.user_id = ${currentUserId || null}::text
       LEFT JOIN public.feed_dislikes user_dislikes
         ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${currentUserId || null}::text
+      LEFT JOIN public.feed_bookmarks user_bookmarks
+        ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${currentUserId || null}::text
       WHERE p.id = ${postId}
       LIMIT 1;
     `;
