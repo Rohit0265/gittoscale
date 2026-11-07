@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ArrowLeft, Cookie, Shield, FileText, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Sun, Moon } from 'lucide-react';
 import { Fotter } from '../Fotter';
 import { FloatingFeedbackButton } from '../FloatingFeedbackButton';
 
@@ -22,6 +22,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({
 }) => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    const titleMap: Record<LegalDocType, string> = {
+      cookie: 'Cookie Policy — GitToScale',
+      privacy: 'Privacy Policy — GitToScale',
+      terms: 'Terms of Service — GitToScale',
+    };
+    document.title = titleMap[type] || 'Legal Documents — GitToScale';
   }, [type]);
 
   const handleTabClick = (targetType: LegalDocType) => {
@@ -46,106 +52,104 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   return (
     <div
       className={`min-h-screen w-full flex flex-col font-sans transition-colors duration-200 ${
-        isDark ? 'bg-[#020202] text-neutral-100' : 'bg-slate-50 text-slate-900'
+        isDark ? 'bg-[#060709] text-slate-100' : 'bg-[#FAFAFA] text-slate-900'
       }`}
     >
-      {/* Top Floating / Fixed Header */}
+      {/* Top Sticky Header */}
       <header
         className={`sticky top-0 z-40 w-full border-b backdrop-blur-md transition-colors ${
           isDark
-            ? 'border-neutral-800/80 bg-[#020202]/85'
-            : 'border-slate-200/80 bg-white/85'
+            ? 'border-neutral-800/80 bg-[#060709]/90'
+            : 'border-slate-200/80 bg-white/90'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           {/* Left: Brand Logo & Back to Home */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleGoHome}
-              className={`group p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-2 text-xs font-semibold ${
+              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 text-xs font-medium ${
                 isDark
-                  ? 'border-neutral-800 bg-[#0A0A0A] text-neutral-300 hover:text-white hover:border-neutral-700'
+                  ? 'border-neutral-800 bg-[#0E1015] text-neutral-300 hover:text-white hover:border-neutral-700'
                   : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:border-slate-300 shadow-xs'
               }`}
               title="Return to home page"
             >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 group-hover:text-indigo-500 transition-all" />
-              <span className="hidden sm:inline">Back to Home</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Back</span>
             </button>
 
             <button
               type="button"
               onClick={handleGoHome}
-              className="flex items-center gap-2 cursor-pointer focus:outline-hidden"
+              className="flex items-center gap-2 cursor-pointer focus:outline-none"
             >
               <img
                 src={isDark ? '/logo.png' : '/logo-light.png'}
                 alt="GitToScale"
-                className="h-7 sm:h-8 w-auto object-contain"
+                className="h-6 sm:h-7 w-auto object-contain"
               />
             </button>
           </div>
 
-          {/* Center: Legal Tabs */}
-          <div
-            className={`hidden md:flex items-center p-1 rounded-full border ${
+          {/* Center: Clean Segmented Control */}
+          <nav
+            aria-label="Legal Document Switcher"
+            className={`hidden md:flex items-center p-0.5 rounded-lg border ${
               isDark
-                ? 'bg-[#0A0A0A] border-neutral-800/90'
-                : 'bg-slate-200/60 border-slate-300/80'
+                ? 'bg-[#0E1015] border-neutral-800'
+                : 'bg-slate-100 border-slate-200'
             }`}
           >
             <button
               type="button"
               onClick={() => handleTabClick('cookie')}
-              className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs transition-all cursor-pointer ${
                 type === 'cookie'
                   ? isDark
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-neutral-800 text-white font-semibold shadow-xs'
+                    : 'bg-white text-slate-900 font-semibold shadow-xs'
                   : isDark
                   ? 'text-neutral-400 hover:text-neutral-200'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Cookie className="w-3.5 h-3.5 group-hover:text-amber-500 transition-colors" />
-              <span>Cookie Policy</span>
+              Cookie Policy
             </button>
 
             <button
               type="button"
               onClick={() => handleTabClick('privacy')}
-              className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs transition-all cursor-pointer ${
                 type === 'privacy'
                   ? isDark
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-neutral-800 text-white font-semibold shadow-xs'
+                    : 'bg-white text-slate-900 font-semibold shadow-xs'
                   : isDark
                   ? 'text-neutral-400 hover:text-neutral-200'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Shield className="w-3.5 h-3.5 group-hover:text-emerald-500 transition-colors" />
-              <span>Privacy Policy</span>
+              Privacy Policy
             </button>
 
             <button
               type="button"
               onClick={() => handleTabClick('terms')}
-              className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs transition-all cursor-pointer ${
                 type === 'terms'
                   ? isDark
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-900 shadow-xs font-semibold'
+                    ? 'bg-neutral-800 text-white font-semibold shadow-xs'
+                    : 'bg-white text-slate-900 font-semibold shadow-xs'
                   : isDark
                   ? 'text-neutral-400 hover:text-neutral-200'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileText className="w-3.5 h-3.5 group-hover:text-blue-500 transition-colors" />
-              <span>Terms of Service</span>
+              Terms of Service
             </button>
-          </div>
+          </nav>
 
           {/* Right: Theme Toggle */}
           <div className="flex items-center gap-2">
@@ -153,17 +157,17 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <button
                 type="button"
                 onClick={onToggleTheme}
-                className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center ${
                   isDark
-                    ? 'border-neutral-800 bg-[#0A0A0A] text-neutral-300 hover:text-white hover:border-neutral-700'
+                    ? 'border-neutral-800 bg-[#0E1015] text-neutral-300 hover:text-white hover:border-neutral-700'
                     : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:border-slate-300 shadow-xs'
                 }`}
                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {isDark ? (
-                  <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-amber-400 transition-colors" />
+                  <Sun className="w-4 h-4 text-neutral-300 hover:text-amber-300 transition-colors" />
                 ) : (
-                  <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-blue-400 transition-colors" />
+                  <Moon className="w-4 h-4 text-slate-700 hover:text-indigo-600 transition-colors" />
                 )}
               </button>
             )}
@@ -172,63 +176,66 @@ export const LegalPage: React.FC<LegalPageProps> = ({
 
         {/* Mobile Tab Bar */}
         <div
-          className={`md:hidden flex items-center justify-around border-t px-2 py-2 ${
-            isDark ? 'border-neutral-800/80 bg-[#060608]' : 'border-slate-200/80 bg-white'
+          className={`md:hidden flex items-center justify-around border-t px-2 py-1.5 ${
+            isDark ? 'border-neutral-800/80 bg-[#060709]' : 'border-slate-200/80 bg-white'
           }`}
         >
           <button
             type="button"
             onClick={() => handleTabClick('cookie')}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+            className={`px-2.5 py-1 rounded-md text-xs cursor-pointer transition-colors ${
               type === 'cookie'
-                ? 'bg-blue-600 text-white shadow-xs'
+                ? isDark
+                  ? 'bg-neutral-800 text-white font-semibold'
+                  : 'bg-slate-200 text-slate-900 font-semibold'
                 : isDark
-                ? 'text-neutral-400 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'text-neutral-400'
+                : 'text-slate-600'
             }`}
           >
-            <Cookie className="w-3.5 h-3.5 group-hover:text-amber-500 transition-colors" />
-            <span>Cookies</span>
+            Cookies
           </button>
           <button
             type="button"
             onClick={() => handleTabClick('privacy')}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+            className={`px-2.5 py-1 rounded-md text-xs cursor-pointer transition-colors ${
               type === 'privacy'
-                ? 'bg-blue-600 text-white shadow-xs'
+                ? isDark
+                  ? 'bg-neutral-800 text-white font-semibold'
+                  : 'bg-slate-200 text-slate-900 font-semibold'
                 : isDark
-                ? 'text-neutral-400 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'text-neutral-400'
+                : 'text-slate-600'
             }`}
           >
-            <Shield className="w-3.5 h-3.5 group-hover:text-emerald-500 transition-colors" />
-            <span>Privacy</span>
+            Privacy
           </button>
           <button
             type="button"
             onClick={() => handleTabClick('terms')}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
+            className={`px-2.5 py-1 rounded-md text-xs cursor-pointer transition-colors ${
               type === 'terms'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : isDark
-                ? 'text-neutral-400 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
+                ? isDark
+                  ? 'bg-neutral-800 text-white font-semibold'
+                  : 'bg-slate-200 text-slate-900 font-semibold'
+            : isDark
+            ? 'text-neutral-400'
+            : 'text-slate-600'
             }`}
           >
-            <FileText className="w-3.5 h-3.5 group-hover:text-blue-500 transition-colors" />
-            <span>Terms</span>
+            Terms
           </button>
         </div>
       </header>
 
-      {/* Main Document Body */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-10 sm:py-14">
+      {/* Main Document Body — Measured at 68-72ch for optimal reading flow */}
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-12 sm:py-16">
         {type === 'cookie' && <CookiePolicyContent isDark={isDark} />}
         {type === 'privacy' && <PrivacyPolicyContent isDark={isDark} />}
         {type === 'terms' && <TermsOfServiceContent isDark={isDark} />}
       </main>
 
-      {/* Footer */}
+      {/* Global Footer */}
       <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
 
       {/* Sticky Floating Feedback Button */}
@@ -240,141 +247,135 @@ export const LegalPage: React.FC<LegalPageProps> = ({
 /* =========================================================================
    1. Cookie Policy Content
    ========================================================================= */
-const CookiePolicyContent: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+const CookiePolicyContent: React.FC<{ isDark: boolean }> = ({ isDark: _isDark }) => {
   return (
-    <article className="space-y-8">
-      {/* Document Header */}
-      <div className="border-b pb-6 border-neutral-800 dark:border-neutral-800">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20 mb-3">
-          <Cookie className="w-3.5 h-3.5" />
-          <span>LEGAL COMPLIANCE</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+    <article className="prose prose-slate dark:prose-invert max-w-none">
+      {/* Title & Metadata */}
+      <header className="border-b pb-6 border-slate-200 dark:border-neutral-800">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
           Cookie Policy
         </h1>
-        <p className={`mt-2 text-sm ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>
-          Effective Date: October 2026 &bull; Last Revised: October 29, 2026
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 font-mono">
+          Effective: October 2026 &middot; Last Revised: October 29, 2026
         </p>
-      </div>
+      </header>
 
-      {/* Introductory Callout */}
-      <div
-        className={`p-4 sm:p-5 rounded-2xl border ${
-          isDark
-            ? 'bg-[#0A0A0A] border-neutral-800 text-neutral-300'
-            : 'bg-white border-slate-200 text-slate-700 shadow-xs'
-        }`}
-      >
-        <p className="text-sm leading-relaxed">
-          This Cookie Policy explains how <strong>GitToScale</strong> (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) uses cookies, local storage, and similar web tracking technologies when you use our website, developer sandbox, and architecture simulation platform located at{' '}
-          <a href="https://gittoscale.tech" className="text-blue-500 hover:underline">
+      {/* Overview */}
+      <div className="mt-8 text-sm sm:text-base leading-relaxed text-slate-700 dark:text-neutral-300">
+        <p>
+          This Cookie Policy explains how <strong>GitToScale</strong> (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) uses cookies, local browser storage, and related web technologies when you use our system architecture modeling workbench and distributed load simulation engine at{' '}
+          <a
+            href="https://gittoscale.tech"
+            className="text-slate-900 dark:text-white underline underline-offset-4 decoration-slate-400 dark:decoration-neutral-600 hover:decoration-slate-900 dark:hover:decoration-white font-medium"
+          >
             https://gittoscale.tech
           </a>{' '}
           and its associated subdomains.
         </p>
       </div>
 
-      {/* Section 1: What Are Cookies */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">1. What Are Cookies and Local Storage?</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          Cookies are small data files placed on your device (computer, tablet, or smartphone) by websites you visit. They are widely used to make web applications run efficiently, remember your customized interface preferences, and provide analytical telemetry to service operators.
+      {/* Section 1 */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          1. What Are Cookies and Local Storage?
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300 mb-3">
+          Cookies are small text records transferred to your device to store state between HTTP sessions. In addition to HTTP cookies, GitToScale utilizes HTML5 Local Storage to preserve interactive node placements, unsaved architecture edits, and custom capacity parameters directly in your browser.
         </p>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          In addition to standard HTTP cookies, GitToScale utilizes HTML5 Local Storage and Session Storage to preserve local simulation states, baseline snapshots, and client-side UI configurations without sending unnecessary overhead over the network with every request.
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
+          This client-side persistence model guarantees that sudden power interruptions or network disconnects do not destroy your architecture topologies, while avoiding unnecessary bandwidth overhead on every simulated request.
         </p>
       </section>
 
-      {/* Section 2: Categories of Cookies We Use */}
-      <section className="space-y-4">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">2. Categories of Cookies We Use</h2>
+      {/* Section 2: Storage Registry Table */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+          2. Cookies &amp; Local Storage Registry
+        </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div
-            className={`p-4 rounded-xl border ${
-              isDark ? 'bg-[#0A0A0A] border-neutral-800' : 'bg-white border-slate-200 shadow-xs'
-            }`}
-          >
-            <h3 className="text-base font-semibold text-blue-500 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              Strictly Essential Cookies
-            </h3>
-            <p className={`mt-2 text-xs sm:text-sm leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-              Necessary for the platform to function. They authenticate your developer identity, maintain encrypted session tokens via Supabase Auth, and protect against Cross-Site Request Forgery (CSRF).
-            </p>
-          </div>
-
-          <div
-            className={`p-4 rounded-xl border ${
-              isDark ? 'bg-[#0A0A0A] border-neutral-800' : 'bg-white border-slate-200 shadow-xs'
-            }`}
-          >
-            <h3 className="text-base font-semibold text-emerald-500 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              Preference &amp; Customization Cookies
-            </h3>
-            <p className={`mt-2 text-xs sm:text-sm leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-              Remember your interface choices, such as your dark/light theme setting (<code>gitoscale-theme</code>), collapsed/expanded canvas sidebars, and active view modes.
-            </p>
-          </div>
-
-          <div
-            className={`p-4 rounded-xl border ${
-              isDark ? 'bg-[#0A0A0A] border-neutral-800' : 'bg-white border-slate-200 shadow-xs'
-            }`}
-          >
-            <h3 className="text-base font-semibold text-amber-500 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              Simulation Caching
-            </h3>
-            <p className={`mt-2 text-xs sm:text-sm leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-              Temporarily stores architecture node positions, active baseline comparisons, and pending repository analysis queries so your work is never lost during browser reloads.
-            </p>
-          </div>
-
-          <div
-            className={`p-4 rounded-xl border ${
-              isDark ? 'bg-[#0A0A0A] border-neutral-800' : 'bg-white border-slate-200 shadow-xs'
-            }`}
-          >
-            <h3 className="text-base font-semibold text-purple-500 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500" />
-              Security &amp; Rate-Limiting
-            </h3>
-            <p className={`mt-2 text-xs sm:text-sm leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-              Maintains secure tokens for OAuth sign-in with GitHub and Google, preventing replay attacks and ensuring compute resource fairness on simulation clusters.
-            </p>
-          </div>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0B0E]">
+          <table className="w-full text-left text-xs sm:text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-neutral-900/60 font-semibold text-slate-700 dark:text-neutral-200">
+                <th className="py-3 px-4">Identifier / Key</th>
+                <th className="py-3 px-4">Classification</th>
+                <th className="py-3 px-4">Purpose</th>
+                <th className="py-3 px-4">Lifespan</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-slate-600 dark:text-neutral-300">
+              <tr>
+                <td className="py-3 px-4 font-mono text-xs text-slate-900 dark:text-neutral-100">sb-*-auth-token</td>
+                <td className="py-3 px-4 font-medium text-slate-800 dark:text-neutral-200">Essential</td>
+                <td className="py-3 px-4">Maintains encrypted JWT session state and validates Supabase user authentication.</td>
+                <td className="py-3 px-4">Session / 1 Year</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-mono text-xs text-slate-900 dark:text-neutral-100">gitoscale-theme</td>
+                <td className="py-3 px-4 font-medium text-slate-800 dark:text-neutral-200">Preference</td>
+                <td className="py-3 px-4">Remembers your dark or light visual interface preference across visits.</td>
+                <td className="py-3 px-4">1 Year</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-mono text-xs text-slate-900 dark:text-neutral-100">gitoscale_playground_*</td>
+                <td className="py-3 px-4 font-medium text-slate-800 dark:text-neutral-200">Functional</td>
+                <td className="py-3 px-4">Instant browser crash-recovery cache preserving canvas nodes, traffic rates, and edges.</td>
+                <td className="py-3 px-4">Persistent Local</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-mono text-xs text-slate-900 dark:text-neutral-100">gitoscale_project_*</td>
+                <td className="py-3 px-4 font-medium text-slate-800 dark:text-neutral-200">Functional</td>
+                <td className="py-3 px-4">Offline project title and repository identification index for quick switching.</td>
+                <td className="py-3 px-4">Persistent Local</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-mono text-xs text-slate-900 dark:text-neutral-100">X-Trace-Id</td>
+                <td className="py-3 px-4 font-medium text-slate-800 dark:text-neutral-200">Telemetry</td>
+                <td className="py-3 px-4">Ephemeral request correlation ID for diagnosing slow server queries and simulator latency.</td>
+                <td className="py-3 px-4">Per Request</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
-      {/* Section 3: Third-Party Services */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">3. Third-Party Cookies and Handlers</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          When you connect via external developer accounts (such as GitHub OAuth or Google Sign-In), those external providers may deploy their own authentication and security cookies in accordance with their respective privacy and cookie guidelines.
+      {/* Section 3 */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          3. Third-Party Authentication Handlers
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
+          When initiating single sign-on authentication through external providers (such as GitHub OAuth or Google Identity), those third parties may deploy functional session cookies in accordance with their respective security policies. We do not pass tracking telemetry to third-party ad networks.
         </p>
       </section>
 
-      {/* Section 4: How to Control Cookies */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">4. How to Control or Delete Cookies</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          Most modern web browsers allow you to manage your cookie preferences through their settings:
+      {/* Section 4 */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          4. How to Manage or Clear Cookies
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300 mb-3">
+          You can inspect, clear, or block cookies and local storage directly via your browser&rsquo;s developer tools or privacy settings:
         </p>
-        <ul className={`list-disc pl-5 space-y-1.5 text-sm sm:text-base ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          <li>You can configure your browser to reject all cookies or notify you whenever a cookie is set.</li>
-          <li>You can clear your local storage and session data via browser developer tools or settings anytime.</li>
-          <li>Note: Disabling strictly essential cookies will prevent authentication and repository analysis from operating correctly.</li>
+        <ul className="list-disc pl-5 space-y-2 text-sm sm:text-base text-slate-600 dark:text-neutral-300">
+          <li>Chrome / Brave / Edge: Settings &rarr; Privacy and security &rarr; Third-party cookies.</li>
+          <li>Firefox: Settings &rarr; Privacy &amp; Security &rarr; Cookies and Site Data.</li>
+          <li>Safari: Preferences &rarr; Privacy &rarr; Manage Website Data.</li>
         </ul>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 mt-3 border-l-2 border-slate-300 dark:border-neutral-700 pl-3 italic">
+          Note: Clearing essential authentication tokens will sign you out of your account, while clearing local storage will purge unsaved local canvas prototypes that have not yet been synced to cloud history.
+        </p>
       </section>
 
-      {/* Section 5: Contact Us */}
-      <section className={`p-5 rounded-2xl border ${isDark ? 'bg-[#08080a] border-neutral-800' : 'bg-slate-100 border-slate-200'}`}>
-        <h2 className="text-lg font-bold">5. Questions &amp; Support</h2>
-        <p className={`mt-1 text-sm ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          For questions regarding our cookie practices, please contact our privacy desk at{' '}
-          <a href="mailto:privacy@gittoscale.tech" className="text-blue-500 font-medium hover:underline">
+      {/* Section 5 */}
+      <section className="mt-12 pt-6 border-t border-slate-200 dark:border-neutral-800">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">5. Privacy Desk Contact</h2>
+        <p className="text-sm text-slate-600 dark:text-neutral-300">
+          For technical questions regarding our cookie practices, reach our engineering desk at{' '}
+          <a
+            href="mailto:privacy@gittoscale.tech"
+            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
+          >
             privacy@gittoscale.tech
           </a>
           .
@@ -387,104 +388,135 @@ const CookiePolicyContent: React.FC<{ isDark: boolean }> = ({ isDark }) => {
 /* =========================================================================
    2. Privacy Policy Content
    ========================================================================= */
-const PrivacyPolicyContent: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+const PrivacyPolicyContent: React.FC<{ isDark: boolean }> = ({ isDark: _isDark }) => {
   return (
-    <article className="space-y-8">
-      {/* Document Header */}
-      <div className="border-b pb-6 border-neutral-800 dark:border-neutral-800">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mb-3">
-          <Shield className="w-3.5 h-3.5" />
-          <span>DATA PROTECTION</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+    <article className="prose prose-slate dark:prose-invert max-w-none">
+      {/* Title & Metadata */}
+      <header className="border-b pb-6 border-slate-200 dark:border-neutral-800">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
           Privacy Policy
         </h1>
-        <p className={`mt-2 text-sm ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>
-          Effective Date: October 2026 &bull; Last Revised: October 29, 2026
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 font-mono">
+          Effective: October 2026 &middot; Last Revised: October 29, 2026
         </p>
-      </div>
+      </header>
 
-      {/* Summary Box */}
-      <div
-        className={`p-4 sm:p-5 rounded-2xl border ${
-          isDark
-            ? 'bg-[#0A0A0A] border-neutral-800 text-neutral-300'
-            : 'bg-white border-slate-200 text-slate-700 shadow-xs'
-        }`}
-      >
-        <p className="text-sm leading-relaxed">
-          At <strong>GitToScale</strong>, your privacy and intellectual property are our top priorities. We build developer tools with a strict security-first philosophy: <strong>we do not sell your personal information, and we never train public AI models on your private codebase or architecture definitions.</strong>
-        </p>
+      {/* Core Principle Callout */}
+      <div className="mt-8 p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/60 dark:bg-neutral-900/40 text-sm leading-relaxed text-slate-800 dark:text-neutral-200 font-medium">
+        Developer Trust Commitment: We do not sell your personal data, and we strictly never train public foundation AI models on your private codebase, repository files, or architecture designs.
       </div>
 
       {/* Section 1 */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">1. Information We Collect</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          We collect only the minimum information required to deliver high-performance architecture modeling and simulation:
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          1. Information We Collect
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300 mb-3">
+          GitToScale operates on a principle of data minimization, collecting only what is strictly required to simulate architectures and calculate traffic bottlenecks:
         </p>
-        <ul className={`list-disc pl-5 space-y-2 text-sm sm:text-base ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
+        <ul className="list-disc pl-5 space-y-2.5 text-sm sm:text-base text-slate-600 dark:text-neutral-300">
           <li>
-            <strong>Account Information:</strong> When you register or sign in via GitHub or Google, we receive your email address, display name, and avatar URL to authenticate your session.
+            <strong>Authentication Metadata:</strong> When registering via GitHub or Google, we store your email address, display name, and avatar URL to authenticate your session.
           </li>
           <li>
-            <strong>Repository Topology &amp; Metadata:</strong> When you import a repository, our scanner parses directory trees, configuration files (e.g. Dockerfiles, Kubernetes manifests, package definitions), and service boundaries. <em>We do not retain raw source code files in permanent cloud databases.</em>
+            <strong>Repository Topology Definitions:</strong> When using the repository scanner, our parser extracts high-level module structure (package manifests, Dockerfiles, Kubernetes manifests, and entrypoint routes). <em>Raw proprietary source code is processed in memory and never stored in persistent databases.</em>
           </li>
           <li>
-            <strong>Simulation Telemetry:</strong> User-configured throughput rates (RPS), queue capacity limits, failure scenarios, and latency benchmarks created on the Architecture Canvas.
+            <strong>Simulation Telemetry &amp; Node Graphs:</strong> The node-and-edge graphs, configured requests-per-second rates, queue policies, and capacity numbers you design on the canvas.
+          </li>
+          <li>
+            <strong>Feedback Submissions:</strong> Suggestions, recommendation notes, or bug reports you explicitly transmit through the feedback dialog.
           </li>
         </ul>
       </section>
 
-      {/* Section 2: How We Use Information */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">2. How We Use Your Information</h2>
-        <ul className={`list-disc pl-5 space-y-1.5 text-sm sm:text-base ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          <li>To construct interactive system architecture node graphs in real time.</li>
-          <li>To calculate distributed traffic routing, bottleneck analysis, and capacity forecasting.</li>
-          <li>To generate contextual AI architecture recommendations requested by your prompts.</li>
-          <li>To save your simulation history and allow you to resume your projects seamlessly.</li>
+      {/* Section 2 */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          2. How Your Information Is Used
+        </h2>
+        <ul className="list-disc pl-5 space-y-2 text-sm sm:text-base text-slate-600 dark:text-neutral-300">
+          <li>To construct interactive system topology graphs on the React Flow canvas.</li>
+          <li>To compute deterministic M/M/m/K queue propagation, latency percentiles, and bottleneck rankings.</li>
+          <li>To synthesize contextual architecture recommendations requested by your prompts.</li>
+          <li>To synchronize your project history to secure cloud storage so you can resume work across devices.</li>
         </ul>
       </section>
 
-      {/* Section 3: Intellectual Property & Code Security */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">3. Code Security and Non-Retention Commitment</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          Your codebase is your proprietary intellectual property. GitToScale executes repository analysis in isolated sandboxes and strictly discards temporary abstract syntax tree (AST) files once topology discovery is finalized.
+      {/* Section 3 */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          3. Code Security &amp; Ephemeral Processing
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
+          Your codebase is your proprietary intellectual property. GitToScale executes repository AST parsing inside isolated execution boundaries and strictly discards temporary tree objects once topological discovery finishes. At no point are your private business logic files indexed for training third-party AI models.
         </p>
       </section>
 
-      {/* Section 4: Data Sharing */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">4. Third-Party Service Providers</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          We work with trusted enterprise cloud infrastructure providers to run GitToScale:
-        </p>
-        <ul className={`list-disc pl-5 space-y-1.5 text-sm sm:text-base ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          <li><strong>Supabase / PostgreSQL:</strong> Secure encrypted database storage for user profiles and project metadata.</li>
-          <li><strong>GitHub &amp; Google Cloud:</strong> Secure OAuth authentication verification.</li>
-          <li><strong>Cloudflare / Vercel:</strong> Global CDN routing and edge caching with full TLS 1.3 encryption.</li>
-        </ul>
+      {/* Section 4 */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          4. Infrastructure &amp; Cloud Sub-processors
+        </h2>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0B0E] mt-3">
+          <table className="w-full text-left text-xs sm:text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-neutral-900/60 font-semibold text-slate-700 dark:text-neutral-200">
+                <th className="py-2.5 px-4">Provider</th>
+                <th className="py-2.5 px-4">Function</th>
+                <th className="py-2.5 px-4">Location</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-neutral-800 text-slate-600 dark:text-neutral-300">
+              <tr>
+                <td className="py-2.5 px-4 font-medium text-slate-900 dark:text-white">Neon / Supabase</td>
+                <td className="py-2.5 px-4">Encrypted PostgreSQL cloud database storage for accounts and architecture JSON.</td>
+                <td className="py-2.5 px-4">United States / Global</td>
+              </tr>
+              <tr>
+                <td className="py-2.5 px-4 font-medium text-slate-900 dark:text-white">Cloudflare R2</td>
+                <td className="py-2.5 px-4">Object storage for uploaded diagram snapshots, video demonstrations, and media.</td>
+                <td className="py-2.5 px-4">Global Edge Network</td>
+              </tr>
+              <tr>
+                <td className="py-2.5 px-4 font-medium text-slate-900 dark:text-white">Google Cloud &amp; Groq</td>
+                <td className="py-2.5 px-4">Inference gateways for conversational architecture copilot queries with zero retention.</td>
+                <td className="py-2.5 px-4">United States</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      {/* Section 5: User Rights */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">5. Your Rights (GDPR &amp; CCPA)</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          Regardless of your geography, you have the right to inspect, export, or permanently delete your account and all associated project architecture graphs at any time. To request complete account deletion, email{' '}
-          <a href="mailto:privacy@gittoscale.tech" className="text-blue-500 hover:underline">
+      {/* Section 5 */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          5. Developer Rights (GDPR &amp; CCPA Compliance)
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
+          You retain full rights to inspect, download (via JSON or Mermaid export), or permanently purge your account and all associated project architecture graphs. To request complete, irreversible account data deletion, email our data desk at{' '}
+          <a
+            href="mailto:privacy@gittoscale.tech"
+            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
+          >
             privacy@gittoscale.tech
           </a>
           .
         </p>
       </section>
 
-      {/* Contact Box */}
-      <section className={`p-5 rounded-2xl border ${isDark ? 'bg-[#08080a] border-neutral-800' : 'bg-slate-100 border-slate-200'}`}>
-        <h2 className="text-lg font-bold">6. Contact Our Data Protection Officer</h2>
-        <p className={`mt-1 text-sm ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          GitToScale Security &amp; Privacy Office: <a href="mailto:privacy@gittoscale.tech" className="text-blue-500 font-medium hover:underline">privacy@gittoscale.tech</a>.
+      {/* Contact Section */}
+      <section className="mt-12 pt-6 border-t border-slate-200 dark:border-neutral-800">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">6. Security &amp; Privacy Contact</h2>
+        <p className="text-sm text-slate-600 dark:text-neutral-300">
+          Direct inquiries to our Data Protection Officer:{' '}
+          <a
+            href="mailto:privacy@gittoscale.tech"
+            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
+          >
+            privacy@gittoscale.tech
+          </a>
+          .
         </p>
       </section>
     </article>
@@ -494,102 +526,103 @@ const PrivacyPolicyContent: React.FC<{ isDark: boolean }> = ({ isDark }) => {
 /* =========================================================================
    3. Terms of Service Content
    ========================================================================= */
-const TermsOfServiceContent: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+const TermsOfServiceContent: React.FC<{ isDark: boolean }> = ({ isDark: _isDark }) => {
   return (
-    <article className="space-y-8">
-      {/* Document Header */}
-      <div className="border-b pb-6 border-neutral-800 dark:border-neutral-800">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-500 border border-purple-500/20 mb-3">
-          <FileText className="w-3.5 h-3.5" />
-          <span>USER AGREEMENT</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
-          Terms &amp; Conditions
+    <article className="prose prose-slate dark:prose-invert max-w-none">
+      {/* Title & Metadata */}
+      <header className="border-b pb-6 border-slate-200 dark:border-neutral-800">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
+          Terms of Service
         </h1>
-        <p className={`mt-2 text-sm ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>
-          Effective Date: October 2026 &bull; Last Revised: October 29, 2026
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 font-mono">
+          Effective: October 2026 &middot; Last Revised: October 29, 2026
         </p>
-      </div>
+      </header>
 
-      {/* Intro Box */}
-      <div
-        className={`p-4 sm:p-5 rounded-2xl border ${
-          isDark
-            ? 'bg-[#0A0A0A] border-neutral-800 text-neutral-300'
-            : 'bg-white border-slate-200 text-slate-700 shadow-xs'
-        }`}
-      >
-        <p className="text-sm leading-relaxed">
-          Welcome to <strong>GitToScale</strong>. By accessing or using our website, APIs, architecture recommender, and capacity simulation engines, you agree to be bound by these Terms and Conditions (&ldquo;Terms&rdquo;). If you do not agree, please do not use the service.
+      {/* Intro */}
+      <div className="mt-8 text-sm sm:text-base leading-relaxed text-slate-700 dark:text-neutral-300">
+        <p>
+          These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of <strong>GitToScale</strong>, an interactive system architecture modeling, repository scanning, and capacity simulation platform. By accessing or using our platform or APIs, you agree to be bound by these Terms.
         </p>
       </div>
 
       {/* Section 1 */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">1. Description of Services</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          GitToScale provides an interactive developer playground that scans code repositories, models distributed architecture graphs, performs synthetic traffic load simulations based on analytical queueing theory (M/M/m/K models), and delivers AI-assisted architectural guidance.
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          1. Description of Services
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
+          GitToScale provides an interactive web engineering environment that models microservice topologies, executes synthetic traffic propagation simulations using analytical queueing models (M/M/m/K), identifies capacity bottlenecks, and provides AI-driven architectural advice.
         </p>
       </section>
 
       {/* Section 2 */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">2. User Accounts and Responsibilities</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          You are responsible for maintaining the confidentiality of your authentication credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized account access.
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          2. Account Responsibilities &amp; API Keys
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300 mb-3">
+          You are responsible for maintaining the security of your authentication sessions and any custom Bring-Your-Own-Key (BYOK) credentials configured for LLM providers. GitToScale encrypts client configuration parameters and does not expose private API keys in client-side bundles.
         </p>
       </section>
 
       {/* Section 3 */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">3. Acceptable Use Policy</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          You agree not to:
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          3. Acceptable Use Policy
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300 mb-3">
+          You agree not to use GitToScale for any of the following prohibited activities:
         </p>
-        <ul className={`list-disc pl-5 space-y-1.5 text-sm sm:text-base ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          <li>Use GitToScale to conduct denial-of-service (DoS/DDoS) attacks against third-party production servers.</li>
-          <li>Upload repositories containing malicious code, worms, or unauthorized exploits.</li>
-          <li>Attempt to decompile, reverse-engineer, or circumvent security protections of our simulation algorithms.</li>
-          <li>Resell, sublicense, or redistribute our analytical engine without written authorization.</li>
+        <ul className="list-disc pl-5 space-y-2 text-sm sm:text-base text-slate-600 dark:text-neutral-300">
+          <li>Launching unauthorized denial-of-service tests or destructive load against third-party production servers.</li>
+          <li>Submitting repositories containing malicious viruses, trojans, or unauthorized exploit code.</li>
+          <li>Attempting to bypass access controls, API rate limits, or reverse-engineer proprietary simulation algorithms.</li>
+          <li>Reselling, sublicensing, or duplicating our analytical engine without explicit prior written authorization.</li>
         </ul>
       </section>
 
-      {/* Section 4 */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">4. Simulation Disclaimer &amp; Limitation of Liability</h2>
-        <div
-          className={`p-4 rounded-xl border ${
-            isDark ? 'bg-amber-950/20 border-amber-500/30 text-amber-200' : 'bg-amber-50 border-amber-300 text-amber-900'
-          }`}
-        >
-          <p className="text-xs sm:text-sm leading-relaxed font-medium">
-            <strong>Important Engineering Notice:</strong> Architecture simulations, capacity figures, latency curves, and bottleneck warnings generated by GitToScale are theoretical mathematical approximations intended for capacity planning, system design education, and architectural assessment. They do not constitute a formal guarantee of production SLA performance or substitute for real-world load testing.
+      {/* Section 4: Engineering Notice & Disclaimer */}
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          4. Simulation Disclaimer &amp; Engineering Notice
+        </h2>
+        <div className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/70 dark:bg-neutral-900/50">
+          <p className="text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-neutral-300 font-medium">
+            <strong>Important Technical Disclaimer:</strong> Throughput metrics, queue saturation figures, latency curves, and bottleneck diagnostics generated by GitToScale are theoretical mathematical calculations grounded in queueing network theory. They serve as architectural design, capacity planning, and educational benchmarks. They do not constitute an operational Service Level Agreement (SLA) guarantee of production infrastructure performance, and should be evaluated alongside physical load tests prior to production rollout.
           </p>
         </div>
       </section>
 
       {/* Section 5 */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">5. Intellectual Property Rights</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          You retain all ownership, copyright, and patent rights to your architecture designs, prompts, and source repositories. GitToScale and its licensors retain all rights, title, and interest in and to the platform, simulation engine, custom node library, UI, and trademarks.
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          5. Intellectual Property Rights
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
+          You retain 100% full ownership, copyright, and patent rights to your architecture designs, custom prompts, code repositories, and exported diagrams. GitToScale and its licensors retain all proprietary rights, title, and interest in and to the platform codebase, simulation algorithms, UI design system, and trademarks.
         </p>
       </section>
 
       {/* Section 6 */}
-      <section className="space-y-3">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">6. Termination</h2>
-        <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          We reserve the right to suspend or terminate accounts that violate our Acceptable Use Policy or compromise simulation platform integrity, without prior liability.
+      <section className="mt-10">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-3">
+          6. Termination &amp; Account Suspension
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
+          We reserve the right to suspend or terminate accounts that breach this Acceptable Use Policy or attempt to compromise the security and availability of the platform, without prior notice.
         </p>
       </section>
 
-      {/* Contact Section */}
-      <section className={`p-5 rounded-2xl border ${isDark ? 'bg-[#08080a] border-neutral-800' : 'bg-slate-100 border-slate-200'}`}>
-        <h2 className="text-lg font-bold">7. Inquiries &amp; Legal Notices</h2>
-        <p className={`mt-1 text-sm ${isDark ? 'text-neutral-300' : 'text-slate-600'}`}>
-          For legal inquiries or notices regarding these terms, contact us at{' '}
-          <a href="mailto:legal@gittoscale.tech" className="text-blue-500 font-medium hover:underline">
+      {/* Section 7 */}
+      <section className="mt-12 pt-6 border-t border-slate-200 dark:border-neutral-800">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">7. Legal Inquiries &amp; Notices</h2>
+        <p className="text-sm text-slate-600 dark:text-neutral-300">
+          For formal inquiries, DMCA notifications, or legal matters, contact:{' '}
+          <a
+            href="mailto:legal@gittoscale.tech"
+            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
+          >
             legal@gittoscale.tech
           </a>
           .
@@ -600,4 +633,3 @@ const TermsOfServiceContent: React.FC<{ isDark: boolean }> = ({ isDark }) => {
 };
 
 export default LegalPage;
-
