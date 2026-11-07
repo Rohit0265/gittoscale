@@ -2301,6 +2301,10 @@ export const App: React.FC = () => {
           window.history.pushState({}, '', '/feed?filter=liked');
           setCurrentView('feed');
         }}
+        onViewSaved={() => {
+          window.history.pushState({}, '', '/feed?filter=saved');
+          setCurrentView('feed');
+        }}
         onOpenAuth={() => {
           window.history.pushState({}, '', '/signin');
           setCurrentView('signin');

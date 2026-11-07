@@ -383,4 +383,55 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(updateRes2.body.data.username).toBe('bob_cloud');
     expect(updateRes2.body.data.banner_url).toContain('linear-gradient');
   });
+
+  it('supports toggling bookmark on a post and fetching saved posts via /api/feed/profile/:id/saved', async () => {
+    // 1. Create a post
+    const createRes = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({
+        content: 'Crucial caching pattern to bookmark and save for later reference.',
+      });
+
+    expect(createRes.status).toBe(201);
+    const postId = createRes.body.data.id;
+
+    // 2. Bookmark post with user2
+    const bmRes1 = await request(app)
+      .post(`/api/feed/posts/${postId}/bookmark`)
+      .set('Authorization', `Bearer ${user2Token}`);
+
+    expect(bmRes1.status).toBe(200);
+    expect(bmRes1.body.success).toBe(true);
+    expect(bmRes1.body.bookmarked).toBe(true);
+
+    // 3. Verify it shows up in user2 saved posts
+    const savedRes = await request(app)
+      .get('/api/feed/profile/usr_feed_test_2/saved')
+      .set('Authorization', `Bearer ${user2Token}`);
+
+    expect(savedRes.status).toBe(200);
+    expect(savedRes.body.success).toBe(true);
+    expect(savedRes.body.data.length).toBeGreaterThanOrEqual(1);
+    const savedPost = savedRes.body.data.find((p: any) => p.id === postId);
+    expect(savedPost).toBeDefined();
+    expect(savedPost.has_bookmarked).toBe(true);
+
+    // 4. Toggle bookmark again to unbookmark
+    const bmRes2 = await request(app)
+      .post(`/api/feed/posts/${postId}/bookmark`)
+      .set('Authorization', `Bearer ${user2Token}`);
+
+    expect(bmRes2.status).toBe(200);
+    expect(bmRes2.body.bookmarked).toBe(false);
+
+    // 5. Verify it is removed from user2 saved posts
+    const savedResAfter = await request(app)
+      .get('/api/feed/profile/usr_feed_test_2/saved')
+      .set('Authorization', `Bearer ${user2Token}`);
+
+    expect(savedResAfter.status).toBe(200);
+    const notFound = savedResAfter.body.data.find((p: any) => p.id === postId);
+    expect(notFound).toBeUndefined();
+  });
 });

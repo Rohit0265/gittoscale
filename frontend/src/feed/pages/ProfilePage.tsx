@@ -139,6 +139,34 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     }
   };
 
+  const handlePostBookmark = async (postId: string) => {
+    if (!token) {
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
+
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            has_bookmarked: !p.has_bookmarked,
+          };
+        }
+        return p;
+      })
+    );
+
+    try {
+      const res = await feedApi.toggleBookmark(postId, token);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, has_bookmarked: res.bookmarked } : p))
+      );
+    } catch {
+      // Revert if error
+    }
+  };
+
   const handleUpdatePost = async (postId: string, newContent: string) => {
     if (!token) return;
     const updated = await feedApi.updatePost(postId, newContent, token);
@@ -165,6 +193,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         onNavigateToSimulator={onNavigateToSimulator}
         onNavigateToProfile={onNavigateToProfile}
         onViewLikes={onNavigateToFeed}
+        onViewSaved={() => {
+          window.history.pushState({}, '', '/feed?filter=saved');
+          onNavigateToFeed();
+        }}
       />
 
       <div className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 py-6 flex flex-col items-center">
@@ -360,6 +392,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   currentUserId={user?.id}
                   onLike={handlePostLike}
                   onDislike={handlePostDislike}
+                  onBookmark={handlePostBookmark}
                   onOpenComments={(p) => setSelectedPostForComments(p)}
                   onUpdatePost={handleUpdatePost}
                   onDeletePost={handleDeletePost}
