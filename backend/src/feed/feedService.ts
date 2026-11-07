@@ -211,6 +211,7 @@ export async function getFeedPosts(
         comment_count: Number(r.comment_count) || 0,
         has_liked: Boolean(r.has_liked),
         has_disliked: Boolean(r.has_disliked),
+        has_bookmarked: Boolean(r.has_bookmarked),
       };
     });
   } catch (err: any) {
@@ -226,6 +227,7 @@ export async function getFeedPosts(
         const commentCount = inMemComments.filter((c) => c.post_id === r.id).length;
         const hasLiked = currentUserId ? inMemLikes.some((l) => l.post_id === r.id && l.user_id === currentUserId) : false;
         const hasDisliked = currentUserId ? inMemDislikes.some((d) => d.post_id === r.id && d.user_id === currentUserId) : false;
+        const hasBookmarked = currentUserId ? inMemBookmarks.some((b) => b.post_id === r.id && b.user_id === currentUserId) : false;
 
         return {
           id: r.id,
@@ -245,6 +247,7 @@ export async function getFeedPosts(
           comment_count: commentCount,
           has_liked: hasLiked,
           has_disliked: hasDisliked,
+          has_bookmarked: hasBookmarked,
         };
       });
     }
