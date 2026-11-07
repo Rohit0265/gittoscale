@@ -538,7 +538,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Code Viewer Body */}
-              <div className="flex-1 overflow-auto p-4 bg-slate-50 dark:bg-[#07080a] text-slate-800 dark:text-slate-100 font-mono text-xs leading-relaxed border-t border-slate-200 dark:border-neutral-800 selection:bg-indigo-600 selection:text-white">
+              <div className="flex-1 overflow-auto p-4 bg-slate-50 dark:bg-[#07080a] text-slate-900 dark:text-neutral-100 font-mono text-xs leading-relaxed border-t border-slate-200 dark:border-neutral-800">
                 <pre className="whitespace-pre overflow-x-auto">
                   {previewTab === 'mermaid'
                     ? generateMermaidDiagram(nodes || [], edges || [], projectName)
