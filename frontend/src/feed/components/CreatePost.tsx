@@ -199,9 +199,6 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     }
   };
 
-  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'You';
-  const avatarUrl = user.user_metadata?.avatar_url;
-
   return (
     <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xs mb-6 transition-colors">
       <form onSubmit={handleSubmit}>

@@ -11,7 +11,7 @@ interface FeedSidebarProps {
   onToggleTheme?: () => void;
   onSignOut?: () => void;
   onViewLikes?: () => void;
-  activeFilter?: 'all' | 'liked';
+  activeFilter?: 'all' | 'liked' | 'saved';
   onOpenSignIn?: () => void;
   onOpenSignUp?: () => void;
 }
