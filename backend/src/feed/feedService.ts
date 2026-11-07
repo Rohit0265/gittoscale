@@ -334,6 +334,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       comment_count: Number(r.comment_count) || 0,
       has_liked: Boolean(r.has_liked),
       has_disliked: Boolean(r.has_disliked),
+      has_bookmarked: Boolean(r.has_bookmarked),
     };
   } catch (err: any) {
     if (isDbConnectionError(err)) {
@@ -343,6 +344,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       const commentCount = inMemComments.filter((c) => c.post_id === postId).length;
       const hasLiked = currentUserId ? inMemLikes.some((l) => l.post_id === postId && l.user_id === currentUserId) : false;
       const hasDisliked = currentUserId ? inMemDislikes.some((d) => d.post_id === postId && d.user_id === currentUserId) : false;
+      const hasBookmarked = currentUserId ? inMemBookmarks.some((b) => b.post_id === postId && b.user_id === currentUserId) : false;
 
       return {
         id: found.id,
@@ -362,6 +364,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         comment_count: commentCount,
         has_liked: hasLiked,
         has_disliked: hasDisliked,
+        has_bookmarked: hasBookmarked,
       };
     }
     throw err;
