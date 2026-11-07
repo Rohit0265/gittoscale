@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Linkedin, Github, Mail, MessageSquarePlus } from 'lucide-react';
-import { FeedbackModal } from './FeedbackModal';
+import React from 'react';
+import { Linkedin, Github, Mail } from 'lucide-react';
 import './Fotter.css';
 
 /**
@@ -19,14 +18,11 @@ export interface FotterProps {
  * Global application footer component.
  *
  * Features:
- * - Direct "Feedback & Bug Report" interactive modal launcher
  * - Cookie, Privacy Policy, and Terms & Conditions legal links
  * - Social & professional links (LinkedIn, GitHub, Email)
  * - Responsive SVG typographic background watermark
  */
 export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavigate }) => {
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-
   const handleLegalClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     e.preventDefault();
     if (onNavigate) {
@@ -40,21 +36,8 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavi
   return (
     <footer className="gts-footer-container">
       <div className="gts-footer-inner">
-        {/* Bottom Bar: Feedback Button, Legal Links, Copyright, and Social Links */}
+        {/* Bottom Bar: Legal Links, Copyright, and Social Links */}
         <div className="gts-minimal-bottom">
-          <div className="gts-feedback-row">
-            <button
-              type="button"
-              onClick={() => setIsFeedbackOpen(true)}
-              className="gts-feedback-pill group"
-              aria-label="Give feedback or report a bug"
-            >
-              <MessageSquarePlus className="w-4 h-4 text-slate-700 dark:text-neutral-300 group-hover:text-indigo-500 transition-colors" />
-              <span>Feedback &amp; Bug Report</span>
-              {/* <span className="gts-feedback-badge">Share idea</span> */}
-            </button>
-          </div>
-
           {/* Legal / Policy Navigation Links */}
           <nav className="gts-legal-links" aria-label="Legal & Policies">
             <a
@@ -117,12 +100,6 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavi
           </div>
         </div>
       </div>
-
-      {/* Feedback Modal Dialog */}
-      <FeedbackModal
-        isOpen={isFeedbackOpen}
-        onClose={() => setIsFeedbackOpen(false)}
-      />
     </footer>
   );
 };
