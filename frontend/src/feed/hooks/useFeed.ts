@@ -144,6 +144,36 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     }
   };
 
+  const handleToggleBookmark = async (postId: string) => {
+    if (!token) {
+      throw new Error('Please sign in to save posts.');
+    }
+
+    // Optimistic UI update
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const wasBookmarked = Boolean(p.has_bookmarked);
+          return {
+            ...p,
+            has_bookmarked: !wasBookmarked,
+          };
+        }
+        return p;
+      })
+    );
+
+    try {
+      const res = await feedApi.toggleBookmark(postId, token);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, has_bookmarked: res.bookmarked } : p))
+      );
+    } catch (err) {
+      fetchPosts();
+      throw err;
+    }
+  };
+
   const handleOpenComments = (post: FeedPost) => {
     setSelectedPostForComments(post);
   };
@@ -170,6 +200,7 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     deletePost: handleDeletePost,
     toggleLike: handleToggleLike,
     toggleDislike: handleToggleDislike,
+    toggleBookmark: handleToggleBookmark,
     selectedPostForComments,
     openComments: handleOpenComments,
     closeComments: handleCloseComments,
