@@ -7,6 +7,7 @@ import crypto from 'node:crypto';
 const inMemPosts: any[] = [];
 const inMemLikes: { post_id: string; user_id: string }[] = [];
 const inMemDislikes: { post_id: string; user_id: string }[] = [];
+const inMemBookmarks: { post_id: string; user_id: string }[] = [];
 const inMemComments: any[] = [];
 const inMemFollows: { follower_id: string; following_id: string }[] = [];
 const inMemProfiles: Record<string, any> = {};
@@ -99,6 +100,15 @@ export async function ensureFeedSchema(): Promise<void> {
     await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username_unique ON public.profiles (LOWER(username)) WHERE username IS NOT NULL;`;
     await db`
       CREATE TABLE IF NOT EXISTS public.feed_dislikes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        post_id UUID NOT NULL REFERENCES public.feed_posts(id) ON DELETE CASCADE,
+        user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+        UNIQUE(post_id, user_id)
+      );
+    `;
+    await db`
+      CREATE TABLE IF NOT EXISTS public.feed_bookmarks (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         post_id UUID NOT NULL REFERENCES public.feed_posts(id) ON DELETE CASCADE,
         user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
