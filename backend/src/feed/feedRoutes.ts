@@ -408,6 +408,37 @@ router.post('/posts/:id/dislike', requireAuth, async (req: AuthenticatedRequest,
 });
 
 // ============================================================================
+// 6c. POST /api/feed/posts/:id/bookmark - Toggle bookmark / save
+// ============================================================================
+router.post('/posts/:id/bookmark', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user!.id;
+
+    const result = await toggleFeedBookmark(postId, userId);
+    res.json({
+      success: true,
+      bookmarked: result.bookmarked,
+    });
+  } catch (error: any) {
+    if (error?.message === 'POST_NOT_FOUND') {
+      res.status(404).json({
+        success: false,
+        error: 'POST_NOT_FOUND',
+        message: 'Post does not exist.',
+      });
+      return;
+    }
+
+    console.error('[Feed API] Failed to toggle bookmark:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update bookmark status.',
+    });
+  }
+});
+
+// ============================================================================
 // 7. GET /api/feed/posts/:id/comments - Retrieve comments
 // ============================================================================
 router.get('/posts/:id/comments', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -649,6 +680,29 @@ router.get('/profile/:id/likes', optionalAuth, async (req: AuthenticatedRequest,
     res.status(500).json({
       success: false,
       error: 'Failed to fetch liked posts for user.',
+    });
+  }
+});
+
+// ============================================================================
+// 12b. GET /api/feed/profile/:id/saved - User's saved/bookmarked posts
+// ============================================================================
+router.get('/profile/:id/saved', optionalAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const targetUserId = req.params.id;
+    const viewerUserId = req.user?.id;
+
+    const posts = await getUserSavedPosts(targetUserId, viewerUserId);
+    res.json({
+      success: true,
+      data: posts,
+      count: posts.length,
+    });
+  } catch (error: any) {
+    console.error('[Feed API] Failed to fetch saved posts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch saved posts for user.',
     });
   }
 });
