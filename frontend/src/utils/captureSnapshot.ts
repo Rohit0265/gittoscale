@@ -127,7 +127,6 @@ export async function captureArchitectureSnapshot(
 
     // Smooth Bezier Curve
     const dx = tx - sx;
-    const dy = ty - sy;
     const cx1 = sx + dx * 0.4;
     const cy1 = sy;
     const cx2 = sx + dx * 0.6;

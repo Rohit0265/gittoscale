@@ -2024,6 +2024,8 @@ export const App: React.FC = () => {
           user={user}
           token={authToken}
           isDark={isDark}
+          pendingPost={pendingFeedPost}
+          onClearPendingPost={() => setPendingFeedPost(null)}
           onToggleTheme={handleToggleTheme}
           onGoHome={handleGoHome}
           onOpenAuth={() => {
@@ -2333,6 +2335,37 @@ export const App: React.FC = () => {
         saveStatus={saveStatus}
         lastSaved={lastSaved}
         onForceSync={forceSyncNow}
+        onShareToFeed={async (snapshotDataUrl) => {
+          try {
+            const res = await fetch(snapshotDataUrl);
+            const blob = await res.blob();
+            const safeName = (activePromptText || defaultArchitecture?.description || 'architecture')
+              .toLowerCase()
+              .replace(/[^a-z0-9_-]/g, '_')
+              .slice(0, 30);
+            const file = new File([blob], `${safeName || 'system'}-design.png`, { type: 'image/png' });
+
+            const topComponents = nodes.map((n) => n.name).slice(0, 4).join(', ');
+            const titleName = activePromptText || defaultArchitecture?.description || 'System Architecture';
+            const content = `Check out my architecture for "${titleName}"! 🏗️\n\nFeatures ${nodes.length} components (${topComponents}${nodes.length > 4 ? ', ...' : ''}) optimized for high-throughput scaling.\n\nWhat are your thoughts on this system design?`;
+
+            setPendingFeedPost({
+              content,
+              media: [
+                {
+                  file,
+                  previewUrl: snapshotDataUrl,
+                  type: 'image',
+                },
+              ],
+            });
+
+            window.history.pushState({}, '', '/feed');
+            setCurrentView('feed');
+          } catch (err) {
+            console.error('[App] Failed to prepare feed post snapshot:', err);
+          }
+        }}
       />
 
       {/* 2. Top Metrics Strip */}
