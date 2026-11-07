@@ -66,15 +66,16 @@ export const Header: React.FC<HeaderProps> = ({
   isRunning = true,
   onToggleRun,
   onReset,
-  onOpenImportRepo: _onOpenImportRepo,
+  onOpenImportRepo,
   onOpenNewProject,
   onOpenRecommender: _onOpenRecommender,
-  onOpenHistory: _onOpenHistory,
+  onOpenHistory,
   onOpenFeed: _onOpenFeed,
   user,
   token,
   onNavigateToProfile,
   onViewLikes,
+  onViewSaved,
   onOpenAuth,
   onOpenSignUp,
   onSignOut,
@@ -346,6 +347,9 @@ export const Header: React.FC<HeaderProps> = ({
                   onToggleTheme={onToggleTheme}
                   onNavigateToProfile={onNavigateToProfile}
                   onViewLikes={onViewLikes}
+                  onViewSaved={onViewSaved}
+                  onOpenImportRepo={onOpenImportRepo}
+                  onOpenHistory={onOpenHistory}
                   onSignOut={onSignOut}
                   onClose={() => setIsMenuOpen(false)}
                   onOpenAuth={onOpenAuth}

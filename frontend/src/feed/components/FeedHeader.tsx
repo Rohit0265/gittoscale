@@ -14,6 +14,7 @@ interface FeedHeaderProps {
   onNavigateToSimulator?: () => void;
   onNavigateToProfile?: (userId: string) => void;
   onViewLikes?: () => void;
+  onViewSaved?: () => void;
 }
 
 export const FeedHeader: React.FC<FeedHeaderProps> = ({
@@ -28,6 +29,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
   onNavigateToSimulator,
   onNavigateToProfile,
   onViewLikes,
+  onViewSaved,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -114,6 +116,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                   onToggleTheme={onToggleTheme}
                   onNavigateToProfile={onNavigateToProfile}
                   onViewLikes={onViewLikes}
+                  onViewSaved={onViewSaved}
                   onSignOut={onSignOut}
                   onClose={() => setIsMenuOpen(false)}
                   onOpenAuth={onOpenAuth}
