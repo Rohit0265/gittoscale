@@ -164,7 +164,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
           <div className="lg:col-span-7 w-full">
             <div className="relative group">
               {/* Subtle ambient backdrop glow */}
-              <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-indigo-500/15 via-purple-500/10 to-emerald-500/15 blur-xl opacity-75 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className="absolute -inset-1.5 rounded-3xl bg-slate-200/50 dark:bg-neutral-800/40 blur-xl opacity-75 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
               {/* Feed Post Card Frame (mimics Feed Post Card) */}
               <article className="relative w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-4 sm:p-5 shadow-xl transition-all">
@@ -173,7 +173,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Avatar */}
                     <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 text-white font-bold flex items-center justify-center text-sm shadow-xs border border-white/20">
+                      <div className="w-10 h-10 rounded-full bg-slate-900 dark:bg-neutral-800 text-white font-bold flex items-center justify-center text-sm shadow-xs border border-slate-700 dark:border-neutral-700">
                         DK
                       </div>
                       <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0A0A0A]" />
@@ -185,7 +185,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                         <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
                           David K.
                         </span>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                         <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 font-medium hidden sm:inline">
                           Staff SRE
                         </span>
@@ -208,7 +208,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                 {/* Post Content */}
                 <div className="text-xs sm:text-sm text-slate-800 dark:text-neutral-200 leading-relaxed mb-3 space-y-1.5">
                   <p>
-                    Scaled our payment ledger architecture to <strong className="text-indigo-600 dark:text-indigo-400 font-semibold">65,000 req/s</strong> peak burst load with zero queue drops! 🚀
+                    Scaled our payment ledger architecture to <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">65,000 req/s</strong> peak burst load with zero queue drops! 🚀
                   </p>
                   <p className="text-slate-600 dark:text-neutral-400 text-xs leading-relaxed">
                     Eliminated our database write-lock bottleneck by pairing a write-behind Redis cache with a partitioned Kafka stream. Check out the full topology walkthrough video below:
@@ -226,7 +226,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                   <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400">
                     #65kRPS
                   </span>
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 font-semibold">
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 font-semibold">
                     #GitToScale
                   </span>
                 </div>
@@ -291,7 +291,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                       onClick={handleLike}
                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         hasLiked
-                          ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/50'
+                          ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/50'
                           : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/60'
                       }`}
                       title={hasLiked ? 'Unlike' : 'Like'}
@@ -347,7 +347,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
               {/* Feature 1: One-Click Publishing */}
               <div className="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] shadow-xs">
                 <div className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
                     <Share2 className="w-4 h-4" />
                   </div>
                   <div>
@@ -381,7 +381,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
               {/* Feature 3: Fork Any Community Design */}
               <div className="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] shadow-xs">
                 <div className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                     <GitFork className="w-4 h-4" />
                   </div>
                   <div>
@@ -413,7 +413,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                   onClick={onSelectTestSite}
                   className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-900 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  <Sparkles className="w-4 h-4 text-emerald-500" />
                   <span>Design Architecture</span>
                 </button>
               )}
