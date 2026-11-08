@@ -22,6 +22,7 @@ import NewOne from './newOne';
 import WorkflowSteps from './WorkflowSteps';
 import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
 import { PenHighlight } from './ui/PenShadowLine';
+import { ShareDesignFeedSection } from './ShareDesignFeedSection';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
@@ -740,6 +741,13 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
           isDark={isDark}
         />
       </div>
+
+      {/* Community Feed Showcase: Share Your Design to Others */}
+      <ShareDesignFeedSection
+        onNavigate={onNavigate}
+        onSelectTestSite={onSelectTestSite}
+        isDark={isDark}
+      />
 
       {/* Section 7: Use Cases (#use-cases) */}
       <section
