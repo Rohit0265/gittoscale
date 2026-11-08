@@ -374,8 +374,9 @@ async function sendViaSendGrid(apiKey: string, options: SendEmailOptions): Promi
  * Automatically uses RESEND_API_KEY, SENDGRID_API_KEY, or development simulation mode.
  */
 export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
-  const resendKey = process.env.RESEND_API_KEY;
-  const sendgridKey = process.env.SENDGRID_API_KEY;
+  const isTest = process.env.NODE_ENV === 'test' && !process.env.TEST_LIVE_EMAIL;
+  const resendKey = !isTest ? process.env.RESEND_API_KEY : undefined;
+  const sendgridKey = !isTest ? process.env.SENDGRID_API_KEY : undefined;
 
   if (resendKey) {
     return sendViaResend(resendKey, options);
