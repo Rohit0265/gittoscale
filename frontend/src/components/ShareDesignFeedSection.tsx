@@ -127,7 +127,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
       <div className="mx-auto w-full max-w-6xl">
         {/* Section Header */}
         <div className="mb-12 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
             <Users className="w-3.5 h-3.5" />
             <span>Community Feed</span>
           </div>
