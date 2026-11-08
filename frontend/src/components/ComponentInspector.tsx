@@ -18,6 +18,7 @@ interface ComponentInspectorProps {
   result?: NodeSimulationResult;
   edges: ArchitectureEdge[];
   onClose: () => void;
+  onDeleteNode?: (nodeId: string) => void;
   onUpdateNode: (updatedNode: ArchitectureNode) => void;
   onUpdateEdgeMultiplier: (edgeId: string, multiplier: number) => void;
   onDeleteEdge?: (edgeId: string) => void;
@@ -35,6 +36,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
   result,
   edges,
   onClose,
+  onDeleteNode,
   onUpdateNode,
   onUpdateEdgeMultiplier,
   onDeleteEdge,
@@ -120,6 +122,16 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
               className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <PanelRight className="w-4 h-4 hover:text-indigo-500 transition-colors" />
+            </button>
+          )}
+          {onDeleteNode && node.type !== 'load_generator' && (
+            <button
+              type="button"
+              onClick={() => onDeleteNode(node.id)}
+              title="Delete component"
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 dark:bg-[#141414] dark:hover:bg-rose-950/40 border border-slate-200 dark:border-neutral-800 hover:border-rose-300 dark:hover:border-rose-900/50 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" />
             </button>
           )}
           <button
