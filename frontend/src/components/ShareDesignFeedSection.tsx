@@ -66,7 +66,7 @@ const SHOWCASE_ITEMS = [
 ];
 
 export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
-  onNavigate,
+  onNavigate: _onNavigate,
   onSelectTestSite: _onSelectTestSite,
   isDark: _isDark = true,
 }) => {
@@ -90,11 +90,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
   };
 
   const handleOpenFeed = () => {
-    if (onNavigate) {
-      onNavigate('/feed');
-    } else {
-      window.location.href = '/feed';
-    }
+    window.open('/feed', '_blank', 'noopener,noreferrer');
   };
 
   return (

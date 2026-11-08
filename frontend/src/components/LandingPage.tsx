@@ -484,14 +484,10 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
           <nav className="flex items-center">
             <a
               href="/feed"
-              onClick={(e) => {
-                if (onNavigate && !e.metaKey && !e.ctrlKey) {
-                  e.preventDefault();
-                  onNavigate('/feed');
-                }
-              }}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/80 transition-all flex items-center gap-1.5 cursor-pointer"
-              title="Open Community Feed"
+              title="Open Community Feed in new tab"
             >
               <span>Feed</span>
               <ExternalLink className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-400 group-hover:text-slate-900 dark:group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
