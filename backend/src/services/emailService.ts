@@ -31,7 +31,9 @@ export interface SendEmailResult {
   error?: string;
 }
 
-const DEFAULT_FROM = process.env.EMAIL_FROM || 'GitToScale <welcome@gittoscale.tech>';
+const DEFAULT_FROM =
+  process.env.EMAIL_FROM ||
+  (process.env.RESEND_API_KEY ? 'GitToScale <onboarding@resend.dev>' : 'GitToScale <welcome@gittoscale.tech>');
 const APP_URL = process.env.APP_URL || 'https://gittoscale.tech';
 
 /**
