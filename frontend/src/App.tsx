@@ -1571,7 +1571,38 @@ export const App: React.FC = () => {
     }
     setNodes(updatedNodes);
     setEdges(updatedEdges);
-    queueSimulation(updatedNodes, updatedEdges, incomingTrafficRate, durationSeconds);
+
+    // Keep all internal graph cache refs in sync so deleted nodes don't resurrect
+    if (detailedGraphCacheRef.current) {
+      detailedGraphCacheRef.current = {
+        nodes: detailedGraphCacheRef.current.nodes.filter((n) => n.id !== nodeId),
+        edges: detailedGraphCacheRef.current.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      };
+    }
+    if (baseDetailedGraphRef.current) {
+      baseDetailedGraphRef.current = {
+        nodes: baseDetailedGraphRef.current.nodes.filter((n) => n.id !== nodeId),
+        edges: baseDetailedGraphRef.current.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      };
+    }
+    if (basicGraphCacheRef.current) {
+      basicGraphCacheRef.current = {
+        nodes: basicGraphCacheRef.current.nodes.filter((n) => n.id !== nodeId),
+        edges: basicGraphCacheRef.current.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      };
+    }
+    if (baseBasicGraphRef.current) {
+      baseBasicGraphRef.current = {
+        nodes: baseBasicGraphRef.current.nodes.filter((n) => n.id !== nodeId),
+        edges: baseBasicGraphRef.current.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      };
+    }
+
+    if (updatedNodes.length === 0) {
+      setSimulationResult(null);
+    } else {
+      queueSimulation(updatedNodes, updatedEdges, incomingTrafficRate, durationSeconds);
+    }
   };
 
   const handleAddNode = (type: ComponentType, name: string) => {
@@ -1593,6 +1624,31 @@ export const App: React.FC = () => {
     const updated = [...nodes, newNode];
     setNodes(updated);
     setSelectedNodeId(newId);
+
+    // Keep cache refs in sync with newly created node
+    if (detailedGraphCacheRef.current) {
+      detailedGraphCacheRef.current = {
+        nodes: [...(detailedGraphCacheRef.current.nodes || []).filter((n) => n.id !== newId), newNode],
+        edges: detailedGraphCacheRef.current.edges || edges,
+      };
+    } else {
+      detailedGraphCacheRef.current = { nodes: updated, edges };
+    }
+    if (baseDetailedGraphRef.current) {
+      baseDetailedGraphRef.current = {
+        nodes: [...(baseDetailedGraphRef.current.nodes || []).filter((n) => n.id !== newId), newNode],
+        edges: baseDetailedGraphRef.current.edges || edges,
+      };
+    } else {
+      baseDetailedGraphRef.current = { nodes: updated, edges };
+    }
+    if (basicGraphCacheRef.current) {
+      basicGraphCacheRef.current = {
+        nodes: [...(basicGraphCacheRef.current.nodes || []).filter((n) => n.id !== newId), newNode],
+        edges: basicGraphCacheRef.current.edges || edges,
+      };
+    }
+
     queueSimulation(updated, edges, incomingTrafficRate, durationSeconds);
   };
 
@@ -2492,6 +2548,7 @@ export const App: React.FC = () => {
                 selectedNodeId={selectedNodeId}
                 onSelectNode={handleSelectNode}
                 onNodesChangePosition={handleNodesPositionChange}
+                onDeleteNode={handleDeleteNode}
                 onAddEdge={handleAddEdge}
                 onToggleEdge={handleToggleEdge}
                 onDeleteEdge={handleDeleteEdge}
