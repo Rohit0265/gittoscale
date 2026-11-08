@@ -456,7 +456,13 @@ export function synthesizeDeterministicReport(
       workerCount: 1,
       capacityPerSecond: 10000,
       enabled: true,
-      config: { isSource: true, defaultTrafficRate: averageRps },
+      config: {
+        isSource: true,
+        defaultTrafficRate: averageRps,
+        baselineLatencyMs: 0,
+        maxQueueSize: 10000,
+        overflowPolicy: 'reject',
+      },
     },
     {
       id: 'node_gateway',
