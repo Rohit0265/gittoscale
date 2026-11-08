@@ -14,6 +14,7 @@ import {
   useEdgesState,
   MarkerType,
   useReactFlow,
+  NodeChange,
 } from '@xyflow/react';
 import { ArchitectureCustomNode } from './CustomNodes';
 import { CustomEdge, resolveEdgeMode, getEdgeStyleConfig } from './CustomEdge';
@@ -27,6 +28,7 @@ interface ArchitectureCanvasProps {
   selectedNodeId: string | null;
   onSelectNode: (nodeId: string | null) => void;
   onNodesChangePosition: (updatedNodes: ArchitectureNode[]) => void;
+  onDeleteNode?: (nodeId: string) => void;
   onAddEdge: (newEdge: ArchitectureEdge) => void;
   onToggleEdge: (edgeId: string) => void;
   onDeleteEdge?: (edgeId: string) => void;
