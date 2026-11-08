@@ -13,6 +13,7 @@ interface CommentPanelProps {
   onCommentDeleted?: (postId: string) => void;
   onOpenSignIn?: () => void;
   onNavigateToProfile?: (userId: string) => void;
+  className?: string;
 }
 
 interface ReplyingTarget {
@@ -30,6 +31,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
   onCommentDeleted,
   onOpenSignIn,
   onNavigateToProfile,
+  className,
 }) => {
   const [comments, setComments] = useState<FeedComment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -290,7 +292,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0A0A0A] rounded-t-2xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 shadow-xl overflow-hidden">
+    <div className={`flex flex-col h-full bg-white dark:bg-[#0A0A0A] ${className || 'rounded-t-2xl sm:rounded-2xl border border-slate-200 dark:border-neutral-800 shadow-xl'} overflow-hidden`}>
       {/* Mobile drag handle for bottom-to-up sheet */}
       <div
         onClick={onClose}
