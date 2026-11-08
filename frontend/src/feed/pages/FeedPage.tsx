@@ -247,12 +247,36 @@ export const FeedPage: React.FC<FeedPageProps> = ({
             </div>
           )}
         </main>
+      </div>
 
-        {/* Right Column: Comments Panel (Sticky on large desktop, Bottom Sheet on mobile/tablet) */}
-        {selectedPostForComments && (
-          <>
-            {/* Desktop Side Panel */}
-            <div className="hidden lg:block lg:col-span-4 sticky top-20 h-[calc(100vh-6rem)]">
+      {/* Comments Overlay Drawer: Slide-over on Desktop (main feed width never shrinks), Bottom Sheet on Mobile */}
+      {selectedPostForComments && (
+        <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Comments discussion">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity cursor-pointer animate-in fade-in duration-200"
+            onClick={closeComments}
+            title="Click outside to close comments"
+          />
+
+          {/* Desktop Slide-over Drawer (lg: and above) */}
+          <div className="hidden lg:block fixed inset-y-0 right-0 w-[480px] xl:w-[520px] max-w-full bg-white dark:bg-[#0A0A0A] shadow-2xl border-l border-slate-200 dark:border-neutral-800 z-50 transform transition-transform duration-300 ease-out animate-in slide-in-from-right">
+            <CommentPanel
+              post={selectedPostForComments}
+              currentUserId={user?.id}
+              token={token}
+              onClose={closeComments}
+              onCommentAdded={(pid) => notifyCommentChange(pid, 1)}
+              onCommentDeleted={(pid) => notifyCommentChange(pid, -1)}
+              onOpenSignIn={onOpenAuth}
+              onNavigateToProfile={onNavigateToProfile}
+              className="border-0 shadow-none rounded-none h-full"
+            />
+          </div>
+
+          {/* Mobile / Tablet Bottom-to-Up Sheet (< lg) */}
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 flex items-end justify-center pointer-events-none">
+            <div className="pointer-events-auto relative w-full max-w-2xl h-[55vh] max-h-[85vh] rounded-t-3xl overflow-hidden shadow-2xl flex flex-col transform transition-transform duration-300 ease-out animate-in slide-in-from-bottom">
               <CommentPanel
                 post={selectedPostForComments}
                 currentUserId={user?.id}
@@ -264,30 +288,9 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                 onNavigateToProfile={onNavigateToProfile}
               />
             </div>
-
-            {/* Mobile / Tablet Bottom-to-Up Sheet (occupies half screen) */}
-            <div className="lg:hidden fixed inset-0 z-50 flex items-end justify-center">
-              {/* Backdrop */}
-              <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
-                onClick={closeComments}
-              />
-              {/* Slide up sheet occupying half of the screen */}
-              <div className="relative w-full max-w-2xl h-[55vh] max-h-[85vh] rounded-t-3xl overflow-hidden shadow-2xl flex flex-col z-50 transform transition-transform duration-300 ease-out animate-in slide-in-from-bottom">
-                <CommentPanel
-                  post={selectedPostForComments}
-                  currentUserId={user?.id}
-                  token={token}
-                  onClose={closeComments}
-                  onCommentAdded={(pid) => notifyCommentChange(pid, 1)}
-                  onCommentDeleted={(pid) => notifyCommentChange(pid, -1)}
-                  onOpenSignIn={onOpenAuth}
-                  onNavigateToProfile={onNavigateToProfile}
-                />
-              </div>
-            </div>
-          </>
-        )}
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
