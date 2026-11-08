@@ -485,6 +485,20 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
             )}
           </div>
         )}
+
+        {/* Delete Component Action */}
+        {onDeleteNode && node.type !== 'load_generator' && (
+          <div className="pt-2 border-t border-slate-200 dark:border-neutral-800">
+            <button
+              type="button"
+              onClick={() => onDeleteNode(node.id)}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Component</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
