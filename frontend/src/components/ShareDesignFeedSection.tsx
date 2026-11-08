@@ -1,13 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ThumbsUp,
   MessageSquare,
   Bookmark,
   Share2,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
   ArrowRight,
   GitFork,
   CheckCircle2,
@@ -19,6 +15,17 @@ import {
   X,
   CornerDownRight,
   Send,
+  Play,
+  Pause,
+  RotateCcw,
+  Sparkles,
+  Server,
+  Database,
+  Layers,
+  Cpu,
+  ShieldAlert,
+  ArrowUpRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { PenHighlight } from './ui/PenShadowLine';
 
@@ -26,6 +33,15 @@ interface ShareDesignFeedSectionProps {
   onNavigate?: (route: string) => void;
   onSelectTestSite?: () => void;
   isDark?: boolean;
+}
+
+interface ArchitectureNode {
+  id: string;
+  name: string;
+  role: string;
+  icon: 'server' | 'database' | 'queue' | 'cache' | 'gateway';
+  status: 'healthy' | 'stressed' | 'active';
+  metric: string;
 }
 
 interface CommunityFeedPost {
@@ -42,6 +58,20 @@ interface CommunityFeedPost {
   timeAgo: string;
   title: string;
   body: string;
+  challenge: string;
+  solution: string;
+  keyTakeaways: string[];
+  nodes: ArchitectureNode[];
+  liveStats: {
+    rps: string;
+    p99: string;
+    buffer: string;
+    errorRate: string;
+  };
+  beforeAfter: {
+    before: string;
+    after: string;
+  };
   metrics: {
     label: string;
     value: string;
@@ -51,6 +81,7 @@ interface CommunityFeedPost {
   likes: number;
   commentsCount: number;
   forksCount: number;
+  terminalLogs: string[];
   featuredComment: {
     author: string;
     handle: string;
@@ -77,16 +108,46 @@ const FEED_SHOWCASE_POSTS: CommunityFeedPost[] = [
     timeAgo: '2h ago',
     title: 'Scaled payment ledger architecture to 65,000 req/s peak burst load with zero queue drops.',
     body: 'Eliminated our database write-lock bottleneck by pairing a write-behind Redis cache with a partitioned Kafka stream. Simulated 5x spike traffic with zero cascading failures.',
+    challenge: 'Direct relational database writes caused row-level lock contention under high-concurrency payment bursts, pushing P99 latencies past 680ms and triggering queue drops.',
+    solution: 'Introduced an in-memory Redis cluster operating in write-behind mode. Transactions are acknowledged in <2ms, serialized to a partitioned Kafka stream, and bulk-inserted into PostgreSQL via asynchronous workers.',
+    keyTakeaways: [
+      'Write-behind caching decouples synchronous client responses from disk I/O bottlenecks.',
+      'Partitioning Kafka by merchant ID guarantees per-account transaction ordering without global locks.',
+      'Local NVMe write-ahead logs (WAL) guard against power failure before Kafka replication completes.',
+    ],
+    nodes: [
+      { id: 'n1', name: 'Envoy Ingress', role: 'API Gateway', icon: 'gateway', status: 'healthy', metric: '65.4k RPS' },
+      { id: 'n2', name: 'Redis Cache', role: 'Write-Behind Ring', icon: 'cache', status: 'active', metric: '0.8ms P99' },
+      { id: 'n3', name: 'Kafka Topic', role: '64 Partitions', icon: 'queue', status: 'healthy', metric: '0 drops' },
+      { id: 'n4', name: 'Postgres Master', role: 'WAL Storage', icon: 'database', status: 'healthy', metric: '18% CPU' },
+    ],
+    liveStats: {
+      rps: '65,420 req/s',
+      p99: '14.2 ms',
+      buffer: '94% Headroom',
+      errorRate: '0.00%',
+    },
+    beforeAfter: {
+      before: '8,400 RPS · 680ms Latency · 8.4% Dropped Requests',
+      after: '65,400 RPS · 14.2ms Latency · 0.00% Zero Dropped Requests',
+    },
     metrics: [
       { label: 'Burst Throughput', value: '65,400 req/s', status: 'healthy' },
       { label: 'P99 Latency', value: '14.2 ms', status: 'healthy' },
       { label: 'Queue Drops', value: '0.00%', status: 'healthy' },
-      { label: 'Downstream Services', value: '8 Nodes', status: 'healthy' },
+      { label: 'DB CPU Util', value: '18.4%', status: 'healthy' },
     ],
     tags: ['#SystemDesign', '#DistributedSystems', '#65kRPS', '#GitToScale'],
     likes: 342,
     commentsCount: 42,
     forksCount: 118,
+    terminalLogs: [
+      '[INGRESS] Spike detector triggered: 65,420 req/s ingress surge verified.',
+      '[REDIS_CLUSTER] Write-behind buffer absorbed 99.2% of write volume in 0.8ms.',
+      '[KAFKA_BROKER] Partition concurrency balanced across 64 topics. Zero rebalance lag.',
+      '[POSTGRES_WAL] Async bulk flush committed 12,000 records/batch with 0 lock waits.',
+      '[HEALTH_CHECK] Topology stable: zero dropouts, p99 within SLA threshold.',
+    ],
     featuredComment: {
       author: 'Elena Rostova',
       handle: '@elena_infra',
@@ -111,9 +172,32 @@ const FEED_SHOWCASE_POSTS: CommunityFeedPost[] = [
     timeAgo: '5h ago',
     title: 'Diagnosing consumer lag collapse under 120k req/s black swan stress test.',
     body: 'Discovered that worker thread starvation in downstream payment processors triggered backpressure all the way up to ingress gateways. Here is the before-and-after fix topology.',
+    challenge: 'A sudden 120k req/s ingress flood caused downstream consumer thread exhaustion, growing Kafka topic backlog to 1.4M unhandled messages and threatening cascade failure.',
+    solution: 'Re-partitioned the Kafka cluster from 16 to 64 partitions and introduced adaptive load shedding. Auto-scaled the worker container pool to 32 parallel pods with non-blocking I/O.',
+    keyTakeaways: [
+      'Never allow single-thread consumer loops on high-fanout topics; use decoupled worker pools.',
+      'Dynamic backpressure limits prevent worker memory saturation during black swan traffic spikes.',
+      'Partition count must match maximum horizontal pod autoscaler (HPA) concurrency bounds.',
+    ],
+    nodes: [
+      { id: 'n1', name: 'API Gateway', role: 'Traffic Ingress', icon: 'gateway', status: 'stressed', metric: '120k RPS' },
+      { id: 'n2', name: 'Kafka Cluster', role: '64 Partitions', icon: 'queue', status: 'active', metric: '1.4M msg/s' },
+      { id: 'n3', name: 'Worker Fleet', role: '32 Auto-Scale Pods', icon: 'server', status: 'healthy', metric: '48s drain' },
+      { id: 'n4', name: 'Event Store', role: 'Immutable Log', icon: 'database', status: 'healthy', metric: '99.9% synced' },
+    ],
+    liveStats: {
+      rps: '120,000 req/s',
+      p99: '28.4 ms',
+      buffer: '82% Headroom',
+      errorRate: '0.00%',
+    },
+    beforeAfter: {
+      before: '1.4M Lagging Events · 18 min Drain Time · Worker Thread Exhaustion',
+      after: '0 Lag Accumulation · 48 sec Auto-Recovery · 32 Scaled Pods',
+    },
     metrics: [
       { label: 'Ingress Volume', value: '120,000 req/s', status: 'stressed' },
-      { label: 'Kafka Lag', value: '1.4M events', status: 'critical' },
+      { label: 'Kafka Lag', value: '0 (Recovered)', status: 'healthy' },
       { label: 'Recovery Window', value: '48 sec', status: 'healthy' },
       { label: 'Buffer Headroom', value: '82%', status: 'healthy' },
     ],
@@ -121,6 +205,13 @@ const FEED_SHOWCASE_POSTS: CommunityFeedPost[] = [
     likes: 289,
     commentsCount: 38,
     forksCount: 94,
+    terminalLogs: [
+      '[PRODUCER] Black swan traffic pattern simulated: 120,000 req/s ingress burst.',
+      '[BACKPRESSURE] Circuit breaker active: non-critical telemetry shed; orders preserved.',
+      '[HPA_AUTOSCALE] Worker group autoscaled from 8 to 32 pods in 14.2s.',
+      '[DRAIN_METRICS] 1.4M event queue drained to nominal in 48s flat.',
+      '[TELEMETRY] Consumer group lag stabilized at < 200 ms total drift.',
+    ],
     featuredComment: {
       author: 'Aarav Patel',
       handle: '@aarav_distrib',
@@ -145,6 +236,29 @@ const FEED_SHOWCASE_POSTS: CommunityFeedPost[] = [
     timeAgo: 'Yesterday',
     title: 'Zero-downtime database sharding simulation across 4 regional read-replicas.',
     body: 'Modeled cross-region latency replication delays and consistency boundaries. Proved that read-replicas absorb 88% of analytical query pressure without degrading transaction latency.',
+    challenge: 'Heavy analytical queries run by back-office dashboards were starving transactional OLTP throughput on the primary PostgreSQL database, driving CPU to 94%.',
+    solution: 'Segregated read traffic to 4 geographically distributed read-replicas using pgBouncer connection multiplexing and synchronous replication with read-your-writes session tokens.',
+    keyTakeaways: [
+      'Read-replicas eliminate 85%+ of read pressure from the primary write master.',
+      'pgBouncer pool pooling keeps Postgres server process count low and cache hit rates high.',
+      'Session consistency tokens ensure users see their own writes immediately without reading stale replicas.',
+    ],
+    nodes: [
+      { id: 'n1', name: 'Global DNS', role: 'Anycast Geo Routing', icon: 'gateway', status: 'healthy', metric: '< 5ms edge' },
+      { id: 'n2', name: 'Primary DB', role: 'Master OLTP', icon: 'database', status: 'healthy', metric: '18% util' },
+      { id: 'n3', name: 'US-East Replica', role: 'Read Pool (40k)', icon: 'database', status: 'active', metric: '1.2ms lag' },
+      { id: 'n4', name: 'EU-West Replica', role: 'Read Pool (35k)', icon: 'database', status: 'active', metric: '1.8ms lag' },
+    ],
+    liveStats: {
+      rps: '75,000 req/s',
+      p99: '18.1 ms',
+      buffer: '88% Offloaded',
+      errorRate: '0.00%',
+    },
+    beforeAfter: {
+      before: 'Primary DB CPU 94% · P99 410ms · Locking Out New Registrations',
+      after: 'Primary DB CPU 18% · P99 18.1ms · 88% Analytical Traffic Absorbed',
+    },
     metrics: [
       { label: 'Replica Offload', value: '88.4%', status: 'healthy' },
       { label: 'Cross-Region Lag', value: '28 ms', status: 'healthy' },
@@ -155,6 +269,13 @@ const FEED_SHOWCASE_POSTS: CommunityFeedPost[] = [
     likes: 415,
     commentsCount: 56,
     forksCount: 167,
+    terminalLogs: [
+      '[ROUTING] Anycast edge DNS routing analytical queries to closest regional replica.',
+      '[REPLICATION] Streaming WAL replication active: US-East lag 1.2ms, EU-West 1.8ms.',
+      '[PGBOUNCER] Transaction pooling maintaining 2,400 client connections across 50 db workers.',
+      '[OFFLOAD] Primary database CPU dropped from 94% to 18.4% nominal.',
+      '[VERIFICATION] Zero transaction deadlocks recorded across 4 hour simulation run.',
+    ],
     featuredComment: {
       author: 'Jonas Weber',
       handle: '@jonas_scale',
@@ -175,11 +296,12 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
   const [activePostIndex, setActivePostIndex] = useState(0);
   const activePost = FEED_SHOWCASE_POSTS[activePostIndex];
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-  const [videoProgress, setVideoProgress] = useState(38);
+  // Animated simulation state (replaces static video player)
+  const [isStressMode, setIsStressMode] = useState(false);
+  const [isAnimationPaused, setIsAnimationPaused] = useState(false);
+  const [activeLogIndex, setActiveLogIndex] = useState(0);
 
+  // Social interactions state
   const [hasLiked, setHasLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(activePost.likes);
   const [hasBookmarked, setHasBookmarked] = useState(false);
@@ -197,70 +319,17 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
     setHasLiked(false);
     setHasBookmarked(false);
     setIsForked(false);
+    setActiveLogIndex(0);
   }, [activePostIndex, activePost]);
 
-  // Video autoplay with IntersectionObserver
+  // Rotate terminal telemetry log to simulate live background streaming
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = isMuted;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.25) {
-            video.play().catch(() => {});
-            setIsPlaying(true);
-          } else {
-            video.pause();
-            setIsPlaying(false);
-          }
-        });
-      },
-      { threshold: [0, 0.25, 0.7] }
-    );
-
-    observer.observe(video);
-    return () => observer.disconnect();
-  }, [isMuted]);
-
-  // Video time tracking
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handleTimeUpdate = () => {
-      if (video.duration) {
-        setVideoProgress((video.currentTime / video.duration) * 100);
-      }
-    };
-
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, []);
-
-  const togglePlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      video.play().catch(() => {});
-      setIsPlaying(true);
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-    const nextMuted = !video.muted;
-    video.muted = nextMuted;
-    setIsMuted(nextMuted);
-  };
+    if (isAnimationPaused) return;
+    const interval = setInterval(() => {
+      setActiveLogIndex((prev) => (prev + 1) % activePost.terminalLogs.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, [activePost, isAnimationPaused]);
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -308,14 +377,57 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
     }
   };
 
+  const getNodeIcon = (icon: ArchitectureNode['icon']) => {
+    switch (icon) {
+      case 'server':
+        return <Server className="w-4 h-4 text-sky-400" />;
+      case 'database':
+        return <Database className="w-4 h-4 text-emerald-400" />;
+      case 'queue':
+        return <Layers className="w-4 h-4 text-amber-400" />;
+      case 'cache':
+        return <Cpu className="w-4 h-4 text-indigo-400" />;
+      case 'gateway':
+        return <Zap className="w-4 h-4 text-emerald-400" />;
+      default:
+        return <Server className="w-4 h-4 text-sky-400" />;
+    }
+  };
+
   return (
     <section
       id="community-feed"
       style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 900px' }}
       className="relative flex min-h-screen flex-col justify-center px-4 sm:px-8 lg:px-12 py-20 bg-slate-50/70 dark:bg-[#020202] border-t border-slate-200/80 dark:border-neutral-800/80 transition-colors"
     >
+      {/* Scoped CSS Keyframe animations for GIF-like continuous packet motion */}
+      <style>{`
+        @keyframes flowPacketForward {
+          0% { stroke-dashoffset: 64; }
+          100% { stroke-dashoffset: 0; }
+        }
+        @keyframes pulseGlowRing {
+          0% { transform: scale(0.96); opacity: 0.9; }
+          50% { transform: scale(1.12); opacity: 0.3; }
+          100% { transform: scale(0.96); opacity: 0.9; }
+        }
+        @keyframes liveSignalPing {
+          0% { transform: scale(1); opacity: 1; }
+          75% { transform: scale(2.2); opacity: 0; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+        .anim-packet-stream {
+          stroke-dasharray: 6 6;
+          animation: flowPacketForward 1.4s linear infinite;
+        }
+        .anim-packet-stream-fast {
+          stroke-dasharray: 6 6;
+          animation: flowPacketForward 0.6s linear infinite;
+        }
+      `}</style>
+
       <div className="mx-auto w-full max-w-6xl">
-        {/* Section Heading & Subtitle (Craft Floor compliant: No kicker pills, pure weight & scale) */}
+        {/* Section Heading & Subtitle */}
         <div className="mb-10 max-w-3xl">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-[0.95] tracking-tight text-slate-900 dark:text-white">
             <span className="block sm:inline">
@@ -330,7 +442,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
             </span>
           </h2>
           <p className="mt-4 text-sm sm:text-base md:text-lg text-slate-600 dark:text-neutral-400 leading-relaxed max-w-2xl">
-            Don&apos;t keep your system architecture locked in slide decks. Record live capacity runs, publish bottleneck post-mortems with one click, and get actionable critique from senior distributed systems engineers.
+            Don&apos;t keep your system architecture locked in static slides. Inspect real production capacity runs, publish bottleneck post-mortems with one click, and explore live animated architecture breakdowns from senior distributed systems engineers.
           </p>
         </div>
 
@@ -397,11 +509,11 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
 
             <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-neutral-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>Verified Mathematical Queue Model</span>
+              <span>Animated Vector Simulation Engine</span>
             </div>
           </div>
 
-          {/* Main Grid: Post Card Presentation (Left) + Architectural Insight Strip (Right) */}
+          {/* Main Grid: Post Presentation (Left) + Architectural Insight Strip (Right) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-neutral-800">
             {/* LEFT COLUMN: Authentic GitToScale Feed Post (8 Cols) */}
             <div className="lg:col-span-8 p-4 sm:p-6 flex flex-col justify-between">
@@ -463,70 +575,195 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                   </p>
                 </div>
 
-                {/* Embedded Video Showcase with HUD Telemetry Overlay */}
-                <div
-                  onClick={togglePlay}
-                  className="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-200 dark:border-neutral-800 mb-4 cursor-pointer group/vid select-none"
-                >
-                  <video
-                    ref={videoRef}
-                    src="/feed-demo.mp4"
-                    className="w-full h-full object-cover"
-                    loop
-                    playsInline
-                    muted={isMuted}
-                    preload="metadata"
-                  />
-
-                  {/* Top HUD Status Badges */}
-                  <div className="absolute top-3 inset-x-3 flex items-center justify-between pointer-events-none z-10">
+                {/* ANIMATED TOPOLOGY SIMULATION (Interactive GIF-Style Motion Canvas) */}
+                <div className="relative w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90 mb-5 p-3.5 sm:p-5 select-none shadow-inner">
+                  {/* Visualizer HUD Header */}
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-[11px] font-mono">
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md text-white text-[11px] font-mono">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>BURST SIMULATION WALKTHROUGH</span>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-semibold">
+                        <span className={`w-2 h-2 rounded-full ${isAnimationPaused ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`} />
+                        <span>{isAnimationPaused ? 'ANIMATION PAUSED' : 'GIF ANIMATION · CONTINUOUS LOOP'}</span>
                       </div>
-                      <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md text-emerald-400 text-[11px] font-mono">
-                        <span>P99: 14.2ms</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={toggleMute}
-                      className="pointer-events-auto p-1.5 rounded-md bg-black/70 hover:bg-black/90 backdrop-blur-md text-white transition-colors cursor-pointer"
-                      title={isMuted ? 'Unmute video' : 'Mute video'}
-                    >
-                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                    </button>
-                  </div>
-
-                  {/* Center Play Indicator */}
-                  {!isPlaying && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/45 backdrop-blur-[1px] transition-opacity">
-                      <div className="w-14 h-14 rounded-full bg-white/95 text-slate-900 flex items-center justify-center shadow-2xl transform transition-transform group-hover/vid:scale-105">
-                        <Play className="w-6 h-6 fill-current ml-0.5" />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Scrubber Progress Bar & Controls */}
-                  <div className="absolute bottom-3 inset-x-3 flex flex-col gap-1.5 pointer-events-none z-10">
-                    <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 transition-all duration-150"
-                        style={{ width: `${videoProgress}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-white/90 font-mono">
-                      <div className="flex items-center gap-1.5 bg-black/70 px-2 py-0.5 rounded-md backdrop-blur-md">
-                        {isPlaying ? <Pause className="w-2.5 h-2.5 fill-current" /> : <Play className="w-2.5 h-2.5 fill-current" />}
-                        <span>Click video to {isPlaying ? 'pause' : 'play'}</span>
-                      </div>
-                      <span className="bg-black/70 px-2 py-0.5 rounded-md backdrop-blur-md">
-                        0:{Math.floor((videoProgress * 80) / 100).toString().padStart(2, '0')} / 1:20
+                      <span className="hidden sm:inline text-slate-500">|</span>
+                      <span className="hidden sm:inline text-slate-400">
+                        {isStressMode ? 'STRESS MODE (+500% INGRESS)' : 'NOMINAL BURST TRAFFIC'}
                       </span>
                     </div>
+
+                    {/* Interactive Simulation Controls */}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsStressMode((prev) => !prev)}
+                        className={`px-2 py-1 rounded text-[10px] font-mono uppercase font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                          isStressMode
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
+                            : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                        }`}
+                        title="Simulate 5x sudden traffic surge"
+                      >
+                        <Zap className="w-3 h-3 text-amber-400" />
+                        <span>{isStressMode ? 'Surge Active' : 'Inject Surge'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsAnimationPaused((prev) => !prev)}
+                        className="p-1 rounded bg-slate-900 text-slate-400 hover:text-white border border-slate-800 transition-colors cursor-pointer"
+                        title={isAnimationPaused ? 'Resume animation loop' : 'Pause animation loop'}
+                      >
+                        {isAnimationPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3" />}
+                      </button>
+                    </div>
                   </div>
+
+                  {/* SVG & Vector Animated Node Diagram */}
+                  <div className="relative py-2 sm:py-4">
+                    {/* SVG Connector Streams with Animated Dashed Packets */}
+                    <div className="relative w-full h-24 sm:h-28">
+                      <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 600 100">
+                        <defs>
+                          <linearGradient id="streamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                            <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.8" />
+                            <stop offset="100%" stopColor="#818cf8" stopOpacity="0.8" />
+                          </linearGradient>
+                          <linearGradient id="surgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.9" />
+                            <stop offset="50%" stopColor="#ef4444" stopOpacity="0.9" />
+                            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.9" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Static Base Connection Wire */}
+                        <path
+                          d="M 60 50 C 180 50, 220 50, 300 50 C 380 50, 420 50, 540 50"
+                          fill="none"
+                          stroke="#1e293b"
+                          strokeWidth="3"
+                        />
+
+                        {/* Continuous Moving Data Packets (GIF Animation) */}
+                        {!isAnimationPaused && (
+                          <path
+                            d="M 60 50 C 180 50, 220 50, 300 50 C 380 50, 420 50, 540 50"
+                            fill="none"
+                            stroke={isStressMode ? 'url(#surgeGrad)' : 'url(#streamGrad)'}
+                            strokeWidth="3"
+                            className={isStressMode ? 'anim-packet-stream-fast' : 'anim-packet-stream'}
+                          />
+                        )}
+                      </svg>
+
+                      {/* 4 Architecture Stage Nodes Positioned Across the Stream */}
+                      <div className="absolute inset-0 flex items-center justify-between px-1 sm:px-6">
+                        {activePost.nodes.map((node, i) => (
+                          <div
+                            key={node.id}
+                            className="flex flex-col items-center group/node relative cursor-pointer"
+                          >
+                            {/* Outer Glow Halo */}
+                            <div className="relative">
+                              <div
+                                className={`w-11 h-11 sm:w-13 sm:h-13 rounded-xl flex items-center justify-center border transition-all ${
+                                  node.status === 'active' || isStressMode
+                                    ? 'bg-emerald-950/70 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                                    : 'bg-slate-900 border-slate-700/80 shadow-md hover:border-slate-500'
+                                }`}
+                              >
+                                {getNodeIcon(node.icon)}
+                              </div>
+
+                              {/* Live Traffic Badge on Node */}
+                              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[9px] font-mono text-emerald-300 font-bold">
+                                {i + 1}
+                              </span>
+                            </div>
+
+                            {/* Node Metadata Labels */}
+                            <span className="text-[11px] sm:text-xs font-bold text-slate-200 mt-2 text-center max-w-[85px] sm:max-w-[100px] truncate">
+                              {node.name}
+                            </span>
+                            <span className="text-[9px] sm:text-[10px] font-mono text-slate-400 text-center">
+                              {node.role}
+                            </span>
+                            <span className="mt-0.5 text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-emerald-400 font-semibold">
+                              {isStressMode && i === 0 ? 'Surge Ingress' : node.metric}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Real-time Streaming Terminal Console Ticker */}
+                  <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3 text-[11px] font-mono">
+                    <div className="flex items-center gap-2 min-w-0 text-slate-300">
+                      <Terminal className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="text-emerald-400 font-semibold shrink-0">&gt;</span>
+                      <span className="truncate text-slate-300">
+                        {activePost.terminalLogs[activeLogIndex]}
+                      </span>
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-1.5 text-slate-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[10px] font-mono">{activePost.liveStats.rps}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ARCHITECTURAL BREAKDOWN: The Challenge vs The Solution */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+                  {/* Challenge Box */}
+                  <div className="p-3.5 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400 mb-1">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>The Production Bottleneck</span>
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-neutral-300 leading-relaxed">
+                        {activePost.challenge}
+                      </p>
+                    </div>
+                    <div className="mt-2.5 pt-2 border-t border-rose-200/60 dark:border-rose-900/30 text-[11px] font-mono text-rose-600 dark:text-rose-400">
+                      <span className="font-semibold">Before: </span>
+                      {activePost.beforeAfter.before}
+                    </div>
+                  </div>
+
+                  {/* Solution Box */}
+                  <div className="p-3.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>The Architectural Pattern</span>
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-neutral-300 leading-relaxed">
+                        {activePost.solution}
+                      </p>
+                    </div>
+                    <div className="mt-2.5 pt-2 border-t border-emerald-200/60 dark:border-emerald-900/30 text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                      <span className="font-semibold">After: </span>
+                      {activePost.beforeAfter.after}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SENIOR SRE KEY TAKEAWAYS */}
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/80 dark:border-neutral-800 mb-4">
+                  <h4 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 dark:text-neutral-400 mb-2 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Senior Systems Architect Takeaways</span>
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {activePost.keyTakeaways.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-xs text-slate-700 dark:text-neutral-300">
+                        <span className="text-emerald-500 font-bold shrink-0 mt-0.5">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
                 {/* Live Post Metrics Matrix */}
@@ -718,10 +955,10 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                   </div>
                   <div>
                     <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                      Simulate &amp; Record
+                      Simulate &amp; Benchmark
                     </h5>
                     <p className="text-[11px] text-slate-600 dark:text-neutral-400 leading-relaxed mt-0.5">
-                      Inject traffic spikes or downstream failures on the canvas. Auto-record the bottleneck post-mortem.
+                      Inject traffic spikes or downstream failures on the canvas. Auto-generate mathematical latency curves and bottleneck diagnostics.
                     </p>
                   </div>
                 </div>
@@ -736,7 +973,7 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
                       1-Click Feed Broadcast
                     </h5>
                     <p className="text-[11px] text-slate-600 dark:text-neutral-400 leading-relaxed mt-0.5">
-                      Publish your node configuration, latency curves, and video to the global GitToScale feed.
+                      Publish your node configuration, latency curves, and animated topology replay to the global GitToScale feed.
                     </p>
                   </div>
                 </div>
