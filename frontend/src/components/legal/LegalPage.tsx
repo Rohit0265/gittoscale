@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { ArrowLeft, Sun, Moon } from 'lucide-react';
 import { Fotter } from '../Fotter';
 import { FloatingFeedbackButton } from '../FloatingFeedbackButton';
+import { useSmoothScroll } from '../../utils/useSmoothScroll';
 
 export type LegalDocType = 'cookie' | 'privacy' | 'terms';
 
@@ -20,6 +21,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   onGoHome,
   onNavigate,
 }) => {
+  useSmoothScroll({ lerp: 0.085, enabled: true });
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     const titleMap: Record<LegalDocType, string> = {

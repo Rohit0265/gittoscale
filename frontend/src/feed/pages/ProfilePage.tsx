@@ -54,6 +54,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     token,
   });
 
+  useSmoothScroll({ lerp: 0.085, enabled: true });
+
   const [selectedPostForComments, setSelectedPostForComments] = useState<FeedPost | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
