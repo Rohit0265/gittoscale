@@ -2,16 +2,25 @@ import React, { useState } from 'react';
 import { MessageSquarePlus } from 'lucide-react';
 import { FeedbackModal } from './FeedbackModal';
 
+export interface FloatingFeedbackButtonProps {
+  className?: string;
+}
+
 /**
  * Floating feedback and recommendation button.
  * Sticks to the bottom-right corner across all views so users can tap anytime.
+ * Accepts optional className for contextual positioning (e.g., hovering above MiniMap when sidebar collapses).
  */
-export const FloatingFeedbackButton: React.FC = () => {
+export const FloatingFeedbackButton: React.FC<FloatingFeedbackButtonProps> = ({ className }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 pointer-events-auto">
+      <div
+        className={`fixed z-40 pointer-events-auto transition-all duration-300 ease-in-out ${
+          className || 'bottom-5 right-5 sm:bottom-6 sm:right-6'
+        }`}
+      >
         <button
           type="button"
           onClick={() => setIsOpen(true)}

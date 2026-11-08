@@ -2736,8 +2736,14 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Feedback & Recommendations Button (stuck to bottom-right) */}
-      <FloatingFeedbackButton />
+      {/* Floating Feedback & Recommendations Button (stuck to bottom-right, smoothly floats above playground MiniMap when right sidebar collapses) */}
+      <FloatingFeedbackButton
+        className={
+          isRightCollapsed
+            ? 'bottom-5 right-5 sm:bottom-[180px] sm:right-6'
+            : 'bottom-5 right-5 sm:bottom-6 sm:right-6'
+        }
+      />
     </div>
     </Suspense>
   );
