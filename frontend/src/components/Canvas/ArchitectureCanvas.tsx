@@ -114,6 +114,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   selectedNodeId,
   onSelectNode,
   onNodesChangePosition,
+  onDeleteNode,
   onAddEdge,
   onToggleEdge,
   onDeleteEdge,
@@ -315,6 +316,21 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   const [rfNodes, setRfNodes, onRfNodesChange] = useNodesState(flowNodes);
   const [rfEdges, setRfEdges, onRfEdgesChange] = useEdgesState(flowEdges);
 
+  // Propagate node deletions from keyboard (Backspace/Delete) or canvas actions to domain model
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      onRfNodesChange(changes);
+      if (onDeleteNode) {
+        for (const c of changes) {
+          if (c.type === 'remove') {
+            onDeleteNode(c.id);
+          }
+        }
+      }
+    },
+    [onRfNodesChange, onDeleteNode]
+  );
+
   // Sync state when props change
   React.useEffect(() => {
     setRfNodes(flowNodes);
@@ -406,7 +422,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
         edges={rfEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodesChange={onRfNodesChange}
+        onNodesChange={handleNodesChange}
         onEdgesChange={onRfEdgesChange}
         connectionLineStyle={{
           stroke: isDark ? '#ffffff' : '#000000',
@@ -426,6 +442,13 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
           handleSelectEdge(null);
         }}
         onConnect={handleConnect}
+        onNodesDelete={(deletedNodes) => {
+          if (onDeleteNode) {
+            for (const n of deletedNodes) {
+              onDeleteNode(n.id);
+            }
+          }
+        }}
         onEdgesDelete={(deletedEdges) => {
           if (onDeleteEdge) {
             for (const e of deletedEdges) {
