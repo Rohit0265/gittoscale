@@ -23,6 +23,7 @@ import WorkflowSteps from './WorkflowSteps';
 import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
 import { PenHighlight } from './ui/PenShadowLine';
 import { ShareDesignFeedSection } from './ShareDesignFeedSection';
+import { useSmoothScroll } from '../utils/useSmoothScroll';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
@@ -344,6 +345,13 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
   const profileRef = useRef<HTMLDivElement>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // Inertia-damped smooth scrolling for landing page container (GSAP/Lenis feel)
+  useSmoothScroll({
+    targetRef: containerRef,
+    lerp: 0.085,
+    enabled: true,
+  });
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
@@ -429,7 +437,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full overflow-y-scroll overflow-x-hidden scroll-smooth bg-slate-50 dark:bg-[#020202] text-slate-800 dark:text-slate-100 transition-colors"
+      className="h-screen w-full overflow-y-scroll overflow-x-hidden bg-slate-50 dark:bg-[#020202] text-slate-800 dark:text-slate-100 transition-colors"
     >
       <a
         href="#main-content"

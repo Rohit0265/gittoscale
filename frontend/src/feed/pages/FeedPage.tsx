@@ -6,6 +6,7 @@ import { CreatePost } from '../components/CreatePost';
 import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { RefreshCw, MessageSquare, AlertCircle } from 'lucide-react';
+import { useSmoothScroll } from '../../utils/useSmoothScroll';
 
 interface FeedPageProps {
   user?: any;
@@ -57,6 +58,9 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     closeComments,
     notifyCommentChange,
   } = useFeed({ token, userId: user?.id });
+
+  // Inertia-damped smooth scrolling for feed stream
+  useSmoothScroll({ lerp: 0.085, enabled: true });
 
   const handleToggleFilter = () => {
     if (!user) {

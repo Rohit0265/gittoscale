@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { FeedPost } from '../types';
 import { feedApi } from '../services/feedApi';
+import { useSmoothScroll } from '../../utils/useSmoothScroll';
 
 interface ProfilePageProps {
   profileId: string;
