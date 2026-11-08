@@ -31,9 +31,13 @@ export interface SendEmailResult {
   error?: string;
 }
 
-const DEFAULT_FROM =
-  process.env.EMAIL_FROM ||
-  (process.env.RESEND_API_KEY ? 'GitToScale <onboarding@resend.dev>' : 'GitToScale <welcome@gittoscale.tech>');
+function getFromAddress(override?: string): string {
+  if (override) return override;
+  if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
+  // If custom domain is not yet verified on Resend, onboarding@resend.dev is the official default
+  return 'GitToScale <onboarding@resend.dev>';
+}
+
 const APP_URL = process.env.APP_URL || 'https://gittoscale.tech';
 
 /**
@@ -215,7 +219,7 @@ export function generateWelcomeEmailTemplate(payload: WelcomeEmailPayload): { su
 async function sendViaResend(apiKey: string, options: SendEmailOptions): Promise<SendEmailResult> {
   return new Promise((resolve) => {
     const payload = JSON.stringify({
-      from: options.from || DEFAULT_FROM,
+      from: getFromAddress(options.from),
       to: Array.isArray(options.to) ? options.to : [options.to],
       subject: options.subject,
       html: options.html,
@@ -300,7 +304,7 @@ async function sendViaSendGrid(apiKey: string, options: SendEmailOptions): Promi
 
     const payload = JSON.stringify({
       personalizations: [{ to: recipients }],
-      from: { email: (options.from || DEFAULT_FROM).replace(/.*<([^>]+)>.*/, '$1') },
+      from: { email: getFromAddress(options.from).replace(/.*<([^>]+)>.*/, '$1') },
       subject: options.subject,
       content: [
         { type: 'text/plain', value: options.text || htmlToPlainText(options.html) },
