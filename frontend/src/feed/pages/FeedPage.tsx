@@ -80,6 +80,17 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     }
   }, [pendingPost, setFilter]);
 
+  React.useEffect(() => {
+    if (!selectedPostForComments) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeComments();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPostForComments, closeComments]);
+
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
       {/* 1. Feed Header */}
@@ -116,14 +127,8 @@ export const FeedPage: React.FC<FeedPageProps> = ({
           />
         </div>
 
-        {/* Center Column: Main Social Feed (6 or 5 cols depending on comments open) */}
-        <main
-          className={`w-full ${
-            selectedPostForComments
-              ? 'md:col-span-8 lg:col-span-5'
-              : 'md:col-span-8 lg:col-span-7'
-          } flex flex-col`}
-        >
+        {/* Center Column: Main Social Feed (maintains stable width on all screens) */}
+        <main className="w-full md:col-span-8 lg:col-span-9 flex flex-col">
           {/* Active Filter Banner when viewing 'Your Likes' */}
           {filter === 'liked' && (
             <div className="mb-4 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center justify-between">
