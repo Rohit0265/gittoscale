@@ -176,6 +176,10 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
                 onSelectNode(null);
                 setActiveTab('components');
               }}
+              onDeleteNode={(nodeId) => {
+                onDeleteNode(nodeId);
+                setActiveTab('components');
+              }}
               onUpdateNode={onUpdateNode}
               onUpdateEdgeMultiplier={onUpdateEdgeMultiplier}
               onDeleteEdge={onDeleteEdge}
