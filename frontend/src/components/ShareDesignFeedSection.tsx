@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ThumbsUp,
   MessageSquare,
@@ -17,14 +17,11 @@ import {
   Send,
   Play,
   Pause,
-  RotateCcw,
   Sparkles,
   Server,
   Database,
   Layers,
   Cpu,
-  ShieldAlert,
-  ArrowUpRight,
   AlertTriangle,
 } from 'lucide-react';
 import { PenHighlight } from './ui/PenShadowLine';
