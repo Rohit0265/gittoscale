@@ -79,7 +79,7 @@ const BottleneckListComponent: React.FC<BottleneckListProps> = ({
       )}
 
       {/* 3. Bottlenecks List */}
-      <div className="space-y-2 overflow-y-auto max-h-[50vh] pr-0.5">
+      <div className={`space-y-2 pr-0.5 ${embedded ? '' : 'overflow-y-auto max-h-[50vh]'}`}>
         {bottlenecks.length === 0 ? (
           <div className="bg-slate-50 dark:bg-[#141414]/75 border border-slate-200 dark:border-neutral-800 rounded-xl p-6 text-center space-y-2">
             <CheckCircle2 className="w-8 h-8 text-slate-600 dark:text-neutral-400 hover:text-emerald-500 transition-colors mx-auto" />

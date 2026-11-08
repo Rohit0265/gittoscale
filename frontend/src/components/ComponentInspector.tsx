@@ -113,7 +113,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 tracking-tight truncate">{node.name}</h3>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          {onToggleCollapse && (
+          {!embedded && onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
               title="Collapse right sidebar"
@@ -124,7 +124,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           )}
           <button
             onClick={onClose}
-            title="Close inspector"
+            title="Deselect component"
             className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#141414] dark:hover:bg-[#1A1A1A] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-4 h-4 hover:text-rose-500 transition-colors" />
@@ -132,7 +132,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
         </div>
       </div>
 
-      <div className="space-y-3 overflow-y-auto max-h-[52vh] pr-0.5">
+      <div className={`space-y-3 pr-0.5 ${embedded ? '' : 'overflow-y-auto max-h-[52vh]'}`}>
 
 
         {/* Component Role Selector */}

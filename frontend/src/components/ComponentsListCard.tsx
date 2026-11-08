@@ -233,7 +233,7 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
       </div>
 
       {/* Component Cards Stack */}
-      <div className="space-y-1.5 overflow-y-auto max-h-[38vh] pr-0.5">
+      <div className={`space-y-1.5 pr-0.5 ${embedded ? '' : 'overflow-y-auto max-h-[38vh]'}`}>
         {nodes.map((node) => {
           const isSelected = selectedNodeId === node.id;
           const isSource = node.type === 'load_generator';

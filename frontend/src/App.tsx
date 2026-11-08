@@ -1391,7 +1391,19 @@ export const App: React.FC = () => {
     basicGraphCacheRef.current = { nodes: [], edges: [] };
     baseDetailedGraphRef.current = { nodes: [], edges: [] };
     detailedGraphCacheRef.current = { nodes: [], edges: [] };
-    setActivePromptText('Blank System Design');
+    // Leave prompt empty: do NOT add any prompt to AI
+    setActivePromptText('');
+    // Keep AI Architect chat collapsed so the user has the entire blank ground open to build
+    setIsLeftCollapsed(true);
+    // Keep right sidebar open on Components tab so user can immediately add components
+    setIsRightCollapsed(false);
+
+    try {
+      localStorage.removeItem(`gitoscale_chat_${projectId}`);
+      localStorage.removeItem(`gitoscale_arch_${projectId}`);
+      localStorage.removeItem(`gitoscale_project_${projectId}`);
+      localStorage.removeItem(`gitoscale_project_state_${projectId}`);
+    } catch {}
   }, []);
 
   const handleRequireAuthForRepo = useCallback(
@@ -2366,7 +2378,7 @@ export const App: React.FC = () => {
         isLeftCollapsed={isLeftCollapsed}
         nodes={nodes}
         edges={edges}
-        projectName={activePromptText || defaultArchitecture?.description || 'GitToScale System Architecture'}
+        projectName={activePromptText || (nodes.length === 0 ? 'Blank Project' : (defaultArchitecture?.description || 'System Architecture'))}
         saveStatus={saveStatus}
         lastSaved={lastSaved}
         onForceSync={forceSyncNow}
@@ -2551,10 +2563,11 @@ export const App: React.FC = () => {
         {isLeftCollapsed && (
           <button
             onClick={handleOpenLeft}
-            className="absolute left-2 sm:left-3 top-1/4 -translate-y-1/2 z-30 p-2 sm:p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
+            className="absolute left-3 top-3 z-30 flex items-center gap-2 px-2.5 py-1.5 bg-white/95 dark:bg-[#0A0A0A]/95 hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl shadow-xs transition-all cursor-pointer group"
             title="Expand AI Architect Chat"
           >
             <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-emerald-500 transition-colors" />
+            <span className="text-xs font-medium pr-0.5 hidden sm:inline">AI Architect</span>
           </button>
         )}
 
@@ -2562,43 +2575,42 @@ export const App: React.FC = () => {
         {isRightCollapsed && (
           <button
             onClick={handleOpenRight}
-            className="absolute right-2 sm:right-3 top-1/4 -translate-y-1/2 z-30 p-2 sm:p-2.5 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl shadow-none transition-colors cursor-pointer group"
+            className="absolute right-3 top-3 z-30 flex items-center gap-2 px-2.5 py-1.5 bg-white/95 dark:bg-[#0A0A0A]/95 hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl shadow-xs transition-all cursor-pointer group"
             title="Expand right sidebar"
           >
             <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
+            <span className="text-xs font-medium pr-0.5 hidden sm:inline">Inspector</span>
           </button>
         )}
 
-        {/* Right Floating Panel: Unified Tabbed Right Sidebar (Components | Inspector | Bottlenecks) */}
+        {/* Right Docked Panel: Unified Full-Height Right Sidebar (Components | Inspector | Bottlenecks) */}
         <div
-          className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-all duration-300 ease-in-out ${
+          className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-transform duration-300 ease-in-out ${
             isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
         >
-          <aside className="w-[calc(100vw-24px)] max-w-[340px] sm:w-[340px] bg-transparent h-full flex flex-col justify-center items-center py-2 sm:py-4 px-2 sm:px-3 shrink-0 overflow-hidden select-none pointer-events-none">
-            <div className="pointer-events-auto w-full">
-              <RightSidebar
-                nodes={nodes}
-                edges={edges}
-                selectedNodeId={selectedNodeId}
-                selectedNode={selectedNode}
-                selectedNodeResult={selectedNodeResult}
-                simulationResult={simulationResult}
-                onSelectNode={handleSelectNode}
-                onAddNode={handleAddNode}
-                onDeleteNode={handleDeleteNode}
-                onToggleNode={handleToggleNode}
-                onUpdateNode={handleUpdateNode}
-                onRestoreOriginal={handleRestoreOriginal}
-                onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
-                onDeleteEdge={handleDeleteEdge}
-                onChangeIncomingTrafficRate={handleTrafficChange}
-                incomingTrafficRate={incomingTrafficRate}
-                onNavigateToParent={handleNavigateToParent}
-                viewMode={viewMode}
-                onToggleCollapse={() => setIsRightCollapsed(true)}
-              />
-            </div>
+          <aside className="w-[calc(100vw-24px)] max-w-[360px] sm:w-[350px] md:w-[360px] h-full flex flex-col shrink-0 overflow-hidden select-none pointer-events-auto bg-white dark:bg-[#0A0A0A] border-l border-slate-200 dark:border-neutral-800 shadow-xl md:shadow-none">
+            <RightSidebar
+              nodes={nodes}
+              edges={edges}
+              selectedNodeId={selectedNodeId}
+              selectedNode={selectedNode}
+              selectedNodeResult={selectedNodeResult}
+              simulationResult={simulationResult}
+              onSelectNode={handleSelectNode}
+              onAddNode={handleAddNode}
+              onDeleteNode={handleDeleteNode}
+              onToggleNode={handleToggleNode}
+              onUpdateNode={handleUpdateNode}
+              onRestoreOriginal={handleRestoreOriginal}
+              onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+              onDeleteEdge={handleDeleteEdge}
+              onChangeIncomingTrafficRate={handleTrafficChange}
+              incomingTrafficRate={incomingTrafficRate}
+              onNavigateToParent={handleNavigateToParent}
+              viewMode={viewMode}
+              onToggleCollapse={() => setIsRightCollapsed(true)}
+            />
           </aside>
         </div>
       </div>

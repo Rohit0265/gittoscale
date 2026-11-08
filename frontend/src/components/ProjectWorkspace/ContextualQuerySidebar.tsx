@@ -274,7 +274,23 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
 
   const createInitialMessages = useCallback(
     (promptText: string, generating: boolean): ChatBubble[] => {
-      const isPlaceholder = !promptText || promptText === 'Scalable distributed cloud architecture';
+      const isBlank =
+        !promptText ||
+        promptText.trim() === '' ||
+        promptText.toLowerCase().includes('blank');
+
+      if (isBlank) {
+        return [
+          {
+            id: 'msg-welcome',
+            sender: 'ai',
+            text: `👋 **Blank Canvas Ready!**\n\nYou're on a clean ground with no pre-configured nodes.\n\n• Use the **Components** panel on the right or tap **Add Component** on the canvas to start building.\n• Whenever you want advice on scaling, architecture patterns, or trade-offs, type your requirement here!`,
+            timestamp: new Date().toISOString(),
+          },
+        ];
+      }
+
+      const isPlaceholder = promptText === 'Scalable distributed cloud architecture';
       if (isPlaceholder) {
         return [
           {
