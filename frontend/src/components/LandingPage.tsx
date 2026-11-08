@@ -57,11 +57,12 @@ const checkIsAppDomain = () => {
   );
 };
 
-const PAGES = ['top', 'features', 'use-cases', 'faq'];
+const PAGES = ['top', 'features', 'community-feed', 'use-cases', 'faq'];
 
 const PAGE_LABELS: Record<string, string> = {
   top: 'Home',
   features: 'Features',
+  'community-feed': 'Community',
   'use-cases': 'Use Cases',
   faq: 'FAQ',
 };
@@ -504,9 +505,20 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('use-cases')}
+              onClick={() => scrollToSection('community-feed')}
               className={`min-h-[44px] px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex items-center justify-center ${
                 active === 2
+                  ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
+                  : 'text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
+              }`}
+            >
+              Community
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('use-cases')}
+              className={`min-h-[44px] px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex items-center justify-center ${
+                active === 3
                   ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
                   : 'text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
               }`}
@@ -517,7 +529,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
               type="button"
               onClick={() => scrollToSection('faq')}
               className={`min-h-[44px] px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex items-center justify-center ${
-                active === 3
+                active === 4
                   ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-neutral-800/90 font-semibold'
                   : 'text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/60'
               }`}
