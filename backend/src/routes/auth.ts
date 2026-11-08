@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { sendSignupTelegramNotification } from '../services/telegramService.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 import { isNeonConfigured, upsertUserProfile, getUserProfile, getUserProfileByEmail } from '../services/neon.js';
 
 const router = Router();
@@ -90,6 +91,16 @@ router.post('/signup', (req: Request, res: Response) => {
     console.warn('[Auth Route] Failed to send Telegram notification:', err);
   });
 
+  // Send Custom Welcome Template Email to newly registered user
+  sendWelcomeEmail({
+    name: user.name,
+    email: user.email,
+    userId: user.id,
+    provider: 'Mock / Dev',
+  }).catch((err) => {
+    console.warn('[Auth Route] Failed to dispatch welcome email:', err);
+  });
+
   const mockToken = `mock_jwt_${Buffer.from(JSON.stringify({ id: user.id, email: user.email })).toString('base64')}`;
 
   return res.status(201).json({
@@ -146,7 +157,7 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
   }
 
   try {
-    // Only dispatch Telegram notification if user didn't exist in the database yet
+    // Only dispatch notifications if user didn't exist in the database yet
     if (isBrandNewUser) {
       sendSignupTelegramNotification({
         name: cleanName,
@@ -156,6 +167,16 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
         createdAt: typeof createdAt === 'string' ? createdAt : new Date().toISOString(),
       }).catch((err) => {
         console.warn('[Auth Route] Telegram signup alert error:', err);
+      });
+
+      // Dispatch custom template welcome email to the newly onboarded user
+      sendWelcomeEmail({
+        name: cleanName,
+        email: cleanEmail,
+        userId: effectiveUserId,
+        provider: typeof provider === 'string' ? provider : undefined,
+      }).catch((err) => {
+        console.warn('[Auth Route] Welcome email dispatch error:', err);
       });
     }
 
