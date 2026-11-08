@@ -280,5 +280,30 @@ router.get('/me', (_req: Request, res: Response) => {
   });
 });
 
+/**
+ * POST /api/auth/test-welcome-email
+ * Sends or previews a test custom welcome email (for verification or admin testing)
+ */
+router.post('/test-welcome-email', async (req: Request, res: Response) => {
+  const { email, name } = req.body || {};
+
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return res.status(400).json({
+      success: false,
+      error: 'Please provide a valid email address.',
+    });
+  }
+
+  const result = await sendWelcomeEmail({
+    email,
+    name: typeof name === 'string' ? name : undefined,
+  });
+
+  return res.json({
+    success: result.success,
+    result,
+  });
+});
+
 export default router;
 
