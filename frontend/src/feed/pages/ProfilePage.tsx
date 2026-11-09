@@ -19,6 +19,12 @@ import {
 import { FeedPost } from '../types';
 import { feedApi } from '../services/feedApi';
 import { useSmoothScroll } from '../../utils/useSmoothScroll';
+import {
+  extractAccountAvatar,
+  getAvatarColor,
+  getRandomBannerColor,
+  getInitial,
+} from '../utils/avatarUtils';
 
 interface ProfilePageProps {
   profileId: string;
@@ -64,6 +70,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const profileShareUrl = `${window.location.origin}/feed/profile/${profileId}`;
 
   const isOwner = Boolean(user && user.id === profileId);
+
+  // Determine avatar from profile or account OAuth metadata
+  const accountAvatar = isOwner ? extractAccountAvatar(user) : null;
+  const effectiveAvatar = profile?.avatar_url || accountAvatar;
+  const defaultBannerBg = getRandomBannerColor(profile?.id || profile?.username || profile?.full_name);
 
   const handleFollowClick = async () => {
     if (!user) {
