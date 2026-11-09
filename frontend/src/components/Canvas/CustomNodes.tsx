@@ -11,9 +11,6 @@ import {
   CheckCircle2,
   PowerOff,
   Users,
-  Flame,
-  Clock,
-  Zap,
 } from 'lucide-react';
 import { ArchitectureNode, NodeSimulationResult } from '../../types';
 
