@@ -501,6 +501,16 @@ export function executeArchitectureCommand(
     )
     .trim();
 
+  // If the command is requesting a full architecture generation/synthesis or canvas publishing,
+  // do NOT let partial component commands (like "add component") hijack it!
+  if (isArchitectureGenerationRequest(command, currentNodes.length)) {
+    return {
+      executed: false,
+      actionType: 'general',
+      explanation: '',
+    };
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
   // 0. REQUIREMENT INTAKE ("add more requirement", "add requirement", "new requirement", "requirement: ...")
   // ───────────────────────────────────────────────────────────────────────────
@@ -841,6 +851,19 @@ export function executeArchitectureCommand(
       .replace(/\s+(between|after|before|in front of|to|connected to).*/i, '')
       .replace(/^(a|an|the|new|components?|nodes?)\s+/i, '')
       .trim();
+
+    // Guard: Never interpret full system/architecture nouns as a single component to add!
+    const isFullArchitectureNoun =
+      /^(?:architect(?:ure)?|system|blueprint|topology|platform|stack|infrastructure|infra|app|application|backend)(?:\s+(?:for|of)\s+.*)?$/i.test(
+        rawCompName
+      );
+    if (isFullArchitectureNoun) {
+      return {
+        executed: false,
+        actionType: 'general',
+        explanation: '',
+      };
+    }
 
     // If generic "components" or empty, pick the most needed missing component
     if (!rawCompName || rawCompName === 'components' || rawCompName === 'component' || rawCompName === 'more components') {
