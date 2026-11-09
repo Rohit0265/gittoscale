@@ -48,32 +48,6 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
   };
 
   const getStatusBadge = () => {
-    // Chaos Monkey overrides
-    if (node.config.chaos?.isKilled) {
-      return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/40 animate-pulse">
-          <Flame className="w-3 h-3 text-rose-500 fill-current" />
-          CRASHED
-        </span>
-      );
-    }
-    if (node.config.chaos?.isPartitioned) {
-      return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/40 animate-pulse">
-          <Zap className="w-3 h-3 text-purple-500" />
-          PARTITIONED
-        </span>
-      );
-    }
-    if ((node.config.chaos?.injectedLatencyMs || 0) > 0) {
-      return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 animate-pulse">
-          <Clock className="w-3 h-3 text-amber-500" />
-          +{node.config.chaos?.injectedLatencyMs}ms
-        </span>
-      );
-    }
-
     switch (status) {
       case 'overloaded':
         return (
@@ -109,15 +83,6 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
 
   const getCardBorder = () => {
     if (selected) return 'ring-2 ring-indigo-500 border-indigo-500 shadow-none';
-    if (node.config.chaos?.isKilled) {
-      return 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/40 ring-2 ring-rose-500/50 shadow-md animate-pulse';
-    }
-    if (node.config.chaos?.isPartitioned) {
-      return 'border-purple-500 bg-purple-50/20 dark:bg-purple-950/30 ring-2 ring-purple-500/40 shadow-md border-dashed';
-    }
-    if ((node.config.chaos?.injectedLatencyMs || 0) > 0) {
-      return 'border-amber-500 bg-amber-50/20 dark:bg-amber-950/30 ring-2 ring-amber-500/40 shadow-md';
-    }
     switch (status) {
       case 'overloaded':
         return 'border-red-400 dark:border-red-500/80 bg-red-50/20 dark:bg-red-950/30 shadow-none';
