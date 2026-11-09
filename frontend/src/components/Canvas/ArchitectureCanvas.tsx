@@ -253,69 +253,41 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
     return Math.round((sum / latencies.length) * 10) / 10;
   }, [nodeResults]);
 
-  const handleKillNodeFromContext = (node: ArchitectureNode) => {
+  const handleToggleNodeFromContext = (node: ArchitectureNode) => {
     if (!onUpdateNode) return;
-    const isKilled = Boolean(node.config.chaos?.isKilled);
     onUpdateNode({
       ...node,
-      config: {
-        ...node.config,
-        chaos: {
-          ...node.config.chaos,
-          isKilled: !isKilled,
-          isPartitioned: false,
-        },
-      },
+      enabled: !node.enabled,
     });
     setContextMenu(null);
   };
 
-  const handleInjectLatencyFromContext = (node: ArchitectureNode, delayMs = 250) => {
+  const handleScaleWorkersFromContext = (node: ArchitectureNode, delta: number) => {
     if (!onUpdateNode) return;
-    const currentDelay = node.config.chaos?.injectedLatencyMs || 0;
+    const newWorkers = Math.max(1, node.workerCount + delta);
     onUpdateNode({
       ...node,
-      config: {
-        ...node.config,
-        chaos: {
-          ...node.config.chaos,
-          injectedLatencyMs: currentDelay + delayMs,
-        },
-      },
+      workerCount: newWorkers,
     });
     setContextMenu(null);
   };
 
-  const handlePartitionNodeFromContext = (node: ArchitectureNode) => {
-    if (!onUpdateNode) return;
-    const isPart = Boolean(node.config.chaos?.isPartitioned);
-    onUpdateNode({
-      ...node,
-      config: {
-        ...node.config,
-        chaos: {
-          ...node.config.chaos,
-          isPartitioned: !isPart,
-          isKilled: false,
+  const handleDuplicateFromContext = (node: ArchitectureNode) => {
+    if (onDuplicateNode) {
+      onDuplicateNode(node);
+    } else if (onNodesChangePosition) {
+      const clone: ArchitectureNode = {
+        ...node,
+        id: `node-${Date.now().toString().slice(-5)}`,
+        name: `${node.name} (Copy)`,
+        position: {
+          x: node.position.x + 40,
+          y: node.position.y + 40,
         },
-      },
-    });
-    setContextMenu(null);
-  };
-
-  const handleHealNodeFromContext = (node: ArchitectureNode) => {
-    if (!onUpdateNode) return;
-    onUpdateNode({
-      ...node,
-      config: {
-        ...node.config,
-        chaos: {
-          isKilled: false,
-          injectedLatencyMs: 0,
-          isPartitioned: false,
-        },
-      },
-    });
+      };
+      onNodesChangePosition([...nodes, clone]);
+      onUpdateNode?.(clone);
+    }
     setContextMenu(null);
   };
   const [internalSelectedEdgeId, setInternalSelectedEdgeId] = useState<string | null>(null);
