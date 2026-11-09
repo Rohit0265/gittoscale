@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { X, Camera, Loader2, AlertCircle, Check, User, Trash2 } from 'lucide-react';
+import { X, Camera, Loader2, AlertCircle, Check, User, Trash2, Sparkles } from 'lucide-react';
 import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
+import { getAvatarColor, getRandomBannerColor, getInitial } from '../utils/avatarUtils';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface EditProfileModalProps {
   profile: UserProfileFeed;
   token: string;
   onProfileUpdated: (updated: UserProfileFeed) => void;
+  accountAvatar?: string | null;
 }
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
@@ -17,14 +19,16 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   profile,
   token,
   onProfileUpdated,
+  accountAvatar,
 }) => {
+  const initialAvatar = profile.avatar_url || accountAvatar || null;
   const [fullName, setFullName] = useState<string>(profile.full_name || '');
   const [username, setUsername] = useState<string>(profile.username || '');
   const [bio, setBio] = useState<string>(profile.bio || '');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url || null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatar);
   const [bannerUrl, setBannerUrl] = useState<string | null>(profile.banner_url || null);
 
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatar_url || null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(initialAvatar);
   const [bannerPreview, setBannerPreview] = useState<string | null>(profile.banner_url || null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -263,7 +267,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   />
                 )
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-slate-200 to-slate-300 dark:from-neutral-900 dark:to-neutral-800" />
+                <div
+                  className="w-full h-full"
+                  style={{ background: getRandomBannerColor(profile.id || profile.username || fullName) }}
+                />
               )}
 
               {/* Upload & Remove overlay actions */}
