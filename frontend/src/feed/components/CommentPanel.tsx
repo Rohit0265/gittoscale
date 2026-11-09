@@ -245,11 +245,6 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
               >
                 {comment.author.full_name}
               </button>
-              {depth > 0 && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-mono">
-                  L{depth + 1}
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="text-[10px] text-slate-400 dark:text-neutral-500">
@@ -279,11 +274,6 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
             >
               <Reply className="w-3 h-3" />
               <span>Reply</span>
-              {depth >= 2 && (
-                <span className="text-[10px] text-slate-400 font-normal">
-                  (thread cap)
-                </span>
-              )}
             </button>
           </div>
         </div>
@@ -317,12 +307,6 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
         >
           <X className="w-4 h-4" />
         </button>
-      </div>
-
-      {/* Post Context Preview */}
-      <div className="px-4 py-2.5 bg-slate-50/70 dark:bg-neutral-900/40 border-b border-slate-100 dark:border-neutral-800/80 text-xs text-slate-600 dark:text-neutral-400 shrink-0">
-        <span className="font-semibold text-slate-800 dark:text-neutral-200">{post.author.full_name}:</span>{' '}
-        <span className="line-clamp-1 italic">{post.content}</span>
       </div>
 
       {/* Comments Conversation Tree */}
@@ -365,7 +349,6 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
               <CornerDownRight className="w-3.5 h-3.5 shrink-0" />
               <span>
                 Replying to <strong>@{replyingTo.authorName}</strong>
-                {replyingTo.depth >= 2 ? ' (tier 3 conversation)' : ''}
               </span>
             </div>
             <button
