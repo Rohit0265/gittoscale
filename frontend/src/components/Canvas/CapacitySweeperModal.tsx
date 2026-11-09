@@ -388,7 +388,7 @@ export const CapacitySweeperModal: React.FC<CapacitySweeperModalProps> = ({
             >
               {isApplied ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-300 scale-110 transition-transform duration-200" />
                   <span>Sizing Applied to Live Architecture!</span>
                 </>
               ) : (
