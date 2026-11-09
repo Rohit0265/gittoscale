@@ -614,6 +614,22 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
                     {msg.isStreaming && (
                       <span className="inline-block w-1.5 h-3 ml-0.5 bg-indigo-500 animate-pulse align-middle" />
                     )}
+                    {msg.text.includes('```mermaid') && !msg.isStreaming && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-neutral-800 flex items-center justify-between text-[11px]">
+                        <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Published to Canvas
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onExecuteChatCommand?.('show the architecture on canvas', messages)}
+                          className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 transition-colors cursor-pointer font-medium"
+                          title="Re-sync this architecture on canvas"
+                        >
+                          Re-sync
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -162,11 +162,186 @@ What would you like to build or optimize today? You can ask me to evaluate trade
 
 I have updated and rendered the Reddit architecture directly on your interactive canvas to handle high-concurrency reading, voting, and nested comment threads:
 
+\`\`\`mermaid
+flowchart TD
+  client["Global Users<br/>15000 req/s"]:::client --> gateway["Envoy API Gateway<br/>8000 req/s, 2w"]:::gateway
+  gateway --> post_svc["Post & Comment Service<br/>3000 req/s, 4w"]:::service
+  gateway --> vote_svc["Voting Service<br/>5000 req/s, 3w"]:::service
+  post_svc --> redis_feed[["Redis Feed Cache<br/>12000 req/s, 2w"]]:::cache
+  vote_svc --> kafka_queue["Kafka Vote Buffer<br/>15000 req/s, 2w"]:::service
+  kafka_queue --> vote_worker["Vote Worker Fleet<br/>4000 req/s, 2w"]:::service
+  post_svc --> db[("PostgreSQL Primary DB<br/>2500 req/s, 2w")]:::database
+  vote_worker --> db
+\`\`\`
+
 • **Feed Fan-Out & In-Memory Caching**: Over 85% of subreddit home feeds, top listings, and hot rankings are served directly from Redis in-memory caches to keep read latency under 1ms.
 • **Asynchronous Vote Buffering**: High-volume upvotes and downvotes are decoupled through Kafka event streams, ensuring database write locks never block users during viral spikes.
 • **Relational Consistency**: PostgreSQL maintains user accounts, subreddit definitions, and nested comment hierarchies, with read replicas absorbing follower queries.
 
 You can ask me to scale worker pools, adjust incoming vote traffic, or say **"make the design in detailed view"** to inspect multi-region Anycast CDNs and connection pools!`;
+  }
+
+  // Food Delivery / Ride Sharing (Uber, DoorDash, Swiggy, Zomato)
+  if (
+    lower.includes('food') ||
+    lower.includes('delivery') ||
+    lower.includes('uber') ||
+    lower.includes('ride') ||
+    lower.includes('doordash') ||
+    lower.includes('swiggy') ||
+    lower.includes('zomato')
+  ) {
+    return `🚖 **Hyper-Scale Real-Time Dispatch Architecture**:
+
+I have synthesized and rendered the distributed dispatch architecture directly on your interactive canvas:
+
+\`\`\`mermaid
+flowchart TD
+  client["Mobile Apps & Web<br/>12000 req/s"]:::client --> gateway["Envoy API Gateway<br/>6000 req/s, 2w"]:::gateway
+  gateway --> auth["Auth & Token Service<br/>3000 req/s, 2w"]:::service
+  gateway --> order_svc["Order & Dispatch Service<br/>3000 req/s, 4w"]:::service
+  gateway --> tracking["Geospatial Location Service<br/>4000 req/s, 3w"]:::service
+  order_svc --> redis_geo[["Redis Geo & Session Cache<br/>10000 req/s, 2w"]]:::cache
+  tracking --> redis_geo
+  order_svc --> kafka["Kafka Event Broker<br/>12000 req/s, 2w"]:::service
+  kafka --> worker["Dispatch & Match Worker<br/>3500 req/s, 3w"]:::service
+  worker --> db[("PostgreSQL Distributed DB<br/>2500 req/s, 2w")]:::database
+  order_svc --> db
+\`\`\`
+
+• **Geospatial Proximity Matching**: Redis Geo primitives partition drivers and delivery couriers into sub-millisecond geohash spatial buckets.
+• **Decoupled Order Intake**: High-frequency order submissions and ride dispatches are buffered through Kafka partitions to withstand burst surges without latency degradation.
+• **Transactional Consistency**: PostgreSQL handles financial ledger entries and driver compensation accounting with synchronous replication.`;
+  }
+
+  // Video Streaming (Netflix, YouTube, Twitch)
+  if (
+    lower.includes('netflix') ||
+    lower.includes('streaming') ||
+    lower.includes('youtube') ||
+    lower.includes('video') ||
+    lower.includes('twitch')
+  ) {
+    return `🍿 **High-Throughput Global Video Streaming Architecture**:
+
+I have generated and deployed the video streaming architecture onto your visual canvas:
+
+\`\`\`mermaid
+flowchart TD
+  client["Global Viewers<br/>20000 req/s"]:::client --> cdn["Cloudflare Edge CDN<br/>10000 req/s, 2w"]:::gateway
+  cdn --> gateway["API Gateway / WAF<br/>6000 req/s, 2w"]:::gateway
+  gateway --> catalog["Catalog & Discovery Service<br/>3500 req/s, 3w"]:::service
+  gateway --> playback["Playback & DRM Service<br/>4000 req/s, 3w"]:::service
+  catalog --> redis[["Redis Video Cache<br/>12000 req/s, 2w"]]:::cache
+  playback --> redis
+  playback --> kafka["Kafka Event Stream<br/>15000 req/s, 2w"]:::service
+  kafka --> transcoder["Transcode Pipeline Worker<br/>3000 req/s, 3w"]:::service
+  catalog --> db[("PostgreSQL Metadata DB<br/>2000 req/s, 2w")]:::database
+  transcoder --> db
+\`\`\`
+
+• **Multi-Tier Edge Caching**: 90%+ of video manifest chunks and media playlists are offloaded at edge PoPs, keeping p99 origin playback start times under 80ms.
+• **Dynamic Bitrate Transcoding**: Video ingestion pipelines asynchronously segment video renditions across adaptive HLS/DASH quality ladders.
+• **Zero-Bottleneck Data Tier**: PostgreSQL manages user accounts and billing, while catalog read replicas absorb metadata queries.`;
+  }
+
+  // E-commerce / Retail / Shopping (Amazon, Shopify, Stripe)
+  if (
+    lower.includes('ecommerce') ||
+    lower.includes('e-commerce') ||
+    lower.includes('shopping') ||
+    lower.includes('cart') ||
+    lower.includes('store') ||
+    lower.includes('amazon') ||
+    lower.includes('shopify')
+  ) {
+    return `🛒 **Resilient E-Commerce Microservices Architecture**:
+
+I have published the production e-commerce architecture topology directly to your canvas:
+
+\`\`\`mermaid
+flowchart TD
+  client["Shoppers & App Traffic<br/>10000 req/s"]:::client --> gateway["Kong API Gateway<br/>5000 req/s, 2w"]:::gateway
+  gateway --> auth["Auth Microservice<br/>2500 req/s, 2w"]:::service
+  gateway --> catalog["Product Catalog Service<br/>3000 req/s, 3w"]:::service
+  gateway --> order["Checkout & Order Service<br/>2500 req/s, 3w"]:::service
+  catalog --> redis[["Redis Catalog Cache<br/>8000 req/s, 1w"]]:::cache
+  order --> redis
+  order --> kafka["Kafka Checkout Queue<br/>10000 req/s, 2w"]:::service
+  kafka --> payment["Payment & Inventory Worker<br/>3000 req/s, 2w"]:::service
+  payment --> db[("PostgreSQL Transactional DB<br/>2000 req/s, 2w")]:::database
+  order --> db
+\`\`\`
+
+• **Inventory & Flash Sale Protection**: Redis in-memory atomic locks prevent overselling stock during high-concurrency product drops.
+• **Fault-Tolerant Payment Processing**: Order checkouts are decoupled via event streaming, allowing third-party payment gateway retries without dropping customer transactions.
+• **Database Sharding & Replication**: Order transactions adhere strictly to ACID semantics with read replicas absorbing catalog browsing queries.`;
+  }
+
+  // Chat / Messaging (WhatsApp, Slack, Discord)
+  if (
+    lower.includes('chat') ||
+    lower.includes('whatsapp') ||
+    lower.includes('slack') ||
+    lower.includes('discord') ||
+    lower.includes('messaging')
+  ) {
+    return `💬 **Real-Time WebSocket Messaging Architecture**:
+
+I have generated and rendered the distributed messaging topology onto your visual canvas:
+
+\`\`\`mermaid
+flowchart TD
+  client["Connected Chat Clients<br/>15000 req/s"]:::client --> gateway["Envoy WebSocket Gateway<br/>8000 req/s, 2w"]:::gateway
+  gateway --> chat_svc["Chat & Presence Service<br/>4000 req/s, 4w"]:::service
+  gateway --> notif_svc["Push Notification Service<br/>3000 req/s, 2w"]:::service
+  chat_svc --> redis_pubsub[["Redis PubSub & Presence<br/>12000 req/s, 2w"]]:::cache
+  chat_svc --> kafka["Kafka Message Stream<br/>15000 req/s, 2w"]:::service
+  kafka --> archive_worker["Message Archiver Worker<br/>4000 req/s, 2w"]:::service
+  archive_worker --> db[("PostgreSQL Chat History DB<br/>2500 req/s, 2w")]:::database
+  notif_svc --> db
+\`\`\`
+
+• **Full-Duplex Concurrency**: Persistent WebSocket connections multiplexed over Envoy with automatic session stickiness.
+• **Instant Fan-Out**: Redis Pub/Sub coordinates message broadcasts across distributed gateway pods with sub-millisecond dispatch.
+• **Async Message Persistence**: Chat logs are safely written to durable relational partitions in background batches.`;
+  }
+
+  // Generic Architecture Generation / Synthesis ("create architect", "create architecture", "design system")
+  if (
+    lower.includes('create architect') ||
+    lower.includes('create the architect') ||
+    lower.includes('create architecture') ||
+    lower.includes('design architect') ||
+    lower.includes('design system') ||
+    lower.includes('build architecture') ||
+    lower.includes('synthesize') ||
+    lower.includes('show architect') ||
+    lower.includes('show the architect') ||
+    lower.includes('publish to canvas')
+  ) {
+    return `🏛️ **Cloud-Native Microservices Architecture**:
+
+I have synthesized and rendered your production-ready architecture directly on the interactive canvas:
+
+\`\`\`mermaid
+flowchart TD
+  client["Global Users & Clients<br/>10000 req/s"]:::client --> gateway["Envoy API Gateway<br/>5000 req/s, 2w"]:::gateway
+  gateway --> auth["Auth & Session Service<br/>2500 req/s, 2w"]:::service
+  gateway --> core["Core Business Microservice<br/>3000 req/s, 3w"]:::service
+  core --> cache[["Redis In-Memory Cache<br/>8000 req/s, 1w"]]:::cache
+  core --> kafka["Kafka Event Queue<br/>10000 req/s, 2w"]:::service
+  kafka --> worker["Background Worker Fleet<br/>3500 req/s, 2w"]:::service
+  worker --> db[("PostgreSQL Primary Database<br/>2000 req/s, 2w")]:::database
+  core --> db
+\`\`\`
+
+• **Edge Ingress & Traffic Management**: Envoy API Gateway handles SSL termination, JWT verification, and rate limiting.
+• **Low-Latency Read Tier**: Redis Cache-Aside protects relational databases from high-frequency read spikes, keeping p99 latency under 2ms.
+• **Asynchronous Decoupling**: Kafka buffers mutation workloads, enabling resilient background worker processing without stalling client threads.
+• **ACID Storage**: PostgreSQL ensures transactional integrity and strong consistency.
+
+You can ask me to scale worker pools, adjust incoming traffic, or say **"make the design in detailed view"** anytime!`;
   }
 
   // Detailed View & Advanced Architecture
