@@ -487,7 +487,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
         )}
 
         {/* Delete Component Action */}
-        {onDeleteNode && node.type !== 'load_generator' && (
+        {onDeleteNode && (
           <div className="pt-2 border-t border-slate-200 dark:border-neutral-800">
             <button
               type="button"
