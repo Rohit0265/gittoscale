@@ -709,82 +709,81 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
               <span className="font-bold text-slate-900 dark:text-white truncate max-w-[130px]">
                 {contextMenu.node.name}
               </span>
-              {contextMenu.node.config.chaos?.isKilled ? (
-                <span className="px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-500 text-[10px] font-mono font-bold">CRASHED</span>
-              ) : contextMenu.node.config.chaos?.isPartitioned ? (
-                <span className="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-500 text-[10px] font-mono font-bold">PARTITIONED</span>
-              ) : (contextMenu.node.config.chaos?.injectedLatencyMs || 0) > 0 ? (
-                <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 text-[10px] font-mono font-bold">+{contextMenu.node.config.chaos?.injectedLatencyMs}ms</span>
-              ) : (
-                <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 text-[10px] font-mono font-bold">HEALTHY</span>
-              )}
+              <span
+                className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                  !contextMenu.node.enabled
+                    ? 'bg-slate-100 dark:bg-neutral-800 text-slate-500'
+                    : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                }`}
+              >
+                {contextMenu.node.enabled ? 'ACTIVE' : 'DISABLED'}
+              </span>
             </div>
             <span className="text-[10px] text-slate-500 dark:text-neutral-400 capitalize block mt-0.5">
               {contextMenu.node.type.replace('_', ' ')} · {contextMenu.node.workerCount} workers
             </span>
           </div>
 
-          {/* Chaos Monkey Actions */}
+          {/* Component Quick Actions */}
           <div className="space-y-0.5">
             <button
               type="button"
-              onClick={() => handleKillNodeFromContext(contextMenu.node)}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                contextMenu.node.config.chaos?.isKilled
-                  ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 font-semibold'
-                  : 'hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Flame className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                <span>{contextMenu.node.config.chaos?.isKilled ? 'Revive Node (Uncrash)' : 'Kill Node (Instant Crash)'}</span>
-              </div>
-              <span className="text-[10px] font-mono text-slate-400">0 req/s</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleInjectLatencyFromContext(contextMenu.node, 250)}
+              onClick={() => handleToggleNodeFromContext(contextMenu.node)}
               className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>Inject Latency</span>
+                <Power className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>{contextMenu.node.enabled ? 'Disable Component' : 'Enable Component'}</span>
               </div>
-              <span className="text-[10px] font-mono text-amber-500">+250ms</span>
+              <span className="text-[10px] font-mono text-slate-400">{contextMenu.node.enabled ? 'Off' : 'On'}</span>
             </button>
 
             <button
               type="button"
-              onClick={() => handlePartitionNodeFromContext(contextMenu.node)}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                contextMenu.node.config.chaos?.isPartitioned
-                  ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 font-semibold'
-                  : 'hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200'
-              }`}
+              onClick={() => handleScaleWorkersFromContext(contextMenu.node, 1)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 transition-colors cursor-pointer font-medium"
             >
               <div className="flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                <span>{contextMenu.node.config.chaos?.isPartitioned ? 'Heal Partition' : 'Network Partition'}</span>
+                <Plus className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span>Scale Up (+1 Worker)</span>
               </div>
-              <span className="text-[10px] font-mono text-slate-400">Sever</span>
+              <span className="text-[10px] font-mono text-indigo-500">{contextMenu.node.workerCount + 1}</span>
             </button>
 
-            {(contextMenu.node.config.chaos?.isKilled ||
-              contextMenu.node.config.chaos?.isPartitioned ||
-              (contextMenu.node.config.chaos?.injectedLatencyMs || 0) > 0) && (
+            {contextMenu.node.workerCount > 1 && (
               <button
                 type="button"
-                onClick={() => handleHealNodeFromContext(contextMenu.node)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer font-semibold"
+                onClick={() => handleScaleWorkersFromContext(contextMenu.node, -1)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>Heal Component</span>
+                  <Minus className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>Scale Down (-1 Worker)</span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-500">Reset</span>
+                <span className="text-[10px] font-mono text-slate-400">{contextMenu.node.workerCount - 1}</span>
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => {
+                onSelectNode(contextMenu.node.id);
+                setContextMenu(null);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
+            >
+              <Sliders className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span>Inspect & Edit Properties</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleDuplicateFromContext(contextMenu.node)}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
+            >
+              <Copy className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span>Duplicate Component</span>
+            </button>
           </div>
 
           {onDeleteNode && (
@@ -812,6 +811,66 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
           style={{ top: edgeContextMenu.y, left: edgeContextMenu.x }}
           className="fixed z-50 w-52 rounded-2xl border border-slate-200/90 dark:border-neutral-800 bg-white/95 dark:bg-[#0c0c0e]/95 backdrop-blur-xl shadow-2xl p-1.5 text-xs select-none animate-in fade-in zoom-in-95 duration-100"
           onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-neutral-800/80 mb-1">
+            <span className="font-bold text-slate-900 dark:text-white block truncate">
+              Link Connection
+            </span>
+            <span className="text-[10px] text-slate-500 dark:text-neutral-400 capitalize block">
+              {edgeContextMenu.edge.communicationType || 'http'} · {edgeContextMenu.edge.enabled ? 'Active' : 'Severed'}
+            </span>
+          </div>
+
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                onToggleEdge(edgeContextMenu.edge.id);
+                setEdgeContextMenu(null);
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Zap className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span>{edgeContextMenu.edge.enabled ? 'Sever Link' : 'Restore Link'}</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">{edgeContextMenu.edge.enabled ? 'Off' : 'On'}</span>
+            </button>
+
+            {onDeleteEdge && (
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteEdge(edgeContextMenu.edge.id);
+                  setEdgeContextMenu(null);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span>Delete Connection</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Capacity Sweeper & Breaking Point Analyzer Modal */}
+      <CapacitySweeperModal
+        isOpen={isCapacitySweeperOpen}
+        onClose={() => setIsCapacitySweeperOpen(false)}
+        nodes={nodes}
+        edges={edges}
+        currentTrafficRps={incomingTrafficRate}
+        onApplyScaling={(scaledNodes) => {
+          if (onApplyScaledNodes) {
+            onApplyScaledNodes(scaledNodes);
+          } else {
+            onNodesChangePosition(scaledNodes);
+            scaledNodes.forEach((n) => onUpdateNode?.(n));
+          }
+        }}
+        isDark={isDark}
+      />
         >
           <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-neutral-800/80 mb-1">
             <span className="font-bold text-slate-900 dark:text-white block truncate">
