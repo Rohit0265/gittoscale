@@ -8,6 +8,7 @@ import { PostMenu } from './PostMenu';
 import { EditPostModal } from './EditPostModal';
 import { ShareModal } from './ShareModal';
 import { PostMediaGallery } from './PostMediaGallery';
+import { getAvatarColor, getInitial } from '../utils/avatarUtils';
 
 interface PostCardProps {
   post: FeedPost;
