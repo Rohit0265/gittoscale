@@ -154,10 +154,14 @@ export function runSimulation(params: SimulationParams): SimulationResult {
     let processedThroughput: number;
     let effectiveCapacity = node.capacityPerSecond * node.workerCount;
 
+    const isChaosKilled = Boolean(node.config.chaos?.isKilled);
+    const isChaosPartitioned = Boolean(node.config.chaos?.isPartitioned);
+    const chaosLatency = Number(node.config.chaos?.injectedLatencyMs || 0);
+
     if (sourceNodeIds.has(nodeId)) {
       offeredRequestsPerSecond = incomingTrafficRate;
       effectiveCapacity = Math.max(effectiveCapacity, incomingTrafficRate);
-      processedThroughput = offeredRequestsPerSecond;
+      processedThroughput = isChaosKilled ? 0 : offeredRequestsPerSecond;
     } else {
       // Sum incoming traffic from all enabled incoming edges from enabled upstream nodes
       const activeInEdges = (inEdges.get(nodeId) || []).filter(
@@ -173,7 +177,15 @@ export function runSimulation(params: SimulationParams): SimulationResult {
         }
       }
 
-      processedThroughput = Math.min(offeredRequestsPerSecond, effectiveCapacity);
+      if (isChaosKilled) {
+        effectiveCapacity = 0;
+        processedThroughput = 0;
+      } else if (isChaosPartitioned) {
+        offeredRequestsPerSecond = 0;
+        processedThroughput = 0;
+      } else {
+        processedThroughput = Math.min(offeredRequestsPerSecond, effectiveCapacity);
+      }
     }
 
     // Offered utilization vs effective capacity
@@ -189,7 +201,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
         ? Math.round((processedThroughput / effectiveCapacity) * 1000) / 10
         : 0;
 
-    const isOverloaded = offeredRequestsPerSecond > effectiveCapacity;
+    const isOverloaded = offeredRequestsPerSecond > effectiveCapacity || isChaosKilled;
 
     // Deterministic Queue Model
     const queueMetrics = calculateQueueMetrics(
@@ -201,10 +213,11 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       0
     );
 
-    // Latency estimate
+    // Latency estimate (accounts for injected chaos latency)
+    const effectiveBaselineLatency = (node.config.baselineLatencyMs ?? 10) + chaosLatency;
     const avgQueue = (queueMetrics.initialQueue + queueMetrics.finalQueue) / 2;
     const latencyEstimate = estimateLatency(
-      node.config.baselineLatencyMs ?? 10,
+      effectiveBaselineLatency,
       offeredRequestsPerSecond,
       effectiveCapacity,
       avgQueue,
@@ -216,14 +229,22 @@ export function runSimulation(params: SimulationParams): SimulationResult {
     let bottleneckSeverity: 'none' | 'warning' | 'critical' = 'none';
     let bottleneckReason = '';
 
-    if (isOverloaded) {
+    if (isChaosKilled) {
       status = 'overloaded';
       bottleneckSeverity = 'critical';
-      bottleneckReason = `${node.name} is overloaded: offered load (${Math.round(offeredRequestsPerSecond)} req/s) exceeds effective capacity (${Math.round(effectiveCapacity)} req/s = ${node.workerCount} workers × ${node.capacityPerSecond} req/s). Queue reaches ${Math.round(queueMetrics.finalQueue)} items with ${Math.round(queueMetrics.rejectedRequests)} ${queueMetrics.overflowPolicy}ed requests.`;
-    } else if (offeredUtilization >= 80) {
+      bottleneckReason = `🔥 [CHAOS MONKEY] ${node.name} crashed! 0 req/s serviced; ${Math.round(offeredRequestsPerSecond)} req/s dropped.`;
+    } else if (isChaosPartitioned) {
       status = 'warning';
       bottleneckSeverity = 'warning';
-      bottleneckReason = `${node.name} is approaching capacity at ${offeredUtilization.toFixed(1)}% utilization (${Math.round(offeredRequestsPerSecond)} req/s / ${Math.round(effectiveCapacity)} req/s). Queuing and latency degradation may occur during minor traffic spikes.`;
+      bottleneckReason = `⚡ [CHAOS MONKEY] ${node.name} is network partitioned (isolated from cluster traffic).`;
+    } else if (isOverloaded) {
+      status = 'overloaded';
+      bottleneckSeverity = 'critical';
+      bottleneckReason = `${node.name} is overloaded: offered load (${Math.round(offeredRequestsPerSecond)} req/s) exceeds effective capacity (${Math.round(effectiveCapacity)} req/s = ${node.workerCount} workers × ${node.capacityPerSecond} req/s). Queue reaches ${Math.round(queueMetrics.finalQueue)} items with ${Math.round(queueMetrics.rejectedRequests)} ${queueMetrics.overflowPolicy}ed requests.${chaosLatency > 0 ? ` (+${chaosLatency}ms chaos delay injected)` : ''}`;
+    } else if (offeredUtilization >= 80 || chaosLatency >= 200) {
+      status = 'warning';
+      bottleneckSeverity = 'warning';
+      bottleneckReason = `${node.name} is degraded at ${offeredUtilization.toFixed(1)}% utilization (${Math.round(offeredRequestsPerSecond)} req/s / ${Math.round(effectiveCapacity)} req/s).${chaosLatency > 0 ? ` Active chaos latency injection (+${chaosLatency}ms).` : ''}`;
     }
 
     nodeResults[node.id] = {
@@ -238,13 +259,14 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       effectiveUtilization,
       status,
       queueLength: Math.round(queueMetrics.finalQueue),
-      rejectedRequests: Math.round(queueMetrics.rejectedRequests),
+      rejectedRequests: isChaosKilled ? Math.round(offeredRequestsPerSecond * durationSeconds) : Math.round(queueMetrics.rejectedRequests),
       overflowPolicy: queueMetrics.overflowPolicy,
       estimatedLatencyMs: latencyEstimate.estimatedLatencyMs,
       latencyStatus: latencyEstimate.latencyStatus,
       isBottleneck: bottleneckSeverity !== 'none',
       bottleneckSeverity,
       bottleneckReason: bottleneckReason || undefined,
+      chaos: node.config.chaos,
     };
 
     // Propagate downstream flow rates on outgoing edges

@@ -25,7 +25,11 @@ describe('Backend API Integration Tests', () => {
     const res = await request(app).get('/api/scenarios');
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBe(5);
+    expect(res.body.length).toBeGreaterThanOrEqual(8);
+    const scenarioIds = res.body.map((s: any) => s.id);
+    expect(scenarioIds).toContain('thundering-herd');
+    expect(scenarioIds).toContain('black-friday');
+    expect(scenarioIds).toContain('leader-election-timeout');
   });
 
   it('POST /api/simulate executes simulation successfully', async () => {

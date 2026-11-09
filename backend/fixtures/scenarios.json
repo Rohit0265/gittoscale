@@ -71,5 +71,75 @@
       }
     },
     "edgeOverrides": {}
+  },
+  {
+    "id": "thundering-herd",
+    "name": "Thundering Herd (Cache Cold-Start)",
+    "description": "Simulates total cache invalidation and cold start. In-memory cache throughput crashes to 80 req/s, forcing 100% of read traffic directly onto primary database and worker threads.",
+    "incomingTrafficRate": 3200,
+    "durationSeconds": 60,
+    "nodeOverrides": {
+      "session-cache": {
+        "capacityPerSecond": 80,
+        "workerCount": 1,
+        "config": {
+          "baselineLatencyMs": 150
+        }
+      },
+      "auth-service": {
+        "config": {
+          "baselineLatencyMs": 95
+        }
+      }
+    },
+    "edgeOverrides": {
+      "edge-auth-redis": {
+        "requestsPerInput": 3.5
+      }
+    }
+  },
+  {
+    "id": "black-friday",
+    "name": "Black Friday Surge (10x Write Burst)",
+    "description": "Simulates an aggressive 10x promotional write burst (6,500 req/s) focused on API Gateway and Payment checkout services, triggering circuit breakers and severe queue drops.",
+    "incomingTrafficRate": 6500,
+    "durationSeconds": 60,
+    "nodeOverrides": {
+      "billing-service": {
+        "config": {
+          "maxQueueSize": 500,
+          "overflowPolicy": "reject",
+          "baselineLatencyMs": 110
+        }
+      },
+      "api-gateway": {
+        "config": {
+          "baselineLatencyMs": 45
+        }
+      }
+    },
+    "edgeOverrides": {}
+  },
+  {
+    "id": "leader-election-timeout",
+    "name": "Leader Election Timeout (Raft Failover)",
+    "description": "Primary database consensus leader disconnects during Raft/Paxos failover. Transaction processing stalls with +3,000ms replication delays while incoming writes back up in queue.",
+    "incomingTrafficRate": 2000,
+    "durationSeconds": 60,
+    "nodeOverrides": {
+      "billing-service": {
+        "config": {
+          "baselineLatencyMs": 3200,
+          "maxQueueSize": 300,
+          "overflowPolicy": "drop"
+        }
+      },
+      "session-cache": {
+        "config": {
+          "baselineLatencyMs": 2800
+        }
+      }
+    },
+    "edgeOverrides": {}
   }
 ]

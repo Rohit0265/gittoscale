@@ -259,5 +259,62 @@ describe('Traffic Simulation Engine Unit Tests', () => {
     expect(fixture2.nodes[0].capacityPerSecond).not.toBe(999999);
     expect(fixture2.nodes[0].capacityPerSecond).toBe(10000);
   });
+
+  // 13. Interactive Chaos Injection: Kill Node triggers crash and request drops
+  it('13. Chaos Injection: Killing a node drops processed throughput to 0 and flags critical bottleneck', () => {
+    const client = createBaseNode({ id: 'client', type: 'load_generator', config: { isSource: true, baselineLatencyMs: 0, maxQueueSize: 5000, overflowPolicy: 'drop' } });
+    const srv = createBaseNode({
+      id: 'srv',
+      capacityPerSecond: 1000,
+      config: {
+        baselineLatencyMs: 10,
+        maxQueueSize: 2000,
+        overflowPolicy: 'reject',
+        chaos: { isKilled: true }
+      }
+    });
+    const result = runSimulation({
+      nodes: [client, srv],
+      edges: [createEdge('e1', 'client', 'srv', 1.0)],
+      incomingTrafficRate: 800,
+      durationSeconds: 60,
+    });
+    expect(result.nodeResults['srv'].processedThroughput).toBe(0);
+    expect(result.nodeResults['srv'].status).toBe('overloaded');
+    expect(result.nodeResults['srv'].bottleneckSeverity).toBe('critical');
+    expect(result.nodeResults['srv'].bottleneckReason).toContain('CHAOS MONKEY');
+  });
+
+  // 14. Interactive Chaos Injection: Injected Latency inflates response times
+  it('14. Chaos Injection: Injected latency increases estimated latency', () => {
+    const client = createBaseNode({ id: 'client', type: 'load_generator', config: { isSource: true, baselineLatencyMs: 0, maxQueueSize: 5000, overflowPolicy: 'drop' } });
+    const normalSrv = createBaseNode({ id: 'srv-normal', capacityPerSecond: 2000, config: { baselineLatencyMs: 15, maxQueueSize: 2000, overflowPolicy: 'reject' } });
+    const delayedSrv = createBaseNode({
+      id: 'srv-delayed',
+      capacityPerSecond: 2000,
+      config: {
+        baselineLatencyMs: 15,
+        maxQueueSize: 2000,
+        overflowPolicy: 'reject',
+        chaos: { injectedLatencyMs: 250 }
+      }
+    });
+
+    const resNormal = runSimulation({
+      nodes: [client, normalSrv],
+      edges: [createEdge('e1', 'client', 'srv-normal', 1.0)],
+      incomingTrafficRate: 500,
+      durationSeconds: 60,
+    });
+    const resDelayed = runSimulation({
+      nodes: [client, delayedSrv],
+      edges: [createEdge('e2', 'client', 'srv-delayed', 1.0)],
+      incomingTrafficRate: 500,
+      durationSeconds: 60,
+    });
+
+    expect(resDelayed.nodeResults['srv-delayed'].estimatedLatencyMs).toBeGreaterThanOrEqual(250);
+    expect(resDelayed.nodeResults['srv-delayed'].estimatedLatencyMs).toBeGreaterThan(resNormal.nodeResults['srv-normal'].estimatedLatencyMs);
+  });
 });
 

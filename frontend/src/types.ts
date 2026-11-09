@@ -9,12 +9,19 @@ export type OverflowPolicy = 'drop' | 'reject';
 export type NodeStatus = 'normal' | 'warning' | 'overloaded' | 'disabled';
 export type LatencyStatus = 'ok' | 'degraded' | 'unbounded';
 
+export interface ChaosState {
+  isKilled?: boolean;
+  injectedLatencyMs?: number;
+  isPartitioned?: boolean;
+}
+
 export interface NodeConfig {
   baselineLatencyMs: number;
   maxQueueSize: number;
   overflowPolicy: OverflowPolicy;
   isSource?: boolean;
   defaultTrafficRate?: number;
+  chaos?: ChaosState;
   [key: string]: unknown;
 }
 
@@ -85,6 +92,7 @@ export interface NodeSimulationResult {
   isBottleneck: boolean;
   bottleneckSeverity: 'none' | 'warning' | 'critical';
   bottleneckReason?: string;
+  chaos?: ChaosState;
 }
 
 export interface EdgeSimulationResult {
