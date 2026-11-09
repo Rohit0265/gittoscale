@@ -94,8 +94,11 @@ export const PostCard: React.FC<PostCardProps> = ({
                   className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-neutral-700 group-hover:border-indigo-500 transition-colors"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center uppercase group-hover:scale-105 transition-transform">
-                  {(author.full_name || 'U')[0]}
+                <div
+                  className="w-10 h-10 rounded-full text-white font-bold flex items-center justify-center uppercase group-hover:scale-105 transition-transform"
+                  style={{ background: getAvatarColor(post.user_id || author.full_name) }}
+                >
+                  {getInitial(author.full_name || author.username)}
                 </div>
               )}
             </button>
