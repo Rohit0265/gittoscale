@@ -2,14 +2,10 @@ import React, { useState, useMemo } from 'react';
 import {
   TrendingUp,
   X,
-  AlertTriangle,
-  ShieldCheck,
   Zap,
   ArrowRight,
   Sliders,
   CheckCircle2,
-  Server,
-  Layers,
 } from 'lucide-react';
 import { ArchitectureNode, ArchitectureEdge } from '../../types';
 import { runCapacitySweep, SweepDataPoint } from '../../utils/capacitySweeper';
