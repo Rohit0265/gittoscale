@@ -25,7 +25,6 @@ import {
   EdgeSimulationResult,
   ScenarioFixture,
 } from '../../types';
-import { CloudCostHUD } from './CloudCostHUD';
 import {
   Plus,
   Minus,
@@ -170,7 +169,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
 
   const controlsShiftX = isLargeScreen ? (isLeftCollapsed ? 0 : leftSidebarWidth + 16) : 0;
   const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -368) : 0;
-  const topCostRight = isLargeScreen ? (isRightCollapsed ? 14 : 384) : 14;
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -556,18 +554,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
       className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors overflow-hidden"
       style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%' }}
     >
-      {/* Top Right Floating Bar: Cloud Cost Estimator */}
-      <CloudCostHUD
-        nodes={nodes}
-        incomingRps={incomingTrafficRate}
-        avgP99LatencyMs={avgP99Latency}
-        isDark={isDark}
-        style={{
-          right: `${topCostRight}px`,
-          transition: 'right 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      />
-
       <ReactFlow
         style={{ width: '100%', height: '100%' }}
         nodes={rfNodes}
