@@ -871,48 +871,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
         }}
         isDark={isDark}
       />
-        >
-          <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-neutral-800/80 mb-1">
-            <span className="font-bold text-slate-900 dark:text-white block truncate">
-              Link Connection
-            </span>
-            <span className="text-[10px] text-slate-500 dark:text-neutral-400 capitalize block">
-              {edgeContextMenu.edge.communicationType || 'http'} · {edgeContextMenu.edge.enabled ? 'Active' : 'Severed'}
-            </span>
-          </div>
-
-          <div className="space-y-0.5">
-            <button
-              type="button"
-              onClick={() => {
-                onToggleEdge(edgeContextMenu.edge.id);
-                setEdgeContextMenu(null);
-              }}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                <span>{edgeContextMenu.edge.enabled ? 'Sever Link' : 'Restore Link'}</span>
-              </div>
-              <span className="text-[10px] font-mono text-slate-400">{edgeContextMenu.edge.enabled ? 'Off' : 'On'}</span>
-            </button>
-
-            {onDeleteEdge && (
-              <button
-                type="button"
-                onClick={() => {
-                  onDeleteEdge(edgeContextMenu.edge.id);
-                  setEdgeContextMenu(null);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                <span>Delete Connection</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
