@@ -29,39 +29,231 @@ export interface CloudCostEstimate {
   recommendation: string;
 }
 
-// Pricing constants based on public cloud on-demand rates (US-East / us-central)
-const PRICING = {
-  aws: {
-    providerName: 'Amazon Web Services (AWS)',
-    gatewayBase: 16.2, // ALB hourly ($0.0225 * 720h)
-    gatewayPer1kRps: 5.76, // LCU capacity unit
-    workerCompute: 24.48, // t4g.medium (2 vCPU, 4GB RAM)
-    database: 154.0, // Aurora Serverless db.r6g.large + 100GB NVMe storage
-    cache: 96.0, // ElastiCache Redis cache.r6g.large (13GB)
-    queue: 146.0, // Managed Streaming for Kafka (MSK kafka.m5.large)
-    egressPerGb: 0.09, // Internet Data Transfer Out
-  },
-  gcp: {
-    providerName: 'Google Cloud Platform (GCP)',
-    gatewayBase: 18.25, // Cloud Load Balancing forwarding rule
-    gatewayPer1kRps: 5.2,
-    workerCompute: 22.8, // Cloud Run / E2-medium
-    database: 146.0, // Cloud SQL for PostgreSQL Enterprise
-    cache: 88.0, // Memorystore for Redis Standard
-    queue: 45.0, // Cloud Pub/Sub throughput tier
-    egressPerGb: 0.085,
-  },
-  azure: {
-    providerName: 'Microsoft Azure',
-    gatewayBase: 19.0, // Application Gateway v2
-    gatewayPer1kRps: 5.5,
-    workerCompute: 25.2, // Azure Container Apps / B2s instance
-    database: 152.0, // Azure Database for PostgreSQL Flexible Server
-    cache: 92.0, // Azure Cache for Redis Standard C1
-    queue: 60.0, // Azure Event Hubs Standard
-    egressPerGb: 0.087,
-  },
+export interface ScalePricePoint {
+  trafficRps: number;
+  label: string;
+  percentOfMaxCapacity: number;
+  isCurrentTraffic?: boolean;
+  isMaxCapacity?: boolean;
+  awsCost: number;
+  gcpCost: number;
+  azureCost: number;
+}
+
+export interface MultiCloudComparison {
+  aws: CloudCostEstimate;
+  gcp: CloudCostEstimate;
+  azure: CloudCostEstimate;
+  cheapestProvider: CloudProvider;
+  savingsMonthlyVsAws: {
+    gcp: number;
+    azure: number;
+  };
+  maxSystemCapacityRps: number;
+  scalePricePoints: ScalePricePoint[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Real-world public cloud pricing tiers (US-East / us-central on-demand rates)
+// ─────────────────────────────────────────────────────────────────────────────
+const PROVIDER_NAMES: Record<CloudProvider, string> = {
+  aws: 'Amazon Web Services (AWS)',
+  gcp: 'Google Cloud Platform (GCP)',
+  azure: 'Microsoft Azure',
 };
+
+/**
+ * Calculates instance specifications and costs for microservice worker fleets
+ * based on the target capacity per second of each service.
+ */
+function getComputeTier(capacityPerSecond: number, provider: CloudProvider) {
+  if (capacityPerSecond <= 1500) {
+    // Light container / microservice: 2 vCPU, 4GB RAM
+    return {
+      spec: '2 vCPU, 4GB RAM',
+      aws: { name: 't4g.medium', costPerWorker: 24.48 },
+      gcp: { name: 'e2-medium', costPerWorker: 22.80 },
+      azure: { name: 'B2s', costPerWorker: 25.20 },
+    }[provider];
+  } else if (capacityPerSecond <= 4500) {
+    // Standard high-concurrency worker: 4 vCPU, 8GB RAM
+    return {
+      spec: '4 vCPU, 8GB RAM (Compute Optimized)',
+      aws: { name: 'c6g.xlarge', costPerWorker: 48.96 },
+      gcp: { name: 'c2-standard-4', costPerWorker: 45.60 },
+      azure: { name: 'F4s v2', costPerWorker: 50.40 },
+    }[provider];
+  } else {
+    // Enterprise heavy compute fleet: 8 vCPU, 16GB RAM
+    return {
+      spec: '8 vCPU, 16GB RAM (High Compute)',
+      aws: { name: 'c6g.2xlarge', costPerWorker: 97.92 },
+      gcp: { name: 'c2-standard-8', costPerWorker: 91.20 },
+      azure: { name: 'F8s v2', costPerWorker: 100.80 },
+    }[provider];
+  }
+}
+
+/**
+ * Calculates database tier and high-availability storage costs
+ * based on transactional throughput requirements.
+ */
+function getDatabaseTier(capacityPerSecond: number, provider: CloudProvider) {
+  if (capacityPerSecond <= 1500) {
+    // Small production DB: 2 vCPU, 8GB RAM + 100GB NVMe SSD
+    return {
+      spec: '2 vCPU, 8GB RAM + 100GB SSD',
+      aws: { name: 'RDS PostgreSQL db.r6g.large', costPerUnit: 134.0 },
+      gcp: { name: 'Cloud SQL PostgreSQL 2 vCPU', costPerUnit: 122.0 },
+      azure: { name: 'PostgreSQL Flexible 2 vCPU', costPerUnit: 128.0 },
+    }[provider];
+  } else if (capacityPerSecond <= 4500) {
+    // High-concurrency Multi-AZ replication: 4 vCPU, 16GB RAM + 250GB SSD
+    return {
+      spec: '4 vCPU, 16GB RAM (Multi-AZ Standby)',
+      aws: { name: 'RDS db.r6g.xlarge Multi-AZ', costPerUnit: 268.0 },
+      gcp: { name: 'Cloud SQL HA 4 vCPU', costPerUnit: 244.0 },
+      azure: { name: 'PostgreSQL Flexible HA 4 vCPU', costPerUnit: 256.0 },
+    }[provider];
+  } else {
+    // Enterprise I/O Optimized Aurora / AlloyDB: 8 vCPU, 32GB RAM + 500GB NVMe
+    return {
+      spec: '8 vCPU, 32GB RAM (I/O Optimized Aurora)',
+      aws: { name: 'Amazon Aurora Provisioned', costPerUnit: 480.0 },
+      gcp: { name: 'AlloyDB Enterprise HA', costPerUnit: 440.0 },
+      azure: { name: 'PostgreSQL Hyperscale', costPerUnit: 460.0 },
+    }[provider];
+  }
+}
+
+/**
+ * Calculates Redis in-memory cache cluster sizing and pricing
+ */
+function getCacheTier(capacityPerSecond: number, provider: CloudProvider) {
+  if (capacityPerSecond <= 4000) {
+    // Dev / Light Cache (3.2GB RAM)
+    return {
+      spec: '3.2GB RAM In-Memory',
+      aws: { name: 'ElastiCache cache.t4g.medium', costPerNode: 38.50 },
+      gcp: { name: 'Memorystore Redis 3GB', costPerNode: 36.00 },
+      azure: { name: 'Azure Cache for Redis C1', costPerNode: 37.50 },
+    }[provider];
+  } else if (capacityPerSecond <= 10000) {
+    // Production High-Throughput Cluster (13GB RAM)
+    return {
+      spec: '13GB RAM Multi-AZ Cluster',
+      aws: { name: 'ElastiCache cache.r6g.large', costPerNode: 96.00 },
+      gcp: { name: 'Memorystore Redis Standard 13GB', costPerNode: 88.00 },
+      azure: { name: 'Azure Redis Standard C2', costPerNode: 92.00 },
+    }[provider];
+  } else {
+    // Sharded Multi-Node Cluster (26GB RAM)
+    return {
+      spec: '26GB RAM Sharded Cluster',
+      aws: { name: 'ElastiCache cache.r6g.xlarge', costPerNode: 185.00 },
+      gcp: { name: 'Memorystore Redis Cluster 26GB', costPerNode: 172.00 },
+      azure: { name: 'Azure Redis Premium P1', costPerNode: 178.00 },
+    }[provider];
+  }
+}
+
+/**
+ * Calculates event queue & message broker infrastructure costs (Kafka / MSK / PubSub)
+ */
+function getQueueTier(capacityPerSecond: number, provider: CloudProvider) {
+  if (capacityPerSecond <= 5000) {
+    return {
+      spec: 'Managed Event Stream (Standard)',
+      aws: { name: 'Amazon SQS / MSK Express', costPerBroker: 45.0 },
+      gcp: { name: 'Cloud Pub/Sub Standard', costPerBroker: 32.0 },
+      azure: { name: 'Azure Event Hubs Basic', costPerBroker: 38.0 },
+    }[provider];
+  } else {
+    return {
+      spec: 'Dedicated Distributed Kafka Cluster (High-Throughput)',
+      aws: { name: 'Amazon MSK (kafka.m5.large)', costPerBroker: 146.0 },
+      gcp: { name: 'Cloud Pub/Sub Enterprise', costPerBroker: 85.0 },
+      azure: { name: 'Azure Event Hubs Standard', costPerBroker: 98.0 },
+    }[provider];
+  }
+}
+
+/**
+ * Calculates API Gateway & Ingress traffic routing costs
+ */
+function getGatewayCost(incomingRps: number, provider: CloudProvider) {
+  const lcuUnits = Math.max(1, Math.ceil(incomingRps / 1000));
+  if (provider === 'aws') {
+    // AWS ALB: $16.20 base + $5.76/LCU ($0.008 * 720h)
+    return {
+      name: `AWS Application Load Balancer (${lcuUnits} LCU)`,
+      monthlyCost: Math.round((16.2 + lcuUnits * 5.76) * 100) / 100,
+      units: lcuUnits,
+      unitLabel: `${lcuUnits} LCU`,
+    };
+  } else if (provider === 'gcp') {
+    // GCP Global External Application Load Balancer
+    return {
+      name: `GCP Cloud Load Balancing (${lcuUnits} Fwd Rules)`,
+      monthlyCost: Math.round((18.25 + lcuUnits * 5.2) * 100) / 100,
+      units: lcuUnits,
+      unitLabel: `${lcuUnits} Rules`,
+    };
+  } else {
+    // Azure Application Gateway v2
+    return {
+      name: `Azure Application Gateway v2 (${lcuUnits} ACU)`,
+      monthlyCost: Math.round((19.0 + lcuUnits * 5.5) * 100) / 100,
+      units: lcuUnits,
+      unitLabel: `${lcuUnits} ACU`,
+    };
+  }
+}
+
+/**
+ * Calculates continuous monthly internet egress data transfer costs
+ */
+function getEgressCost(incomingRps: number, provider: CloudProvider) {
+  const monthlySeconds = 720 * 3600;
+  const totalMonthlyRequests = incomingRps * monthlySeconds;
+  const bytesPerReq = 4 * 1024; // 4KB average payload per HTTP roundtrip
+  const egressGb = Math.round((totalMonthlyRequests * bytesPerReq) / (1024 * 1024 * 1024));
+
+  let ratePerGb = 0.09;
+  if (provider === 'aws') {
+    ratePerGb = egressGb > 50000 ? 0.08 : egressGb > 10000 ? 0.085 : 0.09;
+  } else if (provider === 'gcp') {
+    ratePerGb = egressGb > 50000 ? 0.075 : egressGb > 10000 ? 0.08 : 0.085;
+  } else {
+    ratePerGb = egressGb > 50000 ? 0.078 : egressGb > 10000 ? 0.082 : 0.087;
+  }
+
+  const monthlyCost = Math.round(egressGb * ratePerGb * 100) / 100;
+  return { egressGb, monthlyCost, ratePerGb };
+}
+
+/**
+ * Computes the maximum sustainable traffic throughput (RPS) of the system topology
+ * before any processing tier experiences bottleneck saturation ("till the system can make for it").
+ */
+export function calculateSystemMaxCapacity(nodes: ArchitectureNode[]): number {
+  const enabledNodes = nodes.filter((n) => n.enabled);
+  if (enabledNodes.length === 0) return 1000;
+
+  // Processing nodes that handle traffic flow
+  const processingNodes = enabledNodes.filter((n) => n.type !== 'load_generator');
+  if (processingNodes.length === 0) return 5000;
+
+  // Effective throughput capacity = workerCount * capacityPerSecond
+  const capacities = processingNodes.map((n) => {
+    const workers = Math.max(1, n.workerCount || 1);
+    const cap = n.capacityPerSecond || 1000;
+    return workers * cap;
+  });
+
+  const bottleneckCapacity = Math.min(...capacities);
+  return Math.max(500, bottleneckCapacity);
+}
 
 /**
  * Calculates estimated cloud infrastructure bill ($/mo) for the given architecture and traffic load.
@@ -72,7 +264,7 @@ export function estimateCloudCost(
   provider: CloudProvider = 'aws',
   avgP99LatencyMs: number = 15
 ): CloudCostEstimate {
-  const rates = PRICING[provider];
+  const providerName = PROVIDER_NAMES[provider];
   const enabledNodes = nodes.filter((n) => n.enabled);
 
   const computeItems: CostCategoryItem[] = [];
@@ -83,76 +275,83 @@ export function estimateCloudCost(
 
   for (const node of enabledNodes) {
     const workers = Math.max(1, node.workerCount || 1);
+    const cap = node.capacityPerSecond || 2000;
 
     switch (node.type) {
       case 'gateway': {
-        const lcuUnits = Math.max(1, Math.ceil(incomingRps / 1000));
-        const cost = rates.gatewayBase + lcuUnits * rates.gatewayPer1kRps;
+        const gw = getGatewayCost(incomingRps, provider);
         gatewayItems.push({
           id: node.id,
           name: node.name,
           type: 'gateway',
-          units: lcuUnits,
-          unitLabel: `${lcuUnits} LCU`,
-          monthlyCost: Math.round(cost * 100) / 100,
-          details: `${rates.providerName} ALB / Ingress Gateway`,
+          units: gw.units,
+          unitLabel: gw.unitLabel,
+          monthlyCost: gw.monthlyCost,
+          details: `${gw.name} (SSL, HTTP/2, routing)`,
         });
         break;
       }
 
       case 'cache': {
-        const cost = workers * rates.cache;
+        const cacheTier = getCacheTier(cap, provider);
+        const cost = Math.round(workers * cacheTier.costPerNode * 100) / 100;
         cacheItems.push({
           id: node.id,
           name: node.name,
           type: 'cache',
           units: workers,
           unitLabel: `${workers} Node${workers > 1 ? 's' : ''}`,
-          monthlyCost: Math.round(cost * 100) / 100,
-          details: `Managed In-Memory Redis Cluster (${workers * 13}GB RAM)`,
+          monthlyCost: cost,
+          details: `${cacheTier.name} — ${cacheTier.spec}`,
         });
         break;
       }
 
       case 'database': {
-        const cost = workers * rates.database;
+        const dbTier = getDatabaseTier(cap, provider);
+        const cost = Math.round(workers * dbTier.costPerUnit * 100) / 100;
         databaseItems.push({
           id: node.id,
           name: node.name,
           type: 'database',
           units: workers,
           unitLabel: `${workers} Instance${workers > 1 ? 's' : ''}`,
-          monthlyCost: Math.round(cost * 100) / 100,
-          details: `High-Availability Managed Database + SSD Storage`,
+          monthlyCost: cost,
+          details: `${dbTier.name} — ${dbTier.spec}`,
         });
         break;
       }
 
       case 'service': {
-        const isQueue = node.name.toLowerCase().includes('kafka') ||
-                        node.name.toLowerCase().includes('queue') ||
-                        node.name.toLowerCase().includes('stream');
+        const isQueue =
+          node.name.toLowerCase().includes('kafka') ||
+          node.name.toLowerCase().includes('queue') ||
+          node.name.toLowerCase().includes('stream') ||
+          node.name.toLowerCase().includes('pubsub');
+
         if (isQueue) {
-          const cost = workers * rates.queue;
+          const qTier = getQueueTier(cap, provider);
+          const cost = Math.round(workers * qTier.costPerBroker * 100) / 100;
           queueItems.push({
             id: node.id,
             name: node.name,
             type: 'service',
             units: workers,
             unitLabel: `${workers} Broker${workers > 1 ? 's' : ''}`,
-            monthlyCost: Math.round(cost * 100) / 100,
-            details: `Managed Kafka / Queue Broker Tier`,
+            monthlyCost: cost,
+            details: `${qTier.name} — ${qTier.spec}`,
           });
         } else {
-          const cost = workers * rates.workerCompute;
+          const compTier = getComputeTier(cap, provider);
+          const cost = Math.round(workers * compTier.costPerWorker * 100) / 100;
           computeItems.push({
             id: node.id,
             name: node.name,
             type: 'service',
             units: workers,
-            unitLabel: `${workers} Worker${workers > 1 ? 's' : ''}`,
-            monthlyCost: Math.round(cost * 100) / 100,
-            details: `Compute Containers (2 vCPU, 4GB RAM)`,
+            unitLabel: `${workers} Instance${workers > 1 ? 's' : ''}`,
+            monthlyCost: cost,
+            details: `${compTier.name} (${compTier.spec})`,
           });
         }
         break;
@@ -163,23 +362,18 @@ export function estimateCloudCost(
     }
   }
 
-  // Network Egress: Average 4KB per request * RPS * 720 hours / mo
-  const monthlySeconds = 720 * 3600;
-  const totalMonthlyRequests = incomingRps * monthlySeconds;
-  const bytesPerReq = 4 * 1024;
-  const egressGb = Math.round((totalMonthlyRequests * bytesPerReq) / (1024 * 1024 * 1024));
-  const egressCost = Math.round(egressGb * rates.egressPerGb * 100) / 100;
-
+  // Calculate internet data egress
+  const egress = getEgressCost(incomingRps, provider);
   const networkingItems: CostCategoryItem[] = [
     ...gatewayItems,
     {
       id: 'egress',
-      name: 'Internet Data Transfer (Egress)',
+      name: 'Internet Data Egress Transfer',
       type: 'gateway',
-      units: egressGb,
-      unitLabel: `${egressGb.toLocaleString()} GB`,
-      monthlyCost: egressCost,
-      details: `${incomingRps.toLocaleString()} req/s continuous traffic egress`,
+      units: egress.egressGb,
+      unitLabel: `${egress.egressGb.toLocaleString()} GB`,
+      monthlyCost: egress.monthlyCost,
+      details: `${incomingRps.toLocaleString()} req/s at $${egress.ratePerGb}/GB out`,
     },
   ];
 
@@ -216,27 +410,124 @@ export function estimateCloudCost(
   ) / 100;
 
   const totalHourlyCost = Math.round((totalMonthlyCost / 720) * 100) / 100;
-  const costPer1k = totalMonthlyRequests > 0
-    ? Math.round((totalMonthlyCost / (totalMonthlyRequests / 1000)) * 10000) / 10000
-    : 0;
+  const totalMonthlyRequests = incomingRps * 720 * 3600;
+  const costPer1k =
+    totalMonthlyRequests > 0
+      ? Math.round((totalMonthlyCost / (totalMonthlyRequests / 1000)) * 10000) / 10000
+      : 0;
 
   let recommendation = '';
   if (cacheItems.length === 0 && databaseItems.length > 0) {
-    recommendation = `💡 Adding an in-memory Redis cache tier (~$${rates.cache}/mo) would absorb ~80% of read traffic, protecting databases from thundering herds.`;
+    recommendation = `💡 Introducing an in-memory Redis cache tier saves up to 70% of database read I/O costs and protects primary DB replicas from connection exhaustion.`;
   } else if (avgP99LatencyMs > 50 && totalMonthlyCost > 300) {
-    recommendation = `⚠️ High P99 latency (${avgP99LatencyMs}ms) despite $${totalMonthlyCost}/mo spend. Consider adding connection pooling (pgBouncer) or horizontal replicas before scaling up instance sizes.`;
+    recommendation = `⚠️ High P99 latency (${avgP99LatencyMs}ms) despite $${totalMonthlyCost}/mo spend. Consider adding connection pooling (pgBouncer) or horizontal read replicas before upgrading DB instance sizes.`;
   } else {
-    recommendation = `✨ Cost-optimized topology: Delivering ${avgP99LatencyMs}ms P99 latency at ~$${costPer1k}/1k requests on ${rates.providerName}.`;
+    recommendation = `✨ Cost-optimized topology: Delivering ${avgP99LatencyMs}ms P99 latency at ~$${costPer1k}/1k requests on ${providerName}.`;
   }
 
   return {
     provider,
-    providerName: rates.providerName,
+    providerName,
     totalMonthlyCost,
     totalHourlyCost,
     costPer1kRequests: costPer1k,
-    dataEgressGbPerMonth: egressGb,
+    dataEgressGbPerMonth: egress.egressGb,
     categories,
     recommendation,
+  };
+}
+
+/**
+ * Calculates varying price points as traffic scales from light load
+ * up to the maximum capacity the system can support ("till the system can make for it").
+ */
+export function calculateVaryingScalePrices(
+  nodes: ArchitectureNode[],
+  currentRps: number = 1000,
+  avgP99LatencyMs: number = 15
+): ScalePricePoint[] {
+  const maxCapacity = calculateSystemMaxCapacity(nodes);
+
+  const rpsSet = new Set<number>();
+  const baseDev = Math.max(250, Math.round(maxCapacity * 0.1));
+  rpsSet.add(baseDev);
+
+  rpsSet.add(Math.max(100, currentRps));
+
+  const quarterTraffic = Math.max(baseDev, Math.round(maxCapacity * 0.35));
+  rpsSet.add(quarterTraffic);
+
+  const halfTraffic = Math.max(quarterTraffic, Math.round(maxCapacity * 0.65));
+  rpsSet.add(halfTraffic);
+
+  rpsSet.add(maxCapacity);
+
+  const burstTraffic = Math.round(maxCapacity * 1.25);
+  rpsSet.add(burstTraffic);
+
+  const sortedRps = Array.from(rpsSet).sort((a, b) => a - b);
+
+  return sortedRps.map((rps) => {
+    const awsEst = estimateCloudCost(nodes, rps, 'aws', avgP99LatencyMs);
+    const gcpEst = estimateCloudCost(nodes, rps, 'gcp', avgP99LatencyMs);
+    const azureEst = estimateCloudCost(nodes, rps, 'azure', avgP99LatencyMs);
+
+    const isCurrent = rps === currentRps;
+    const isMax = rps === maxCapacity;
+    const percent = Math.min(150, Math.round((rps / maxCapacity) * 100));
+
+    let label = `${rps.toLocaleString()} req/s`;
+    if (isMax) label = `${rps.toLocaleString()} req/s (100% Cluster Breaking Limit)`;
+    else if (isCurrent) label = `${rps.toLocaleString()} req/s (Current Traffic)`;
+    else if (rps > maxCapacity) label = `${rps.toLocaleString()} req/s (125% Peak Burst)`;
+
+    return {
+      trafficRps: rps,
+      label,
+      percentOfMaxCapacity: percent,
+      isCurrentTraffic: isCurrent,
+      isMaxCapacity: isMax,
+      awsCost: awsEst.totalMonthlyCost,
+      gcpCost: gcpEst.totalMonthlyCost,
+      azureCost: azureEst.totalMonthlyCost,
+    };
+  });
+}
+
+/**
+ * Returns a comprehensive 3-cloud pricing variance breakdown (AWS vs GCP vs Azure)
+ * and the scale progression table up to maximum sustainable capacity.
+ */
+export function getMultiCloudComparison(
+  nodes: ArchitectureNode[],
+  incomingRps: number = 1000,
+  avgP99LatencyMs: number = 15
+): MultiCloudComparison {
+  const aws = estimateCloudCost(nodes, incomingRps, 'aws', avgP99LatencyMs);
+  const gcp = estimateCloudCost(nodes, incomingRps, 'gcp', avgP99LatencyMs);
+  const azure = estimateCloudCost(nodes, incomingRps, 'azure', avgP99LatencyMs);
+
+  const maxSystemCapacityRps = calculateSystemMaxCapacity(nodes);
+  const scalePricePoints = calculateVaryingScalePrices(nodes, incomingRps, avgP99LatencyMs);
+
+  const costs = [
+    { provider: 'aws' as CloudProvider, cost: aws.totalMonthlyCost },
+    { provider: 'gcp' as CloudProvider, cost: gcp.totalMonthlyCost },
+    { provider: 'azure' as CloudProvider, cost: azure.totalMonthlyCost },
+  ];
+  costs.sort((a, b) => a.cost - b.cost);
+  const cheapestProvider = costs[0].provider;
+
+  return {
+    aws,
+    gcp,
+    azure,
+    cheapestProvider,
+    savingsMonthlyVsAws: {
+      gcp: Math.round((aws.totalMonthlyCost - gcp.totalMonthlyCost) * 100) / 100,
+      azure: Math.round((aws.totalMonthlyCost - azure.totalMonthlyCost) * 100) / 100,
+    },
+    maxSystemCapacityRps,
+    scalePricePoints,
   };
 }
