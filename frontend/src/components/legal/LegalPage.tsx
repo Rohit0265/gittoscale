@@ -374,14 +374,7 @@ const CookiePolicyContent: React.FC<{ isDark: boolean }> = ({ isDark: _isDark })
       <section className="mt-12 pt-6 border-t border-slate-200 dark:border-neutral-800">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">5. Privacy Desk Contact</h2>
         <p className="text-sm text-slate-600 dark:text-neutral-300">
-          For technical questions regarding our cookie practices, reach our engineering desk at{' '}
-          <a
-            href="mailto:privacy@gittoscale.tech"
-            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
-          >
-            privacy@gittoscale.tech
-          </a>
-          .
+          For technical questions regarding our cookie practices, reach our engineering desk through platform support.
         </p>
       </section>
     </article>
@@ -497,14 +490,7 @@ const PrivacyPolicyContent: React.FC<{ isDark: boolean }> = ({ isDark: _isDark }
           5. Developer Rights (GDPR &amp; CCPA Compliance)
         </h2>
         <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300">
-          You retain full rights to inspect, download (via JSON or Mermaid export), or permanently purge your account and all associated project architecture graphs. To request complete, irreversible account data deletion, email our data desk at{' '}
-          <a
-            href="mailto:privacy@gittoscale.tech"
-            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
-          >
-            privacy@gittoscale.tech
-          </a>
-          .
+          You retain full rights to inspect, download (via JSON or Mermaid export), or permanently purge your account and all associated project architecture graphs. To request complete, irreversible account data deletion, submit a request via account settings or through platform support.
         </p>
       </section>
 
@@ -512,14 +498,7 @@ const PrivacyPolicyContent: React.FC<{ isDark: boolean }> = ({ isDark: _isDark }
       <section className="mt-12 pt-6 border-t border-slate-200 dark:border-neutral-800">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">6. Security &amp; Privacy Contact</h2>
         <p className="text-sm text-slate-600 dark:text-neutral-300">
-          Direct inquiries to our Data Protection Officer:{' '}
-          <a
-            href="mailto:privacy@gittoscale.tech"
-            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
-          >
-            privacy@gittoscale.tech
-          </a>
-          .
+          Direct inquiries to our Data Protection Officer through official platform support channels.
         </p>
       </section>
     </article>
@@ -621,14 +600,7 @@ const TermsOfServiceContent: React.FC<{ isDark: boolean }> = ({ isDark: _isDark 
       <section className="mt-12 pt-6 border-t border-slate-200 dark:border-neutral-800">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">7. Legal Inquiries &amp; Notices</h2>
         <p className="text-sm text-slate-600 dark:text-neutral-300">
-          For formal inquiries, DMCA notifications, or legal matters, contact:{' '}
-          <a
-            href="mailto:legal@gittoscale.tech"
-            className="text-slate-900 dark:text-white underline underline-offset-4 font-medium"
-          >
-            legal@gittoscale.tech
-          </a>
-          .
+          For formal inquiries, DMCA notifications, or legal matters, contact official platform support channels.
         </p>
       </section>
     </article>
