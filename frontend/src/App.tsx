@@ -1097,7 +1097,8 @@ export const App: React.FC = () => {
               'Scalable distributed cloud architecture with API Gateway, microservices, and database';
           }
         } else {
-          targetGenerationPrompt = activePromptText ? `${activePromptText} • ${command}` : command;
+          // If the user is requesting a new architecture, use the command directly
+          targetGenerationPrompt = command;
         }
 
         setActivePromptText(targetGenerationPrompt);
@@ -1176,7 +1177,50 @@ export const App: React.FC = () => {
         let finalEdges = edges;
         let finalRate = incomingTrafficRate;
 
-        if (generationPromise) {
+        // Check A: Did the AI in chat include a Mermaid architecture diagram in its response?
+        const replyForDiagram = aiResponse?.reply || '';
+        const mermaidMatch = replyForDiagram.match(/```(?:mermaid)?\s*\n?([\s\S]*?)```/i);
+        let parsedFromMermaid: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } | null = null;
+        if (mermaidMatch && mermaidMatch[1]) {
+          try {
+            const parsed = parseMermaidToArchitecture(mermaidMatch[1]);
+            if (parsed.nodes && parsed.nodes.length > 0) {
+              parsedFromMermaid = parsed;
+            }
+          } catch (mErr) {
+            console.warn('[handleExecuteChatCommand] Mermaid parsing failed:', mErr);
+          }
+        }
+
+        let canvasUpdated = false;
+
+        if (parsedFromMermaid && parsedFromMermaid.nodes.length > 0) {
+          const verticalBasicNodes = toVerticalTree(parsedFromMermaid.nodes, parsedFromMermaid.edges);
+          baseBasicGraphRef.current = { nodes: verticalBasicNodes, edges: parsedFromMermaid.edges };
+          basicGraphCacheRef.current = { nodes: verticalBasicNodes, edges: parsedFromMermaid.edges };
+
+          const detailed = buildDetailedArchitecture(
+            parsedFromMermaid.nodes,
+            parsedFromMermaid.edges,
+            targetGenerationPrompt || activePromptText || command
+          );
+          const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+          baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+          detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+
+          if (viewMode === 'detailed') {
+            finalNodes = verticalDetailedNodes;
+            finalEdges = detailed.edges;
+          } else {
+            finalNodes = verticalBasicNodes;
+            finalEdges = parsedFromMermaid.edges;
+          }
+
+          setNodes(finalNodes);
+          setEdges(finalEdges);
+          queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
+          canvasUpdated = true;
+        } else if (generationPromise) {
           const gen = await generationPromise;
           if (gen?.nodes?.length > 0) {
             const verticalBasicNodes = toVerticalTree(gen.nodes, gen.edges);
@@ -1199,6 +1243,7 @@ export const App: React.FC = () => {
             setNodes(finalNodes);
             setEdges(finalEdges);
             queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
+            canvasUpdated = true;
           }
         } else if (refinementPromise) {
           const refined = await refinementPromise;
@@ -1223,6 +1268,7 @@ export const App: React.FC = () => {
             setNodes(finalNodes);
             setEdges(finalEdges);
             queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
+            canvasUpdated = true;
           }
         } else if (execResult.executed) {
           if (execResult.targetViewMode && execResult.targetViewMode !== viewMode) {
@@ -1250,6 +1296,39 @@ export const App: React.FC = () => {
           }
 
           queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
+          canvasUpdated = true;
+        }
+
+        // Guaranteed fallback: If canvas has not yet been updated, but the command was an architecture generation request
+        if (!canvasUpdated && (isSystemGeneration || isArchitectureGenerationRequest(command, nodes.length))) {
+          try {
+            const fallbackGen = await api.recommendArchitecture({
+              projectDescription: targetGenerationPrompt || command,
+            });
+            if (fallbackGen?.nodes?.length > 0) {
+              const verticalBasicNodes = toVerticalTree(fallbackGen.nodes, fallbackGen.edges);
+              baseBasicGraphRef.current = { nodes: verticalBasicNodes, edges: fallbackGen.edges };
+              basicGraphCacheRef.current = { nodes: verticalBasicNodes, edges: fallbackGen.edges };
+
+              const detailed = buildDetailedArchitecture(
+                fallbackGen.nodes,
+                fallbackGen.edges,
+                targetGenerationPrompt || command
+              );
+              const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges);
+              baseDetailedGraphRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+              detailedGraphCacheRef.current = { nodes: verticalDetailedNodes, edges: detailed.edges };
+
+              finalNodes = viewMode === 'detailed' ? verticalDetailedNodes : verticalBasicNodes;
+              finalEdges = viewMode === 'detailed' ? detailed.edges : fallbackGen.edges;
+
+              setNodes(finalNodes);
+              setEdges(finalEdges);
+              queueSimulation(finalNodes, finalEdges, finalRate, durationSeconds);
+            }
+          } catch (fallbackErr) {
+            console.warn('[handleExecuteChatCommand] Final fallback architecture recommendation error:', fallbackErr);
+          }
         }
 
         const effectiveReply =
