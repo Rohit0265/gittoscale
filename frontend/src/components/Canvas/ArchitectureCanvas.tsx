@@ -564,7 +564,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
       className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors overflow-hidden"
       style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%' }}
     >
-      {/* Top Left Floating Bar: Scenarios & Chaos Monkey */}
+      {/* Top Left Floating Bar: Scenarios & Capacity Sweeper */}
       <div
         className="absolute top-3.5 z-20 flex items-center gap-2 select-none"
         style={{
@@ -580,14 +580,18 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
             isDark={isDark}
           />
         )}
-        {onUpdateNode && (
-          <ChaosControlHUD
-            nodes={nodes}
-            onUpdateNode={onUpdateNode}
-            onRestoreAllNodes={onRestoreAllNodes}
-            isDark={isDark}
-          />
-        )}
+        <button
+          type="button"
+          onClick={() => setIsCapacitySweeperOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-500/30 dark:border-indigo-500/30 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 backdrop-blur-md shadow-xs text-xs font-semibold transition-all cursor-pointer group"
+          title="Analyze cluster breaking point, saturation curve, and capacity limits"
+        >
+          <TrendingUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+          <span>Capacity Sweeper</span>
+          <span className="px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-mono text-[10px] font-bold">
+            SLA
+          </span>
+        </button>
       </div>
 
       {/* Top Right Floating Bar: Cloud Cost Estimator */}
