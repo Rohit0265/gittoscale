@@ -25,6 +25,7 @@ import {
 import {
   restoreArchitectureFromDb,
   formatArchitectureForDb,
+  parseMermaidToArchitecture,
 } from './utils/exportDiagram';
 import { AlertCircle, RefreshCw, PanelLeftOpen, PanelRightOpen, Layers, Plus } from 'lucide-react';
 
