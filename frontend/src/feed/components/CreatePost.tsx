@@ -4,7 +4,6 @@ import { validateMediaFile, validateVideoFile, fileToBase64 } from '../utils/med
 import { feedApi } from '../services/feedApi';
 import { MediaItem } from '../types';
 import { RichPostInput } from './RichPostInput';
-import { extractAccountAvatar, getAvatarColor, getInitial } from '../utils/avatarUtils';
 
 export interface InitialPostMedia {
   file: File;
@@ -242,9 +241,6 @@ export const CreatePost: React.FC<CreatePostProps> = ({
       setIsSubmitting(false);
     }
   };
-
-  const avatarUrl = extractAccountAvatar(user);
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   return (
     <div

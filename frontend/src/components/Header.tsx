@@ -84,9 +84,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenFeed: _onOpenFeed,
   user,
   token,
-  onNavigateToProfile,
-  onViewLikes,
-  onViewSaved,
+  onNavigateToProfile: _onNavigateToProfile,
+  onViewLikes: _onViewLikes,
+  onViewSaved: _onViewSaved,
   onOpenAuth,
   onOpenSignUp,
   onSignOut,
@@ -487,14 +487,11 @@ export const Header: React.FC<HeaderProps> = ({
                 className="absolute right-0 top-full mt-2 z-50"
               >
                 <UserDropdownMenu
+                  variant="app"
                   user={user}
                   token={token}
                   isDark={isDark}
                   onToggleTheme={onToggleTheme}
-                  onNavigateToProfile={onNavigateToProfile}
-                  onViewLikes={onViewLikes}
-                  onViewSaved={onViewSaved}
-                  onOpenImportRepo={onOpenImportRepo}
                   onOpenHistory={onOpenHistory}
                   onSignOut={onSignOut}
                   onClose={() => setIsMenuOpen(false)}

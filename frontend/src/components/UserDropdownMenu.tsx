@@ -5,6 +5,7 @@ import { feedApi } from '../feed/services/feedApi';
 import { extractAccountAvatar, getAvatarColor, getInitial } from '../feed/utils/avatarUtils';
 
 export interface UserDropdownMenuProps {
+  variant?: 'app' | 'feed';
   user?: any;
   token?: string | null;
   isDark?: boolean;
@@ -21,6 +22,7 @@ export interface UserDropdownMenuProps {
 }
 
 export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
+  variant = 'feed',
   user,
   token,
   isDark = true,
@@ -36,10 +38,10 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
   onOpenSignUp,
 }) => {
   const [profile, setProfile] = useState<UserProfileFeed | null>(null);
-  const [loading, setLoading] = useState<boolean>(Boolean(user?.id));
+  const [loading, setLoading] = useState<boolean>(Boolean(user?.id && variant !== 'app'));
 
   useEffect(() => {
-    if (!user?.id) {
+    if (!user?.id || variant === 'app') {
       setProfile(null);
       setLoading(false);
       return;
@@ -69,6 +71,49 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
 
   // Unauthenticated guest menu
   if (!user) {
+    if (variant === 'app') {
+      return (
+        <div className="w-52 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white dark:bg-[#121214] shadow-2xl p-2 flex flex-col gap-1 backdrop-blur-xl">
+          {/* Theme */}
+          <div className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200">
+            <div className="flex items-center gap-2.5">
+              {isDark ? (
+                <Moon className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
+              ) : (
+                <Sun className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
+              )}
+              <span>Theme</span>
+            </div>
+            {onToggleTheme && (
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-xs font-medium text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+              >
+                {isDark ? 'Dark Mode' : 'Light Mode'}
+              </button>
+            )}
+          </div>
+
+          <div className="my-0.5 border-t border-slate-100 dark:border-neutral-800/70" />
+
+          {onOpenAuth && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose?.();
+                onOpenAuth();
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer"
+            >
+              <LogIn className="w-4 h-4 text-indigo-500" />
+              <span>Sign In</span>
+            </button>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="w-72 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white dark:bg-[#121214] shadow-2xl p-4 flex flex-col gap-3">
         <div className="px-1">
@@ -107,6 +152,68 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
             </button>
           )}
         </div>
+      </div>
+    );
+  }
+
+  // Minimal menu for /app workspace: strictly History, Theme, and Sign Out
+  if (variant === 'app') {
+    return (
+      <div className="w-52 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white dark:bg-[#121214] shadow-2xl p-2 flex flex-col gap-0.5 backdrop-blur-xl">
+        {/* 1. History */}
+        {onOpenHistory && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.();
+              onOpenHistory();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group text-left"
+          >
+            <History className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+            <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+              History
+            </span>
+          </button>
+        )}
+
+        {/* 2. Theme */}
+        <div className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200">
+          <div className="flex items-center gap-2.5">
+            {isDark ? (
+              <Moon className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
+            ) : (
+              <Sun className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
+            )}
+            <span>Theme</span>
+          </div>
+          {onToggleTheme && (
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-xs font-medium text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+            >
+              {isDark ? 'Dark Mode' : 'Light Mode'}
+            </button>
+          )}
+        </div>
+
+        <div className="my-0.5 border-t border-slate-100 dark:border-neutral-800/70" />
+
+        {/* 3. Sign Out */}
+        {onSignOut && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.();
+              onSignOut();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer group text-left"
+          >
+            <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-500" />
+            <span>Sign Out</span>
+          </button>
+        )}
       </div>
     );
   }
