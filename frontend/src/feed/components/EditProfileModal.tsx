@@ -346,8 +346,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   className="w-20 h-20 rounded-full object-cover border-4 border-slate-100 dark:border-neutral-800 shadow-md"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-indigo-600 text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-slate-100 dark:border-neutral-800 shadow-md">
-                  {(fullName[0] || 'U')}
+                <div
+                  className="w-20 h-20 rounded-full text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-slate-100 dark:border-neutral-800 shadow-md"
+                  style={{ background: getAvatarColor(profile.id || fullName) }}
+                >
+                  {getInitial(fullName)}
                 </div>
               )}
 
