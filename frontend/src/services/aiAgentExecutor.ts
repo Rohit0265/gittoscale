@@ -47,19 +47,26 @@ export function isArchitectureGenerationRequest(command: string, currentNodesCou
 
   // 1. Direct canvas/architect visibility requests
   if (
-    /(?:show|display|render|draw|put|place|bring|visualize|update|view|see)\s+(?:me\s+)?(?:the\s+)?(?:architect(?:ure)?|system|canvas|graph|nodes?|blueprint|diagram)/i.test(cleaned) ||
+    /(?:publish|sync|apply|push|show|display|render|draw|put|place|bring|visualize|update|view|see)\s+(?:me\s+)?(?:the\s+)?(?:architect(?:ure)?|system|canvas|graph|nodes?|blueprint|diagram)/i.test(cleaned) ||
     cleaned.includes('in the canvas') ||
     cleaned.includes('on the canvas') ||
     cleaned.includes('on canvas') ||
     cleaned.includes('in canvas') ||
+    cleaned.includes('to canvas') ||
     cleaned.includes('show architect') ||
     cleaned.includes('show architecture') ||
+    cleaned.includes('publish to canvas') ||
+    cleaned.includes('sync to canvas') ||
+    cleaned.includes('apply to canvas') ||
+    cleaned.includes('create the architect') ||
+    cleaned.includes('create architect') ||
     cleaned.includes('canvas didnt update') ||
     cleaned.includes("canvas didn't update") ||
     cleaned.includes('didnt show') ||
     cleaned.includes("didn't show") ||
     lower.includes('in the canvas') ||
-    lower.includes('show the architect')
+    lower.includes('show the architect') ||
+    lower.includes('create the architect')
   ) {
     return true;
   }

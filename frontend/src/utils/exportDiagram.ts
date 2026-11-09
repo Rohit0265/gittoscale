@@ -366,6 +366,157 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 /**
+ * Parses a single Mermaid node snippet (e.g. `gateway["API Gateway<br/>5000 req/s, 2w"]:::gateway`
+ * or `db[("PostgreSQL DB")]` or `redis[["Redis Cache"]]` or `client`) into an ArchitectureNode.
+ */
+function parseNodeSnippet(
+  snippet: string,
+  defaultCapacityMap: Record<ComponentType, number>,
+  defaultWorkerMap: Record<ComponentType, number>
+): ArchitectureNode | null {
+  const cleanSnippet = snippet.trim();
+  if (!cleanSnippet || cleanSnippet === 'empty') return null;
+
+  // 1. Database: id[(label)]
+  let nodeMatch = cleanSnippet.match(/^([a-zA-Z0-9_-]+)\[\((.*?)\)\](?:::([a-zA-Z0-9_-]+))?/);
+  let type: ComponentType = 'database';
+  if (!nodeMatch) {
+    // 2. Cache: id[[label]]
+    nodeMatch = cleanSnippet.match(/^([a-zA-Z0-9_-]+)\[\[(.*?)\]\](?:::([a-zA-Z0-9_-]+))?/);
+    type = 'cache';
+  }
+  if (!nodeMatch) {
+    // 3. Gateway: id([label])
+    nodeMatch = cleanSnippet.match(/^([a-zA-Z0-9_-]+)\(\[(.*?)\]\)(?:::([a-zA-Z0-9_-]+))?/);
+    type = 'gateway';
+  }
+  if (!nodeMatch) {
+    // 4. Client / load generator: id[/label/\]
+    nodeMatch = cleanSnippet.match(/^([a-zA-Z0-9_-]+)\[\/(.*?)\/\\\](?:::([a-zA-Z0-9_-]+))?/);
+    type = 'load_generator';
+  }
+  if (!nodeMatch) {
+    // 5. Rounded service box: id(label)
+    nodeMatch = cleanSnippet.match(/^([a-zA-Z0-9_-]+)\((.*?)\)(?:::([a-zA-Z0-9_-]+))?/);
+    type = 'service';
+  }
+  if (!nodeMatch) {
+    // 6. Standard Service box: id[label]
+    nodeMatch = cleanSnippet.match(/^([a-zA-Z0-9_-]+)\[(.*?)\](?:::([a-zA-Z0-9_-]+))?/);
+    type = 'service';
+  }
+
+  if (!nodeMatch) {
+    // 7. Bare id without brackets (e.g. "gateway", "auth_service", "postgres")
+    const bareMatch = cleanSnippet.match(/^([a-zA-Z0-9_-]+)$/);
+    if (bareMatch) {
+      const id = bareMatch[1];
+      const lowerId = id.toLowerCase();
+      if (lowerId.includes('db') || lowerId.includes('database') || lowerId.includes('postgres') || lowerId.includes('sql') || lowerId.includes('mongo')) {
+        type = 'database';
+      } else if (lowerId.includes('cache') || lowerId.includes('redis') || lowerId.includes('memcached')) {
+        type = 'cache';
+      } else if (lowerId.includes('gateway') || lowerId.includes('lb') || lowerId.includes('proxy') || lowerId.includes('ingress') || lowerId.includes('envoy') || lowerId.includes('kong')) {
+        type = 'gateway';
+      } else if (lowerId.includes('client') || lowerId.includes('user') || lowerId.includes('traffic') || lowerId.includes('load')) {
+        type = 'load_generator';
+      } else {
+        type = 'service';
+      }
+
+      const name = id.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const capacity = defaultCapacityMap[type] || 2000;
+      const workers = defaultWorkerMap[type] || 1;
+
+      return {
+        id,
+        name,
+        type,
+        position: { x: 0, y: 0 },
+        capacityPerSecond: capacity,
+        workerCount: workers,
+        enabled: true,
+        config: {
+          baselineLatencyMs: type === 'database' ? 15 : type === 'cache' ? 2 : 10,
+          maxQueueSize: capacity * 2,
+          overflowPolicy: 'drop',
+          isSource: type === 'load_generator',
+        },
+      };
+    }
+    return null;
+  }
+
+  const id = nodeMatch[1];
+  if (id === 'empty') return null;
+
+  let rawLabel = nodeMatch[2] || id;
+  if (
+    (rawLabel.startsWith('"') && rawLabel.endsWith('"')) ||
+    (rawLabel.startsWith("'") && rawLabel.endsWith("'"))
+  ) {
+    rawLabel = rawLabel.slice(1, -1);
+  }
+
+  const classType = nodeMatch[3];
+  if (
+    classType &&
+    ['load_generator', 'gateway', 'service', 'cache', 'database', 'client'].includes(classType)
+  ) {
+    type = classType === 'client' ? 'load_generator' : (classType as ComponentType);
+  }
+
+  const parts = rawLabel.split(/<br\s*\/?>/i);
+  const name = parts[0].trim() || id;
+
+  // Infer type from name if it was classified as generic service
+  if (type === 'service') {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('cache') || lowerName.includes('redis') || lowerName.includes('memcached')) {
+      type = 'cache';
+    } else if (lowerName.includes('database') || lowerName.includes('postgres') || lowerName.includes('sql') || lowerName.includes('mongodb') || lowerName.includes('dynamo')) {
+      type = 'database';
+    } else if (lowerName.includes('gateway') || lowerName.includes('load balancer') || lowerName.includes('ingress') || lowerName.includes('proxy') || lowerName.includes('envoy') || lowerName.includes('kong')) {
+      type = 'gateway';
+    } else if (lowerName.includes('client') || lowerName.includes('global users') || lowerName.includes('traffic') || lowerName.includes('incoming load') || lowerName.includes('load generator')) {
+      type = 'load_generator';
+    }
+  }
+
+  let capacity = defaultCapacityMap[type] || 2000;
+  let workers = defaultWorkerMap[type] || 1;
+
+  if (parts[1]) {
+    const capMatch = parts[1].match(/([\d,]+)\s*req\/s/i);
+    if (capMatch) {
+      const parsedCap = parseInt(capMatch[1].replace(/,/g, ''), 10);
+      if (!isNaN(parsedCap) && parsedCap > 0) capacity = parsedCap;
+    }
+    const wMatch = parts[1].match(/(\d+)\s*w(?:orker)?/i);
+    if (wMatch) {
+      const parsedW = parseInt(wMatch[1], 10);
+      if (!isNaN(parsedW) && parsedW > 0) workers = parsedW;
+    }
+  }
+
+  return {
+    id,
+    name,
+    type,
+    position: { x: 0, y: 0 },
+    capacityPerSecond: capacity,
+    workerCount: workers,
+    enabled: true,
+    config: {
+      baselineLatencyMs: type === 'database' ? 15 : type === 'cache' ? 2 : 10,
+      maxQueueSize: capacity * 2,
+      overflowPolicy: 'drop',
+      isSource: type === 'load_generator',
+    },
+  };
+}
+
+/**
  * Parses Mermaid flowchart TD markdown syntax into architecture nodes and edges JSON.
  * Reconstructs nodes, connections, and metadata without calling external LLM.
  */
@@ -410,116 +561,71 @@ export function parseMermaidToArchitecture(
       line.startsWith('flowchart') ||
       line.startsWith('graph') ||
       line.startsWith('classDef') ||
-      line.startsWith('class ')
+      line.startsWith('class ') ||
+      line.startsWith('subgraph') ||
+      line.startsWith('end')
     ) {
       continue;
     }
 
     // Edge check: e.g. source -->|label| target or source --> target
-    const edgeMatch = line.match(
-      /^([a-zA-Z0-9_-]+)\s*(?:-->|-\.->|==>)\s*(?:\|(?:"?)(.*?)(?:"?)\|\s*)?([a-zA-Z0-9_-]+)/
+    // Supports inline node definitions on edges (e.g. A["Client"] --> B["API Gateway"])
+    const arrowMatch = line.match(
+      /^(.*?)\s*(?:-->|-\.->|==>)\s*(?:\|(?:"?)(.*?)(?:"?)\|\s*)?(.*)$/
     );
-    if (edgeMatch) {
-      const sourceId = edgeMatch[1];
-      const rawEdgeLabel = edgeMatch[2] || '';
-      const targetId = edgeMatch[3];
+    if (arrowMatch) {
+      const leftSnippet = arrowMatch[1].trim();
+      const rawEdgeLabel = arrowMatch[2] || '';
+      const rightSnippet = arrowMatch[3].trim();
 
-      let multiplier = 1;
-      const multMatch = rawEdgeLabel.match(/\((\d+(?:\.\d+)?)x\)/i);
-      if (multMatch) {
-        multiplier = parseFloat(multMatch[1]);
+      const leftNode = parseNodeSnippet(leftSnippet, defaultCapacityMap, defaultWorkerMap);
+      const rightNode = parseNodeSnippet(rightSnippet, defaultCapacityMap, defaultWorkerMap);
+
+      if (leftNode) {
+        if (!nodesMap.has(leftNode.id)) nodesMap.set(leftNode.id, leftNode);
+      }
+      if (rightNode) {
+        if (!nodesMap.has(rightNode.id)) nodesMap.set(rightNode.id, rightNode);
       }
 
-      edges.push({
-        id: `e_${sourceId}_${targetId}`,
-        source: sourceId,
-        target: targetId,
-        requestsPerInput: multiplier,
-        enabled: true,
-        label: rawEdgeLabel.replace(/\s*\(\d+(?:\.\d+)?x\)/i, '').trim(),
-      });
+      const sourceId = leftNode ? leftNode.id : leftSnippet;
+      const targetId = rightNode ? rightNode.id : rightSnippet;
+
+      if (sourceId && targetId && sourceId !== 'empty' && targetId !== 'empty') {
+        let multiplier = 1;
+        const multMatch = rawEdgeLabel.match(/\((\d+(?:\.\d+)?)x\)/i);
+        if (multMatch) {
+          multiplier = parseFloat(multMatch[1]);
+        }
+
+        edges.push({
+          id: `e_${sourceId}_${targetId}`,
+          source: sourceId,
+          target: targetId,
+          requestsPerInput: multiplier,
+          enabled: true,
+          label: rawEdgeLabel.replace(/\s*\(\d+(?:\.\d+)?x\)/i, '').trim(),
+        });
+      }
       continue;
     }
 
-    // Node check with shapes
-    // 1. Database: id[(label)]
-    let nodeMatch = line.match(/^([a-zA-Z0-9_-]+)\[\((.*?)\)\](?:::([a-zA-Z0-9_-]+))?/);
-    let type: ComponentType = 'database';
-    if (!nodeMatch) {
-      // 2. Cache: id[[label]]
-      nodeMatch = line.match(/^([a-zA-Z0-9_-]+)\[\[(.*?)\]\](?:::([a-zA-Z0-9_-]+))?/);
-      type = 'cache';
+    // Standalone Node definition
+    const node = parseNodeSnippet(line, defaultCapacityMap, defaultWorkerMap);
+    if (node && !nodesMap.has(node.id)) {
+      nodesMap.set(node.id, node);
     }
-    if (!nodeMatch) {
-      // 3. Gateway: id([label])
-      nodeMatch = line.match(/^([a-zA-Z0-9_-]+)\(\[(.*?)\]\)(?:::([a-zA-Z0-9_-]+))?/);
-      type = 'gateway';
+  }
+
+  // Ensure all edge endpoints exist in nodesMap
+  for (const edge of edges) {
+    if (!nodesMap.has(edge.source)) {
+      const dummySource = parseNodeSnippet(edge.source, defaultCapacityMap, defaultWorkerMap);
+      if (dummySource) nodesMap.set(edge.source, dummySource);
     }
-    if (!nodeMatch) {
-      // 4. Client / load generator: id[/label/\]
-      nodeMatch = line.match(/^([a-zA-Z0-9_-]+)\[\/(.*?)\/\\\](?:::([a-zA-Z0-9_-]+))?/);
-      type = 'load_generator';
-    }
-    if (!nodeMatch) {
-      // 5. Standard Service box: id[label]
-      nodeMatch = line.match(/^([a-zA-Z0-9_-]+)\[(.*?)\](?:::([a-zA-Z0-9_-]+))?/);
-      type = 'service';
-    }
-
-    if (nodeMatch) {
-      const id = nodeMatch[1];
-      if (id === 'empty') continue;
-
-      let rawLabel = nodeMatch[2] || id;
-      if (
-        (rawLabel.startsWith('"') && rawLabel.endsWith('"')) ||
-        (rawLabel.startsWith("'") && rawLabel.endsWith("'"))
-      ) {
-        rawLabel = rawLabel.slice(1, -1);
-      }
-
-      const classType = nodeMatch[3];
-      if (
-        classType &&
-        ['load_generator', 'gateway', 'service', 'cache', 'database', 'client'].includes(classType)
-      ) {
-        type = classType === 'client' ? 'load_generator' : (classType as ComponentType);
-      }
-
-      const parts = rawLabel.split(/<br\s*\/?>/i);
-      const name = parts[0].trim() || id;
-
-      let capacity = defaultCapacityMap[type] || 2000;
-      let workers = defaultWorkerMap[type] || 1;
-
-      if (parts[1]) {
-        const capMatch = parts[1].match(/([\d,]+)\s*req\/s/i);
-        if (capMatch) {
-          const parsedCap = parseInt(capMatch[1].replace(/,/g, ''), 10);
-          if (!isNaN(parsedCap) && parsedCap > 0) capacity = parsedCap;
-        }
-        const wMatch = parts[1].match(/(\d+)\s*w(?:orker)?/i);
-        if (wMatch) {
-          const parsedW = parseInt(wMatch[1], 10);
-          if (!isNaN(parsedW) && parsedW > 0) workers = parsedW;
-        }
-      }
-
-      nodesMap.set(id, {
-        id,
-        name,
-        type,
-        position: { x: 0, y: 0 },
-        capacityPerSecond: capacity,
-        workerCount: workers,
-        enabled: true,
-        config: {
-          baselineLatencyMs: type === 'database' ? 15 : type === 'cache' ? 2 : 10,
-          maxQueueSize: capacity * 2,
-          overflowPolicy: 'drop',
-          isSource: type === 'load_generator',
-        },
-      });
+    if (!nodesMap.has(edge.target)) {
+      const dummyTarget = parseNodeSnippet(edge.target, defaultCapacityMap, defaultWorkerMap);
+      if (dummyTarget) nodesMap.set(edge.target, dummyTarget);
     }
   }
 
