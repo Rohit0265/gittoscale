@@ -79,7 +79,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: dbProfile?.id || userId,
         fullName: dbProfile?.full_name || userMeta?.full_name || userMeta?.name || userEmail.split('@')[0],
         email: dbProfile?.email || userEmail,
-        avatarUrl: dbProfile?.avatar_url || userMeta?.avatar_url || userMeta?.picture,
+        avatarUrl:
+          dbProfile?.avatar_url ||
+          userMeta?.avatar_url ||
+          userMeta?.picture ||
+          userMeta?.avatar ||
+          userMeta?.picture_url,
         createdAt: dbProfile?.created_at || new Date().toISOString(),
       };
 
@@ -98,7 +103,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: userId,
         email: userEmail,
         fullName: userMeta?.full_name || userMeta?.name || userEmail.split('@')[0],
-        avatarUrl: userMeta?.avatar_url || userMeta?.picture,
+        avatarUrl:
+          userMeta?.avatar_url ||
+          userMeta?.picture ||
+          userMeta?.avatar ||
+          userMeta?.picture_url,
         createdAt: new Date().toISOString(),
       });
     }

@@ -626,14 +626,45 @@ router.get('/profile/:id', optionalAuth, async (req: AuthenticatedRequest, res: 
     const targetUserId = req.params.id;
     const viewerUserId = req.user?.id;
 
-    const profile = await getUserFeedProfile(targetUserId, viewerUserId);
+    let profile = await getUserFeedProfile(targetUserId, viewerUserId);
     if (!profile) {
-      res.status(404).json({
-        success: false,
-        error: 'PROFILE_NOT_FOUND',
-        message: 'User profile not found.',
-      });
-      return;
+      if (viewerUserId && (viewerUserId === targetUserId || targetUserId === 'me') && req.user) {
+        // Auto-provision profile from authenticated account details
+        try {
+          profile = await updateUserProfile(
+            viewerUserId,
+            {
+              full_name: req.user.fullName || req.user.email?.split('@')[0] || 'User',
+              avatar_url: req.user.avatarUrl || null,
+            },
+            req.user.email
+          );
+        } catch {
+          // If upsert fails, proceed to 404
+        }
+      }
+
+      if (!profile) {
+        res.status(404).json({
+          success: false,
+          error: 'PROFILE_NOT_FOUND',
+          message: 'User profile not found.',
+        });
+        return;
+      }
+    } else if (viewerUserId && viewerUserId === targetUserId && !profile.avatar_url && req.user?.avatarUrl) {
+      // Sync account avatar if user has one but profile is unset
+      try {
+        profile = await updateUserProfile(
+          targetUserId,
+          {
+            avatar_url: req.user.avatarUrl,
+          },
+          req.user.email
+        );
+      } catch {
+        profile.avatar_url = req.user.avatarUrl;
+      }
     }
 
     res.json({
