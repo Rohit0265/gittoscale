@@ -45,6 +45,7 @@ export async function requireAuth(
           id: payload.id || 'usr_mock',
           email: payload.email || 'mock@gittoscale.tech',
           fullName: payload.name || payload.email?.split('@')[0] || 'GitToScale User',
+          avatarUrl: payload.avatar_url || payload.picture || payload.avatar || undefined,
         };
       } else {
         // Fallback user for dev when no credentials supplied
@@ -52,6 +53,7 @@ export async function requireAuth(
           id: 'usr_dev_default',
           email: 'developer@gittoscale.tech',
           fullName: 'Local Developer',
+          avatarUrl: undefined,
         };
       }
       next();
@@ -81,11 +83,21 @@ export async function requireAuth(
       return;
     }
 
+    const meta = user.user_metadata || {};
+    const identities = (user.identities && user.identities[0]?.identity_data) || {};
+    const resolvedAvatar =
+      meta.avatar_url ||
+      meta.picture ||
+      meta.avatar ||
+      identities.avatar_url ||
+      identities.picture ||
+      '';
+
     req.user = {
       id: user.id,
       email: user.email || '',
-      fullName: user.user_metadata?.full_name || user.user_metadata?.name || '',
-      avatarUrl: user.user_metadata?.avatar_url || '',
+      fullName: meta.full_name || meta.name || user.email?.split('@')[0] || '',
+      avatarUrl: resolvedAvatar,
     };
 
     next();

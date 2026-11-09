@@ -50,7 +50,8 @@ async function optionalAuth(req: AuthenticatedRequest, _res: Response, next: Nex
       req.user = {
         id: payload.id || 'usr_mock',
         email: payload.email || 'mock@gittoscale.tech',
-        fullName: payload.name || 'Mock User',
+        fullName: payload.name || payload.email?.split('@')[0] || 'Mock User',
+        avatarUrl: payload.avatar_url || payload.picture || payload.avatar || undefined,
       };
       return next();
     } catch {
@@ -65,11 +66,21 @@ async function optionalAuth(req: AuthenticatedRequest, _res: Response, next: Nex
   try {
     const { data: { user } } = await supabaseServer.auth.getUser(token);
     if (user) {
+      const meta = user.user_metadata || {};
+      const identities = (user.identities && user.identities[0]?.identity_data) || {};
+      const resolvedAvatar =
+        meta.avatar_url ||
+        meta.picture ||
+        meta.avatar ||
+        identities.avatar_url ||
+        identities.picture ||
+        '';
+
       req.user = {
         id: user.id,
         email: user.email || '',
-        fullName: user.user_metadata?.full_name || user.user_metadata?.name || '',
-        avatarUrl: user.user_metadata?.avatar_url || '',
+        fullName: meta.full_name || meta.name || user.email?.split('@')[0] || '',
+        avatarUrl: resolvedAvatar,
       };
     }
   } catch {
