@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, UserPlus } from 'lucide-react';
 import { UserProfileFeed } from '../feed/types';
 import { feedApi } from '../feed/services/feedApi';
+import { extractAccountAvatar, getAvatarColor, getInitial } from '../feed/utils/avatarUtils';
 
 export interface UserDropdownMenuProps {
   user?: any;
@@ -112,8 +113,8 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
 
   const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
   const username = profile?.username || user.user_metadata?.user_name || user.email?.split('@')[0]?.toLowerCase() || 'user';
-  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url;
-  const initial = (displayName?.[0] || 't').toLowerCase();
+  const avatarUrl = profile?.avatar_url || extractAccountAvatar(user);
+  const initial = getInitial(displayName);
   const postsCount = profile?.posts_count ?? 0;
   const followersCount = profile?.followers_count ?? 0;
   const followingCount = profile?.following_count ?? 0;
@@ -138,7 +139,10 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
               className="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-neutral-800 shadow-md group-hover:scale-105 transition-transform"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-[#0a66c2] text-white text-2xl font-bold flex items-center justify-center border-2 border-white dark:border-neutral-800 shadow-md group-hover:scale-105 transition-transform">
+            <div
+              className="w-16 h-16 rounded-full text-white text-2xl font-bold flex items-center justify-center border-2 border-white dark:border-neutral-800 shadow-md group-hover:scale-105 transition-transform"
+              style={{ background: getAvatarColor(profile?.id || user.id || displayName) }}
+            >
               {initial}
             </div>
           )}

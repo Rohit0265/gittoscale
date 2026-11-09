@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { User, Camera, LogIn, UserPlus, ArrowRight } from 'lucide-react';
 import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
+import { extractAccountAvatar, getAvatarColor, getRandomBannerColor, getInitial } from '../utils/avatarUtils';
 
 interface FeedSidebarProps {
   user?: any;
@@ -115,7 +116,8 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
 
   const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
   const username = profile?.username || user.email?.split('@')[0]?.toLowerCase() || 'user';
-  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url;
+  const avatarUrl = profile?.avatar_url || extractAccountAvatar(user);
+  const defaultBannerBg = getRandomBannerColor(profile?.id || user.id || username);
 
   return (
     <aside className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] overflow-hidden shadow-xs">
@@ -128,7 +130,7 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-slate-200 to-slate-300 dark:from-neutral-900 dark:to-neutral-800" />
+          <div className="w-full h-full" style={{ background: defaultBannerBg }} />
         )}
 
         {/* Change / Add Cover Background Button */}
@@ -163,8 +165,11 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
               className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-[#0A0A0A] shadow-md group-hover:scale-105 transition-transform"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-indigo-600 text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-md group-hover:scale-105 transition-transform">
-              {displayName[0]}
+            <div
+              className="w-20 h-20 rounded-full text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-md group-hover:scale-105 transition-transform"
+              style={{ background: getAvatarColor(profile?.id || user.id || displayName) }}
+            >
+              {getInitial(displayName)}
             </div>
           )}
 
