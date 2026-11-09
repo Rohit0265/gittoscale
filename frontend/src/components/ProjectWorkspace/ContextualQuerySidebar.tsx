@@ -548,11 +548,11 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
     <aside
       ref={asideRef}
       style={{
-        width: `${currentWidth}px`,
-        maxWidth: '40vw',
+        width: widthProp !== undefined ? '100%' : `${currentWidth}px`,
+        maxWidth: widthProp !== undefined ? '100%' : '40vw',
       }}
-      className={`h-full flex flex-col border-r border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-[#0A0B0E] select-none shrink-0 overflow-hidden font-sans relative ${
-        isDragging ? 'transition-none select-none' : 'transition-[width] duration-150 ease-out'
+      className={`h-full w-full flex flex-col border-r border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-[#0A0B0E] shrink-0 overflow-hidden font-sans relative transform-gpu ${
+        isDragging ? 'transition-none select-none cursor-col-resize' : ''
       }`}
     >
       {/* Header */}
@@ -576,7 +576,7 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
       </div>
 
       {/* Chat Stream */}
-      <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5">
+      <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5 overscroll-contain [scrollbar-gutter:stable]">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
 
@@ -652,13 +652,13 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
             onChange={(e) => setCustomInput(e.target.value)}
             placeholder='Add component, add requirement, scale…'
             disabled={isProcessingCommand}
-            className="w-full pl-3 pr-2 py-2 rounded-xl text-xs bg-slate-50 dark:bg-neutral-900/60 border border-slate-200 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all disabled:opacity-60"
+            className="w-full pl-3 pr-2 py-2 rounded-xl text-xs bg-slate-50 dark:bg-neutral-900/60 border border-slate-200 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-colors disabled:opacity-60"
           />
         </div>
         <button
           type="submit"
           disabled={!customInput.trim() || isProcessingCommand}
-          className="p-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shrink-0 shadow-xs"
+          className="p-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shrink-0 shadow-xs"
           title="Execute instruction on playground"
         >
           <ArrowUp className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
