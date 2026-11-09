@@ -1637,11 +1637,6 @@ export const App: React.FC = () => {
     queueSimulation(updated, edges, incomingTrafficRate, durationSeconds);
   };
 
-  const handleApplyScaledNodes = (scaledNodes: ArchitectureNode[]) => {
-    setNodes(scaledNodes);
-    queueSimulation(scaledNodes, edges, incomingTrafficRate, durationSeconds);
-  };
-
   const handleToggleNode = (nodeId: string) => {
     const updated = nodes.map((n) => (n.id === nodeId ? { ...n, enabled: !n.enabled } : n));
     setNodes(updated);
@@ -2635,7 +2630,6 @@ export const App: React.FC = () => {
                 onNodesChangePosition={handleNodesPositionChange}
                 onDeleteNode={handleDeleteNode}
                 onUpdateNode={handleUpdateNode}
-                onApplyScaledNodes={handleApplyScaledNodes}
                 scenarios={scenarios}
                 currentScenarioId={currentScenarioId}
                 onSelectScenario={(id) => applyScenario(id)}
