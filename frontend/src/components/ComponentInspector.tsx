@@ -124,7 +124,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
               <PanelRight className="w-4 h-4 hover:text-indigo-500 transition-colors" />
             </button>
           )}
-          {onDeleteNode && node.type !== 'load_generator' && (
+          {onDeleteNode && (
             <button
               type="button"
               onClick={() => onDeleteNode(node.id)}
