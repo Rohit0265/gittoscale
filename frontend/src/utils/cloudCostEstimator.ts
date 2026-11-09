@@ -67,31 +67,26 @@ const PROVIDER_NAMES: Record<CloudProvider, string> = {
  * based on the target capacity per second of each service.
  */
 function getComputeTier(capacityPerSecond: number, provider: CloudProvider) {
-  if (capacityPerSecond <= 1500) {
-    // Light container / microservice: 2 vCPU, 4GB RAM
-    return {
-      spec: '2 vCPU, 4GB RAM',
-      aws: { name: 't4g.medium', costPerWorker: 24.48 },
-      gcp: { name: 'e2-medium', costPerWorker: 22.80 },
-      azure: { name: 'B2s', costPerWorker: 25.20 },
-    }[provider];
-  } else if (capacityPerSecond <= 4500) {
-    // Standard high-concurrency worker: 4 vCPU, 8GB RAM
-    return {
-      spec: '4 vCPU, 8GB RAM (Compute Optimized)',
-      aws: { name: 'c6g.xlarge', costPerWorker: 48.96 },
-      gcp: { name: 'c2-standard-4', costPerWorker: 45.60 },
-      azure: { name: 'F4s v2', costPerWorker: 50.40 },
-    }[provider];
-  } else {
-    // Enterprise heavy compute fleet: 8 vCPU, 16GB RAM
-    return {
-      spec: '8 vCPU, 16GB RAM (High Compute)',
-      aws: { name: 'c6g.2xlarge', costPerWorker: 97.92 },
-      gcp: { name: 'c2-standard-8', costPerWorker: 91.20 },
-      azure: { name: 'F8s v2', costPerWorker: 100.80 },
-    }[provider];
+  let spec = '2 vCPU, 4GB RAM';
+  const tierMap = {
+    aws: { name: 't4g.medium', costPerWorker: 24.48 },
+    gcp: { name: 'e2-medium', costPerWorker: 22.80 },
+    azure: { name: 'B2s', costPerWorker: 25.20 },
+  };
+
+  if (capacityPerSecond > 4500) {
+    spec = '8 vCPU, 16GB RAM (High Compute)';
+    tierMap.aws = { name: 'c6g.2xlarge', costPerWorker: 97.92 };
+    tierMap.gcp = { name: 'c2-standard-8', costPerWorker: 91.20 };
+    tierMap.azure = { name: 'F8s v2', costPerWorker: 100.80 };
+  } else if (capacityPerSecond > 1500) {
+    spec = '4 vCPU, 8GB RAM (Compute Optimized)';
+    tierMap.aws = { name: 'c6g.xlarge', costPerWorker: 48.96 };
+    tierMap.gcp = { name: 'c2-standard-4', costPerWorker: 45.60 };
+    tierMap.azure = { name: 'F4s v2', costPerWorker: 50.40 };
   }
+
+  return { spec, ...tierMap[provider] };
 }
 
 /**
@@ -99,83 +94,73 @@ function getComputeTier(capacityPerSecond: number, provider: CloudProvider) {
  * based on transactional throughput requirements.
  */
 function getDatabaseTier(capacityPerSecond: number, provider: CloudProvider) {
-  if (capacityPerSecond <= 1500) {
-    // Small production DB: 2 vCPU, 8GB RAM + 100GB NVMe SSD
-    return {
-      spec: '2 vCPU, 8GB RAM + 100GB SSD',
-      aws: { name: 'RDS PostgreSQL db.r6g.large', costPerUnit: 134.0 },
-      gcp: { name: 'Cloud SQL PostgreSQL 2 vCPU', costPerUnit: 122.0 },
-      azure: { name: 'PostgreSQL Flexible 2 vCPU', costPerUnit: 128.0 },
-    }[provider];
-  } else if (capacityPerSecond <= 4500) {
-    // High-concurrency Multi-AZ replication: 4 vCPU, 16GB RAM + 250GB SSD
-    return {
-      spec: '4 vCPU, 16GB RAM (Multi-AZ Standby)',
-      aws: { name: 'RDS db.r6g.xlarge Multi-AZ', costPerUnit: 268.0 },
-      gcp: { name: 'Cloud SQL HA 4 vCPU', costPerUnit: 244.0 },
-      azure: { name: 'PostgreSQL Flexible HA 4 vCPU', costPerUnit: 256.0 },
-    }[provider];
-  } else {
-    // Enterprise I/O Optimized Aurora / AlloyDB: 8 vCPU, 32GB RAM + 500GB NVMe
-    return {
-      spec: '8 vCPU, 32GB RAM (I/O Optimized Aurora)',
-      aws: { name: 'Amazon Aurora Provisioned', costPerUnit: 480.0 },
-      gcp: { name: 'AlloyDB Enterprise HA', costPerUnit: 440.0 },
-      azure: { name: 'PostgreSQL Hyperscale', costPerUnit: 460.0 },
-    }[provider];
+  let spec = '2 vCPU, 8GB RAM + 100GB SSD';
+  const tierMap = {
+    aws: { name: 'RDS PostgreSQL db.r6g.large', costPerUnit: 134.0 },
+    gcp: { name: 'Cloud SQL PostgreSQL 2 vCPU', costPerUnit: 122.0 },
+    azure: { name: 'PostgreSQL Flexible 2 vCPU', costPerUnit: 128.0 },
+  };
+
+  if (capacityPerSecond > 4500) {
+    spec = '8 vCPU, 32GB RAM (I/O Optimized Aurora)';
+    tierMap.aws = { name: 'Amazon Aurora Provisioned', costPerUnit: 480.0 };
+    tierMap.gcp = { name: 'AlloyDB Enterprise HA', costPerUnit: 440.0 };
+    tierMap.azure = { name: 'PostgreSQL Hyperscale', costPerUnit: 460.0 };
+  } else if (capacityPerSecond > 1500) {
+    spec = '4 vCPU, 16GB RAM (Multi-AZ Standby)';
+    tierMap.aws = { name: 'RDS db.r6g.xlarge Multi-AZ', costPerUnit: 268.0 };
+    tierMap.gcp = { name: 'Cloud SQL HA 4 vCPU', costPerUnit: 244.0 };
+    tierMap.azure = { name: 'PostgreSQL Flexible HA 4 vCPU', costPerUnit: 256.0 };
   }
+
+  return { spec, ...tierMap[provider] };
 }
 
 /**
  * Calculates Redis in-memory cache cluster sizing and pricing
  */
 function getCacheTier(capacityPerSecond: number, provider: CloudProvider) {
-  if (capacityPerSecond <= 4000) {
-    // Dev / Light Cache (3.2GB RAM)
-    return {
-      spec: '3.2GB RAM In-Memory',
-      aws: { name: 'ElastiCache cache.t4g.medium', costPerNode: 38.50 },
-      gcp: { name: 'Memorystore Redis 3GB', costPerNode: 36.00 },
-      azure: { name: 'Azure Cache for Redis C1', costPerNode: 37.50 },
-    }[provider];
-  } else if (capacityPerSecond <= 10000) {
-    // Production High-Throughput Cluster (13GB RAM)
-    return {
-      spec: '13GB RAM Multi-AZ Cluster',
-      aws: { name: 'ElastiCache cache.r6g.large', costPerNode: 96.00 },
-      gcp: { name: 'Memorystore Redis Standard 13GB', costPerNode: 88.00 },
-      azure: { name: 'Azure Redis Standard C2', costPerNode: 92.00 },
-    }[provider];
-  } else {
-    // Sharded Multi-Node Cluster (26GB RAM)
-    return {
-      spec: '26GB RAM Sharded Cluster',
-      aws: { name: 'ElastiCache cache.r6g.xlarge', costPerNode: 185.00 },
-      gcp: { name: 'Memorystore Redis Cluster 26GB', costPerNode: 172.00 },
-      azure: { name: 'Azure Redis Premium P1', costPerNode: 178.00 },
-    }[provider];
+  let spec = '3.2GB RAM In-Memory';
+  const tierMap = {
+    aws: { name: 'ElastiCache cache.t4g.medium', costPerNode: 38.50 },
+    gcp: { name: 'Memorystore Redis 3GB', costPerNode: 36.00 },
+    azure: { name: 'Azure Cache for Redis C1', costPerNode: 37.50 },
+  };
+
+  if (capacityPerSecond > 10000) {
+    spec = '26GB RAM Sharded Cluster';
+    tierMap.aws = { name: 'ElastiCache cache.r6g.xlarge', costPerNode: 185.00 };
+    tierMap.gcp = { name: 'Memorystore Redis Cluster 26GB', costPerNode: 172.00 };
+    tierMap.azure = { name: 'Azure Redis Premium P1', costPerNode: 178.00 };
+  } else if (capacityPerSecond > 4000) {
+    spec = '13GB RAM Multi-AZ Cluster';
+    tierMap.aws = { name: 'ElastiCache cache.r6g.large', costPerNode: 96.00 };
+    tierMap.gcp = { name: 'Memorystore Redis Standard 13GB', costPerNode: 88.00 };
+    tierMap.azure = { name: 'Azure Redis Standard C2', costPerNode: 92.00 };
   }
+
+  return { spec, ...tierMap[provider] };
 }
 
 /**
  * Calculates event queue & message broker infrastructure costs (Kafka / MSK / PubSub)
  */
 function getQueueTier(capacityPerSecond: number, provider: CloudProvider) {
-  if (capacityPerSecond <= 5000) {
-    return {
-      spec: 'Managed Event Stream (Standard)',
-      aws: { name: 'Amazon SQS / MSK Express', costPerBroker: 45.0 },
-      gcp: { name: 'Cloud Pub/Sub Standard', costPerBroker: 32.0 },
-      azure: { name: 'Azure Event Hubs Basic', costPerBroker: 38.0 },
-    }[provider];
-  } else {
-    return {
-      spec: 'Dedicated Distributed Kafka Cluster (High-Throughput)',
-      aws: { name: 'Amazon MSK (kafka.m5.large)', costPerBroker: 146.0 },
-      gcp: { name: 'Cloud Pub/Sub Enterprise', costPerBroker: 85.0 },
-      azure: { name: 'Azure Event Hubs Standard', costPerBroker: 98.0 },
-    }[provider];
+  let spec = 'Managed Event Stream (Standard)';
+  const tierMap = {
+    aws: { name: 'Amazon SQS / MSK Express', costPerBroker: 45.0 },
+    gcp: { name: 'Cloud Pub/Sub Standard', costPerBroker: 32.0 },
+    azure: { name: 'Azure Event Hubs Basic', costPerBroker: 38.0 },
+  };
+
+  if (capacityPerSecond > 5000) {
+    spec = 'Dedicated Distributed Kafka Cluster (High-Throughput)';
+    tierMap.aws = { name: 'Amazon MSK (kafka.m5.large)', costPerBroker: 146.0 };
+    tierMap.gcp = { name: 'Cloud Pub/Sub Enterprise', costPerBroker: 85.0 };
+    tierMap.azure = { name: 'Azure Event Hubs Standard', costPerBroker: 98.0 };
   }
+
+  return { spec, ...tierMap[provider] };
 }
 
 /**

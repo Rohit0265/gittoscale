@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { ArchitectureNode } from '../../types';
 import {
-  estimateCloudCost,
   getMultiCloudComparison,
   CloudProvider,
 } from '../../utils/cloudCostEstimator';
