@@ -3,6 +3,7 @@ import { X, Send, Trash2, MessageSquare, Loader2, LogIn, Reply, CornerDownRight 
 import { FeedPost, FeedComment } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { feedApi } from '../services/feedApi';
+import { getAvatarColor, getInitial } from '../utils/avatarUtils';
 
 interface CommentPanelProps {
   post: FeedPost | null;
@@ -229,9 +230,10 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
             <div
               className={`${
                 depth === 0 ? 'w-7 h-7 text-xs' : 'w-6 h-6 text-[11px]'
-              } rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center uppercase`}
+              } rounded-full text-white font-bold flex items-center justify-center uppercase`}
+              style={{ background: getAvatarColor(comment.user_id || comment.author.full_name) }}
             >
-              {(comment.author.full_name || 'U')[0]}
+              {getInitial(comment.author.full_name)}
             </div>
           )}
         </button>
