@@ -141,7 +141,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   scenarios: _scenarios,
   currentScenarioId: _currentScenarioId,
   onSelectScenario: _onSelectScenario,
-  incomingTrafficRate = 1000,
+  incomingTrafficRate: _incomingTrafficRate = 1000,
   onAddEdge,
   onToggleEdge,
   onDeleteEdge,
@@ -233,15 +233,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
     },
     [edges]
   );
-
-  const avgP99Latency = useMemo(() => {
-    const latencies = Object.values(nodeResults)
-      .filter((r) => r.enabled && r.estimatedLatencyMs > 0)
-      .map((r) => r.estimatedLatencyMs);
-    if (latencies.length === 0) return 15;
-    const sum = latencies.reduce((a, b) => a + b, 0);
-    return Math.round((sum / latencies.length) * 10) / 10;
-  }, [nodeResults]);
 
   const handleToggleNodeFromContext = (node: ArchitectureNode) => {
     if (!onUpdateNode) return;
