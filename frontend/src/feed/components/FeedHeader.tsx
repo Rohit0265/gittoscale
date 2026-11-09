@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { LayoutGrid, ChevronDown, LogIn, UserPlus } from 'lucide-react';
 import { UserDropdownMenu } from '../../components/UserDropdownMenu';
+import { extractAccountAvatar, getAvatarColor, getInitial } from '../utils/avatarUtils';
 
 interface FeedHeaderProps {
   user?: any;
@@ -49,7 +50,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
   }, [isMenuOpen]);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
-  const avatarUrl = user?.user_metadata?.avatar_url;
+  const avatarUrl = extractAccountAvatar(user);
 
   return (
     <header className="sticky top-0 z-40 h-14 w-full border-b border-slate-200 dark:border-neutral-800 bg-white/95 dark:bg-[#020202]/95 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between transition-colors">
@@ -96,8 +97,11 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                   className="w-8 h-8 rounded-full object-cover border border-indigo-500/30"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs">
-                  {displayName[0]}
+                <div
+                  className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs"
+                  style={{ background: getAvatarColor(user?.id || displayName) }}
+                >
+                  {getInitial(displayName)}
                 </div>
               )}
               <span className="hidden lg:inline text-xs font-medium text-slate-800 dark:text-neutral-200 max-w-[120px] truncate text-left">
