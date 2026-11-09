@@ -1557,6 +1557,11 @@ export const App: React.FC = () => {
     queueSimulation(updated, edges, incomingTrafficRate, durationSeconds);
   };
 
+  const handleApplyScaledNodes = (scaledNodes: ArchitectureNode[]) => {
+    setNodes(scaledNodes);
+    queueSimulation(scaledNodes, edges, incomingTrafficRate, durationSeconds);
+  };
+
   const handleToggleNode = (nodeId: string) => {
     const updated = nodes.map((n) => (n.id === nodeId ? { ...n, enabled: !n.enabled } : n));
     setNodes(updated);
