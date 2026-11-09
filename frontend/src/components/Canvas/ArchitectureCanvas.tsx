@@ -18,7 +18,23 @@ import {
 } from '@xyflow/react';
 import { ArchitectureCustomNode } from './CustomNodes';
 import { CustomEdge, resolveEdgeMode, getEdgeStyleConfig } from './CustomEdge';
-import { ArchitectureNode, ArchitectureEdge, NodeSimulationResult, EdgeSimulationResult } from '../../types';
+import {
+  ArchitectureNode,
+  ArchitectureEdge,
+  NodeSimulationResult,
+  EdgeSimulationResult,
+  ScenarioFixture,
+} from '../../types';
+import { ChaosControlHUD } from './ChaosControlHUD';
+import { FailureScenariosBar } from './FailureScenariosBar';
+import { CloudCostHUD } from './CloudCostHUD';
+import {
+  Flame,
+  Clock,
+  Zap,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react';
 
 interface ArchitectureCanvasProps {
   nodes: ArchitectureNode[];
@@ -29,6 +45,12 @@ interface ArchitectureCanvasProps {
   onSelectNode: (nodeId: string | null) => void;
   onNodesChangePosition: (updatedNodes: ArchitectureNode[]) => void;
   onDeleteNode?: (nodeId: string) => void;
+  onUpdateNode?: (updatedNode: ArchitectureNode) => void;
+  onRestoreAllNodes?: () => void;
+  scenarios?: ScenarioFixture[];
+  currentScenarioId?: string;
+  onSelectScenario?: (scenarioId: string) => void;
+  incomingTrafficRate?: number;
   onAddEdge: (newEdge: ArchitectureEdge) => void;
   onToggleEdge: (edgeId: string) => void;
   onDeleteEdge?: (edgeId: string) => void;
@@ -115,6 +137,12 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   onSelectNode,
   onNodesChangePosition,
   onDeleteNode,
+  onUpdateNode,
+  onRestoreAllNodes,
+  scenarios,
+  currentScenarioId,
+  onSelectScenario,
+  incomingTrafficRate = 1000,
   onAddEdge,
   onToggleEdge,
   onDeleteEdge,
@@ -142,6 +170,147 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
 
   const controlsShiftX = isLargeScreen ? (isLeftCollapsed ? 0 : leftSidebarWidth + 16) : 0;
   const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -368) : 0;
+  const topShiftX = isLargeScreen ? (isLeftCollapsed ? 14 : leftSidebarWidth + 14) : 14;
+  const topCostRight = isLargeScreen ? (isRightCollapsed ? 14 : 384) : 14;
+
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    node: ArchitectureNode;
+  } | null>(null);
+
+  const [edgeContextMenu, setEdgeContextMenu] = useState<{
+    x: number;
+    y: number;
+    edge: ArchitectureEdge;
+  } | null>(null);
+
+  // Close context menus on outside click or Escape
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setContextMenu(null);
+      setEdgeContextMenu(null);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setContextMenu(null);
+        setEdgeContextMenu(null);
+      }
+    };
+    window.addEventListener('click', handleGlobalClick);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const handleNodeContextMenu = useCallback(
+    (event: React.MouseEvent, rfNode: Node) => {
+      event.preventDefault();
+      const domainNode = nodes.find((n) => n.id === rfNode.id);
+      if (domainNode) {
+        setEdgeContextMenu(null);
+        const menuWidth = 240;
+        const menuHeight = 260;
+        const x = Math.min(event.clientX, window.innerWidth - menuWidth - 16);
+        const y = Math.min(event.clientY, window.innerHeight - menuHeight - 16);
+        setContextMenu({ x, y, node: domainNode });
+      }
+    },
+    [nodes]
+  );
+
+  const handleEdgeContextMenu = useCallback(
+    (event: React.MouseEvent, rfEdge: Edge) => {
+      event.preventDefault();
+      const domainEdge = edges.find((e) => e.id === rfEdge.id);
+      if (domainEdge) {
+        setContextMenu(null);
+        const menuWidth = 200;
+        const menuHeight = 150;
+        const x = Math.min(event.clientX, window.innerWidth - menuWidth - 16);
+        const y = Math.min(event.clientY, window.innerHeight - menuHeight - 16);
+        setEdgeContextMenu({ x, y, edge: domainEdge });
+      }
+    },
+    [edges]
+  );
+
+  const avgP99Latency = useMemo(() => {
+    const latencies = Object.values(nodeResults)
+      .filter((r) => r.enabled && r.estimatedLatencyMs > 0)
+      .map((r) => r.estimatedLatencyMs);
+    if (latencies.length === 0) return 15;
+    const sum = latencies.reduce((a, b) => a + b, 0);
+    return Math.round((sum / latencies.length) * 10) / 10;
+  }, [nodeResults]);
+
+  const handleKillNodeFromContext = (node: ArchitectureNode) => {
+    if (!onUpdateNode) return;
+    const isKilled = Boolean(node.config.chaos?.isKilled);
+    onUpdateNode({
+      ...node,
+      config: {
+        ...node.config,
+        chaos: {
+          ...node.config.chaos,
+          isKilled: !isKilled,
+          isPartitioned: false,
+        },
+      },
+    });
+    setContextMenu(null);
+  };
+
+  const handleInjectLatencyFromContext = (node: ArchitectureNode, delayMs = 250) => {
+    if (!onUpdateNode) return;
+    const currentDelay = node.config.chaos?.injectedLatencyMs || 0;
+    onUpdateNode({
+      ...node,
+      config: {
+        ...node.config,
+        chaos: {
+          ...node.config.chaos,
+          injectedLatencyMs: currentDelay + delayMs,
+        },
+      },
+    });
+    setContextMenu(null);
+  };
+
+  const handlePartitionNodeFromContext = (node: ArchitectureNode) => {
+    if (!onUpdateNode) return;
+    const isPart = Boolean(node.config.chaos?.isPartitioned);
+    onUpdateNode({
+      ...node,
+      config: {
+        ...node.config,
+        chaos: {
+          ...node.config.chaos,
+          isPartitioned: !isPart,
+          isKilled: false,
+        },
+      },
+    });
+    setContextMenu(null);
+  };
+
+  const handleHealNodeFromContext = (node: ArchitectureNode) => {
+    if (!onUpdateNode) return;
+    onUpdateNode({
+      ...node,
+      config: {
+        ...node.config,
+        chaos: {
+          isKilled: false,
+          injectedLatencyMs: 0,
+          isPartitioned: false,
+        },
+      },
+    });
+    setContextMenu(null);
+  };
   const [internalSelectedEdgeId, setInternalSelectedEdgeId] = useState<string | null>(null);
   const activeSelectedEdgeId = selectedEdgeId !== undefined ? selectedEdgeId : internalSelectedEdgeId;
   const handleSelectEdge = useCallback((id: string | null) => {
@@ -413,9 +582,47 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
 
   return (
     <div
-      className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors"
+      className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors overflow-hidden"
       style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%' }}
     >
+      {/* Top Left Floating Bar: Scenarios & Chaos Monkey */}
+      <div
+        className="absolute top-3.5 z-20 flex items-center gap-2 select-none"
+        style={{
+          left: `${topShiftX}px`,
+          transition: 'left 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        {scenarios && scenarios.length > 0 && onSelectScenario && (
+          <FailureScenariosBar
+            scenarios={scenarios}
+            currentScenarioId={currentScenarioId}
+            onSelectScenario={onSelectScenario}
+            isDark={isDark}
+          />
+        )}
+        {onUpdateNode && (
+          <ChaosControlHUD
+            nodes={nodes}
+            onUpdateNode={onUpdateNode}
+            onRestoreAllNodes={onRestoreAllNodes}
+            isDark={isDark}
+          />
+        )}
+      </div>
+
+      {/* Top Right Floating Bar: Cloud Cost Estimator */}
+      <CloudCostHUD
+        nodes={nodes}
+        incomingRps={incomingTrafficRate}
+        avgP99LatencyMs={avgP99Latency}
+        isDark={isDark}
+        style={{
+          right: `${topCostRight}px`,
+          transition: 'right 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      />
+
       <ReactFlow
         style={{ width: '100%', height: '100%' }}
         nodes={rfNodes}
@@ -432,15 +639,21 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
         onNodeClick={(_, node) => {
           onSelectNode(node.id);
           handleSelectEdge(null);
+          setContextMenu(null);
         }}
         onEdgeClick={(_, edge) => {
           handleSelectEdge(edge.id);
           onSelectNode(null);
+          setEdgeContextMenu(null);
         }}
         onPaneClick={() => {
           onSelectNode(null);
           handleSelectEdge(null);
+          setContextMenu(null);
+          setEdgeContextMenu(null);
         }}
+        onNodeContextMenu={handleNodeContextMenu}
+        onEdgeContextMenu={handleEdgeContextMenu}
         onConnect={handleConnect}
         onNodesDelete={(deletedNodes) => {
           if (onDeleteNode) {
@@ -499,6 +712,165 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
           className="!border !border-slate-200 dark:!border-neutral-800 !rounded-xl !bg-white/95 dark:!bg-[#0A0A0A]/95 shadow-none z-10 hidden sm:block"
         />
       </ReactFlow>
+
+      {/* Right-Click Node Context Menu */}
+      {contextMenu && (
+        <div
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          className="fixed z-50 w-60 rounded-2xl border border-slate-200/90 dark:border-neutral-800 bg-white/95 dark:bg-[#0c0c0e]/95 backdrop-blur-xl shadow-2xl p-1.5 text-xs select-none animate-in fade-in zoom-in-95 duration-100"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Node Summary Header */}
+          <div className="px-2.5 py-2 border-b border-slate-100 dark:border-neutral-800/80 mb-1">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 dark:text-white truncate max-w-[130px]">
+                {contextMenu.node.name}
+              </span>
+              {contextMenu.node.config.chaos?.isKilled ? (
+                <span className="px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-500 text-[10px] font-mono font-bold">CRASHED</span>
+              ) : contextMenu.node.config.chaos?.isPartitioned ? (
+                <span className="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-500 text-[10px] font-mono font-bold">PARTITIONED</span>
+              ) : (contextMenu.node.config.chaos?.injectedLatencyMs || 0) > 0 ? (
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 text-[10px] font-mono font-bold">+{contextMenu.node.config.chaos?.injectedLatencyMs}ms</span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 text-[10px] font-mono font-bold">HEALTHY</span>
+              )}
+            </div>
+            <span className="text-[10px] text-slate-500 dark:text-neutral-400 capitalize block mt-0.5">
+              {contextMenu.node.type.replace('_', ' ')} · {contextMenu.node.workerCount} workers
+            </span>
+          </div>
+
+          {/* Chaos Monkey Actions */}
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => handleKillNodeFromContext(contextMenu.node)}
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                contextMenu.node.config.chaos?.isKilled
+                  ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 font-semibold'
+                  : 'hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Flame className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span>{contextMenu.node.config.chaos?.isKilled ? 'Revive Node (Uncrash)' : 'Kill Node (Instant Crash)'}</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">0 req/s</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleInjectLatencyFromContext(contextMenu.node, 250)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>Inject Latency</span>
+              </div>
+              <span className="text-[10px] font-mono text-amber-500">+250ms</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handlePartitionNodeFromContext(contextMenu.node)}
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                contextMenu.node.config.chaos?.isPartitioned
+                  ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 font-semibold'
+                  : 'hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Zap className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span>{contextMenu.node.config.chaos?.isPartitioned ? 'Heal Partition' : 'Network Partition'}</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">Sever</span>
+            </button>
+
+            {(contextMenu.node.config.chaos?.isKilled ||
+              contextMenu.node.config.chaos?.isPartitioned ||
+              (contextMenu.node.config.chaos?.injectedLatencyMs || 0) > 0) && (
+              <button
+                type="button"
+                onClick={() => handleHealNodeFromContext(contextMenu.node)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer font-semibold"
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>Heal Component</span>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-500">Reset</span>
+              </button>
+            )}
+          </div>
+
+          {onDeleteNode && (
+            <>
+              <div className="my-1 border-t border-slate-100 dark:border-neutral-800" />
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteNode(contextMenu.node.id);
+                  setContextMenu(null);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span>Delete Component</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Right-Click Edge Context Menu */}
+      {edgeContextMenu && (
+        <div
+          style={{ top: edgeContextMenu.y, left: edgeContextMenu.x }}
+          className="fixed z-50 w-52 rounded-2xl border border-slate-200/90 dark:border-neutral-800 bg-white/95 dark:bg-[#0c0c0e]/95 backdrop-blur-xl shadow-2xl p-1.5 text-xs select-none animate-in fade-in zoom-in-95 duration-100"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-2.5 py-1.5 border-b border-slate-100 dark:border-neutral-800/80 mb-1">
+            <span className="font-bold text-slate-900 dark:text-white block truncate">
+              Link Connection
+            </span>
+            <span className="text-[10px] text-slate-500 dark:text-neutral-400 capitalize block">
+              {edgeContextMenu.edge.communicationType || 'http'} · {edgeContextMenu.edge.enabled ? 'Active' : 'Severed'}
+            </span>
+          </div>
+
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                onToggleEdge(edgeContextMenu.edge.id);
+                setEdgeContextMenu(null);
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-slate-100 dark:hover:bg-neutral-800/80 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Zap className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span>{edgeContextMenu.edge.enabled ? 'Sever Link' : 'Restore Link'}</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">{edgeContextMenu.edge.enabled ? 'Off' : 'On'}</span>
+            </button>
+
+            {onDeleteEdge && (
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteEdge(edgeContextMenu.edge.id);
+                  setEdgeContextMenu(null);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span>Delete Connection</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

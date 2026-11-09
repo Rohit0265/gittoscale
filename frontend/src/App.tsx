@@ -1557,6 +1557,22 @@ export const App: React.FC = () => {
     queueSimulation(updated, edges, incomingTrafficRate, durationSeconds);
   };
 
+  const handleRestoreAllNodes = () => {
+    const updated = nodes.map((n) => ({
+      ...n,
+      config: {
+        ...n.config,
+        chaos: {
+          isKilled: false,
+          injectedLatencyMs: 0,
+          isPartitioned: false,
+        },
+      },
+    }));
+    setNodes(updated);
+    queueSimulation(updated, edges, incomingTrafficRate, durationSeconds);
+  };
+
   const handleToggleNode = (nodeId: string) => {
     const updated = nodes.map((n) => (n.id === nodeId ? { ...n, enabled: !n.enabled } : n));
     setNodes(updated);
@@ -2549,6 +2565,12 @@ export const App: React.FC = () => {
                 onSelectNode={handleSelectNode}
                 onNodesChangePosition={handleNodesPositionChange}
                 onDeleteNode={handleDeleteNode}
+                onUpdateNode={handleUpdateNode}
+                onRestoreAllNodes={handleRestoreAllNodes}
+                scenarios={scenarios}
+                currentScenarioId={currentScenarioId}
+                onSelectScenario={(id) => applyScenario(id)}
+                incomingTrafficRate={incomingTrafficRate}
                 onAddEdge={handleAddEdge}
                 onToggleEdge={handleToggleEdge}
                 onDeleteEdge={handleDeleteEdge}
