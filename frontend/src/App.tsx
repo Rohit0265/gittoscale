@@ -2666,7 +2666,7 @@ export const App: React.FC = () => {
             width: isMobile ? 'calc(100vw - 24px)' : `${leftSidebarWidth}px`,
             maxWidth: isMobile ? '380px' : '40vw',
           }}
-          className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none ${
+          className={`absolute left-0 top-0 bottom-0 z-20 pointer-events-none transform-gpu ${
             isLeftDragging ? 'transition-none select-none' : 'transition-transform duration-300 ease-in-out'
           } ${
             isLeftCollapsed ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
