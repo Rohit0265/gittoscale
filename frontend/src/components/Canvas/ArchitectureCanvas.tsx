@@ -25,7 +25,6 @@ import {
   EdgeSimulationResult,
   ScenarioFixture,
 } from '../../types';
-import { FailureScenariosBar } from './FailureScenariosBar';
 import { CloudCostHUD } from './CloudCostHUD';
 import { CapacitySweeperModal } from './CapacitySweeperModal';
 import {
@@ -564,7 +563,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
       className="w-full h-full relative bg-slate-50 dark:bg-[#0A0A0A] transition-colors overflow-hidden"
       style={{ width: '100%', height: '100%', minWidth: '100%', minHeight: '100%' }}
     >
-      {/* Top Left Floating Bar: Scenarios & Capacity Sweeper */}
+      {/* Top Left Floating Bar: Capacity Sweeper */}
       <div
         className="absolute top-3.5 z-20 flex items-center gap-2 select-none"
         style={{
@@ -572,14 +571,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
           transition: 'left 300ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
-        {scenarios && scenarios.length > 0 && onSelectScenario && (
-          <FailureScenariosBar
-            scenarios={scenarios}
-            currentScenarioId={currentScenarioId}
-            onSelectScenario={onSelectScenario}
-            isDark={isDark}
-          />
-        )}
         <button
           type="button"
           onClick={() => setIsCapacitySweeperOpen(true)}
