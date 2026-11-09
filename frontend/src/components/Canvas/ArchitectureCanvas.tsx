@@ -25,15 +25,18 @@ import {
   EdgeSimulationResult,
   ScenarioFixture,
 } from '../../types';
-import { ChaosControlHUD } from './ChaosControlHUD';
 import { FailureScenariosBar } from './FailureScenariosBar';
 import { CloudCostHUD } from './CloudCostHUD';
+import { CapacitySweeperModal } from './CapacitySweeperModal';
 import {
-  Flame,
-  Clock,
-  Zap,
-  ShieldCheck,
+  TrendingUp,
+  Plus,
+  Minus,
+  Copy,
+  Sliders,
+  Power,
   Trash2,
+  Zap,
 } from 'lucide-react';
 
 interface ArchitectureCanvasProps {
@@ -46,7 +49,8 @@ interface ArchitectureCanvasProps {
   onNodesChangePosition: (updatedNodes: ArchitectureNode[]) => void;
   onDeleteNode?: (nodeId: string) => void;
   onUpdateNode?: (updatedNode: ArchitectureNode) => void;
-  onRestoreAllNodes?: () => void;
+  onApplyScaledNodes?: (updatedNodes: ArchitectureNode[]) => void;
+  onDuplicateNode?: (node: ArchitectureNode) => void;
   scenarios?: ScenarioFixture[];
   currentScenarioId?: string;
   onSelectScenario?: (scenarioId: string) => void;
