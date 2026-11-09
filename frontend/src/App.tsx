@@ -2555,6 +2555,7 @@ export const App: React.FC = () => {
                 onNodesChangePosition={handleNodesPositionChange}
                 onDeleteNode={handleDeleteNode}
                 onUpdateNode={handleUpdateNode}
+                onApplyScaledNodes={handleApplyScaledNodes}
                 scenarios={scenarios}
                 currentScenarioId={currentScenarioId}
                 onSelectScenario={(id) => applyScenario(id)}
