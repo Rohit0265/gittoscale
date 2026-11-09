@@ -142,7 +142,8 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   onNodesChangePosition,
   onDeleteNode,
   onUpdateNode,
-  onRestoreAllNodes,
+  onApplyScaledNodes,
+  onDuplicateNode,
   scenarios,
   currentScenarioId,
   onSelectScenario,
@@ -176,6 +177,8 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -368) : 0;
   const topShiftX = isLargeScreen ? (isLeftCollapsed ? 14 : leftSidebarWidth + 14) : 14;
   const topCostRight = isLargeScreen ? (isRightCollapsed ? 14 : 384) : 14;
+
+  const [isCapacitySweeperOpen, setIsCapacitySweeperOpen] = useState(false);
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;

@@ -17,6 +17,9 @@ html
 <iframe src="https://gittoscale.tech/embed/:id" width="100%" height="450" />
 Tech bloggers, Substack writers, and engineering teams can embed live, interactive, draggable GitToScale diagrams into Notion docs, Medium articles, and GitHub READMEs.
 Impact: Massive organic inbound viral loop.
+
+
+<!-- //future plan if everything goes right -->
 3. AI Architect & Interactive Interview Mode
 
 System Design Mock Interview Prep Mode ("Grill Me")
