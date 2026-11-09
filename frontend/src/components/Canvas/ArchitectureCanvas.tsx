@@ -26,9 +26,7 @@ import {
   ScenarioFixture,
 } from '../../types';
 import { CloudCostHUD } from './CloudCostHUD';
-import { CapacitySweeperModal } from './CapacitySweeperModal';
 import {
-  TrendingUp,
   Plus,
   Minus,
   Copy,
@@ -48,7 +46,6 @@ interface ArchitectureCanvasProps {
   onNodesChangePosition: (updatedNodes: ArchitectureNode[]) => void;
   onDeleteNode?: (nodeId: string) => void;
   onUpdateNode?: (updatedNode: ArchitectureNode) => void;
-  onApplyScaledNodes?: (updatedNodes: ArchitectureNode[]) => void;
   onDuplicateNode?: (node: ArchitectureNode) => void;
   scenarios?: ScenarioFixture[];
   currentScenarioId?: string;
@@ -141,7 +138,6 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   onNodesChangePosition,
   onDeleteNode,
   onUpdateNode,
-  onApplyScaledNodes,
   onDuplicateNode,
   scenarios: _scenarios,
   currentScenarioId: _currentScenarioId,
@@ -174,10 +170,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
 
   const controlsShiftX = isLargeScreen ? (isLeftCollapsed ? 0 : leftSidebarWidth + 16) : 0;
   const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -368) : 0;
-  const topShiftX = isLargeScreen ? (isLeftCollapsed ? 14 : leftSidebarWidth + 14) : 14;
   const topCostRight = isLargeScreen ? (isRightCollapsed ? 14 : 384) : 14;
-
-  const [isCapacitySweeperOpen, setIsCapacitySweeperOpen] = useState(false);
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
