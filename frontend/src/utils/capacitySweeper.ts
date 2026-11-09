@@ -133,7 +133,7 @@ export function runCapacitySweep(
       }
 
       // Latency computation (M/M/1 queuing approximation: W = 1 / (mu - lambda))
-      const baseMs = Math.max(1, node.baselineLatencyMs);
+      const baseMs = Math.max(1, node.config.baselineLatencyMs || 5);
       let nodeLatencyMs = baseMs;
 
       if (util < 0.95) {
