@@ -251,7 +251,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   />
                 )
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-slate-200 to-slate-300 dark:from-neutral-900 dark:to-neutral-800" />
+                <div className="w-full h-full" style={{ background: defaultBannerBg }} />
               )}
 
               {/* Edit Banner Shortcut Button if Owner */}
@@ -271,15 +271,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <div className="p-6 sm:p-8 pt-0 flex flex-col sm:flex-row items-center sm:items-start gap-6">
               {/* Avatar Overlapping Banner */}
               <div className="shrink-0 -mt-12 sm:-mt-16 relative group">
-                {profile.avatar_url ? (
+                {effectiveAvatar ? (
                   <img
-                    src={profile.avatar_url}
+                    src={effectiveAvatar}
                     alt={profile.full_name}
                     className="w-24 sm:w-28 h-24 sm:h-28 rounded-full object-cover border-4 border-white dark:border-[#0A0A0A] shadow-lg"
                   />
                 ) : (
-                  <div className="w-24 sm:w-28 h-24 sm:h-28 rounded-full bg-indigo-600 text-white text-3xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-lg">
-                    {(profile.full_name || 'U')[0]}
+                  <div
+                    className="w-24 sm:w-28 h-24 sm:h-28 rounded-full text-white text-3xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-lg"
+                    style={{ background: getAvatarColor(profile.id || profile.full_name) }}
+                  >
+                    {getInitial(profile.full_name || profile.username)}
                   </div>
                 )}
 
@@ -465,6 +468,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           onClose={() => setIsEditModalOpen(false)}
           profile={profile}
           token={token}
+          accountAvatar={accountAvatar}
           onProfileUpdated={(updated) => {
             setProfile(updated);
           }}
