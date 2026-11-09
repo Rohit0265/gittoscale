@@ -253,24 +253,6 @@ export const CreatePost: React.FC<CreatePostProps> = ({
     >
       <form onSubmit={handleSubmit}>
         <div className="flex gap-3 items-start">
-          {/* User Avatar: Desktop only so small screen retains 100% input width */}
-          <div className="hidden sm:block shrink-0 pt-0.5">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={displayName}
-                className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-neutral-700"
-              />
-            ) : (
-              <div
-                className="w-9 h-9 rounded-full text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs"
-                style={{ background: getAvatarColor(user?.id || displayName) }}
-              >
-                {getInitial(displayName)}
-              </div>
-            )}
-          </div>
-
           <div className="flex-1 min-w-0">
             <RichPostInput
               value={content}
