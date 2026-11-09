@@ -390,6 +390,19 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 >
                   Change Image
                 </button>
+                {accountAvatar && avatarPreview !== accountAvatar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAvatarUrl(accountAvatar);
+                      setAvatarPreview(accountAvatar);
+                    }}
+                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    <span>Use Account Avatar</span>
+                  </button>
+                )}
                 {avatarPreview && (
                   <button
                     type="button"
