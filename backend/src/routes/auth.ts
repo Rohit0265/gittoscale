@@ -27,6 +27,14 @@ const mockUsers: Array<{ id: string; email: string; name: string; createdAt: str
  * Mock user authentication without database connection
  */
 router.post('/login', (req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_AUTH !== 'true') {
+    return res.status(403).json({
+      success: false,
+      error: 'Forbidden',
+      message: 'Passwordless mock authentication is disabled in production. Please sign in via Supabase Auth.',
+    });
+  }
+
   const { email } = req.body || {};
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -67,6 +75,14 @@ router.post('/login', (req: Request, res: Response) => {
  * Mock user registration without database connection
  */
 router.post('/signup', (req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_AUTH !== 'true') {
+    return res.status(403).json({
+      success: false,
+      error: 'Forbidden',
+      message: 'Passwordless mock registration is disabled in production. Please sign up via Supabase Auth.',
+    });
+  }
+
   const { name, email } = req.body || {};
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {

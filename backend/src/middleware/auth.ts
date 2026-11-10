@@ -35,35 +35,51 @@ export async function requireAuth(
   const token = authHeader.substring(7).trim();
   req.token = token;
 
+  const allowMockAuth =
+    process.env.NODE_ENV !== 'production' || process.env.ENABLE_MOCK_AUTH === 'true';
+
   // Handle mock tokens if Supabase is not configured or mock token used
-  if (token.startsWith('mock_jwt_') || !isServerSupabaseConfigured) {
+  if (token.startsWith('mock_jwt_')) {
+    if (!allowMockAuth) {
+      res.status(401).json({
+        success: false,
+        error: 'Unauthorized',
+        message: 'Mock authentication tokens are disabled in production.',
+      });
+      return;
+    }
     try {
-      if (token.startsWith('mock_jwt_')) {
-        const payloadBase64 = token.replace('mock_jwt_', '');
-        const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
-        req.user = {
-          id: payload.id || 'usr_mock',
-          email: payload.email || 'mock@gittoscale.tech',
-          fullName: payload.name || payload.email?.split('@')[0] || 'GitToScale User',
-          avatarUrl: payload.avatar_url || payload.picture || payload.avatar || undefined,
-        };
-      } else {
-        // Fallback user for dev when no credentials supplied
-        req.user = {
-          id: 'usr_dev_default',
-          email: 'developer@gittoscale.tech',
-          fullName: 'Local Developer',
-          avatarUrl: undefined,
-        };
-      }
+      const payloadBase64 = token.replace('mock_jwt_', '');
+      const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+      req.user = {
+        id: payload.id || 'usr_mock',
+        email: payload.email || 'mock@gittoscale.tech',
+        fullName: payload.name || payload.email?.split('@')[0] || 'GitToScale User',
+        avatarUrl: payload.avatar_url || payload.picture || payload.avatar || undefined,
+      };
       next();
       return;
     } catch {
-      // If parsing failed, fall through to Supabase check
+      res.status(401).json({
+        success: false,
+        error: 'Unauthorized',
+        message: 'Malformed authentication token.',
+      });
+      return;
     }
   }
 
   if (!isServerSupabaseConfigured) {
+    if (allowMockAuth) {
+      req.user = {
+        id: 'usr_dev_default',
+        email: 'developer@gittoscale.tech',
+        fullName: 'Local Developer',
+        avatarUrl: undefined,
+      };
+      next();
+      return;
+    }
     res.status(401).json({
       success: false,
       error: 'Unauthorized',
