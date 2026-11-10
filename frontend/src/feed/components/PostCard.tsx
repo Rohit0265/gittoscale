@@ -41,7 +41,45 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClamped, setIsClamped] = useState(false);
+  const [viewsCount, setViewsCount] = useState<number>(post.views_count ?? 0);
   const contentRef = useRef<HTMLDivElement>(null);
+  const articleRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    setViewsCount(post.views_count ?? 0);
+  }, [post.views_count]);
+
+  useEffect(() => {
+    if (!post.id || viewedInSession.has(post.id)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !viewedInSession.has(post.id)) {
+            viewedInSession.add(post.id);
+            feedApi
+              .recordView(post.id)
+              .then((newTotal) => {
+                if (typeof newTotal === 'number' && newTotal > 0) {
+                  setViewsCount(newTotal);
+                } else {
+                  setViewsCount((prev) => prev + 1);
+                }
+              })
+              .catch(() => {});
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    if (articleRef.current) {
+      observer.observe(articleRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [post.id]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -81,7 +119,10 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   return (
     <>
-      <article className={`w-full rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-transparent p-4 sm:p-5 shadow-none mb-4 transition-all duration-200 ${isDeleting ? 'opacity-40 pointer-events-none' : ''}`}>
+      <article
+        ref={articleRef}
+        className={`w-full rounded-xl border border-slate-200/80 dark:border-neutral-800/80 bg-transparent p-4 sm:p-5 shadow-none mb-4 transition-all duration-200 ${isDeleting ? 'opacity-40 pointer-events-none' : ''}`}
+      >
         {/* Post Header */}
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 min-w-0">
