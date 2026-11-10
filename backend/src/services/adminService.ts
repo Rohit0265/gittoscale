@@ -392,7 +392,8 @@ export async function getAdminUserPosts(targetUserId: string): Promise<FeedPost[
         COALESCE(pr.username, 'user') as author_username,
         pr.avatar_url as author_avatar,
         COALESCE(l.like_count, 0)::int as like_count,
-        COALESCE(c.comment_count, 0)::int as comment_count
+        COALESCE(c.comment_count, 0)::int as comment_count,
+        COALESCE(p.views_count, 0)::int as views_count
       FROM public.feed_posts p
       LEFT JOIN public.profiles pr ON pr.id::text = p.user_id::text
       LEFT JOIN (
@@ -444,6 +445,7 @@ export async function getAdminUserPosts(targetUserId: string): Promise<FeedPost[
           },
           like_count: Number(r.like_count) || 0,
           comment_count: Number(r.comment_count) || 0,
+          views_count: Number(r.views_count) || 0,
         };
       });
     }

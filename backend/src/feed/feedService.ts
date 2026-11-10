@@ -783,6 +783,36 @@ export async function toggleFeedBookmark(postId: string, userId: string): Promis
 }
 
 /**
+ * Increment view count for a post.
+ */
+export async function incrementPostView(postId: string): Promise<number> {
+  try {
+    const db = getSql();
+    const rows = await db`
+      UPDATE public.feed_posts
+      SET views_count = COALESCE(views_count, 0) + 1
+      WHERE id = ${postId}
+      RETURNING COALESCE(views_count, 0)::int as views_count;
+    `;
+    if (rows && rows.length > 0) {
+      return Number(rows[0].views_count) || 1;
+    }
+  } catch (err: any) {
+    if (!isDbConnectionError(err)) {
+      console.warn('[feedService] incrementPostView error:', err?.message || err);
+    }
+  }
+
+  // In-memory fallback
+  const found = inMemPosts.find((p) => p.id === postId);
+  if (found) {
+    found.views_count = (found.views_count || 0) + 1;
+    return found.views_count;
+  }
+  return 1;
+}
+
+/**
  * Get comments for a post.
  */
 export async function getPostComments(postId: string): Promise<FeedComment[]> {
