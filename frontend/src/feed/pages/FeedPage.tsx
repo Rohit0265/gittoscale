@@ -49,7 +49,6 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     setFilter,
     refreshPosts,
     createPost,
-    updatePost,
     deletePost,
     toggleLike,
     toggleDislike,

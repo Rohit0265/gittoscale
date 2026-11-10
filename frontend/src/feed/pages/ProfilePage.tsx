@@ -186,12 +186,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     }
   };
 
-  const handleUpdatePost = async (postId: string, newContent: string) => {
-    if (!token) return;
-    const updated = await feedApi.updatePost(postId, newContent, token);
-    setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
-  };
-
   const handleDeletePost = async (postId: string) => {
     if (!token) return;
     await feedApi.deletePost(postId, token);
@@ -410,7 +404,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   onDislike={handlePostDislike}
                   onBookmark={handlePostBookmark}
                   onOpenComments={(p) => setSelectedPostForComments(p)}
-                  onUpdatePost={handleUpdatePost}
                   onDeletePost={handleDeletePost}
                   onNavigateToProfile={onNavigateToProfile}
                   onToggleFollow={toggleFollow}

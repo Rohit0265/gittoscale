@@ -20,7 +20,6 @@ interface PostCardProps {
   onDislike?: (postId: string) => void;
   onBookmark?: (postId: string) => void;
   onOpenComments: (post: FeedPost) => void;
-  onUpdatePost?: (postId: string, newContent: string) => Promise<any>;
   onDeletePost: (postId: string) => Promise<any>;
   onNavigateToProfile: (userId: string) => void;
   onToggleFollow?: (targetUserId: string) => Promise<any>;
