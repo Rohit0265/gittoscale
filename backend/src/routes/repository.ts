@@ -48,6 +48,41 @@ router.post('/analyze', async (req: Request, res: Response) => {
       });
     }
 
+    if (llmConfig?.baseUrl) {
+      const urlCheck = validateSafeLlmBaseUrl(llmConfig.baseUrl);
+      if (!urlCheck.safe) {
+        return res.status(400).json({
+          error: 'Invalid LLM Base URL',
+          message: urlCheck.error || 'Blocked untrusted LLM base URL',
+        });
+      }
+    }
+
+    let targetPath = process.cwd();
+    if (localPath) {
+      const resolvedPath = path.resolve(localPath);
+      const cwd = path.resolve(process.cwd());
+      const tempDir = path.resolve(os.tmpdir());
+
+      const isInsideCwd = resolvedPath.startsWith(cwd);
+      const isInsideTemp = resolvedPath.startsWith(tempDir);
+
+      if (process.env.NODE_ENV === 'production' && !isInsideCwd) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Access to the specified local path is not permitted in production.',
+        });
+      }
+
+      if (!isInsideCwd && !isInsideTemp) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Access to system directories outside the workspace is forbidden.',
+        });
+      }
+      targetPath = resolvedPath;
+    }
+
     const ANALYZER_VERSION = 'v3.2';
 
     // 1. Build Static Inventory (either local directory or GitHub repository tree)
@@ -57,7 +92,6 @@ router.post('/analyze', async (req: Request, res: Response) => {
       const { buildGitHubRepositoryInventory } = await import('../services/githubScanner.js');
       inventory = await buildGitHubRepositoryInventory(repoUrl, githubToken);
     } else {
-      const targetPath = localPath || process.cwd();
       inventory = buildStaticRepositoryInventory(targetPath);
     }
     scanSpan?.end({ fileCount: inventory.analyzedFiles?.length });
