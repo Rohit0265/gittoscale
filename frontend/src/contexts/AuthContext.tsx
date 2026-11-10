@@ -474,6 +474,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(newSession);
         setUser(newSession?.user || null);
         if (newSession?.user) {
+          const authUser = newSession.user;
+          // Notify signup service (idempotent, guarantees alerts for OAuth redirects / magic links)
+          if (_event === 'SIGNED_IN' && authUser.email) {
+            api.notifySignup({
+              name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0],
+              email: authUser.email,
+              userId: authUser.id,
+              avatarUrl: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture,
+              provider: authUser.app_metadata?.provider || 'OAuth / SSO',
+              createdAt: authUser.created_at,
+            });
+          }
+
           await loadProfile(
             newSession.user.id,
             newSession.user.email || '',
