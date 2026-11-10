@@ -83,6 +83,9 @@ const FeedPage = React.lazy(() =>
 const ProfilePage = React.lazy(() =>
   import('./feed/pages/ProfilePage').then((m) => ({ default: m.ProfilePage }))
 );
+const AdminPage = React.lazy(() =>
+  import('./components/admin/AdminPage').then((m) => ({ default: m.AdminPage }))
+);
 
 import {
   AppWorkspaceSkeleton,
@@ -178,13 +181,15 @@ export type AppView =
   | 'not-found'
   | 'unverified'
   | 'feed'
-  | 'feed-profile';
+  | 'feed-profile'
+  | 'admin';
 
 const isValidAppPath = (path: string): boolean => {
   if (path === '/' || path === '') return true;
   if (path === '/app' || path.startsWith('/app/')) return true;
   if (path === '/feed' || path.startsWith('/feed')) return true;
   if (path === '/profile' || path.startsWith('/profile')) return true;
+  if (path === '/admin' || path.startsWith('/admin')) return true;
   if (path === '/signup' || path === '/signin' || path === '/forgot-password') return true;
   if (path.startsWith('/auth')) return true;
   if (path === '/history') return true;
