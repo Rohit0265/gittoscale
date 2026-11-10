@@ -33,7 +33,7 @@ export const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) 
       )}
     >
       <div className="size-full rounded-[10px] bg-white dark:bg-[#0A0A0C] p-0.5 md:rounded-[14px] md:p-1">
-        <div className="relative size-full overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80">
+        <div className="relative size-full overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80 bg-[#090909]">
           {props.children}
         </div>
       </div>
@@ -113,23 +113,12 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
 
           <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
             <AlternateImageMockup className="lg:left-0">
-              {/* Light mode image (hidden in dark mode) */}
               <img
-                alt="Dashboard mockup showing application interface"
-                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-light-01.webp"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/demo-detailed.png';
-                }}
-                className="size-full object-contain lg:w-auto lg:max-w-none dark:hidden"
-              />
-              {/* Dark mode image (hidden in light mode) */}
-              <img
-                alt="Dashboard mockup showing application interface"
-                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/demo-detailed.png';
-                }}
-                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
+                alt="Community feed posts showing shared system architectures and interactive topologies"
+                src="/feed-explore-designs.png"
+                width={1024}
+                height={491}
+                className="size-full object-contain lg:w-auto lg:max-w-none"
               />
             </AlternateImageMockup>
           </div>
@@ -157,23 +146,12 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
 
           <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
             <AlternateImageMockup className="lg:right-0">
-              {/* Light mode image (hidden in dark mode) */}
               <img
-                alt="Dashboard mockup showing application interface"
-                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-light-01.webp"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/demo-basic.png';
-                }}
-                className="size-full object-contain lg:w-auto lg:max-w-none dark:hidden"
-              />
-              {/* Dark mode image (hidden in light mode) */}
-              <img
-                alt="Dashboard mockup showing application interface"
-                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/demo-basic.png';
-                }}
-                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
+                alt="Publish architecture designs and repository projects to the feed"
+                src="/feed-share-design.png"
+                width={1024}
+                height={491}
+                className="size-full object-contain lg:w-auto lg:max-w-none"
               />
             </AlternateImageMockup>
           </div>
