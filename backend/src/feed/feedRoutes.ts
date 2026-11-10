@@ -7,6 +7,7 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
 import { uploadToR2 } from '../services/r2Service.js';
 import { compressImage, processAndValidateVideo } from '../services/mediaCompressionService.js';
+import { isUserSuspended } from '../services/adminService.js';
 import {
   getFeedPosts,
   getPostById,
@@ -173,6 +174,18 @@ router.get('/posts', optionalAuth, async (req: AuthenticatedRequest, res: Respon
 router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
+
+    // Check account suspension status
+    const suspension = await isUserSuspended(userId);
+    if (suspension.suspended) {
+      res.status(403).json({
+        success: false,
+        error: 'ACCOUNT_SUSPENDED',
+        message: `Your account is suspended: ${suspension.reason || 'Community guidelines violation'}. You cannot publish new posts.`,
+      });
+      return;
+    }
+
     const { content, mediaUrl, mediaType, mediaItems } = req.body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
