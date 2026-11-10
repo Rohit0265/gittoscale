@@ -9,7 +9,6 @@ import {
   Trash2,
   Search,
   X,
-  ExternalLink,
   MessageSquare,
   Heart,
   Calendar,
