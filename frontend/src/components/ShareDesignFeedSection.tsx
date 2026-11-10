@@ -1,67 +1,39 @@
 import React, { FC, HTMLAttributes } from 'react';
-import {
-  MessageSquare,
-  Zap,
-  Check,
-  ArrowRight,
-} from 'lucide-react';
-import { cn, cn as cx } from '../lib/utils';
+import { ArrowRight } from 'lucide-react';
+import { cn } from '../lib/utils';
 
-export interface FeaturedIconProps {
-  icon: React.ComponentType<{ className?: string }>;
-  size?: 'sm' | 'md' | 'lg';
-  color?: string;
-  theme?: string;
-  className?: string;
-}
-
-export const FeaturedIcon: FC<FeaturedIconProps> = ({
-  icon: Icon,
-  className,
-}) => {
-  return (
-    <div
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 shadow-xs',
-        className,
-      )}
-    >
-      <Icon className="h-6 w-6 stroke-[2]" />
-    </div>
-  );
-};
-
-export interface CheckItemTextProps {
+export interface ListItemTextProps {
   text: string;
-  size?: string;
-  iconStyle?: string;
-  color?: string;
   className?: string;
 }
 
-export const CheckItemText: FC<CheckItemTextProps> = ({ text, className }) => {
+export const ListItemText: FC<ListItemTextProps> = ({ text, className }) => {
   return (
-    <li className={cn('flex items-start gap-3', className)}>
-      <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
-        <Check className="h-3.5 w-3.5 stroke-[2.5]" />
-      </div>
-      <span className="text-base text-slate-700 dark:text-neutral-300 leading-snug">
+    <li className={cn('flex items-start gap-3.5', className)}>
+      <span
+        className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400 dark:bg-neutral-500"
+        aria-hidden="true"
+      />
+      <span className="text-base text-slate-600 dark:text-neutral-300 leading-relaxed">
         {text}
       </span>
     </li>
   );
 };
 
+// Backward compatibility alias
+export const CheckItemText = ListItemText;
+
 export const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
   return (
     <div
-      className={cx(
-        'size-full rounded-[9.03px] bg-white dark:bg-neutral-900 p-[0.9px] shadow-2xl ring-[0.56px] ring-slate-300 dark:ring-neutral-700 ring-inset md:rounded-[20.08px] md:p-0.5 md:ring-[1.25px] lg:absolute lg:w-auto lg:max-w-none',
+      className={cn(
+        'size-full rounded-xl bg-slate-100 dark:bg-neutral-900 p-1 shadow-xl ring-1 ring-slate-200/80 dark:ring-neutral-800 md:rounded-2xl md:p-1.5 lg:absolute lg:w-auto lg:max-w-none transition-colors',
         props.className,
       )}
     >
-      <div className="size-full rounded-[7.9px] bg-white dark:bg-neutral-900 p-0.5 shadow-inner md:rounded-[17.57px] md:p-[3.5px]">
-        <div className="relative size-full overflow-hidden rounded-[6.77px] ring-[0.56px] ring-slate-200 dark:ring-neutral-800 md:rounded-[15.06px] md:ring-[1.25px]">
+      <div className="size-full rounded-[10px] bg-white dark:bg-[#0A0A0C] p-0.5 md:rounded-[14px] md:p-1">
+        <div className="relative size-full overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80">
           {props.children}
         </div>
       </div>
@@ -92,17 +64,14 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
   return (
     <section
       id="community-feed"
-      className="flex flex-col gap-12 overflow-hidden bg-white dark:bg-[#090B10] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24 border-t border-slate-200 dark:border-neutral-800 transition-colors"
+      className="flex flex-col gap-12 overflow-hidden bg-white dark:bg-[#020202] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24 border-t border-slate-200/80 dark:border-neutral-800/80 transition-colors"
     >
       <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
         <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
-          <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 md:text-base">
-            Community Feed
-          </span>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
             Share your design to others
           </h2>
-          <p className="mt-4 text-base text-slate-600 dark:text-neutral-400 md:mt-5 md:text-xl leading-relaxed">
+          <p className="mt-4 text-base text-slate-600 dark:text-neutral-400 sm:text-lg md:text-xl leading-relaxed max-w-2xl">
             See what other engineers are building, explore battle-tested system architectures, and publish your own designs to collaborate with the community.
           </p>
         </div>
@@ -112,31 +81,32 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
         {/* Feature 1: See others' designs and what they are building */}
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center">
-            <FeaturedIcon icon={MessageSquare} size="lg" color="brand" theme="light" />
-            <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
               See others' designs and what they are building
             </h2>
-            <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
+            <p className="mt-3 text-base text-slate-600 dark:text-neutral-400 sm:text-lg leading-relaxed">
               Explore real-world distributed architectures published by engineers worldwide. Gain direct visibility into how teams configure microservices, load balancers, message queues, and caching layers.
             </p>
-            <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
+            <ul className="mt-8 flex flex-col gap-3.5">
               {[
                 'Inspect production topologies, cloud setups, and microservice flows',
                 'Learn from real capacity benchmarks, P99 latencies, and post-mortems',
                 'Fork community blueprints directly into your simulation canvas in one click',
               ].map((feat) => (
-                <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
+                <ListItemText key={feat} text={feat} />
               ))}
             </ul>
 
-            <div className="mt-8 pt-4">
+            <div className="mt-8 pt-2">
               <button
                 type="button"
                 onClick={handleOpenFeed}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors cursor-pointer group"
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-white hover:text-slate-600 dark:hover:text-neutral-300 transition-colors group cursor-pointer"
               >
-                <span>Explore Community Feed & Posts</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <span className="underline underline-offset-4 decoration-slate-300 dark:decoration-neutral-700 group-hover:decoration-slate-900 dark:group-hover:decoration-white transition-colors">
+                  Explore Community Feed & Posts
+                </span>
+                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-slate-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
               </button>
             </div>
           </div>
@@ -165,23 +135,22 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
           </div>
         </div>
 
-        {/* Feature 2: Publish your architectures & get peer feedback */}
+        {/* Feature 2: Share your design and projects too */}
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center lg:order-last">
-            <FeaturedIcon icon={Zap} size="lg" color="brand" theme="light" />
-            <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
               Now you can even share your design and projects too
             </h2>
-            <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
+            <p className="mt-3 text-base text-slate-600 dark:text-neutral-400 sm:text-lg leading-relaxed">
               Seamlessly share your verified architecture blueprints, live simulation topologies, and full imported repository projects with colleagues or the engineering community.
             </p>
-            <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
+            <ul className="mt-8 flex flex-col gap-3.5">
               {[
                 'Share complete architecture designs with interactive node topologies',
                 'Publish imported repository projects, service dependencies, and bottlenecks',
                 'Collaborate on scaling solutions, trade-off analyses, and capacity benchmarks',
               ].map((feat) => (
-                <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
+                <ListItemText key={feat} text={feat} />
               ))}
             </ul>
           </div>
