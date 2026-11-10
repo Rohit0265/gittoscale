@@ -26,6 +26,12 @@ export default {
         lora: ['Lora', 'Georgia', 'serif'],
         heading: ['Lora', 'Georgia', 'serif'],
       },
+      maxWidth: {
+        container: '80rem',
+      },
+      spacing: {
+        128: '32rem',
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

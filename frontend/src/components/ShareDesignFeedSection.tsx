@@ -1,293 +1,258 @@
-import React, { useState } from 'react';
+import React, { FC, HTMLAttributes } from 'react';
 import {
-  ThumbsUp,
   MessageSquare,
-  Share2,
-  ArrowRight,
-  GitFork,
+  Zap,
+  BarChart3,
   Check,
+  ArrowRight,
 } from 'lucide-react';
+import { cn, cn as cx } from '../lib/utils';
 
-interface ShareDesignFeedSectionProps {
+export interface FeaturedIconProps {
+  icon: React.ComponentType<{ className?: string }>;
+  size?: 'sm' | 'md' | 'lg';
+  color?: string;
+  theme?: string;
+  className?: string;
+}
+
+export const FeaturedIcon: FC<FeaturedIconProps> = ({
+  icon: Icon,
+  className,
+}) => {
+  return (
+    <div
+      className={cn(
+        'flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 shadow-xs',
+        className,
+      )}
+    >
+      <Icon className="h-6 w-6 stroke-[2]" />
+    </div>
+  );
+};
+
+export interface CheckItemTextProps {
+  text: string;
+  size?: string;
+  iconStyle?: string;
+  color?: string;
+  className?: string;
+}
+
+export const CheckItemText: FC<CheckItemTextProps> = ({ text, className }) => {
+  return (
+    <li className={cn('flex items-start gap-3', className)}>
+      <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+        <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+      </div>
+      <span className="text-base text-slate-700 dark:text-neutral-300 leading-snug">
+        {text}
+      </span>
+    </li>
+  );
+};
+
+export const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
+  return (
+    <div
+      className={cx(
+        'size-full rounded-[9.03px] bg-white dark:bg-neutral-900 p-[0.9px] shadow-2xl ring-[0.56px] ring-slate-300 dark:ring-neutral-700 ring-inset md:rounded-[20.08px] md:p-0.5 md:ring-[1.25px] lg:absolute lg:w-auto lg:max-w-none',
+        props.className,
+      )}
+    >
+      <div className="size-full rounded-[7.9px] bg-white dark:bg-neutral-900 p-0.5 shadow-inner md:rounded-[17.57px] md:p-[3.5px]">
+        <div className="relative size-full overflow-hidden rounded-[6.77px] ring-[0.56px] ring-slate-200 dark:ring-neutral-800 md:rounded-[15.06px] md:ring-[1.25px]">
+          {props.children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export interface FeaturesAlternatingLayout01Props {
   onNavigate?: (route: string) => void;
   onSelectTestSite?: () => void;
   isDark?: boolean;
 }
 
-const SHOWCASE_ITEMS = [
-  {
-    id: 'post-1',
-    author: { name: 'David K.', handle: '@david_cloud', initials: 'DK' },
-    timeAgo: '2h ago',
-    title: 'Scaled payment ledger to 65,000 req/s peak burst load with zero queue drops.',
-    summary: 'Write-behind Redis cache paired with partitioned Kafka stream. Eliminated database write-lock contention under 5x spike.',
-    nodes: ['Envoy Gateway', 'Redis Cache', 'Kafka Stream', 'Postgres Master'],
-    metrics: [
-      { label: 'Throughput', value: '65,400 req/s' },
-      { label: 'P99 Latency', value: '14.2 ms' },
-      { label: 'Queue Drops', value: '0.00%' },
-    ],
-    likes: 342,
-    comments: 42,
-    forks: 118,
-  },
-  {
-    id: 'post-2',
-    author: { name: 'Marcus V.', handle: '@marcus_arch', initials: 'MV' },
-    timeAgo: '5h ago',
-    title: 'Diagnosed Kafka consumer lag collapse under 120k req/s stress test.',
-    summary: 'Re-partitioned topics from 16 to 64 with priority backpressure shedding. Recovered consumer lag within 48 seconds.',
-    nodes: ['Ingress API', 'Kafka 64-Partitions', '32 Worker Pods', 'Event Store'],
-    metrics: [
-      { label: 'Peak Ingress', value: '120,000 req/s' },
-      { label: 'Recovery', value: '48 sec' },
-      { label: 'Buffer Headroom', value: '82%' },
-    ],
-    likes: 289,
-    comments: 38,
-    forks: 94,
-  },
-  {
-    id: 'post-3',
-    author: { name: 'Sophia C.', handle: '@sophia_core', initials: 'SC' },
-    timeAgo: 'Yesterday',
-    title: 'Zero-downtime database sharding across 4 regional read-replicas.',
-    summary: 'Modeled cross-region latency and consistency boundaries. Replicas absorbed 88% of analytical query pressure.',
-    nodes: ['Anycast DNS', 'Primary DB', 'US-East Replica', 'EU-West Replica'],
-    metrics: [
-      { label: 'Replica Offload', value: '88.4%' },
-      { label: 'Primary DB CPU', value: '18% util' },
-      { label: 'Replication Lag', value: '28 ms' },
-    ],
-    likes: 415,
-    comments: 56,
-    forks: 167,
-  },
-];
-
-export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
-  onNavigate: _onNavigate,
+export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> = ({
+  onNavigate,
   onSelectTestSite: _onSelectTestSite,
-  isDark: _isDark = true,
+  isDark: _isDark,
 }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [liked, setLiked] = useState(false);
-  const [forked, setForked] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const current = SHOWCASE_ITEMS[activeIndex];
-
-  const handleSelect = (idx: number) => {
-    setActiveIndex(idx);
-    setLiked(false);
-    setForked(false);
-  };
-
-  const handleShare = () => {
-    navigator.clipboard?.writeText(window.location.origin + '/feed#' + current.id).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const handleOpenFeed = () => {
-    window.open('/feed', '_blank', 'noopener,noreferrer');
+    if (onNavigate) {
+      onNavigate('feed');
+    } else {
+      window.history.pushState({}, '', '/feed');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
   };
 
   return (
     <section
       id="community-feed"
-      className="relative px-4 sm:px-8 lg:px-12 py-12 sm:py-16 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black transition-colors"
+      className="flex flex-col gap-12 overflow-hidden bg-white dark:bg-[#090B10] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24 border-t border-slate-200 dark:border-neutral-800 transition-colors"
     >
-      {/* Subtle monochrome animation keyframe */}
-      <style>{`
-        @keyframes monoPacketFlow {
-          0% { stroke-dashoffset: 40; }
-          100% { stroke-dashoffset: 0; }
-        }
-        .anim-mono-flow {
-          stroke-dasharray: 4 4;
-          animation: monoPacketFlow 1.6s linear infinite;
-        }
-      `}</style>
+      <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
+        <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
+          <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 md:text-base">
+            Features
+          </span>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
+            Beautiful analytics to grow smarter
+          </h2>
+          <p className="mt-4 text-base text-slate-600 dark:text-neutral-400 md:mt-5 md:text-xl leading-relaxed">
+            Powerful, self-serve product and growth analytics to help you convert, engage, and retain more users. Trusted by over 4,000 startups.
+          </p>
+        </div>
+      </div>
 
-      <div className="mx-auto w-full max-w-5xl">
-        {/* Compact Header: Simple & Impactful */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-neutral-100">
-              Share your design with others.
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 sm:gap-16 md:gap-20 md:px-8 lg:gap-24">
+        {/* Feature 1: Share team inboxes */}
+        <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
+          <div className="max-w-xl flex-1 self-center">
+            <FeaturedIcon icon={MessageSquare} size="lg" color="brand" theme="light" />
+            <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+              Share team inboxes
             </h2>
-            <p className="mt-1.5 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-lg leading-relaxed">
-              Publish verified architectures, capacity benchmarks, and post-mortems to the community feed. Fork, review, and stress-test topologies together.
+            <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
+              Whether you have a team of 2 or 200, our shared team inboxes keep everyone on the same page and in the loop.
             </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleOpenFeed}
-            className="self-start sm:self-auto flex items-center gap-1.5 text-xs font-semibold text-neutral-900 dark:text-neutral-100 hover:opacity-70 transition-opacity cursor-pointer whitespace-nowrap"
-          >
-            <span>Explore Community Feed</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Compact Selector Tabs */}
-        <div className="flex items-center gap-1.5 mb-3 overflow-x-auto scrollbar-none pb-1">
-          {SHOWCASE_ITEMS.map((item, idx) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => handleSelect(idx)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                idx === activeIndex
-                  ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-950 font-semibold'
-                  : 'bg-neutral-100 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200'
-              }`}
-            >
-              {item.nodes[1]}
-            </button>
-          ))}
-        </div>
-
-        {/* The Card: Monochrome, High-Impact, Minimal Height */}
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 p-4 sm:p-5">
-          {/* Author Header */}
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-neutral-900 dark:bg-neutral-800 text-white dark:text-neutral-100 font-mono text-xs font-bold flex items-center justify-center">
-                {current.author.initials}
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
-                  {current.author.name}
-                </span>
-                <span className="text-[11px] font-mono text-neutral-500">
-                  {current.author.handle} · {current.timeAgo}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setForked((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
-                forked
-                  ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-neutral-100 dark:text-neutral-950 dark:border-neutral-100'
-                  : 'border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900'
-              }`}
-            >
-              <GitFork className="w-3 h-3" />
-              <span>{forked ? 'Forked' : 'Fork Topology'}</span>
-              <span className="text-[10px] font-mono opacity-70">({current.forks + (forked ? 1 : 0)})</span>
-            </button>
-          </div>
-
-          {/* Title & Short Summary */}
-          <div className="space-y-1 mb-3">
-            <h3 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-100 leading-snug">
-              {current.title}
-            </h3>
-            <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              {current.summary}
-            </p>
-          </div>
-
-          {/* Compact Monochrome Animated Architecture Flow */}
-          <div className="rounded-lg border border-neutral-200 dark:border-neutral-800/80 bg-white dark:bg-black p-3 mb-3">
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 mb-2">
-              <span>LIVE TOPOLOGY STREAM</span>
-              <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-neutral-500 animate-pulse" />
-                <span>60 FPS</span>
-              </span>
-            </div>
-
-            {/* Visual Vector Flow: 4 nodes + animated connecting line */}
-            <div className="relative py-1">
-              <svg className="w-full h-8" preserveAspectRatio="none" viewBox="0 0 400 32">
-                <line
-                  x1="20"
-                  y1="16"
-                  x2="380"
-                  y2="16"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="text-neutral-200 dark:text-neutral-800"
-                />
-                <line
-                  x1="20"
-                  y1="16"
-                  x2="380"
-                  y2="16"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="text-neutral-700 dark:text-neutral-300 anim-mono-flow"
-                />
-              </svg>
-
-              <div className="absolute inset-0 flex items-center justify-between px-2">
-                {current.nodes.map((node) => (
-                  <div key={node} className="flex flex-col items-center">
-                    <span className="px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-[10px] sm:text-[11px] font-mono font-medium text-neutral-900 dark:text-neutral-200">
-                      {node}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Metrics & Social Action Row */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-neutral-200 dark:border-neutral-800/80">
-            {/* Metrics */}
-            <div className="flex items-center gap-3 sm:gap-5">
-              {current.metrics.map((m) => (
-                <div key={m.label} className="text-left">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 block">
-                    {m.label}
-                  </span>
-                  <span className="text-xs sm:text-sm font-bold font-mono text-neutral-900 dark:text-neutral-100">
-                    {m.value}
-                  </span>
-                </div>
+            <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
+              {[
+                'Leverage automation to move fast',
+                'Always give customers a human to chat to',
+                'Automate customer support and close leads faster',
+              ].map((feat) => (
+                <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
               ))}
-            </div>
+            </ul>
 
-            {/* Social Actions */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setLiked((prev) => !prev)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                  liked
-                    ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-950 font-semibold'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900'
-                }`}
-              >
-                <ThumbsUp className={`w-3 h-3 ${liked ? 'fill-current' : ''}`} />
-                <span>{current.likes + (liked ? 1 : 0)}</span>
-              </button>
-
+            <div className="mt-8 pt-4">
               <button
                 type="button"
                 onClick={handleOpenFeed}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors cursor-pointer group"
               >
-                <MessageSquare className="w-3 h-3" />
-                <span>{current.comments}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleShare}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
-                title="Copy link"
-              >
-                {copied ? <Check className="w-3 h-3" /> : <Share2 className="w-3 h-3" />}
-                <span>{copied ? 'Copied' : 'Share'}</span>
+                <span>Explore Community Posts & Designs</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
+          </div>
+
+          <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
+            <AlternateImageMockup className="lg:left-0">
+              {/* Light mode image (hidden in dark mode) */}
+              <img
+                alt="Dashboard mockup showing application interface"
+                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-light-01.webp"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/demo-detailed.png';
+                }}
+                className="size-full object-contain lg:w-auto lg:max-w-none dark:hidden"
+              />
+              {/* Dark mode image (hidden in light mode) */}
+              <img
+                alt="Dashboard mockup showing application interface"
+                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/demo-detailed.png';
+                }}
+                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
+              />
+            </AlternateImageMockup>
+          </div>
+        </div>
+
+        {/* Feature 2: Deliver instant answers (Reversed: Image Left, Text Right) */}
+        <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
+          <div className="max-w-xl flex-1 self-center lg:order-last">
+            <FeaturedIcon icon={Zap} size="lg" color="brand" theme="light" />
+            <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+              Deliver instant answers
+            </h2>
+            <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
+              An all-in-one customer service platform that helps you balance everything your customers need to be happy.
+            </p>
+            <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
+              {[
+                'Keep your customers in the loop with live chat',
+                'Embed help articles right on your website',
+                'Customers never have to leave the page to find an answer',
+              ].map((feat) => (
+                <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
+              ))}
+            </ul>
+          </div>
+
+          <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
+            <AlternateImageMockup className="lg:right-0">
+              {/* Light mode image (hidden in dark mode) */}
+              <img
+                alt="Dashboard mockup showing application interface"
+                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-light-01.webp"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/demo-basic.png';
+                }}
+                className="size-full object-contain lg:w-auto lg:max-w-none dark:hidden"
+              />
+              {/* Dark mode image (hidden in light mode) */}
+              <img
+                alt="Dashboard mockup showing application interface"
+                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/demo-basic.png';
+                }}
+                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
+              />
+            </AlternateImageMockup>
+          </div>
+        </div>
+
+        {/* Feature 3: Manage your team with reports */}
+        <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
+          <div className="max-w-xl flex-1 self-center">
+            <FeaturedIcon icon={BarChart3} size="lg" color="brand" theme="light" />
+            <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+              Manage your team with reports
+            </h2>
+            <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
+              Measure what matters with Untitled's easy-to-use reports. You can filter, export, and drilldown on the data in a couple clicks.
+            </p>
+            <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
+              {[
+                'Filter, export, and drilldown on the data quickly',
+                'Save, schedule, and automate reports to your inbox',
+                'Connect the tools you already use with 100+ integrations',
+              ].map((feat) => (
+                <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
+              ))}
+            </ul>
+          </div>
+
+          <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
+            <AlternateImageMockup className="lg:left-0">
+              {/* Light mode image (hidden in dark mode) */}
+              <img
+                alt="Dashboard mockup showing application interface"
+                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-light-01.webp"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/demo-import.png';
+                }}
+                className="size-full object-contain lg:w-auto lg:max-w-none dark:hidden"
+              />
+              {/* Dark mode image (hidden in light mode) */}
+              <img
+                alt="Dashboard mockup showing application interface"
+                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/demo-import.png';
+                }}
+                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
+              />
+            </AlternateImageMockup>
           </div>
         </div>
       </div>
@@ -295,4 +260,6 @@ export const ShareDesignFeedSection: React.FC<ShareDesignFeedSectionProps> = ({
   );
 };
 
-export default ShareDesignFeedSection;
+// Aliased exports for flexible usage across LandingPage
+export const ShareDesignFeedSection = FeaturesAlternatingLayout01;
+export default FeaturesAlternatingLayout01;

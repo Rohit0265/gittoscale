@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, UserPlus, Shield } from 'lucide-react';
+import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, UserPlus } from 'lucide-react';
 import { UserProfileFeed } from '../feed/types';
 import { feedApi } from '../feed/services/feedApi';
 import { extractAccountAvatar } from '../feed/utils/avatarUtils';
@@ -225,16 +225,6 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
   const postsCount = profile?.posts_count ?? 0;
   const followersCount = profile?.followers_count ?? 0;
   const followingCount = profile?.following_count ?? 0;
-  const isSuperUser = Boolean(
-    profile?.is_admin ||
-    profile?.role === 'admin' ||
-    user?.email === 'testvulntest' ||
-    user?.email === 'testvulntest@gmail.com' ||
-    user?.email === 'rohitmathur00981@gmail.com' ||
-    (user as any)?.role === 'admin' ||
-    (user?.user_metadata as any)?.role === 'admin' ||
-    (user?.user_metadata as any)?.is_admin
-  );
 
   return (
     <div className="w-64 sm:w-72 rounded-2xl border border-slate-200/90 dark:border-neutral-800/90 bg-white dark:bg-[#121214] shadow-2xl overflow-hidden backdrop-blur-xl">
@@ -387,25 +377,6 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
             <History className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
             <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
               Your History
-            </span>
-          </button>
-        )}
-
-        {/* Superuser / Admin Console */}
-        {isSuperUser && (
-          <button
-            type="button"
-            onClick={() => {
-              onClose?.();
-              window.history.pushState({}, '', '/admin');
-              window.dispatchEvent(new PopStateEvent('popstate'));
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 transition-colors cursor-pointer group text-left"
-          >
-            <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="font-bold">Admin Console</span>
-            <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-purple-500/20 text-purple-400">
-              Super
             </span>
           </button>
         )}
