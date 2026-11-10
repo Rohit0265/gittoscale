@@ -46,6 +46,13 @@ interface AuthContextType {
   savePendingAction: (action: PendingAction) => void;
   clearPendingAction: () => void;
   getAuthToken: () => string | null;
+  updateUserProfileData: (data: {
+    fullName?: string;
+    avatarUrl?: string | null;
+    username?: string;
+    bio?: string;
+    bannerUrl?: string | null;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
