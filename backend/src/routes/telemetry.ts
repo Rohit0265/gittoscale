@@ -46,7 +46,15 @@ router.delete('/slow-traces', (_req: Request, res: Response) => {
  * Test endpoint to simulate a slow request and demonstrate telemetry tracing with child spans
  */
 router.post('/test-slow', async (req: Request, res: Response) => {
-  const delayMs = Math.max(Number(req.body.delayMs) || 1100, 100);
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'Synthetic slow latency test endpoint is disabled in production.',
+    });
+  }
+
+  const rawDelay = Number(req.body.delayMs);
+  const delayMs = Math.min(Math.max(!isNaN(rawDelay) ? rawDelay : 1100, 100), 5000);
 
   const dbSpan = req.startSpan?.('simulated-database-query', { query: 'SELECT * FROM test' });
   await new Promise((r) => setTimeout(r, Math.floor(delayMs / 2)));

@@ -142,6 +142,37 @@ export function telemetryMiddleware(req: Request, res: Response, next: NextFunct
 
     const threshold = getSlowThresholdMs();
 
+function maskIp(ip?: string): string {
+  if (!ip) return 'unknown';
+  if (ip.includes('.')) {
+    const parts = ip.split('.');
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.*.*`;
+    }
+  }
+  if (ip.includes(':')) {
+    const parts = ip.split(':');
+    return `${parts.slice(0, 3).join(':')}:*:*`;
+  }
+  return 'masked';
+}
+
+function sanitizeQuery(query?: Record<string, any>): Record<string, any> | undefined {
+  if (!query || Object.keys(query).length === 0) return undefined;
+  const sensitiveKeys = new Set([
+    'token', 'key', 'apikey', 'secret', 'password', 'auth', 'authorization', 'email', 'jwt', 'bearer'
+  ]);
+  const sanitized: Record<string, any> = {};
+  for (const [k, v] of Object.entries(query)) {
+    if (sensitiveKeys.has(k.toLowerCase())) {
+      sanitized[k] = '[REDACTED]';
+    } else {
+      sanitized[k] = typeof v === 'string' && v.length > 100 ? v.slice(0, 100) + '...' : v;
+    }
+  }
+  return sanitized;
+}
+
     // 5. Detect and trace slow request or unhandled 5xx server error
     if (durationMs >= threshold || res.statusCode >= 500) {
       const traceRecord: SlowRequestTrace = {
@@ -151,9 +182,9 @@ export function telemetryMiddleware(req: Request, res: Response, next: NextFunct
         status: res.statusCode,
         durationMs,
         timestamp: new Date().toISOString(),
-        ip: req.ip || req.socket.remoteAddress,
+        ip: maskIp(req.ip || req.socket.remoteAddress),
         userAgent: req.headers['user-agent'],
-        query: Object.keys(req.query || {}).length > 0 ? (req.query as Record<string, any>) : undefined,
+        query: sanitizeQuery(req.query as Record<string, any>),
         spans: req.traceSpans || [],
         thresholdMs: threshold,
       };

@@ -61,6 +61,9 @@ router.post('/', async (req: Request, res: Response) => {
     createdAt: new Date().toISOString(),
   };
 
+  if (feedbackStore.length >= 500) {
+    feedbackStore.shift();
+  }
   feedbackStore.push(feedback);
   console.log(`[Feedback] Received ${feedback.type} from ${feedback.name} <${feedback.email}>: "${feedback.message}"`);
 
