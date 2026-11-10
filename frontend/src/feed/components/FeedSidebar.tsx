@@ -253,7 +253,7 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
         </div>
 
         {/* 4. Redesigned Profile Action */}
-        <div className="pt-3 border-t border-slate-100 dark:border-neutral-800/80">
+        {/* <div className="pt-3 border-t border-slate-100 dark:border-neutral-800/80">
           <button
             onClick={() => onNavigateToProfile(user.id)}
             className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200/80 dark:border-neutral-800 bg-slate-50/70 dark:bg-neutral-900/60 hover:bg-slate-100 dark:hover:bg-neutral-800/80 hover:border-indigo-500/40 dark:hover:border-indigo-500/40 transition-all cursor-pointer group shadow-2xs"
@@ -277,7 +277,7 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
               <ArrowRight className="w-4 h-4" />
             </div>
           </button>
-        </div>
+        </div> */}
       </div>
     </aside>
   );
