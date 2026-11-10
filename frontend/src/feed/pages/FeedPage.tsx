@@ -135,6 +135,48 @@ export const FeedPage: React.FC<FeedPageProps> = ({
 
         {/* Center Column: Main Social Feed (maintains stable width on all screens) */}
         <main className="w-full md:col-span-8 lg:col-span-9 flex flex-col">
+          {/* Feed Differentiator Tabs: Suggested & Following */}
+          <div className="mb-4 flex items-center justify-between border-b border-slate-200/80 dark:border-neutral-800 pb-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                onClick={() => setFilter('all')}
+                className={`relative px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  filter === 'all'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/60'
+                }`}
+              >
+                Suggested
+              </button>
+              <button
+                onClick={() => {
+                  if (!user && onOpenAuth) {
+                    onOpenAuth();
+                    return;
+                  }
+                  setFilter('following');
+                }}
+                className={`relative px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  filter === 'following'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/60'
+                }`}
+              >
+                Following
+              </button>
+            </div>
+
+            <span className="text-[11px] text-slate-400 dark:text-neutral-500 hidden sm:inline-block">
+              {filter === 'following'
+                ? 'Posts from developers you follow'
+                : filter === 'liked'
+                ? 'Your liked designs'
+                : filter === 'saved'
+                ? 'Your saved bookmarks'
+                : 'Discover designs and architectures across the community'}
+            </span>
+          </div>
+
           {/* Active Filter Banner when viewing 'Your Likes' */}
           {filter === 'liked' && (
             <div className="mb-4 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center justify-between">
@@ -145,7 +187,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                 onClick={() => setFilter('all')}
                 className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
               >
-                Back to All Posts
+                Back to Suggested
               </button>
             </div>
           )}
@@ -160,13 +202,34 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                 onClick={() => setFilter('all')}
                 className="text-xs font-bold text-slate-900 dark:text-white hover:underline cursor-pointer"
               >
-                Back to All Posts
+                Back to Suggested
               </button>
             </div>
           )}
 
-          {/* Create Post Widget (only on All feed) */}
-          {filter === 'all' && (
+          {/* Sign In Prompt when viewing Following feed while unauthenticated */}
+          {filter === 'following' && !user && (
+            <div className="mb-6 p-8 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] text-center shadow-xs">
+              <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Sign in to view Following feed</h3>
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 max-w-sm mx-auto mb-4">
+                Follow your favorite architects and engineers to see their design breakdowns in this feed.
+              </p>
+              {onOpenAuth && (
+                <button
+                  onClick={onOpenAuth}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  <span>Sign In to Continue</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Create Post Widget (available on Suggested and Following feeds) */}
+          {(filter === 'all' || filter === 'following') && (
             <CreatePost
               user={user}
               token={token}
@@ -217,13 +280,15 @@ export const FeedPage: React.FC<FeedPageProps> = ({
           ) : posts.length === 0 ? (
             <div className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] p-12 text-center shadow-xs">
               <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 flex items-center justify-center mx-auto mb-3">
-                <MessageSquare className="w-6 h-6" />
+                {filter === 'following' ? <Users className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 {filter === 'liked'
                   ? 'No liked posts yet'
                   : filter === 'saved'
                   ? 'No saved posts yet'
+                  : filter === 'following'
+                  ? 'No posts from developers you follow'
                   : 'No posts yet'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 max-w-sm mx-auto">
@@ -231,8 +296,18 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                   ? 'Posts you like will show up here for easy access.'
                   : filter === 'saved'
                   ? 'Posts you bookmark will be saved here so you can revisit them anytime.'
+                  : filter === 'following'
+                  ? 'Follow developers from the Suggested feed to see their posts and designs here.'
                   : 'Be the first to share an architecture diagram, latency finding, or discuss scaling strategies!'}
               </p>
+              {filter === 'following' && (
+                <button
+                  onClick={() => setFilter('all')}
+                  className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  <span>Explore Suggested Posts</span>
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -248,6 +323,8 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                   onUpdatePost={updatePost}
                   onDeletePost={deletePost}
                   onNavigateToProfile={onNavigateToProfile}
+                  onToggleFollow={toggleFollow}
+                  onOpenSignIn={onOpenAuth}
                 />
               ))}
             </div>
