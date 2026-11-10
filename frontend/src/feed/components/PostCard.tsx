@@ -236,6 +236,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           postId={post.id}
           likeCount={post.like_count}
           commentCount={post.comment_count}
+          viewsCount={viewsCount}
           hasLiked={post.has_liked}
           hasDisliked={post.has_disliked}
           hasBookmarked={post.has_bookmarked}
