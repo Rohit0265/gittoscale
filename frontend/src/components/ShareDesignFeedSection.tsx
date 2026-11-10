@@ -28,12 +28,12 @@ export const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) 
   return (
     <div
       className={cn(
-        'size-full rounded-xl bg-slate-100 dark:bg-neutral-900 p-1 shadow-xl ring-1 ring-slate-200/80 dark:ring-neutral-800 md:rounded-2xl md:p-1.5 lg:absolute lg:w-auto lg:max-w-none transition-colors',
+        'w-full max-w-xl mx-auto rounded-xl bg-slate-100 dark:bg-neutral-900/90 p-1.5 shadow-2xl ring-1 ring-slate-200/80 dark:ring-neutral-800 md:rounded-2xl md:p-2 transition-all',
         props.className,
       )}
     >
-      <div className="size-full rounded-[10px] bg-white dark:bg-[#0A0A0C] p-0.5 md:rounded-[14px] md:p-1">
-        <div className="relative size-full overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80 bg-[#090909]">
+      <div className="w-full rounded-[10px] bg-white dark:bg-[#0A0A0C] p-1 md:rounded-[14px]">
+        <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[2/1] overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80 bg-[#090909]">
           {props.children}
         </div>
       </div>
@@ -111,14 +111,14 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
             </div>
           </div>
 
-          <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
-            <AlternateImageMockup className="lg:left-0">
+          <div className="w-full flex-1 flex items-center justify-center">
+            <AlternateImageMockup>
               <img
                 alt="Community feed posts showing shared system architectures and interactive topologies"
                 src="/feed-explore-designs.png"
                 width={1024}
                 height={491}
-                className="size-full object-contain lg:w-auto lg:max-w-none"
+                className="w-full h-full object-cover object-top hover:scale-[1.02] transition-transform duration-300"
               />
             </AlternateImageMockup>
           </div>
@@ -144,14 +144,14 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
             </ul>
           </div>
 
-          <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
-            <AlternateImageMockup className="lg:right-0">
+          <div className="w-full flex-1 flex items-center justify-center">
+            <AlternateImageMockup>
               <img
                 alt="Publish architecture designs and repository projects to the feed"
                 src="/feed-share-design.png"
                 width={1024}
                 height={491}
-                className="size-full object-contain lg:w-auto lg:max-w-none"
+                className="w-full h-full object-cover object-top hover:scale-[1.02] transition-transform duration-300"
               />
             </AlternateImageMockup>
           </div>
