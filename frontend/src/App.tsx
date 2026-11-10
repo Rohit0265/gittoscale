@@ -2226,10 +2226,6 @@ export const App: React.FC = () => {
             setCurrentView('signup');
           }}
           onSignOut={signOut}
-          onNavigateToSimulator={() => {
-            window.history.pushState({}, '', '/app');
-            setCurrentView('simulator');
-          }}
           onNavigateToProfile={(profileUserId) => {
             const targetUrl = user?.id && profileUserId === user.id ? '/profile' : `/feed/profile/${profileUserId}`;
             window.history.pushState({}, '', targetUrl);
@@ -2267,10 +2263,6 @@ export const App: React.FC = () => {
             setCurrentView('signup');
           }}
           onSignOut={signOut}
-          onNavigateToSimulator={() => {
-            window.history.pushState({}, '', '/app');
-            setCurrentView('simulator');
-          }}
           onNavigateToProfile={(nextUserId) => {
             const targetUrl = user?.id && nextUserId === user.id ? '/profile' : `/feed/profile/${nextUserId}`;
             window.history.pushState({}, '', targetUrl);
