@@ -18,14 +18,12 @@ function isDbConnectionError(err: any): boolean {
 }
 
 export function getConfiguredAdminEmails(): string[] {
-  const envEmails = process.env.ADMIN_EMAILS || 'rohitmathur00981@gmail.com,testvulntest@gmail.com,testvulntest';
+  const envEmails = process.env.ADMIN_EMAILS || 'rohitmathur00981@gmail.com';
   const list = envEmails
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   if (!list.includes('rohitmathur00981@gmail.com')) list.push('rohitmathur00981@gmail.com');
-  if (!list.includes('testvulntest@gmail.com')) list.push('testvulntest@gmail.com');
-  if (!list.includes('testvulntest')) list.push('testvulntest');
   return list;
 }
 
