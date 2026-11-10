@@ -640,20 +640,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               className="relative shrink-0 cursor-pointer"
                               title={`Inspect ${user.full_name}'s profile and posts`}
                             >
-                              {user.avatar_url ? (
-                                <img
-                                  src={user.avatar_url}
-                                  alt={user.full_name}
-                                  className="w-9 h-9 rounded-full object-cover border border-slate-700"
-                                />
-                              ) : (
-                                <div
-                                  className="w-9 h-9 rounded-full text-white font-bold text-xs flex items-center justify-center uppercase shadow-xs"
-                                  style={{ background: getAvatarColor(user.id || user.full_name) }}
-                                >
-                                  {getInitial(user.full_name)}
-                                </div>
-                              )}
+                              <UserAvatar
+                                src={user.avatar_url}
+                                name={user.full_name || user.username}
+                                seed={user.id || user.full_name}
+                                className="w-9 h-9 rounded-full border border-slate-700"
+                                fallbackClassName="w-9 h-9 rounded-full text-white font-bold text-xs flex items-center justify-center uppercase shadow-xs"
+                              />
                               {isBanned && (
                                 <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-rose-600 border border-slate-900 flex items-center justify-center text-white text-[9px]">
                                   &times;
