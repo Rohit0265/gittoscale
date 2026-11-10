@@ -21,9 +21,7 @@ import { feedApi } from '../services/feedApi';
 import { useSmoothScroll } from '../../utils/useSmoothScroll';
 import {
   extractAccountAvatar,
-  getAvatarColor,
   getRandomBannerColor,
-  getInitial,
 } from '../utils/avatarUtils';
 import { UserAvatar } from '../components/UserAvatar';
 

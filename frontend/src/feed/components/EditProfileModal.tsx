@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { X, Camera, Loader2, AlertCircle, Check, User, Trash2, Sparkles } from 'lucide-react';
 import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
-import { getAvatarColor, getRandomBannerColor, getInitial } from '../utils/avatarUtils';
+import { getRandomBannerColor } from '../utils/avatarUtils';
 import { UserAvatar } from './UserAvatar';
 
 interface EditProfileModalProps {
