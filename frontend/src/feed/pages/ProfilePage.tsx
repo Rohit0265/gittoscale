@@ -5,6 +5,7 @@ import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { ShareModal } from '../components/ShareModal';
 import { EditProfileModal } from '../components/EditProfileModal';
+import { FloatingFeedbackButton } from '../../components/FloatingFeedbackButton';
 import {
   ArrowLeft,
   Share2,
@@ -472,6 +473,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           }}
         />
       )}
+
+      {/* Floating Feedback and Recommendations Button */}
+      <FloatingFeedbackButton />
     </div>
   );
 };
