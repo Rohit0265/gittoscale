@@ -320,7 +320,6 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                   onDislike={toggleDislike}
                   onBookmark={toggleBookmark}
                   onOpenComments={openComments}
-                  onUpdatePost={updatePost}
                   onDeletePost={deletePost}
                   onNavigateToProfile={onNavigateToProfile}
                   onToggleFollow={toggleFollow}
