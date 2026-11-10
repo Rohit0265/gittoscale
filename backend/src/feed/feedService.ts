@@ -343,6 +343,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
       },
       like_count: Number(r.like_count) || 0,
       comment_count: Number(r.comment_count) || 0,
+      views_count: Number(r.views_count) || 0,
       has_liked: Boolean(r.has_liked),
       has_disliked: Boolean(r.has_disliked),
       has_bookmarked: Boolean(r.has_bookmarked),
