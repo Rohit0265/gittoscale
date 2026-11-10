@@ -115,7 +115,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
       {/* 2. Responsive 3-Column Layout */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-3.5 sm:py-6 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
         {/* Left Column: User Profile Info (3 cols on desktop) */}
-        <div className="hidden md:block md:col-span-4 lg:col-span-3 sticky top-20 self-start transform-gpu will-change-transform">
+        <div className="hidden md:block md:col-span-4 lg:col-span-3 sticky top-20 self-start">
           <FeedSidebar
             user={user}
             token={token}
