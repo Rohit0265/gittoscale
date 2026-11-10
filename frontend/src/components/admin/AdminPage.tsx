@@ -984,9 +984,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               <Heart className="w-3.5 h-3.5 text-rose-500" />
                               {post.like_count}
                             </span>
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-1" title="Comments">
                               <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
                               {post.comment_count}
+                            </span>
+                            <span className="flex items-center gap-1 text-slate-400" title={`${post.views_count ?? 0} views`}>
+                              <Eye className="w-3.5 h-3.5 text-slate-400" />
+                              {post.views_count ?? 0}
                             </span>
 
                             {/* "if there is an gadbadi there i can ban hin or remove its post etc" */}
