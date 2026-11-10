@@ -72,14 +72,14 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
 
       {/* Right Controls: Simulator Link, Theme Toggle, User Profile / Auth */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {onNavigateToSimulator && (
+        {onGoHome && (
           <button
-            onClick={onNavigateToSimulator}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-            title="Launch Architecture Simulator"
+            onClick={onGoHome}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer group"
+            title="Go to Home"
           >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Simulator</span>
+            <span>Home</span>
+            <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:text-neutral-400 dark:group-hover:text-white transition-colors" />
           </button>
         )}
         {/* User Auth Info & Interactive Profile Menu */}
