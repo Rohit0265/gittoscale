@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LayoutGrid, ChevronDown, LogIn, UserPlus } from 'lucide-react';
+import { ExternalLink, ChevronDown, LogIn, UserPlus } from 'lucide-react';
 import { UserDropdownMenu } from '../../components/UserDropdownMenu';
 import { extractAccountAvatar } from '../utils/avatarUtils';
 import { UserAvatar } from './UserAvatar';
