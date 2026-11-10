@@ -468,4 +468,61 @@ describe('Social Feed API Endpoints & Security', () => {
     expect(found).toBeDefined();
     expect(found.views_count).toBeGreaterThanOrEqual(viewRes2.body.views_count);
   });
+
+  it('supports following developers and filtering feed by following', async () => {
+    // 1. User1 creates a post
+    const postUser1 = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: 'Post from user 1 architecture' });
+    expect(postUser1.status).toBe(201);
+
+    // 2. User2 creates a post
+    const postUser2 = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user2Token}`)
+      .send({ content: 'Post from user 2 database scaling' });
+    expect(postUser2.status).toBe(201);
+
+    // 3. User1 follows User2
+    const followRes = await request(app)
+      .post(`/api/feed/profile/usr_feed_test_2/follow`)
+      .set('Authorization', `Bearer ${user1Token}`);
+    expect(followRes.status).toBe(200);
+    expect(followRes.body.success).toBe(true);
+    expect(followRes.body.following).toBe(true);
+
+    // 4. User1 fetches Suggested feed (filter=all)
+    const suggestedFeed = await request(app)
+      .get('/api/feed/posts?filter=all')
+      .set('Authorization', `Bearer ${user1Token}`);
+    expect(suggestedFeed.status).toBe(200);
+    const p2InSuggested = suggestedFeed.body.data.find((p: any) => p.user_id === 'usr_feed_test_2');
+    expect(p2InSuggested).toBeDefined();
+    expect(p2InSuggested.author.is_following).toBe(true);
+
+    // 5. User1 fetches Following feed (filter=following)
+    const followingFeed = await request(app)
+      .get('/api/feed/posts?filter=following')
+      .set('Authorization', `Bearer ${user1Token}`);
+    expect(followingFeed.status).toBe(200);
+    // Should include user2's post
+    expect(followingFeed.body.data.some((p: any) => p.user_id === 'usr_feed_test_2')).toBe(true);
+    // Should NOT include user1's post (unless user1 followed themselves, which is prevented)
+    expect(followingFeed.body.data.some((p: any) => p.user_id === 'usr_feed_test_1')).toBe(false);
+
+    // 6. User1 unfollows User2
+    const unfollowRes = await request(app)
+      .post(`/api/feed/profile/usr_feed_test_2/follow`)
+      .set('Authorization', `Bearer ${user1Token}`);
+    expect(unfollowRes.status).toBe(200);
+    expect(unfollowRes.body.following).toBe(false);
+
+    // 7. Following feed is now empty for User1
+    const emptyFollowingFeed = await request(app)
+      .get('/api/feed/posts?filter=following')
+      .set('Authorization', `Bearer ${user1Token}`);
+    expect(emptyFollowingFeed.status).toBe(200);
+    expect(emptyFollowingFeed.body.data.some((p: any) => p.user_id === 'usr_feed_test_2')).toBe(false);
+  });
 });
