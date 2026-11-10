@@ -492,7 +492,9 @@ export const App: React.FC = () => {
         return;
       }
       const path = window.location.pathname.toLowerCase();
-      if (path === '/feed') {
+      if (path === '/admin' || path.startsWith('/admin')) {
+        setCurrentView('admin');
+      } else if (path === '/feed') {
         setCurrentView('feed');
       } else if (path === '/profile' || path.startsWith('/profile') || path.startsWith('/feed/profile/')) {
         setCurrentView('feed-profile');
