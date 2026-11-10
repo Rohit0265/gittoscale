@@ -37,7 +37,6 @@ interface ProfilePageProps {
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
   onSignOut?: () => void;
-  onNavigateToSimulator?: () => void;
   onNavigateToProfile: (userId: string) => void;
 }
 
@@ -52,7 +51,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onOpenAuth,
   onOpenSignUp,
   onSignOut,
-  onNavigateToSimulator,
   onNavigateToProfile,
 }) => {
   const { profile, setProfile, posts, loading, error, toggleFollow, setPosts } = useProfile({
@@ -203,7 +201,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         onOpenAuth={onOpenAuth}
         onOpenSignUp={onOpenSignUp}
         onSignOut={onSignOut}
-        onNavigateToSimulator={onNavigateToSimulator}
         onNavigateToProfile={onNavigateToProfile}
         onViewLikes={onNavigateToFeed}
         onViewSaved={() => {
