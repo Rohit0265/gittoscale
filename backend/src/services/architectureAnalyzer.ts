@@ -5,7 +5,9 @@ import {
   llmAnalysisResultSchema,
 } from './repoAnalysisTypes.js';
 
-export interface LLMConfig {
+export import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
+
+interface LLMConfig {
   provider?: string; // 'openai' | 'gemini' | 'anthropic' | 'other'
   apiKey?: string;
   model?: string;
@@ -1270,6 +1272,10 @@ async function callOpenAIProvider(
 
   let endpoint = 'https://api.openai.com/v1/chat/completions';
   if (config.baseUrl) {
+    const ssrfCheck = validateSafeLlmBaseUrl(config.baseUrl);
+    if (!ssrfCheck.safe) {
+      throw new Error(`SSRF_BLOCKED: ${ssrfCheck.error}`);
+    }
     const cleanBase = config.baseUrl.replace(/\/+$/, '');
     endpoint = cleanBase.endsWith('/chat/completions')
       ? cleanBase
@@ -1294,7 +1300,8 @@ async function callOpenAIProvider(
   });
 
   if (!res.ok) {
-    throw new Error(`OpenAI API failed with status ${res.status}: ${await res.text()}`);
+    const safeErrorText = (await res.text()).slice(0, 300);
+    throw new Error(`LLM API request failed with status ${res.status}: ${safeErrorText}`);
   }
 
   const data: any = await res.json();

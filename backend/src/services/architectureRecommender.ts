@@ -9,7 +9,9 @@ import {
 import { ArchitectureNode, ArchitectureEdge } from '../simulation/types.js';
 import { validateGraphAcyclic } from '../simulation/validation.js';
 
-export interface LLMConfig {
+export import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
+
+interface LLMConfig {
   provider?: string;
   apiKey?: string;
   model?: string;
@@ -379,6 +381,10 @@ async function callOpenAIRecommender(input: RecommenderInput, config: LLMConfig)
   const prompt = buildRecommenderPrompt(input);
   let endpoint = 'https://api.openai.com/v1/chat/completions';
   if (config.baseUrl) {
+    const ssrfCheck = validateSafeLlmBaseUrl(config.baseUrl);
+    if (!ssrfCheck.safe) {
+      throw new Error(`SSRF_BLOCKED: ${ssrfCheck.error}`);
+    }
     const cleanBase = config.baseUrl.replace(/\/+$/, '');
     endpoint = cleanBase.endsWith('/chat/completions')
       ? cleanBase
@@ -402,7 +408,8 @@ async function callOpenAIRecommender(input: RecommenderInput, config: LLMConfig)
   );
 
   if (!res.ok) {
-    throw new Error(`OpenAI API failed: ${res.status} ${await res.text()}`);
+    const safeErrorText = (await res.text()).slice(0, 300);
+    throw new Error(`OpenAI API failed: ${res.status} ${safeErrorText}`);
   }
 
   const data: any = await res.json();
