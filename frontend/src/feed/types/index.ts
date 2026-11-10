@@ -57,5 +57,12 @@ export interface UserProfileFeed {
   posts_count: number;
   is_following?: boolean;
   is_owner?: boolean;
+  is_admin?: boolean;
+  role?: string;
+  is_suspended?: boolean;
+  warning_count?: number;
+  warnings?: Array<{ id: string; reason: string; created_at: string; issued_by?: string }>;
+  suspended_at?: string | null;
+  suspension_reason?: string | null;
 }
 
