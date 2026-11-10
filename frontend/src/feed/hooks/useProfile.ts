@@ -63,11 +63,36 @@ export function useProfile({ userId, token }: UseProfileOptions) {
             }
           : null
       );
+      window.dispatchEvent(
+        new CustomEvent('gitoscale:follow-toggled', {
+          detail: { userId, following: res.following, followersCount: res.followersCount },
+        })
+      );
     } catch (err) {
       fetchProfileAndPosts();
       throw err;
     }
   };
+
+  useEffect(() => {
+    const handleFollowSync = (e: any) => {
+      const detail = e?.detail;
+      if (!detail?.userId || detail.userId !== userId) return;
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_following: detail.following,
+              followers_count:
+                typeof detail.followersCount === 'number' ? detail.followersCount : prev.followers_count,
+            }
+          : null
+      );
+    };
+
+    window.addEventListener('gitoscale:follow-toggled', handleFollowSync);
+    return () => window.removeEventListener('gitoscale:follow-toggled', handleFollowSync);
+  }, [userId]);
 
   return {
     profile,

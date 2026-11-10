@@ -413,6 +413,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   onUpdatePost={handleUpdatePost}
                   onDeletePost={handleDeletePost}
                   onNavigateToProfile={onNavigateToProfile}
+                  onToggleFollow={toggleFollow}
+                  onOpenSignIn={onOpenAuth}
                 />
               ))}
             </div>
