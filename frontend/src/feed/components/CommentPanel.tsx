@@ -4,6 +4,7 @@ import { FeedPost, FeedComment } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { feedApi } from '../services/feedApi';
 import { getAvatarColor, getInitial } from '../utils/avatarUtils';
+import { UserAvatar } from './UserAvatar';
 
 interface CommentPanelProps {
   post: FeedPost | null;

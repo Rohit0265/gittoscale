@@ -15,4 +15,5 @@ export * from './components/EditProfileModal';
 export * from './components/PostMediaGallery';
 export * from './pages/FeedPage';
 export * from './pages/ProfilePage';
+export * from './components/UserAvatar';
 
