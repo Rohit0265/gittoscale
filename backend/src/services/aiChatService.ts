@@ -956,6 +956,97 @@ async function callMercuryChatStream(
   }
 }
 
+async function callGeminiChat(
+  input: ArchitectureChatInput,
+  systemPrompt: string,
+  preferredModel?: string,
+  explicitApiKey?: string
+): Promise<{ ok: boolean; reply?: string; status?: number; error?: string }> {
+  const apiKey =
+    explicitApiKey ||
+    input.llmConfig?.geminiApiKey ||
+    process.env.GEMINI_API_KEY ||
+    (input.llmConfig?.provider === 'gemini' ? input.llmConfig?.apiKey : undefined) ||
+    (process.env.LLM_PROVIDER === 'gemini' ? process.env.LLM_API_KEY : undefined);
+
+  if (!apiKey) {
+    return { ok: false, error: 'GEMINI_API_KEY not configured' };
+  }
+
+  const geminiModels = Array.from(
+    new Set(
+      [
+        preferredModel,
+        input.llmConfig?.model,
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash-8b',
+      ].filter(Boolean) as string[]
+    )
+  );
+
+  const chatContents: any[] = [];
+  const priorHistory = extractRelevantConversationHistory(input.history);
+  for (const msg of priorHistory) {
+    chatContents.push({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }],
+    });
+  }
+  chatContents.push({
+    role: 'user',
+    parts: [{ text: input.message }],
+  });
+
+  let lastStatus = 500;
+  for (const gModel of geminiModels) {
+    const geminiController = new AbortController();
+    const geminiTimer = setTimeout(() => geminiController.abort(), 90000);
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: geminiController.signal,
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
+          contents: chatContents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        const data: any = await res.json();
+        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (replyText && replyText.trim().length > 0) {
+          return { ok: true, reply: replyText.trim() };
+        }
+      }
+
+      lastStatus = res.status;
+      if (lastStatus === 503 || lastStatus === 404 || lastStatus === 429) {
+        console.warn(
+          `[AI Chat Service] Gemini model "${gModel}" returned HTTP ${lastStatus}. Retrying with alternative model...`
+        );
+        continue;
+      }
+      break;
+    } catch (gErr: any) {
+      console.warn(`[AI Chat Service] Gemini request error on "${gModel}":`, gErr?.message);
+    } finally {
+      clearTimeout(geminiTimer);
+    }
+  }
+
+  return { ok: false, status: lastStatus, error: `Gemini failed with status ${lastStatus}` };
+}
+
 async function callGeminiChatStream(
   gModel: string,
   apiKey: string,
@@ -1091,91 +1182,44 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
       if (provider === 'mercury' || provider === 'mercury-3') {
         const mRes = await callMercuryChat(input, systemPrompt);
         if (mRes.ok && mRes.reply) {
-          return { reply: mRes.reply };
-        }
-      } else if (provider === 'gemini') {
-        const geminiModels = Array.from(
-          new Set(
-            [
-              model,
-              'gemini-2.0-flash',
-              'gemini-1.5-flash',
-              'gemini-2.5-flash',
-              'gemini-1.5-flash-8b',
-            ].filter(Boolean) as string[]
-          )
-        );
-
-        let lastStatus = 500;
-        let geminiSuccess = false;
-        let geminiReply = '';
-
-        const chatContents: any[] = [];
-        const priorHistory = extractRelevantConversationHistory(input.history);
-        for (const msg of priorHistory) {
-          chatContents.push({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.content }],
-          });
-        }
-        chatContents.push({
-          role: 'user',
-          parts: [{ text: input.message }],
-        });
-
-        for (const gModel of geminiModels) {
-          const geminiController = new AbortController();
-          const geminiTimer = setTimeout(() => geminiController.abort(), 90000);
-          try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:generateContent?key=${apiKey}`;
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              signal: geminiController.signal,
-              body: JSON.stringify({
-                systemInstruction: {
-                  parts: [{ text: systemPrompt }],
-                },
-                contents: chatContents,
-                generationConfig: {
-                  temperature: 0.7,
-                  maxOutputTokens: 1024,
-                },
-              }),
-            });
-
-            if (res.ok) {
-              const data: any = await res.json();
-              const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (replyText && replyText.trim().length > 0) {
-                geminiSuccess = true;
-                geminiReply = replyText.trim();
-                break;
-              }
-            }
-
-            lastStatus = res.status;
-
-            if (lastStatus === 503 || lastStatus === 404 || lastStatus === 429) {
-              console.warn(
-                `[AI Chat Service] Gemini model "${gModel}" returned HTTP ${lastStatus}. Retrying with alternative model...`
-              );
-              continue;
-            }
-            break;
-          } catch (gErr: any) {
-            console.warn(`[AI Chat Service] Gemini request error on "${gModel}":`, gErr?.message);
-          } finally {
-            clearTimeout(geminiTimer);
-          }
-        }
-
-        if (geminiSuccess && geminiReply) {
-          return { reply: sanitizeAssistantReply(geminiReply) };
+          return { reply: sanitizeAssistantReply(mRes.reply) };
         }
 
         console.info(
-          `[AI Chat Service] Gemini unavailable or experiencing high demand (HTTP ${lastStatus}). Seamlessly transferring request to Groq in background...`
+          `[AI Chat Service] Mercury API unavailable or error (${mRes.error}). Seamlessly failing over to Google Gemini (Priority 2)...`
+        );
+
+        // Failover to Google Gemini
+        const geminiRes = await callGeminiChat(input, systemPrompt);
+        if (geminiRes.ok && geminiRes.reply) {
+          console.info('[AI Chat Service] Request successfully completed by Google Gemini in failover.');
+          return { reply: sanitizeAssistantReply(geminiRes.reply) };
+        }
+
+        console.info(
+          `[AI Chat Service] Google Gemini also unavailable or rate-limited (${geminiRes.error}). Seamlessly failing over to Groq (Priority 3)...`
+        );
+
+        // Failover to Groq
+        const groqRes = await callGroqChat(input, systemPrompt);
+        if (groqRes.ok && groqRes.reply) {
+          console.info('[AI Chat Service] Request successfully completed by Groq in failover.');
+          return { reply: sanitizeAssistantReply(groqRes.reply) };
+        }
+
+        console.warn(
+          '[AI Chat Service] All providers (Mercury -> Gemini -> Groq) failed:',
+          groqRes.error
+        );
+        return { reply: 'Traffic is more than expected. Please retry later.' };
+      } else if (provider === 'gemini') {
+        const geminiRes = await callGeminiChat(input, systemPrompt, model, apiKey);
+        if (geminiRes.ok && geminiRes.reply) {
+          return { reply: sanitizeAssistantReply(geminiRes.reply) };
+        }
+
+        console.info(
+          `[AI Chat Service] Gemini unavailable or experiencing high demand (HTTP ${geminiRes.status || 500}). Seamlessly transferring request to Groq in background...`
         );
 
         // Failover to Groq in background without notifying frontend
@@ -1372,9 +1416,58 @@ export async function streamAIChatReply(
     try {
       if (provider === 'mercury' || provider === 'mercury-3') {
         const mStream = await callMercuryChatStream(input, systemPrompt, sanitizer.push);
-        sanitizer.flush();
         if (mStream.ok && mStream.reply) {
+          sanitizer.flush();
           return { reply: sanitizeAssistantReply(mStream.reply) };
+        }
+
+        console.info(
+          `[AI Chat Stream] Mercury stream unavailable (${mStream.error}). Seamlessly failing over to Google Gemini stream (Priority 2)...`
+        );
+
+        // Failover to Google Gemini Stream
+        const geminiApiKey =
+          input.llmConfig?.geminiApiKey ||
+          process.env.GEMINI_API_KEY ||
+          (input.llmConfig?.provider === 'gemini' ? input.llmConfig?.apiKey : undefined) ||
+          (process.env.LLM_PROVIDER === 'gemini' ? process.env.LLM_API_KEY : undefined);
+
+        if (geminiApiKey) {
+          const geminiModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+          const chatContents: any[] = [];
+          const priorHistory = extractRelevantConversationHistory(input.history);
+          for (const msg of priorHistory) {
+            chatContents.push({
+              role: msg.role === 'user' ? 'user' : 'model',
+              parts: [{ text: msg.content }],
+            });
+          }
+          chatContents.push({
+            role: 'user',
+            parts: [{ text: input.message }],
+          });
+
+          for (const gModel of geminiModels) {
+            const geminiStream = await callGeminiChatStream(gModel, geminiApiKey, systemPrompt, chatContents, sanitizer.push);
+            if (geminiStream.ok && geminiStream.reply) {
+              sanitizer.flush();
+              return { reply: sanitizeAssistantReply(geminiStream.reply) };
+            }
+            if (geminiStream.status === 429 || geminiStream.status === 503 || geminiStream.status === 404) {
+              console.warn(`[AI Chat Stream] Gemini model ${gModel} returned ${geminiStream.status}. Trying next...`);
+              continue;
+            }
+            break;
+          }
+        }
+
+        console.info('[AI Chat Stream] Gemini stream also failed. Seamlessly failing over to Groq stream (Priority 3)...');
+
+        // Failover to Groq stream
+        const groqStream = await callGroqChatStream(input, systemPrompt, sanitizer.push);
+        if (groqStream.ok && groqStream.reply) {
+          sanitizer.flush();
+          return { reply: sanitizeAssistantReply(groqStream.reply) };
         }
       } else if (provider === 'gemini') {
         const geminiModels = Array.from(

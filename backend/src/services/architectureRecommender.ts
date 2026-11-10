@@ -39,7 +39,7 @@ export async function recommendArchitecture(
       ? 'openai'
       : process.env.ANTHROPIC_API_KEY
       ? 'anthropic'
-      : 'gemini');
+      : 'mercury');
 
   const apiKey =
     input.llmConfig?.apiKey ||
@@ -80,7 +80,35 @@ export async function recommendArchitecture(
       const llmAttempt = (async () => {
         let llmResult: any = null;
         if (provider === 'mercury' || provider === 'mercury-3') {
-          llmResult = await callMercuryRecommender(input, config);
+          try {
+            llmResult = await callMercuryRecommender(input, config);
+          } catch (mercuryErr) {
+            console.warn('[Architecture Recommender] Mercury failed:', (mercuryErr as any)?.message);
+            const geminiKey = process.env.GEMINI_API_KEY;
+            if (geminiKey) {
+              try {
+                console.info('[Architecture Recommender] Seamlessly failing over from Mercury to Gemini (Priority 2)...');
+                llmResult = await callGeminiRecommender(input, {
+                  provider: 'gemini',
+                  apiKey: geminiKey,
+                  model: 'gemini-2.0-flash',
+                });
+              } catch (geminiErr) {
+                console.warn('[Architecture Recommender] Gemini failover failed:', (geminiErr as any)?.message);
+                if (process.env.GROQ_API_KEY) {
+                  console.info('[Architecture Recommender] Seamlessly failing over from Gemini to Groq (Priority 3)...');
+                  llmResult = await callGroqRecommender(input, process.env.GROQ_API_KEY, process.env.GROQ_MODEL);
+                } else {
+                  throw geminiErr;
+                }
+              }
+            } else if (process.env.GROQ_API_KEY) {
+              console.info('[Architecture Recommender] Seamlessly failing over from Mercury to Groq (Priority 3)...');
+              llmResult = await callGroqRecommender(input, process.env.GROQ_API_KEY, process.env.GROQ_MODEL);
+            } else {
+              throw mercuryErr;
+            }
+          }
         } else if (provider === 'gemini') {
           try {
             llmResult = await callGeminiRecommender(input, config);
