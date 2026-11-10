@@ -1,9 +1,12 @@
+import path from 'node:path';
+import os from 'node:os';
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { buildStaticRepositoryInventory } from '../services/staticScanner.js';
 import { analyzeArchitectureWithLLM } from '../services/architectureAnalyzer.js';
 import { convertAnalysisToArchitecture } from '../services/diagramGenerator.js';
 import { validateGraphAcyclic } from '../simulation/validation.js';
+import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
 
 const router = Router();
 
