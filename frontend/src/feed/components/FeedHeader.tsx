@@ -91,20 +91,13 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
               title="Account and navigation options"
               aria-expanded={isMenuOpen}
             >
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={displayName}
-                  className="w-8 h-8 rounded-full object-cover border border-indigo-500/30"
-                />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs"
-                  style={{ background: getAvatarColor(user?.id || displayName) }}
-                >
-                  {getInitial(displayName)}
-                </div>
-              )}
+              <UserAvatar
+                src={avatarUrl}
+                name={displayName}
+                seed={user?.id || displayName}
+                className="w-8 h-8 rounded-full border border-indigo-500/30"
+                fallbackClassName="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold uppercase shadow-xs"
+              />
               <span className="hidden lg:inline text-xs font-medium text-slate-800 dark:text-neutral-200 max-w-[120px] truncate text-left">
                 {displayName}
               </span>
