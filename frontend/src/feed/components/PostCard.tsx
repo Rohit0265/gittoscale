@@ -164,12 +164,41 @@ export const PostCard: React.FC<PostCardProps> = ({
             </button>
 
             <div className="min-w-0 flex flex-col">
-              <button
-                onClick={() => onNavigateToProfile(post.user_id)}
-                className="text-sm font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate text-left cursor-pointer"
-              >
-                {author.full_name}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onNavigateToProfile(post.user_id)}
+                  className="text-sm font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate text-left cursor-pointer"
+                >
+                  {author.full_name}
+                </button>
+
+                {!isOwner && onToggleFollow && (
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={isFollowLoading}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
+                      author.is_following
+                        ? 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 dark:bg-neutral-800 dark:hover:bg-rose-950/40 dark:text-neutral-300 dark:hover:text-rose-400 border border-slate-200/80 dark:border-neutral-700/80'
+                        : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60'
+                    }`}
+                    title={author.is_following ? 'Unfollow developer' : 'Follow developer'}
+                  >
+                    {isFollowLoading ? (
+                      <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                    ) : author.is_following ? (
+                      <>
+                        <UserCheck className="w-2.5 h-2.5" />
+                        <span>Following</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-2.5 h-2.5" />
+                        <span>Follow</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-neutral-500">
                 <span className="font-mono">@{author.username}</span>
                 <span>·</span>
