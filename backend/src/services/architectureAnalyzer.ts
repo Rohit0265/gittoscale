@@ -22,27 +22,75 @@ export async function analyzeArchitectureWithLLM(
   viewMode: 'basic' | 'detailed' = 'basic'
 ): Promise<LLMAnalysisResult> {
   // Resolve API key from passed config OR environment variables in .env
-  const provider = llmConfig?.provider || process.env.LLM_PROVIDER || (process.env.OPENAI_API_KEY ? 'openai' : process.env.GEMINI_API_KEY ? 'gemini' : process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'openai');
+  const provider =
+    llmConfig?.provider ||
+    process.env.LLM_PROVIDER ||
+    (process.env.MERCURY_API_KEY
+      ? 'mercury'
+      : process.env.GEMINI_API_KEY
+      ? 'gemini'
+      : process.env.GROQ_API_KEY
+      ? 'groq'
+      : process.env.OPENAI_API_KEY
+      ? 'openai'
+      : process.env.ANTHROPIC_API_KEY
+      ? 'anthropic'
+      : 'mercury');
+
   const apiKey =
     llmConfig?.apiKey ||
     process.env.LLM_API_KEY ||
-    (provider === 'openai' ? process.env.OPENAI_API_KEY : provider === 'gemini' ? process.env.GEMINI_API_KEY : process.env.ANTHROPIC_API_KEY);
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_API_KEY || process.env.LLM_API_KEY)
+      : provider === 'gemini'
+      ? process.env.GEMINI_API_KEY
+      : provider === 'groq'
+      ? process.env.GROQ_API_KEY
+      : provider === 'anthropic'
+      ? process.env.ANTHROPIC_API_KEY
+      : process.env.OPENAI_API_KEY);
+
   const model =
     llmConfig?.model ||
     process.env.LLM_MODEL ||
-    (provider === 'gemini' ? 'gemini-1.5-flash' : provider === 'anthropic' ? 'claude-3-5-sonnet-20241022' : 'gpt-4o-mini');
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_MODEL || 'mercury-3')
+      : provider === 'gemini'
+      ? 'gemini-1.5-flash'
+      : provider === 'anthropic'
+      ? 'claude-3-5-sonnet-20241022'
+      : 'gpt-4o-mini');
+
+  const baseUrl =
+    llmConfig?.baseUrl ||
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1')
+      : undefined);
 
   const resolvedConfig: LLMConfig = {
     provider,
     apiKey,
     model,
-    baseUrl: llmConfig?.baseUrl,
+    baseUrl,
   };
 
   if (resolvedConfig.apiKey || (provider === 'other' && resolvedConfig.baseUrl)) {
     try {
       let llmResult: LLMAnalysisResult | null = null;
-      if (provider === 'gemini') {
+      if (provider === 'mercury' || provider === 'mercury-3') {
+        try {
+          llmResult = await callOpenAIProvider(inventory, resolvedConfig, viewMode);
+        } catch (mercuryErr) {
+          console.warn('[Architecture Analyzer] Mercury call failed, failing over to Gemini (Priority 2):', mercuryErr);
+          if (process.env.GEMINI_API_KEY) {
+            llmResult = await callGeminiProvider(
+              inventory,
+              { ...resolvedConfig, provider: 'gemini', apiKey: process.env.GEMINI_API_KEY, model: 'gemini-1.5-flash' },
+              viewMode
+            );
+          }
+        }
+      } else if (provider === 'gemini') {
         llmResult = await callGeminiProvider(inventory, resolvedConfig, viewMode);
       } else if (provider === 'anthropic') {
         llmResult = await callAnthropicProvider(inventory, resolvedConfig, viewMode);
@@ -1241,7 +1289,7 @@ async function callOpenAIProvider(
     body: JSON.stringify({
       model: config.model || 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
-      ...(config.provider === 'other' ? {} : { response_format: { type: 'json_object' } }),
+      ...(config.provider === 'other' || config.provider === 'mercury' || config.provider === 'mercury-3' ? {} : { response_format: { type: 'json_object' } }),
     }),
   });
 

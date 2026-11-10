@@ -586,12 +586,26 @@ export async function generateSystemDesignReport(
   const provider =
     input.llmConfig?.provider ||
     process.env.LLM_PROVIDER ||
-    (process.env.GEMINI_API_KEY ? 'gemini' : process.env.GROQ_API_KEY ? 'groq' : process.env.OPENAI_API_KEY ? 'openai' : 'deterministic');
+    (process.env.MERCURY_API_KEY
+      ? 'mercury'
+      : process.env.GEMINI_API_KEY
+      ? 'gemini'
+      : process.env.GROQ_API_KEY
+      ? 'groq'
+      : process.env.OPENAI_API_KEY
+      ? 'openai'
+      : 'deterministic');
 
   const apiKey =
     input.llmConfig?.apiKey ||
     process.env.LLM_API_KEY ||
-    (provider === 'gemini' ? process.env.GEMINI_API_KEY : provider === 'groq' ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY);
+    (provider === 'mercury' || provider === 'mercury-3'
+      ? (process.env.MERCURY_API_KEY || process.env.LLM_API_KEY)
+      : provider === 'gemini'
+      ? process.env.GEMINI_API_KEY
+      : provider === 'groq'
+      ? process.env.GROQ_API_KEY
+      : process.env.OPENAI_API_KEY);
 
   // If no API key is available, generate deterministic report
   if (!apiKey && provider !== 'other') {
@@ -600,56 +614,121 @@ export async function generateSystemDesignReport(
 
   const prompt = buildArchitectPrompt(input);
 
-  // Call LLM with fallback
-  try {
-    if (provider === 'gemini') {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json' },
-        }),
-      });
+  // Helper for Gemini
+  async function tryGemini(geminiKey: string): Promise<SystemDesignReportResult | null> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' },
+      }),
+    });
+    if (res.ok) {
+      const data: any = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        const parsed = JSON.parse(rawText);
+        return {
+          ...parsed,
+          fullMarkdownReport: formatFullMarkdownReport(parsed),
+        };
+      }
+    }
+    return null;
+  }
 
-      if (res.ok) {
-        const data: any = await res.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = JSON.parse(rawText);
-          return {
-            ...parsed,
-            fullMarkdownReport: formatFullMarkdownReport(parsed),
-          };
+  // Helper for Groq
+  async function tryGroq(groqKey: string): Promise<SystemDesignReportResult | null> {
+    const url = 'https://api.groq.com/openai/v1/chat/completions';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${groqKey}`,
+      },
+      body: JSON.stringify({
+        model: input.llmConfig?.model || process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' },
+      }),
+    });
+    if (res.ok) {
+      const data: any = await res.json();
+      const rawText = data.choices?.[0]?.message?.content;
+      if (rawText) {
+        const parsed = JSON.parse(rawText);
+        return {
+          ...parsed,
+          fullMarkdownReport: formatFullMarkdownReport(parsed),
+        };
+      }
+    }
+    return null;
+  }
+
+  // Call LLM with cascade fallback: Mercury -> Google Gemini -> Groq
+  try {
+    if (provider === 'mercury' || provider === 'mercury-3') {
+      const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+      const cleanBase = baseUrl.replace(/\/+$/, '');
+      const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
+      const mModel = input.llmConfig?.model || process.env.MERCURY_MODEL || 'mercury-3';
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: mModel,
+            messages: [{ role: 'user', content: prompt + '\nIMPORTANT: Return ONLY a valid JSON object matching the required schema.' }],
+            temperature: 0.2,
+          }),
+        });
+
+        if (res.ok) {
+          const data: any = await res.json();
+          const rawText = data.choices?.[0]?.message?.content;
+          if (rawText) {
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+            return {
+              ...parsed,
+              fullMarkdownReport: formatFullMarkdownReport(parsed),
+            };
+          }
         }
+      } catch (mercuryErr) {
+        console.warn('[AI System Design Architect] Mercury call failed, failing over to Gemini (Priority 2):', mercuryErr);
+      }
+
+      // Priority 2: Failover to Gemini
+      if (process.env.GEMINI_API_KEY) {
+        const geminiResult = await tryGemini(process.env.GEMINI_API_KEY);
+        if (geminiResult) return geminiResult;
+      }
+
+      // Priority 3: Failover to Groq
+      if (process.env.GROQ_API_KEY) {
+        const groqResult = await tryGroq(process.env.GROQ_API_KEY);
+        if (groqResult) return groqResult;
+      }
+    } else if (provider === 'gemini') {
+      const geminiResult = await tryGemini(apiKey!);
+      if (geminiResult) return geminiResult;
+
+      // Failover to Groq
+      if (process.env.GROQ_API_KEY) {
+        const groqResult = await tryGroq(process.env.GROQ_API_KEY);
+        if (groqResult) return groqResult;
       }
     } else if (provider === 'groq') {
-      const url = 'https://api.groq.com/openai/v1/chat/completions';
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: input.llmConfig?.model || process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: prompt }],
-          response_format: { type: 'json_object' },
-        }),
-      });
-
-      if (res.ok) {
-        const data: any = await res.json();
-        const rawText = data.choices?.[0]?.message?.content;
-        if (rawText) {
-          const parsed = JSON.parse(rawText);
-          return {
-            ...parsed,
-            fullMarkdownReport: formatFullMarkdownReport(parsed),
-          };
-        }
-      }
+      const groqResult = await tryGroq(apiKey!);
+      if (groqResult) return groqResult;
     }
   } catch (err) {
     console.warn('[AI System Design Architect] LLM call failed, falling back to deterministic synthesis:', err);
