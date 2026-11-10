@@ -345,6 +345,7 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
 
   const [customInput, setCustomInput] = useState('');
   const [isProcessingCommand, setIsProcessingCommand] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const saveDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   const prevGeneratingRef = useRef(isGenerating);
@@ -435,9 +436,11 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
       }
     }
   }, [messages, selectedAnswers, activePrompt, user, nodes, edges, projectId]);
-  // Auto-scroll
+  // Auto-scroll firmly to the bottom without competing smooth-scroll jitter or parent layout jumps
   useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const executeCommand = async (commandText: string) => {
@@ -576,7 +579,10 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
       </div>
 
       {/* Chat Stream */}
-      <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5 overscroll-contain [scrollbar-gutter:stable]">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5 overscroll-contain [scrollbar-gutter:stable]"
+      >
         {messages.map((msg) => (
           <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
 
