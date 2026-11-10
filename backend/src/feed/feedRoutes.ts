@@ -490,6 +490,18 @@ router.post('/posts/:id/comments', requireAuth, async (req: AuthenticatedRequest
   try {
     const postId = req.params.id;
     const userId = req.user!.id;
+
+    // Check account suspension status
+    const suspension = await isUserSuspended(userId);
+    if (suspension.suspended) {
+      res.status(403).json({
+        success: false,
+        error: 'ACCOUNT_SUSPENDED',
+        message: `Your account is suspended: ${suspension.reason || 'Community guidelines violation'}. You cannot leave comments.`,
+      });
+      return;
+    }
+
     const { content, parentId } = req.body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
