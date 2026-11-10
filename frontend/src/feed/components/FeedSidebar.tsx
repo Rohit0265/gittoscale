@@ -119,16 +119,22 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
   const username = profile?.username || user.email?.split('@')[0]?.toLowerCase() || 'user';
   const avatarUrl = profile?.avatar_url || extractAccountAvatar(user);
   const defaultBannerBg = getRandomBannerColor(profile?.id || user.id || username);
+  const [bannerFailed, setBannerFailed] = useState(false);
+
+  useEffect(() => {
+    setBannerFailed(false);
+  }, [coverImage, profile?.banner_url]);
 
   return (
     <aside className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] overflow-hidden shadow-xs">
       {/* 1. Cover Banner with Background Image Support */}
       <div className="relative h-24 w-full bg-slate-100 dark:bg-neutral-900 overflow-hidden group">
-        {coverImage || profile?.banner_url ? (
+        {(coverImage || profile?.banner_url) && !bannerFailed ? (
           <img
             src={coverImage || profile?.banner_url || ''}
             alt="Cover background"
             className="w-full h-full object-cover"
+            onError={() => setBannerFailed(true)}
           />
         ) : (
           <div className="w-full h-full" style={{ background: defaultBannerBg }} />
@@ -159,20 +165,13 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
           className="group relative flex flex-col items-center text-center cursor-pointer -mt-10"
           title="View your profile"
         >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-[#0A0A0A] shadow-md group-hover:scale-105 transition-transform"
-            />
-          ) : (
-            <div
-              className="w-20 h-20 rounded-full text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-md group-hover:scale-105 transition-transform"
-              style={{ background: getAvatarColor(profile?.id || user.id || displayName) }}
-            >
-              {getInitial(displayName)}
-            </div>
-          )}
+          <UserAvatar
+            src={avatarUrl}
+            name={displayName}
+            seed={profile?.id || user.id || displayName}
+            className="w-20 h-20 rounded-full border-4 border-white dark:border-[#0A0A0A] shadow-md group-hover:scale-105 transition-transform"
+            fallbackClassName="w-20 h-20 rounded-full text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-md group-hover:scale-105 transition-transform"
+          />
 
           <h3 className="mt-2.5 text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
             {displayName}
