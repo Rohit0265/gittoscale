@@ -25,6 +25,7 @@ import {
   getRandomBannerColor,
   getInitial,
 } from '../utils/avatarUtils';
+import { UserAvatar } from '../components/UserAvatar';
 
 interface ProfilePageProps {
   profileId: string;
