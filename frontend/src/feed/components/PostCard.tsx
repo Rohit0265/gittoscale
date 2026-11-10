@@ -295,16 +295,6 @@ export const PostCard: React.FC<PostCardProps> = ({
         />
       </article>
 
-      {/* Edit Post Modal */}
-      {isEditOpen && (
-        <EditPostModal
-          post={post}
-          isOpen={isEditOpen}
-          onClose={() => setIsEditOpen(false)}
-          onSave={(newContent) => onUpdatePost(post.id, newContent)}
-        />
-      )}
-
       {/* Share Modal */}
       {isShareOpen && (
         <ShareModal
