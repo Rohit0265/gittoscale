@@ -30,8 +30,22 @@ async function getUserIdFromReq(req: Request): Promise<string | null> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.substring(7).trim();
   if (!token) return null;
+
+  const allowMockAuth =
+    process.env.NODE_ENV !== 'production' || process.env.ENABLE_MOCK_AUTH === 'true';
+
+  if (token.startsWith('mock_jwt_')) {
+    if (!allowMockAuth) return null;
+    try {
+      const payloadBase64 = token.replace('mock_jwt_', '');
+      const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+      return payload.id || null;
+    } catch {
+      return null;
+    }
+  }
 
   if (isServerSupabaseConfigured) {
     try {
@@ -50,7 +64,10 @@ async function getUserIdFromReq(req: Request): Promise<string | null> {
  */
 router.post('/save', async (req: Request, res: Response) => {
   try {
-    const userId = await getUserIdFromReq(req) || req.body.userId || 'anonymous';
+    const authenticatedUserId = await getUserIdFromReq(req);
+    // Never trust client-supplied userId for database persistence.
+    // Unauthenticated sessions are saved in-memory only.
+    const userId = authenticatedUserId || 'anonymous';
     const {
       projectId,
       prompt = 'Scalable distributed cloud architecture',
