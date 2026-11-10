@@ -17,7 +17,6 @@ interface FeedPageProps {
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
   onSignOut?: () => void;
-  onNavigateToSimulator?: () => void;
   onNavigateToProfile: (userId: string) => void;
   pendingPost?: {
     content?: string;
@@ -35,7 +34,6 @@ export const FeedPage: React.FC<FeedPageProps> = ({
   onOpenAuth,
   onOpenSignUp,
   onSignOut,
-  onNavigateToSimulator,
   onNavigateToProfile,
   pendingPost,
   onClearPendingPost,
@@ -105,7 +103,6 @@ export const FeedPage: React.FC<FeedPageProps> = ({
         onOpenAuth={onOpenAuth}
         onOpenSignUp={onOpenSignUp}
         onSignOut={onSignOut}
-        onNavigateToSimulator={onNavigateToSimulator}
         onNavigateToProfile={onNavigateToProfile}
         onViewLikes={handleToggleFilter}
         onViewSaved={handleViewSaved}

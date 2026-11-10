@@ -13,7 +13,6 @@ interface FeedHeaderProps {
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
   onSignOut?: () => void;
-  onNavigateToSimulator?: () => void;
   onNavigateToProfile?: (userId: string) => void;
   onViewLikes?: () => void;
   onViewSaved?: () => void;
@@ -28,7 +27,6 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
   onOpenAuth,
   onOpenSignUp,
   onSignOut,
-  onNavigateToSimulator,
   onNavigateToProfile,
   onViewLikes,
   onViewSaved,
