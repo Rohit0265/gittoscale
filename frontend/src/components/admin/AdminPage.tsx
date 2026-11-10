@@ -24,14 +24,26 @@ import { adminApi, AdminUserRecord, AdminStats } from '../../services/adminApi';
 import { FeedPost } from '../../feed/types';
 import { getAvatarColor, getInitial } from '../../feed/utils/avatarUtils';
 import { formatRelativeTime } from '../../feed/utils/formatTime';
+import { useAuth } from '../../contexts/AuthContext';
 
-interface AdminPageProps {
+export interface AdminPageProps {
+  user?: any;
+  token?: string | null;
   onNavigate: (view: string) => void;
   isDark?: boolean;
 }
 
-export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate, isDark = true }) => {
-  const [token, setToken] = useState<string | null>(null);
+export const AdminPage: React.FC<AdminPageProps> = ({
+  user: propUser,
+  token: propToken,
+  onNavigate,
+  isDark = true,
+}) => {
+  const { user: authUser, profile: authProfile, isLoading: isAuthLoading, getAuthToken } = useAuth();
+  const effectiveUser = propUser || authUser;
+  const initialToken = propToken || (typeof getAuthToken === 'function' ? getAuthToken() : null);
+
+  const [token, setToken] = useState<string | null>(initialToken);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
