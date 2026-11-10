@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { FeedPost } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { PostActions } from './PostActions';
@@ -23,6 +24,8 @@ interface PostCardProps {
   onUpdatePost: (postId: string, newContent: string) => Promise<any>;
   onDeletePost: (postId: string) => Promise<any>;
   onNavigateToProfile: (userId: string) => void;
+  onToggleFollow?: (targetUserId: string) => Promise<any>;
+  onOpenSignIn?: () => void;
 }
 
 export const PostCard: React.FC<PostCardProps> = ({
@@ -35,15 +38,35 @@ export const PostCard: React.FC<PostCardProps> = ({
   onUpdatePost,
   onDeletePost,
   onNavigateToProfile,
+  onToggleFollow,
+  onOpenSignIn,
 }) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClamped, setIsClamped] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [viewsCount, setViewsCount] = useState<number>(post.views_count ?? 0);
   const contentRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLElement>(null);
+
+  const handleFollowToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentUserId && onOpenSignIn) {
+      onOpenSignIn();
+      return;
+    }
+    if (!onToggleFollow || isFollowLoading) return;
+    try {
+      setIsFollowLoading(true);
+      await onToggleFollow(post.user_id);
+    } catch (err: any) {
+      console.error('Failed to toggle follow:', err);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
 
   useEffect(() => {
     setViewsCount(post.views_count ?? 0);
