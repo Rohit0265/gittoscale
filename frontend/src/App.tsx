@@ -229,6 +229,7 @@ const getInitialView = (): AppView => {
   if (typeof window === 'undefined') return 'landing';
   if (isOAuthPopup()) return 'auth-callback';
   const path = window.location.pathname.toLowerCase();
+  if (path === '/admin' || path.startsWith('/admin')) return 'admin';
   if (path === '/feed') return 'feed';
   if (path === '/profile' || path.startsWith('/profile') || path.startsWith('/feed/profile/')) return 'feed-profile';
   if (path === '/signup') return 'signup';
@@ -397,6 +398,9 @@ export const App: React.FC = () => {
     } else if (cleanName === 'feed' || cleanName === '/feed') {
       window.history.pushState({}, '', '/feed');
       setCurrentView('feed');
+    } else if (cleanName === 'admin' || cleanName === '/admin') {
+      window.history.pushState({}, '', '/admin');
+      setCurrentView('admin');
     } else if (cleanName === 'profile' || cleanName === '/profile') {
       window.history.pushState({}, '', '/profile');
       setCurrentView('feed-profile');
