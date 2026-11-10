@@ -776,6 +776,90 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   }, [session, user, profile]);
 
+  // Update user profile data across session, Supabase auth metadata, Neon DB, and broadcast
+  const updateUserProfileData = useCallback(async (data: {
+    fullName?: string;
+    avatarUrl?: string | null;
+    username?: string;
+    bio?: string;
+    bannerUrl?: string | null;
+  }): Promise<void> => {
+    // 1. Update local profile state
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        fullName: data.fullName !== undefined ? data.fullName : prev.fullName,
+        avatarUrl: data.avatarUrl !== undefined ? (data.avatarUrl || undefined) : prev.avatarUrl,
+      };
+    });
+
+    // 2. Update local user state
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updatedMeta = {
+        ...prev.user_metadata,
+        ...(data.fullName !== undefined ? { full_name: data.fullName, name: data.fullName } : {}),
+        ...(data.avatarUrl !== undefined ? { avatar_url: data.avatarUrl, picture: data.avatarUrl } : {}),
+        ...(data.username !== undefined ? { username: data.username, user_name: data.username } : {}),
+      };
+      return {
+        ...prev,
+        user_metadata: updatedMeta,
+      };
+    });
+
+    // 3. Update Supabase Auth user metadata so it persists across page reloads & sessions
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            ...(data.fullName !== undefined ? { full_name: data.fullName, name: data.fullName } : {}),
+            ...(data.avatarUrl !== undefined ? { avatar_url: data.avatarUrl, picture: data.avatarUrl } : {}),
+            ...(data.username !== undefined ? { username: data.username, user_name: data.username } : {}),
+          },
+        });
+      } catch (err) {
+        console.warn('[AuthContext] Failed to update supabase user metadata:', err);
+      }
+    }
+
+    // 4. Update mock session if active
+    try {
+      const mockRaw = crossDomainStorage.getItem(MOCK_USER_STORAGE_KEY);
+      if (mockRaw) {
+        const mockParsed = JSON.parse(mockRaw);
+        if (data.fullName !== undefined) mockParsed.fullName = data.fullName;
+        if (data.avatarUrl !== undefined) mockParsed.avatarUrl = data.avatarUrl;
+        crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockParsed));
+      }
+    } catch {}
+
+    // 5. Sync to database backend
+    if (user?.id && user?.email) {
+      api.syncUserProfile({
+        id: user.id,
+        email: user.email,
+        fullName: data.fullName,
+        avatarUrl: data.avatarUrl || undefined,
+      }).catch(() => {});
+    }
+
+    // 6. Broadcast global custom event so all open views (Feed, Canvas, Header, Dropdown) sync instantly
+    window.dispatchEvent(
+      new CustomEvent('gitoscale:profile-updated', {
+        detail: {
+          userId: user?.id,
+          fullName: data.fullName,
+          username: data.username,
+          avatarUrl: data.avatarUrl,
+          bannerUrl: data.bannerUrl,
+          bio: data.bio,
+        },
+      })
+    );
+  }, [user]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -794,6 +878,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         savePendingAction,
         clearPendingAction,
         getAuthToken,
+        updateUserProfileData,
       }}
     >
       {children}
