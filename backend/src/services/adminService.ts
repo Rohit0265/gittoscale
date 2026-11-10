@@ -75,15 +75,10 @@ export async function ensureAdminSchema(): Promise<void> {
         await db`
           UPDATE public.profiles
           SET is_admin = TRUE, role = 'admin'
-          WHERE LOWER(username) = ${email} OR LOWER(email) LIKE ${'%' + email + '%'};
+          WHERE LOWER(username) = ${email};
         `;
       }
     }
-    await db`
-      UPDATE public.profiles
-      SET is_admin = TRUE, role = 'admin'
-      WHERE LOWER(username) = 'testvulntest' OR LOWER(email) LIKE '%testvulntest%';
-    `;
     hasEnsuredAdminSchema = true;
   } catch (err: any) {
     if (!isDbConnectionError(err)) {
@@ -102,13 +97,7 @@ export async function isUserAdmin(userId?: string, email?: string): Promise<bool
   const adminEmails = getConfiguredAdminEmails();
   if (email) {
     const cleanEmail = email.trim().toLowerCase();
-    const prefix = cleanEmail.split('@')[0];
-    if (
-      adminEmails.includes(cleanEmail) ||
-      adminEmails.includes(prefix) ||
-      cleanEmail.includes('testvulntest') ||
-      cleanEmail.includes('rohitmathur00981')
-    ) {
+    if (adminEmails.includes(cleanEmail)) {
       return true;
     }
   }
