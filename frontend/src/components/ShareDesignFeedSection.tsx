@@ -255,13 +255,6 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
             </AlternateImageMockup>
           </div>
         </div>
-                  (e.currentTarget as HTMLImageElement).src = '/demo-import.png';
-                }}
-                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
-              />
-            </AlternateImageMockup>
-          </div>
-        </div>
       </div>
     </section>
   );
