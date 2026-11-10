@@ -219,24 +219,17 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
           className="shrink-0 cursor-pointer self-start mt-0.5"
           title={`View ${comment.author.full_name}'s profile`}
         >
-          {comment.author.avatar_url ? (
-            <img
-              src={comment.author.avatar_url}
-              alt={comment.author.full_name}
-              className={`${
-                depth === 0 ? 'w-7 h-7' : 'w-6 h-6'
-              } rounded-full object-cover border border-slate-200 dark:border-neutral-700`}
-            />
-          ) : (
-            <div
-              className={`${
-                depth === 0 ? 'w-7 h-7 text-xs' : 'w-6 h-6 text-[11px]'
-              } rounded-full text-white font-bold flex items-center justify-center uppercase`}
-              style={{ background: getAvatarColor(comment.user_id || comment.author.full_name) }}
-            >
-              {getInitial(comment.author.full_name)}
-            </div>
-          )}
+          <UserAvatar
+            src={comment.author.avatar_url}
+            name={comment.author.full_name}
+            seed={comment.user_id || comment.author.full_name}
+            className={`${
+              depth === 0 ? 'w-7 h-7' : 'w-6 h-6'
+            } rounded-full border border-slate-200 dark:border-neutral-700`}
+            fallbackClassName={`${
+              depth === 0 ? 'text-xs' : 'text-[11px]'
+            } rounded-full text-white font-bold flex items-center justify-center uppercase`}
+          />
         </button>
 
         <div className="flex-1 min-w-0 bg-slate-50 dark:bg-neutral-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-neutral-800/60">

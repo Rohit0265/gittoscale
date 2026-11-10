@@ -9,6 +9,7 @@ import { EditPostModal } from './EditPostModal';
 import { ShareModal } from './ShareModal';
 import { PostMediaGallery } from './PostMediaGallery';
 import { getAvatarColor, getInitial } from '../utils/avatarUtils';
+import { UserAvatar } from './UserAvatar';
 
 interface PostCardProps {
   post: FeedPost;
@@ -87,20 +88,13 @@ export const PostCard: React.FC<PostCardProps> = ({
               className="group shrink-0 cursor-pointer focus:outline-hidden"
               title={`View ${author.full_name}'s profile`}
             >
-              {author.avatar_url ? (
-                <img
-                  src={author.avatar_url}
-                  alt={author.full_name}
-                  className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-neutral-700 group-hover:border-indigo-500 transition-colors"
-                />
-              ) : (
-                <div
-                  className="w-10 h-10 rounded-full text-white font-bold flex items-center justify-center uppercase group-hover:scale-105 transition-transform"
-                  style={{ background: getAvatarColor(post.user_id || author.full_name) }}
-                >
-                  {getInitial(author.full_name || author.username)}
-                </div>
-              )}
+              <UserAvatar
+                src={author.avatar_url}
+                name={author.full_name || author.username}
+                seed={post.user_id || author.full_name}
+                className="w-10 h-10 rounded-full border border-slate-200 dark:border-neutral-700 group-hover:border-indigo-500 transition-colors"
+                fallbackClassName="w-10 h-10 rounded-full text-white font-bold flex items-center justify-center uppercase group-hover:scale-105 transition-transform text-sm"
+              />
             </button>
 
             <div className="min-w-0 flex flex-col">
