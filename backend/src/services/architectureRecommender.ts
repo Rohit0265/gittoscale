@@ -9,7 +9,7 @@ import {
 import { ArchitectureNode, ArchitectureEdge } from '../simulation/types.js';
 import { validateGraphAcyclic } from '../simulation/validation.js';
 
-export import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
+import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
 
 interface LLMConfig {
   provider?: string;

@@ -1,4 +1,5 @@
 import { LLMConfig } from './architectureRecommender.js';
+import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
 
 export interface ChatMessageContext {
   role: 'user' | 'assistant' | 'system';
@@ -822,6 +823,12 @@ async function callMercuryChat(
   if (!mKey) return { ok: false, error: 'No Mercury API key available' };
 
   const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+  if (input.llmConfig?.baseUrl) {
+    const check = validateSafeLlmBaseUrl(input.llmConfig.baseUrl);
+    if (!check.safe) {
+      return { ok: false, error: check.error || 'Blocked untrusted LLM base URL' };
+    }
+  }
   const cleanBase = baseUrl.replace(/\/+$/, '');
   const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
   const mModel = input.llmConfig?.model || process.env.MERCURY_MODEL || 'mercury-3';
@@ -879,6 +886,12 @@ async function callMercuryChatStream(
   if (!mKey) return { ok: false, error: 'No Mercury API key available' };
 
   const baseUrl = input.llmConfig?.baseUrl || process.env.MERCURY_BASE_URL || 'https://api.inceptionlabs.ai/v1';
+  if (input.llmConfig?.baseUrl) {
+    const check = validateSafeLlmBaseUrl(input.llmConfig.baseUrl);
+    if (!check.safe) {
+      return { ok: false, error: check.error || 'Blocked untrusted LLM base URL' };
+    }
+  }
   const cleanBase = baseUrl.replace(/\/+$/, '');
   const endpoint = cleanBase.endsWith('/chat/completions') ? cleanBase : `${cleanBase}/chat/completions`;
   const mModel = input.llmConfig?.model || process.env.MERCURY_MODEL || 'mercury-3';
@@ -1296,6 +1309,10 @@ export async function generateAIChatReply(input: ArchitectureChatInput): Promise
         // OpenAI or OpenRouter or compatible
         let endpoint = 'https://api.openai.com/v1/chat/completions';
         if (input.llmConfig?.baseUrl) {
+          const check = validateSafeLlmBaseUrl(input.llmConfig.baseUrl);
+          if (!check.safe) {
+            return { reply: `LLM Configuration error: ${check.error || 'Blocked untrusted LLM base URL'}` };
+          }
           const cleanBase = input.llmConfig.baseUrl.replace(/\/+$/, '');
           endpoint = cleanBase.endsWith('/chat/completions')
             ? cleanBase

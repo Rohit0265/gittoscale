@@ -5,7 +5,7 @@ import {
   llmAnalysisResultSchema,
 } from './repoAnalysisTypes.js';
 
-export import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
+import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
 
 interface LLMConfig {
   provider?: string; // 'openai' | 'gemini' | 'anthropic' | 'other'
