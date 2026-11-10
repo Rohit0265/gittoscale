@@ -124,6 +124,15 @@ export async function ensureFeedSchema(): Promise<void> {
         UNIQUE(post_id, user_id)
       );
     `;
+    await db`
+      CREATE TABLE IF NOT EXISTS public.feed_follows (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        follower_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+        following_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+        UNIQUE(follower_id, following_id)
+      );
+    `;
     hasEnsuredColumns = true;
   } catch (err: any) {
     if (!isDbConnectionError(err)) {
@@ -140,63 +149,128 @@ ensureFeedSchema().catch(() => {});
  */
 export async function getFeedPosts(
   currentUserId?: string,
-  options: { limit?: number; offset?: number } = {}
+  options: { limit?: number; offset?: number; filter?: 'all' | 'following' } = {}
 ): Promise<FeedPost[]> {
   const limit = Math.min(Math.max(Number(options.limit) || 20, 1), 50);
   const offset = Math.max(Number(options.offset) || 0, 0);
+  const isFollowingFilter = options.filter === 'following';
+
+  if (isFollowingFilter && !currentUserId) {
+    return [];
+  }
 
   try {
     const db = getSql();
-    const rows = await db`
-      SELECT 
-        p.id,
-        p.user_id,
-        p.content,
-        p.media_url,
-        p.media_type,
-        p.media_metadata,
-        p.created_at,
-        p.updated_at,
-        pr.full_name as author_name,
-        pr.username as author_username,
-        pr.avatar_url as author_avatar,
-        pr.email as author_email,
-        COALESCE(l_count.count, 0)::int as like_count,
-        COALESCE(c_count.count, 0)::int as comment_count,
-        COALESCE(p.views_count, 0)::int as views_count,
-        CASE 
-          WHEN ${currentUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
-          ELSE false 
-        END as has_liked,
-        CASE 
-          WHEN ${currentUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
-          ELSE false 
-        END as has_disliked,
-        CASE 
-          WHEN ${currentUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
-          ELSE false 
-        END as has_bookmarked
-      FROM public.feed_posts p
-      JOIN public.profiles pr ON pr.id = p.user_id
-      LEFT JOIN (
-        SELECT post_id, count(*)::int as count 
-        FROM public.feed_likes 
-        GROUP BY post_id
-      ) l_count ON l_count.post_id = p.id
-      LEFT JOIN (
-        SELECT post_id, count(*)::int as count 
-        FROM public.feed_comments 
-        GROUP BY post_id
-      ) c_count ON c_count.post_id = p.id
-      LEFT JOIN public.feed_likes user_likes 
-        ON user_likes.post_id = p.id AND user_likes.user_id = ${currentUserId || null}::text
-      LEFT JOIN public.feed_dislikes user_dislikes
-        ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${currentUserId || null}::text
-      LEFT JOIN public.feed_bookmarks user_bookmarks
-        ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${currentUserId || null}::text
-      ORDER BY p.created_at DESC
-      LIMIT ${limit} OFFSET ${offset};
-    `;
+    const rows = isFollowingFilter
+      ? await db`
+          SELECT 
+            p.id,
+            p.user_id,
+            p.content,
+            p.media_url,
+            p.media_type,
+            p.media_metadata,
+            p.created_at,
+            p.updated_at,
+            pr.full_name as author_name,
+            pr.username as author_username,
+            pr.avatar_url as author_avatar,
+            pr.email as author_email,
+            COALESCE(l_count.count, 0)::int as like_count,
+            COALESCE(c_count.count, 0)::int as comment_count,
+            COALESCE(p.views_count, 0)::int as views_count,
+            CASE 
+              WHEN ${currentUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
+              ELSE false 
+            END as has_liked,
+            CASE 
+              WHEN ${currentUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
+              ELSE false 
+            END as has_disliked,
+            CASE 
+              WHEN ${currentUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
+              ELSE false 
+            END as has_bookmarked,
+            true as author_is_following
+          FROM public.feed_posts p
+          JOIN public.profiles pr ON pr.id = p.user_id
+          INNER JOIN public.feed_follows author_follow
+            ON author_follow.following_id = p.user_id AND author_follow.follower_id = ${currentUserId}::text
+          LEFT JOIN (
+            SELECT post_id, count(*)::int as count 
+            FROM public.feed_likes 
+            GROUP BY post_id
+          ) l_count ON l_count.post_id = p.id
+          LEFT JOIN (
+            SELECT post_id, count(*)::int as count 
+            FROM public.feed_comments 
+            GROUP BY post_id
+          ) c_count ON c_count.post_id = p.id
+          LEFT JOIN public.feed_likes user_likes 
+            ON user_likes.post_id = p.id AND user_likes.user_id = ${currentUserId || null}::text
+          LEFT JOIN public.feed_dislikes user_dislikes
+            ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${currentUserId || null}::text
+          LEFT JOIN public.feed_bookmarks user_bookmarks
+            ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${currentUserId || null}::text
+          ORDER BY p.created_at DESC
+          LIMIT ${limit} OFFSET ${offset};
+        `
+      : await db`
+          SELECT 
+            p.id,
+            p.user_id,
+            p.content,
+            p.media_url,
+            p.media_type,
+            p.media_metadata,
+            p.created_at,
+            p.updated_at,
+            pr.full_name as author_name,
+            pr.username as author_username,
+            pr.avatar_url as author_avatar,
+            pr.email as author_email,
+            COALESCE(l_count.count, 0)::int as like_count,
+            COALESCE(c_count.count, 0)::int as comment_count,
+            COALESCE(p.views_count, 0)::int as views_count,
+            CASE 
+              WHEN ${currentUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
+              ELSE false 
+            END as has_liked,
+            CASE 
+              WHEN ${currentUserId || null}::text IS NOT NULL AND user_dislikes.id IS NOT NULL THEN true 
+              ELSE false 
+            END as has_disliked,
+            CASE 
+              WHEN ${currentUserId || null}::text IS NOT NULL AND user_bookmarks.id IS NOT NULL THEN true 
+              ELSE false 
+            END as has_bookmarked,
+            CASE 
+              WHEN ${currentUserId || null}::text IS NOT NULL AND author_follow.id IS NOT NULL THEN true 
+              ELSE false 
+            END as author_is_following
+          FROM public.feed_posts p
+          JOIN public.profiles pr ON pr.id = p.user_id
+          LEFT JOIN (
+            SELECT post_id, count(*)::int as count 
+            FROM public.feed_likes 
+            GROUP BY post_id
+          ) l_count ON l_count.post_id = p.id
+          LEFT JOIN (
+            SELECT post_id, count(*)::int as count 
+            FROM public.feed_comments 
+            GROUP BY post_id
+          ) c_count ON c_count.post_id = p.id
+          LEFT JOIN public.feed_likes user_likes 
+            ON user_likes.post_id = p.id AND user_likes.user_id = ${currentUserId || null}::text
+          LEFT JOIN public.feed_dislikes user_dislikes
+            ON user_dislikes.post_id = p.id AND user_dislikes.user_id = ${currentUserId || null}::text
+          LEFT JOIN public.feed_bookmarks user_bookmarks
+            ON user_bookmarks.post_id = p.id AND user_bookmarks.user_id = ${currentUserId || null}::text
+          LEFT JOIN public.feed_follows author_follow
+            ON author_follow.following_id = p.user_id AND author_follow.follower_id = ${currentUserId || null}::text
+          ORDER BY p.created_at DESC
+          LIMIT ${limit} OFFSET ${offset};
+        `;
 
     return rows.map((r: any) => {
       const media = formatPostMedia(r.media_url, r.media_type, r.media_metadata);
@@ -215,6 +289,7 @@ export async function getFeedPosts(
           full_name: r.author_name || r.author_email?.split('@')[0] || 'Anonymous',
           username: r.author_username || deriveUsername(r.author_name, r.author_email),
           avatar_url: r.author_avatar || null,
+          is_following: Boolean(r.author_is_following),
         },
         like_count: Number(r.like_count) || 0,
         comment_count: Number(r.comment_count) || 0,
@@ -227,7 +302,15 @@ export async function getFeedPosts(
   } catch (err: any) {
     if (isDbConnectionError(err)) {
       // In-memory fallback
-      const sorted = [...inMemPosts].sort(
+      let list = [...inMemPosts];
+      if (isFollowingFilter) {
+        if (!currentUserId) return [];
+        const followedIds = new Set(
+          inMemFollows.filter((f) => f.follower_id === currentUserId).map((f) => f.following_id)
+        );
+        list = list.filter((p) => followedIds.has(p.user_id));
+      }
+      const sorted = list.sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       const sliced = sorted.slice(offset, offset + limit);
@@ -238,13 +321,19 @@ export async function getFeedPosts(
         const hasLiked = currentUserId ? inMemLikes.some((l) => l.post_id === r.id && l.user_id === currentUserId) : false;
         const hasDisliked = currentUserId ? inMemDislikes.some((d) => d.post_id === r.id && d.user_id === currentUserId) : false;
         const hasBookmarked = currentUserId ? inMemBookmarks.some((b) => b.post_id === r.id && b.user_id === currentUserId) : false;
+        const isFollowingAuthor = currentUserId
+          ? inMemFollows.some((f) => f.follower_id === currentUserId && f.following_id === r.user_id)
+          : false;
 
+        const media = formatPostMedia(r.media_url, r.media_type, r.media_metadata);
         return {
           id: r.id,
           user_id: r.user_id,
           content: r.content,
-          media_url: r.media_url,
-          media_type: r.media_type,
+          media_url: media.media_url,
+          media_type: media.media_type,
+          media_metadata: media.media_metadata,
+          media_items: media.media_items,
           created_at: r.created_at,
           updated_at: r.updated_at,
           author: {
@@ -252,6 +341,7 @@ export async function getFeedPosts(
             full_name: r.author_name || 'Anonymous',
             username: r.author_username || deriveUsername(r.author_name, r.author_email),
             avatar_url: r.author_avatar || null,
+            is_following: isFollowingAuthor,
           },
           like_count: likeCount,
           comment_count: commentCount,
