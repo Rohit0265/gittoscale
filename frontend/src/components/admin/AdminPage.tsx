@@ -86,50 +86,58 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     }, 4500);
   }, []);
 
-  // Retrieve auth token from storage or cookies
+  // Retrieve auth token and check superuser status
   useEffect(() => {
-    let storedToken: string | null = null;
-    try {
-      const keys = ['gts_auth_token', 'supabase.auth.token', 'sb-token', 'gts_mock_user_session'];
-      for (const k of keys) {
-        const val = localStorage.getItem(k);
-        if (val) {
-          try {
-            const parsed = JSON.parse(val);
-            if (parsed.access_token) {
-              storedToken = parsed.access_token;
-              break;
-            }
-            if (parsed.token) {
-              storedToken = parsed.token;
-              break;
-            }
-            if (typeof parsed === 'string') {
-              storedToken = parsed;
-              break;
-            }
-          } catch {
-            storedToken = val;
-            break;
-          }
-        }
-      }
-    } catch {}
+    if (isAuthLoading) return;
 
-    setToken(storedToken);
+    const currentToken = propToken || (typeof getAuthToken === 'function' ? getAuthToken() : null);
+    setToken(currentToken);
+
+    if (!effectiveUser) {
+      setIsAdmin(false);
+      setIsCheckingAuth(false);
+      return;
+    }
+
+    const email = String(effectiveUser.email || '').toLowerCase();
+    const metaUsername = String(
+      effectiveUser.user_metadata?.user_name ||
+      effectiveUser.user_metadata?.username ||
+      effectiveUser.user_metadata?.preferred_username ||
+      effectiveUser.user_metadata?.full_name ||
+      authProfile?.username ||
+      authProfile?.full_name ||
+      email.split('@')[0] ||
+      ''
+    ).toLowerCase();
+
+    // Known admin accounts (including testvulntest and rohitmathur00981)
+    const isKnownAdmin =
+      Boolean(authProfile?.is_admin) ||
+      authProfile?.role === 'admin' ||
+      email.includes('testvulntest') ||
+      metaUsername.includes('testvulntest') ||
+      email.includes('rohitmathur00981') ||
+      metaUsername.includes('rohitmathur00981');
+
+    if (isKnownAdmin) {
+      setIsAdmin(true);
+      setIsCheckingAuth(false);
+      return;
+    }
 
     adminApi
-      .checkAdminStatus(storedToken)
+      .checkAdminStatus(currentToken)
       .then((res) => {
-        setIsAdmin(res.isAdmin);
+        setIsAdmin(Boolean(res.isAdmin));
       })
       .catch(() => {
-        setIsAdmin(false);
+        setIsAdmin(isKnownAdmin);
       })
       .finally(() => {
         setIsCheckingAuth(false);
       });
-  }, []);
+  }, [effectiveUser, propToken, isAuthLoading, authProfile, getAuthToken]);
 
   // Fetch users when filter or search changes
   const fetchUsers = useCallback(async () => {
