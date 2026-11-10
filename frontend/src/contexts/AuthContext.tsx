@@ -194,7 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     function pick(name,email){
       var payload = {type:'GTS_OAUTH_DONE',user:{id:'usr_'+Math.random().toString(36).slice(2,10),email:email,fullName:name}};
       if(window.opener) {
-        try { window.opener.postMessage(payload,'*'); } catch(e){}
+        try { window.opener.postMessage(payload, window.location.origin); } catch(e){}
       }
       try {
         var bc = new BroadcastChannel('gts_oauth_channel');

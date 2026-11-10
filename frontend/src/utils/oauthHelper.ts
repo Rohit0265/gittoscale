@@ -56,14 +56,13 @@ export function broadcastOAuthMessage(message: OAuthBroadcastMessage): void {
     timestamp: Date.now(),
   };
 
-  // 1. window.opener.postMessage (if opener is still available)
+  // 1. window.opener.postMessage (targeted strictly to window.location.origin, never wildcard *)
   if (typeof window !== 'undefined' && window.opener && window.opener !== window) {
     try {
       window.opener.postMessage(payload, window.location.origin);
     } catch {
-      try {
-        window.opener.postMessage(payload, '*');
-      } catch {}
+      // Intentionally avoid wildcard '*' fallback to prevent cross-origin credential harvesting.
+      // BroadcastChannel and localStorage safely handle cross-window communication on the same origin.
     }
   }
 
