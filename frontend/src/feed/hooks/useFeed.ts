@@ -47,6 +47,33 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     fetchPosts();
   }, [fetchPosts]);
 
+  // Synchronize post author details when user updates their profile anywhere
+  useEffect(() => {
+    const handleProfileSync = (e: any) => {
+      const detail = e?.detail;
+      if (!detail?.userId) return;
+
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.user_id === detail.userId
+            ? {
+                ...p,
+                author: {
+                  ...p.author,
+                  ...(detail.fullName ? { full_name: detail.fullName } : {}),
+                  ...(detail.username ? { username: detail.username } : {}),
+                  ...(detail.avatarUrl !== undefined ? { avatar_url: detail.avatarUrl } : {}),
+                },
+              }
+            : p
+        )
+      );
+    };
+
+    window.addEventListener('gitoscale:profile-updated', handleProfileSync);
+    return () => window.removeEventListener('gitoscale:profile-updated', handleProfileSync);
+  }, []);
+
   const handleCreatePost = async (
     content: string,
     mediaUrl?: string | null,
