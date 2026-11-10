@@ -18,9 +18,14 @@ export const feedApi = {
   /**
    * Fetch feed posts
    */
-  async getPosts(token?: string | null, limit = 20, offset = 0): Promise<FeedPost[]> {
+  async getPosts(
+    token?: string | null,
+    limit = 20,
+    offset = 0,
+    filter: 'all' | 'following' = 'all'
+  ): Promise<FeedPost[]> {
     const res = await axios.get(`${API_BASE}/feed/posts`, {
-      params: { limit, offset },
+      params: { limit, offset, filter },
       headers: getAuthHeader(token),
     });
     return res.data?.data || [];

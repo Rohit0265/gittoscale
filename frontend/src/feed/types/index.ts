@@ -12,6 +12,7 @@ export interface FeedAuthor {
   full_name: string;
   username: string;
   avatar_url?: string | null;
+  is_following?: boolean;
 }
 
 export interface FeedPost {
