@@ -3,6 +3,7 @@ import { User, Camera, LogIn, UserPlus, ArrowRight } from 'lucide-react';
 import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
 import { extractAccountAvatar, getAvatarColor, getRandomBannerColor, getInitial } from '../utils/avatarUtils';
+import { UserAvatar } from './UserAvatar';
 
 interface FeedSidebarProps {
   user?: any;

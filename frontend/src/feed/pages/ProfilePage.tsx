@@ -246,7 +246,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <div className="w-full rounded-3xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] overflow-hidden shadow-xs mb-6">
             {/* Profile Cover Banner */}
             <div className="relative h-36 sm:h-52 w-full bg-slate-100 dark:bg-neutral-900 overflow-hidden group">
-              {profile.banner_url ? (
+              {profile.banner_url && !bannerImgFailed ? (
                 profile.banner_url.startsWith('linear-gradient') ? (
                   <div className="w-full h-full" style={{ background: profile.banner_url }} />
                 ) : (
@@ -254,6 +254,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     src={profile.banner_url}
                     alt="Profile banner"
                     className="w-full h-full object-cover"
+                    onError={() => setBannerImgFailed(true)}
                   />
                 )
               ) : (
@@ -277,20 +278,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <div className="p-6 sm:p-8 pt-0 flex flex-col sm:flex-row items-center sm:items-start gap-6">
               {/* Avatar Overlapping Banner */}
               <div className="shrink-0 -mt-12 sm:-mt-16 relative group">
-                {effectiveAvatar ? (
-                  <img
-                    src={effectiveAvatar}
-                    alt={profile.full_name}
-                    className="w-24 sm:w-28 h-24 sm:h-28 rounded-full object-cover border-4 border-white dark:border-[#0A0A0A] shadow-lg"
-                  />
-                ) : (
-                  <div
-                    className="w-24 sm:w-28 h-24 sm:h-28 rounded-full text-white text-3xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-lg"
-                    style={{ background: getAvatarColor(profile.id || profile.full_name) }}
-                  >
-                    {getInitial(profile.full_name || profile.username)}
-                  </div>
-                )}
+                <UserAvatar
+                  src={effectiveAvatar}
+                  name={profile.full_name || profile.username}
+                  seed={profile.id || profile.full_name}
+                  className="w-24 sm:w-28 h-24 sm:h-28 rounded-full border-4 border-white dark:border-[#0A0A0A] shadow-lg"
+                  fallbackClassName="w-24 sm:w-28 h-24 sm:h-28 rounded-full text-white text-3xl font-bold flex items-center justify-center uppercase border-4 border-white dark:border-[#0A0A0A] shadow-lg"
+                />
 
                 {isOwner && (
                   <button
