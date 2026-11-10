@@ -23,7 +23,6 @@ import {
 import { adminApi, AdminUserRecord, AdminStats } from '../../services/adminApi';
 import { feedApi } from '../../feed/services/feedApi';
 import { FeedPost } from '../../feed/types';
-import { getAvatarColor, getInitial } from '../../feed/utils/avatarUtils';
 import { UserAvatar } from '../../feed/components/UserAvatar';
 import { formatRelativeTime } from '../../feed/utils/formatTime';
 import { useAuth } from '../../contexts/AuthContext';
