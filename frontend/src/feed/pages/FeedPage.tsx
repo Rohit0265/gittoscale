@@ -7,6 +7,7 @@ import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { RefreshCw, MessageSquare, AlertCircle, Users } from 'lucide-react';
 import { FloatingFeedbackButton } from '../../components/FloatingFeedbackButton';
+import { useSmoothScroll } from '../../utils/useSmoothScroll';
 
 interface FeedPageProps {
   user?: any;
@@ -56,6 +57,9 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     closeComments,
     notifyCommentChange,
   } = useFeed({ token, userId: user?.id });
+
+  // Enable silky smooth momentum scroll across the feed
+  useSmoothScroll({ lerp: 0.085, enabled: true });
 
 
   const handleToggleFilter = () => {

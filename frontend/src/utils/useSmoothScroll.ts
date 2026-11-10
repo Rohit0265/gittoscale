@@ -77,10 +77,12 @@ export function useSmoothScroll(options: SmoothScrollOptions = {}) {
     };
 
     const setScrollTop = (val: number) => {
+      // Use integer pixel values to prevent subpixel jitter on sticky-positioned elements
+      const rounded = Math.round(val);
       if (targetEl) {
-        targetEl.scrollTop = val;
+        targetEl.scrollTop = rounded;
       } else {
-        window.scrollTo({ top: val, behavior: 'instant' as ScrollBehavior });
+        window.scrollTo({ top: rounded, behavior: 'instant' as ScrollBehavior });
       }
     };
 
