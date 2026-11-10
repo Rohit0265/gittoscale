@@ -9,6 +9,9 @@ import { EditPostModal } from './EditPostModal';
 import { ShareModal } from './ShareModal';
 import { PostMediaGallery } from './PostMediaGallery';
 import { UserAvatar } from './UserAvatar';
+import { feedApi } from '../services/feedApi';
+
+const viewedInSession = new Set<string>();
 
 interface PostCardProps {
   post: FeedPost;

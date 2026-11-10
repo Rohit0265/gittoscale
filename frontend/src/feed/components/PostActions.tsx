@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { ThumbsUp, ThumbsDown, Bookmark, MessageSquare } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Bookmark, MessageSquare, Eye } from 'lucide-react';
 
 interface PostActionsProps {
   postId: string;
   likeCount: number;
   commentCount: number;
+  viewsCount?: number;
   hasLiked?: boolean;
   hasDisliked?: boolean;
   hasBookmarked?: boolean;
@@ -14,9 +15,20 @@ interface PostActionsProps {
   onOpenComments: () => void;
 }
 
+function formatCompactNumber(num: number): string {
+  if (num >= 1_000_000) {
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (num >= 1_000) {
+    return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return String(num || 0);
+}
+
 export const PostActions: React.FC<PostActionsProps> = ({
   likeCount,
   commentCount,
+  viewsCount = 0,
   hasLiked = false,
   hasDisliked = false,
   hasBookmarked = false,
@@ -116,20 +128,33 @@ export const PostActions: React.FC<PostActionsProps> = ({
         )}
       </div>
 
-      {/* Right: Comments Button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpenComments();
-        }}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-neutral-800/40 transition-colors cursor-pointer"
-        title="Open comments"
-        aria-label="Open comments"
-      >
-        <MessageSquare className="w-4 h-4" />
-        <span>{commentCount}</span>
-      </button>
+      {/* Right: Views & Comments */}
+      <div className="flex items-center gap-1 sm:gap-2">
+        {/* Total Views of Post */}
+        <div
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-neutral-400 select-none"
+          title={`${(viewsCount ?? 0).toLocaleString()} people saw this post`}
+          aria-label={`${viewsCount ?? 0} views`}
+        >
+          <Eye className="w-4 h-4 text-slate-400 dark:text-neutral-500" />
+          <span>{formatCompactNumber(viewsCount ?? 0)}</span>
+        </div>
+
+        {/* Comments Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenComments();
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-neutral-800/40 transition-colors cursor-pointer"
+          title="Open comments"
+          aria-label="Open comments"
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>{commentCount}</span>
+        </button>
+      </div>
     </div>
   );
 };
