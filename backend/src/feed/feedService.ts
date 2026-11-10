@@ -4,13 +4,13 @@ import { extractR2KeyFromUrl } from '../services/r2Service.js';
 import crypto from 'node:crypto';
 
 // In-memory fallbacks when Neon is offline (e.g. unit testing or network timeouts)
-const inMemPosts: any[] = [];
-const inMemLikes: { post_id: string; user_id: string }[] = [];
-const inMemDislikes: { post_id: string; user_id: string }[] = [];
-const inMemBookmarks: { post_id: string; user_id: string }[] = [];
-const inMemComments: any[] = [];
-const inMemFollows: { follower_id: string; following_id: string }[] = [];
-const inMemProfiles: Record<string, any> = {};
+export const inMemPosts: any[] = [];
+export const inMemLikes: { post_id: string; user_id: string }[] = [];
+export const inMemDislikes: { post_id: string; user_id: string }[] = [];
+export const inMemBookmarks: { post_id: string; user_id: string }[] = [];
+export const inMemComments: any[] = [];
+export const inMemFollows: { follower_id: string; following_id: string }[] = [];
+export const inMemProfiles: Record<string, any> = {};
 
 /**
  * Normalizes media items for a post, strictly prioritizing video to show first.

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { getSql } from './neon.js';
 import { FeedPost } from '../feed/types.js';
+import { inMemPosts } from '../feed/feedService.js';
 
 function isDbConnectionError(err: any): boolean {
   if (!err) return false;
@@ -239,7 +240,7 @@ export async function getAdminUsers(params: {
         SELECT user_id, count(*)::int as count 
         FROM public.feed_posts 
         GROUP BY user_id
-      ) posts ON posts.user_id = p.id
+      ) posts ON posts.user_id::text = p.id::text
       ORDER BY p.created_at DESC;
     `;
 
