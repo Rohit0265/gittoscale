@@ -97,6 +97,13 @@ export async function ensureFeedSchema(): Promise<void> {
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';`;
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username TEXT;`;
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS banner_url TEXT;`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT FALSE;`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS warning_count INT DEFAULT 0;`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS warnings JSONB DEFAULT '[]'::jsonb;`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ;`;
+    await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS suspension_reason TEXT;`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username_unique ON public.profiles (LOWER(username)) WHERE username IS NOT NULL;`;
     await db`
       CREATE TABLE IF NOT EXISTS public.feed_dislikes (
@@ -1066,6 +1073,13 @@ export async function getUserFeedProfile(
     if (!rows || rows.length === 0) return null;
     const r = rows[0];
 
+    const adminEmails = (process.env.ADMIN_EMAILS || 'rohitmathur00981@gmail.com')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    const emailLower = (r.email || '').trim().toLowerCase();
+    const isSuper = Boolean(r.is_admin) || r.role === 'admin' || adminEmails.includes(emailLower);
+
     return {
       id: r.id,
       full_name: r.full_name || r.email?.split('@')[0] || 'GitToScale User',
@@ -1079,6 +1093,13 @@ export async function getUserFeedProfile(
       posts_count: Number(r.posts_count) || 0,
       is_following: Boolean(r.is_following),
       is_owner: viewerUserId ? viewerUserId === r.id : false,
+      is_admin: isSuper,
+      role: isSuper ? 'admin' : (r.role || 'user'),
+      is_suspended: Boolean(r.is_suspended) || Number(r.warning_count) >= 3,
+      warning_count: Number(r.warning_count) || 0,
+      warnings: Array.isArray(r.warnings) ? r.warnings : [],
+      suspended_at: r.suspended_at || null,
+      suspension_reason: r.suspension_reason || null,
     };
   } catch (err: any) {
     if (isDbConnectionError(err)) {
@@ -1087,6 +1108,12 @@ export async function getUserFeedProfile(
       const postsCount = inMemPosts.filter((p) => p.user_id === targetUserId).length;
       const isFollowing = viewerUserId ? inMemFollows.some((f) => f.follower_id === viewerUserId && f.following_id === targetUserId) : false;
       const inMem = inMemProfiles[targetUserId] || {};
+
+      const adminEmails = (process.env.ADMIN_EMAILS || 'rohitmathur00981@gmail.com')
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+      const isSuper = Boolean(inMem.is_admin) || inMem.role === 'admin' || (inMem.email && adminEmails.includes(inMem.email.toLowerCase()));
 
       return {
         id: targetUserId,
@@ -1101,6 +1128,13 @@ export async function getUserFeedProfile(
         posts_count: postsCount,
         is_following: isFollowing,
         is_owner: viewerUserId ? viewerUserId === targetUserId : false,
+        is_admin: isSuper,
+        role: isSuper ? 'admin' : (inMem.role || 'user'),
+        is_suspended: Boolean(inMem.is_suspended) || Number(inMem.warning_count) >= 3,
+        warning_count: Number(inMem.warning_count) || 0,
+        warnings: inMem.warnings || [],
+        suspended_at: inMem.suspended_at || null,
+        suspension_reason: inMem.suspension_reason || null,
       };
     }
     throw err;
