@@ -76,3 +76,77 @@ CREATE TABLE IF NOT EXISTS public.feed_bookmarks (
 CREATE INDEX IF NOT EXISTS idx_feed_bookmarks_post_id ON public.feed_bookmarks(post_id);
 CREATE INDEX IF NOT EXISTS idx_feed_bookmarks_user_id ON public.feed_bookmarks(user_id);
 
+-- Enable Row Level Security (RLS) on all feed tables
+ALTER TABLE public.feed_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feed_likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feed_dislikes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feed_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feed_follows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feed_bookmarks ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies: feed_posts
+DROP POLICY IF EXISTS "feed_posts_select_policy" ON public.feed_posts;
+CREATE POLICY "feed_posts_select_policy" ON public.feed_posts FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "feed_posts_insert_policy" ON public.feed_posts;
+CREATE POLICY "feed_posts_insert_policy" ON public.feed_posts FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_posts_update_policy" ON public.feed_posts;
+CREATE POLICY "feed_posts_update_policy" ON public.feed_posts FOR UPDATE USING (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_posts_delete_policy" ON public.feed_posts;
+CREATE POLICY "feed_posts_delete_policy" ON public.feed_posts FOR DELETE USING (auth.uid()::text = user_id);
+
+-- RLS Policies: feed_likes
+DROP POLICY IF EXISTS "feed_likes_select_policy" ON public.feed_likes;
+CREATE POLICY "feed_likes_select_policy" ON public.feed_likes FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "feed_likes_insert_policy" ON public.feed_likes;
+CREATE POLICY "feed_likes_insert_policy" ON public.feed_likes FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_likes_delete_policy" ON public.feed_likes;
+CREATE POLICY "feed_likes_delete_policy" ON public.feed_likes FOR DELETE USING (auth.uid()::text = user_id);
+
+-- RLS Policies: feed_dislikes
+DROP POLICY IF EXISTS "feed_dislikes_select_policy" ON public.feed_dislikes;
+CREATE POLICY "feed_dislikes_select_policy" ON public.feed_dislikes FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "feed_dislikes_insert_policy" ON public.feed_dislikes;
+CREATE POLICY "feed_dislikes_insert_policy" ON public.feed_dislikes FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_dislikes_delete_policy" ON public.feed_dislikes;
+CREATE POLICY "feed_dislikes_delete_policy" ON public.feed_dislikes FOR DELETE USING (auth.uid()::text = user_id);
+
+-- RLS Policies: feed_comments
+DROP POLICY IF EXISTS "feed_comments_select_policy" ON public.feed_comments;
+CREATE POLICY "feed_comments_select_policy" ON public.feed_comments FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "feed_comments_insert_policy" ON public.feed_comments;
+CREATE POLICY "feed_comments_insert_policy" ON public.feed_comments FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_comments_update_policy" ON public.feed_comments;
+CREATE POLICY "feed_comments_update_policy" ON public.feed_comments FOR UPDATE USING (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_comments_delete_policy" ON public.feed_comments;
+CREATE POLICY "feed_comments_delete_policy" ON public.feed_comments FOR DELETE USING (auth.uid()::text = user_id);
+
+-- RLS Policies: feed_follows
+DROP POLICY IF EXISTS "feed_follows_select_policy" ON public.feed_follows;
+CREATE POLICY "feed_follows_select_policy" ON public.feed_follows FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "feed_follows_insert_policy" ON public.feed_follows;
+CREATE POLICY "feed_follows_insert_policy" ON public.feed_follows FOR INSERT WITH CHECK (auth.uid()::text = follower_id);
+
+DROP POLICY IF EXISTS "feed_follows_delete_policy" ON public.feed_follows;
+CREATE POLICY "feed_follows_delete_policy" ON public.feed_follows FOR DELETE USING (auth.uid()::text = follower_id);
+
+-- RLS Policies: feed_bookmarks
+DROP POLICY IF EXISTS "feed_bookmarks_select_policy" ON public.feed_bookmarks;
+CREATE POLICY "feed_bookmarks_select_policy" ON public.feed_bookmarks FOR SELECT USING (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_bookmarks_insert_policy" ON public.feed_bookmarks;
+CREATE POLICY "feed_bookmarks_insert_policy" ON public.feed_bookmarks FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+DROP POLICY IF EXISTS "feed_bookmarks_delete_policy" ON public.feed_bookmarks;
+CREATE POLICY "feed_bookmarks_delete_policy" ON public.feed_bookmarks FOR DELETE USING (auth.uid()::text = user_id);
+
