@@ -7,6 +7,7 @@ import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { RefreshCw, MessageSquare, AlertCircle } from 'lucide-react';
 import { useSmoothScroll } from '../../utils/useSmoothScroll';
+import { FloatingFeedbackButton } from '../../components/FloatingFeedbackButton';
 
 interface FeedPageProps {
   user?: any;
@@ -295,6 +296,9 @@ export const FeedPage: React.FC<FeedPageProps> = ({
           </div>
         </div>
       )}
+
+      {/* Floating Feedback and Recommendations Button */}
+      <FloatingFeedbackButton />
     </div>
   );
 };
