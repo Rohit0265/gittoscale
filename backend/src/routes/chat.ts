@@ -220,8 +220,34 @@ router.post('/save', async (req: Request, res: Response) => {
  */
 router.get('/history', async (req: Request, res: Response) => {
   try {
-    const userId = await getUserIdFromReq(req) || (req.query.userId as string) || 'anonymous';
+    const authenticatedUserId = await getUserIdFromReq(req);
     const sessionId = (req.query.sessionId as string) || '';
+
+    // If not authenticated, do not query DB by arbitrary query params; query in-memory store only.
+    if (!authenticatedUserId) {
+      const sessionKey = `anonymous:${sessionId}`;
+      const inMem = inMemoryChatStore.get(sessionKey) || (sessionId ? inMemoryChatStore.get(sessionId) : undefined);
+      if (inMem) {
+        return res.json({
+          success: true,
+          sessionId: inMem.sessionId,
+          prompt: inMem.prompt,
+          messages: inMem.messages.slice(-200),
+          selectedAnswers: inMem.selectedAnswers,
+          architectureData: inMem.architectureData,
+          storage: 'memory',
+        });
+      }
+      return res.json({
+        success: true,
+        messages: [],
+        selectedAnswers: {},
+        sessionId,
+        storage: 'memory',
+      });
+    }
+
+    const userId = authenticatedUserId;
 
     // 1. Neon PostgreSQL
     if (isNeonConfigured() && userId !== 'anonymous') {
