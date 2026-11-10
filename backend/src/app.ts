@@ -33,9 +33,46 @@ export function createApp() {
   loadEnvFiles();
   const app = express();
 
-  app.use(cors());
-  app.use(express.json({ limit: '80mb' }));
-  app.use(express.urlencoded({ limit: '80mb', extended: true }));
+  // Security Headers Middleware
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    next();
+  });
+
+  const allowedOrigins = [
+    'https://gitoscale.com',
+    'https://www.gitoscale.com',
+    'https://gittoscale.tech',
+    'https://www.gittoscale.tech',
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  ];
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. mobile apps, curl, or automated test runners)
+        if (!origin) return callback(null, true);
+        if (
+          process.env.NODE_ENV !== 'production' ||
+          allowedOrigins.includes(origin) ||
+          origin.endsWith('.vercel.app') ||
+          origin.startsWith('http://localhost:') ||
+          origin.startsWith('http://127.0.0.1:')
+        ) {
+          return callback(null, true);
+        }
+        return callback(new Error('CORS origin blocked by security policy'));
+      },
+      credentials: true,
+    })
+  );
+
+  app.use(express.json({ limit: '15mb' }));
+  app.use(express.urlencoded({ limit: '15mb', extended: true }));
   app.use(telemetryMiddleware);
 
   // API Routes
