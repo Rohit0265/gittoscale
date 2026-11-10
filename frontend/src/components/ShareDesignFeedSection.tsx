@@ -98,33 +98,33 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
       <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
         <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
           <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 md:text-base">
-            Features
+            Community Feed
           </span>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
-            Beautiful analytics to grow smarter
+            Share your design to others
           </h2>
           <p className="mt-4 text-base text-slate-600 dark:text-neutral-400 md:mt-5 md:text-xl leading-relaxed">
-            Powerful, self-serve product and growth analytics to help you convert, engage, and retain more users. Trusted by over 4,000 startups.
+            See what other engineers are building, explore battle-tested system architectures, and publish your own designs to collaborate with the community.
           </p>
         </div>
       </div>
 
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 sm:gap-16 md:gap-20 md:px-8 lg:gap-24">
-        {/* Feature 1: Share team inboxes */}
+        {/* Feature 1: See others' designs and what they are building */}
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center">
             <FeaturedIcon icon={MessageSquare} size="lg" color="brand" theme="light" />
             <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-              Share team inboxes
+              See others' designs and what they are building
             </h2>
             <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
-              Whether you have a team of 2 or 200, our shared team inboxes keep everyone on the same page and in the loop.
+              Explore real-world distributed architectures published by engineers worldwide. Gain direct visibility into how teams configure microservices, load balancers, message queues, and caching layers.
             </p>
             <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
               {[
-                'Leverage automation to move fast',
-                'Always give customers a human to chat to',
-                'Automate customer support and close leads faster',
+                'Inspect production topologies, cloud setups, and microservice flows',
+                'Learn from real capacity benchmarks, P99 latencies, and post-mortems',
+                'Fork community blueprints directly into your simulation canvas in one click',
               ].map((feat) => (
                 <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
               ))}
@@ -136,7 +136,7 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
                 onClick={handleOpenFeed}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors cursor-pointer group"
               >
-                <span>Explore Community Posts & Designs</span>
+                <span>Explore Community Feed & Posts</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -166,21 +166,21 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
           </div>
         </div>
 
-        {/* Feature 2: Deliver instant answers (Reversed: Image Left, Text Right) */}
+        {/* Feature 2: Publish your architectures & get peer feedback */}
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center lg:order-last">
             <FeaturedIcon icon={Zap} size="lg" color="brand" theme="light" />
             <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-              Deliver instant answers
+              Publish your architectures & get peer feedback
             </h2>
             <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
-              An all-in-one customer service platform that helps you balance everything your customers need to be happy.
+              Turn your system simulation results into rich community posts. Share your scaling breakthroughs, discuss architectural trade-offs, and receive constructive feedback from senior engineers.
             </p>
             <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
               {[
-                'Keep your customers in the loop with live chat',
-                'Embed help articles right on your website',
-                'Customers never have to leave the page to find an answer',
+                'Publish interactive architecture graphs with verified simulation metrics',
+                'Debate distributed trade-offs (ACID vs BASE, sharding, backpressure)',
+                'Attach multi-media diagrams, video walkthroughs, and benchmark logs',
               ].map((feat) => (
                 <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
               ))}
@@ -211,21 +211,21 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
           </div>
         </div>
 
-        {/* Feature 3: Manage your team with reports */}
+        {/* Feature 3: Bookmark, fork, and test proven topologies */}
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center">
             <FeaturedIcon icon={BarChart3} size="lg" color="brand" theme="light" />
             <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-              Manage your team with reports
+              Bookmark, fork, and test proven topologies
             </h2>
             <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
-              Measure what matters with Untitled's easy-to-use reports. You can filter, export, and drilldown on the data in a couple clicks.
+              Never design high-scale systems in isolation. Save your favorite community architectures, duplicate verified setups, and run custom stress simulations under peak burst traffic.
             </p>
             <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
               {[
-                'Filter, export, and drilldown on the data quickly',
-                'Save, schedule, and automate reports to your inbox',
-                'Connect the tools you already use with 100+ integrations',
+                'Save top-rated architectures directly to your personal library',
+                'Stress-test cloned community designs under extreme traffic spikes',
+                'Export comprehensive system design specifications and capacity reports',
               ].map((feat) => (
                 <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
               ))}
@@ -248,6 +248,13 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
                 alt="Dashboard mockup showing application interface"
                 src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
                 onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/demo-import.png';
+                }}
+                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
+              />
+            </AlternateImageMockup>
+          </div>
+        </div>
                   (e.currentTarget as HTMLImageElement).src = '/demo-import.png';
                 }}
                 className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
