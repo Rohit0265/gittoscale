@@ -3,6 +3,7 @@ import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, U
 import { UserProfileFeed } from '../feed/types';
 import { feedApi } from '../feed/services/feedApi';
 import { extractAccountAvatar, getAvatarColor, getInitial } from '../feed/utils/avatarUtils';
+import { UserAvatar } from '../feed/components/UserAvatar';
 
 export interface UserDropdownMenuProps {
   variant?: 'app' | 'feed';
@@ -239,20 +240,13 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
           className="group focus:outline-hidden cursor-pointer"
           title="View profile"
         >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-neutral-800 shadow-md group-hover:scale-105 transition-transform"
-            />
-          ) : (
-            <div
-              className="w-16 h-16 rounded-full text-white text-2xl font-bold flex items-center justify-center border-2 border-white dark:border-neutral-800 shadow-md group-hover:scale-105 transition-transform"
-              style={{ background: getAvatarColor(profile?.id || user.id || displayName) }}
-            >
-              {initial}
-            </div>
-          )}
+          <UserAvatar
+            src={avatarUrl}
+            name={displayName}
+            seed={profile?.id || user.id || displayName}
+            className="w-16 h-16 rounded-full border-2 border-white dark:border-neutral-800 shadow-md group-hover:scale-105 transition-transform"
+            fallbackClassName="w-16 h-16 rounded-full text-white text-2xl font-bold flex items-center justify-center border-2 border-white dark:border-neutral-800 shadow-md group-hover:scale-105 transition-transform"
+          />
         </button>
 
         <h3
