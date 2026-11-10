@@ -1805,14 +1805,21 @@ export async function toggleFollowUser(
     const db = getSql();
 
     // Check target user exists
-    const userCheck = await db`SELECT id FROM public.profiles WHERE id = ${followingId} LIMIT 1;`;
-    if (!userCheck || userCheck.length === 0) {
+    let targetExists = false;
+    const userCheck = await db`SELECT id FROM public.profiles WHERE id::text = ${followingId}::text LIMIT 1;`;
+    if (userCheck && userCheck.length > 0) {
+      targetExists = true;
+    } else if (inMemProfiles[followingId] || inMemPosts.some((p) => p.user_id === followingId)) {
+      targetExists = true;
+    }
+
+    if (!targetExists) {
       throw new Error('USER_NOT_FOUND');
     }
 
     const existingFollow = await db`
       SELECT id FROM public.feed_follows 
-      WHERE follower_id = ${followerId} AND following_id = ${followingId}
+      WHERE follower_id::text = ${followerId}::text AND following_id::text = ${followingId}::text
       LIMIT 1;
     `;
 
@@ -1820,7 +1827,7 @@ export async function toggleFollowUser(
     if (existingFollow && existingFollow.length > 0) {
       await db`
         DELETE FROM public.feed_follows 
-        WHERE follower_id = ${followerId} AND following_id = ${followingId};
+        WHERE follower_id::text = ${followerId}::text AND following_id::text = ${followingId}::text;
       `;
       following = false;
     } else {
@@ -1833,9 +1840,17 @@ export async function toggleFollowUser(
     }
 
     const countRes = await db`
-      SELECT count(*)::int as count FROM public.feed_follows WHERE following_id = ${followingId};
+      SELECT count(*)::int as count FROM public.feed_follows WHERE following_id::text = ${followingId}::text;
     `;
     const followersCount = Number(countRes[0]?.count) || 0;
+
+    // keep inMem in sync too
+    const memIdx = inMemFollows.findIndex((f) => f.follower_id === followerId && f.following_id === followingId);
+    if (following && memIdx === -1) {
+      inMemFollows.push({ follower_id: followerId, following_id: followingId });
+    } else if (!following && memIdx !== -1) {
+      inMemFollows.splice(memIdx, 1);
+    }
 
     return { following, followersCount };
   } catch (err: any) {
