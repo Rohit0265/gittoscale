@@ -11,9 +11,10 @@ export function useFeed({ token, userId }: UseFeedOptions) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'liked' | 'saved'>(() => {
+  const [filter, setFilter] = useState<'all' | 'following' | 'liked' | 'saved'>(() => {
     if (typeof window !== 'undefined') {
       const param = new URLSearchParams(window.location.search).get('filter');
+      if (param === 'following') return 'following';
       if (param === 'liked') return 'liked';
       if (param === 'saved') return 'saved';
     }
@@ -31,8 +32,15 @@ export function useFeed({ token, userId }: UseFeedOptions) {
       } else if (filter === 'saved' && userId) {
         const data = await feedApi.getUserSavedPosts(userId, token);
         setPosts(data);
+      } else if (filter === 'following') {
+        if (!userId || !token) {
+          setPosts([]);
+        } else {
+          const data = await feedApi.getPosts(token, 20, 0, 'following');
+          setPosts(data);
+        }
       } else {
-        const data = await feedApi.getPosts(token);
+        const data = await feedApi.getPosts(token, 20, 0, 'all');
         setPosts(data);
       }
     } catch (err: any) {
@@ -73,6 +81,36 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     window.addEventListener('gitoscale:profile-updated', handleProfileSync);
     return () => window.removeEventListener('gitoscale:profile-updated', handleProfileSync);
   }, []);
+
+  // Synchronize follow/unfollow status across all posts by that author
+  useEffect(() => {
+    const handleFollowSync = (e: any) => {
+      const detail = e?.detail;
+      if (!detail?.userId) return;
+
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.user_id === detail.userId
+            ? {
+                ...p,
+                author: {
+                  ...p.author,
+                  is_following: detail.following,
+                },
+              }
+            : p
+        )
+      );
+
+      // If viewing the 'following' tab and target is unfollowed, remove target's posts
+      if (filter === 'following' && detail.following === false) {
+        setPosts((prev) => prev.filter((p) => p.user_id !== detail.userId));
+      }
+    };
+
+    window.addEventListener('gitoscale:follow-toggled', handleFollowSync);
+    return () => window.removeEventListener('gitoscale:follow-toggled', handleFollowSync);
+  }, [filter]);
 
   const handleCreatePost = async (
     content: string,
