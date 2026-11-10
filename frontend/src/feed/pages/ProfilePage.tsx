@@ -470,6 +470,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           accountAvatar={accountAvatar}
           onProfileUpdated={(updated) => {
             setProfile(updated);
+            setPosts((prev) =>
+              prev.map((p) =>
+                p.user_id === updated.id
+                  ? {
+                      ...p,
+                      author: {
+                        ...p.author,
+                        full_name: updated.full_name,
+                        username: updated.username,
+                        avatar_url: updated.avatar_url,
+                      },
+                    }
+                  : p
+              )
+            );
           }}
         />
       )}
