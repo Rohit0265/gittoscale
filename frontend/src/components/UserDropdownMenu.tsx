@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, UserPlus, Shield } from 'lucide-react';
 import { UserProfileFeed } from '../feed/types';
 import { feedApi } from '../feed/services/feedApi';
-import { extractAccountAvatar, getAvatarColor, getInitial } from '../feed/utils/avatarUtils';
+import { extractAccountAvatar } from '../feed/utils/avatarUtils';
 import { UserAvatar } from '../feed/components/UserAvatar';
 
 export interface UserDropdownMenuProps {
@@ -222,7 +222,6 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
   const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
   const username = profile?.username || user.user_metadata?.user_name || user.email?.split('@')[0]?.toLowerCase() || 'user';
   const avatarUrl = profile?.avatar_url || extractAccountAvatar(user);
-  const initial = getInitial(displayName);
   const postsCount = profile?.posts_count ?? 0;
   const followersCount = profile?.followers_count ?? 0;
   const followingCount = profile?.following_count ?? 0;
@@ -393,7 +392,7 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
         )}
 
         {/* Superuser / Admin Console */}
-        {profile?.is_admin && (
+        {isSuperUser && (
           <button
             type="button"
             onClick={() => {
