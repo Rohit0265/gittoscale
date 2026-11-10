@@ -247,17 +247,18 @@ async function sendViaResend(apiKey: string, options: SendEmailOptions): Promise
           try {
             const data = JSON.parse(body);
             if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300 && data.id) {
+              console.log(`[EmailService] ✅ Email delivered via Resend (id: ${data.id}) to:`, options.to);
               resolve({
                 success: true,
                 messageId: data.id,
                 provider: 'resend',
               });
             } else {
-              console.warn('[EmailService] Resend API error response:', res.statusCode, body);
+              console.warn('[EmailService] ⚠️ Resend API error response:', res.statusCode, body);
               resolve({
                 success: false,
                 provider: 'resend',
-                error: data.message || `Resend error ${res.statusCode}`,
+                error: data.message || `Resend error ${res.statusCode}: ${body}`,
               });
             }
           } catch (e: any) {

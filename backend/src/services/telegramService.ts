@@ -25,12 +25,11 @@ export interface SignupNotificationPayload {
 function postTelegramMessage(botToken: string, payload: Record<string, any>): Promise<any> {
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify(payload);
-    const options = {
+    const options: https.RequestOptions = {
       hostname: 'api.telegram.org',
       port: 443,
       path: `/bot${botToken}/sendMessage`,
       method: 'POST',
-      family: 4, // Force IPv4
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -71,14 +70,26 @@ function postTelegramMessage(botToken: string, payload: Record<string, any>): Pr
 
 /**
  * Sends a Telegram notification when a new user registers on GitToScale.
- * Uses TELEGRAM_BOT_TOKEN1 / TELEGRAM_CHAT_ID1 with fallback to TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID.
+ * Seamlessly attempts TELEGRAM_BOT_TOKEN1/CHAT_ID1 first, and automatically
+ * fails over to TELEGRAM_BOT_TOKEN/CHAT_ID if the primary bot encounters any error.
  */
 export async function sendSignupTelegramNotification(payload: SignupNotificationPayload): Promise<boolean> {
-  const botToken = (process.env.TELEGRAM_BOT_TOKEN1 || process.env.TELEGRAM_BOT_TOKEN)?.trim();
-  const chatId = (process.env.TELEGRAM_CHAT_ID1 || process.env.TELEGRAM_CHAT_ID)?.trim();
+  const candidates: Array<{ name: string; botToken: string; chatId: string }> = [];
 
-  if (!botToken || !chatId) {
-    console.log('[Telegram Signup Alert] Skipped: TELEGRAM_BOT_TOKEN1 or TELEGRAM_CHAT_ID1 not configured.');
+  const token1 = process.env.TELEGRAM_BOT_TOKEN1?.trim();
+  const chat1 = process.env.TELEGRAM_CHAT_ID1?.trim();
+  if (token1 && chat1) {
+    candidates.push({ name: 'Bot 1 (TELEGRAM_BOT_TOKEN1)', botToken: token1, chatId: chat1 });
+  }
+
+  const token0 = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chat0 = process.env.TELEGRAM_CHAT_ID?.trim();
+  if (token0 && chat0 && token0 !== token1) {
+    candidates.push({ name: 'Primary Bot (TELEGRAM_BOT_TOKEN)', botToken: token0, chatId: chat0 });
+  }
+
+  if (candidates.length === 0) {
+    console.log('[Telegram Signup Alert] Skipped: No Telegram bot credentials configured.');
     return false;
   }
 
@@ -100,20 +111,27 @@ export async function sendSignupTelegramNotification(payload: SignupNotification
     `🕒 <i>${timestamp} UTC</i>`,
   ].filter(Boolean).join('\n');
 
-  try {
-    await postTelegramMessage(botToken, {
-      chat_id: chatId,
-      text: message,
-      parse_mode: 'HTML',
-      disable_web_page_preview: true,
-    });
+  let lastError: any = null;
 
-    console.log('[Telegram Signup Alert] Alert successfully sent for:', payload.email);
-    return true;
-  } catch (err) {
-    console.error('[Telegram Signup Alert] Request error:', err);
-    return false;
+  for (const candidate of candidates) {
+    try {
+      await postTelegramMessage(candidate.botToken, {
+        chat_id: candidate.chatId,
+        text: message,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      });
+
+      console.log(`[Telegram Signup Alert] Alert successfully delivered via ${candidate.name} for: ${payload.email}`);
+      return true;
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[Telegram Signup Alert] Delivery failed using ${candidate.name}: ${err?.message || err}. Attempting next bot if available...`);
+    }
   }
+
+  console.error('[Telegram Signup Alert] All Telegram bot candidates failed to deliver alert:', lastError?.message || lastError);
+  return false;
 }
 
 /**

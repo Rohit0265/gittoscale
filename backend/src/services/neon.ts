@@ -337,3 +337,35 @@ export async function getUserProfileByEmail(email: string) {
   return rows[0] || null;
 }
 
+export async function markWelcomeEmailSent(userIdOrEmail: string): Promise<boolean> {
+  if (!isNeonConfigured() || !userIdOrEmail) return false;
+  try {
+    const db = getSql();
+    await db`
+      UPDATE public.profiles 
+      SET welcome_email_sent = true, updated_at = timezone('utc'::text, now())
+      WHERE id = ${userIdOrEmail} OR LOWER(email) = ${userIdOrEmail.trim().toLowerCase()};
+    `;
+    return true;
+  } catch (err) {
+    console.warn('[Neon] Failed to mark welcome_email_sent:', err);
+    return false;
+  }
+}
+
+export async function markTelegramNotified(userIdOrEmail: string): Promise<boolean> {
+  if (!isNeonConfigured() || !userIdOrEmail) return false;
+  try {
+    const db = getSql();
+    await db`
+      UPDATE public.profiles 
+      SET telegram_notified = true, updated_at = timezone('utc'::text, now())
+      WHERE id = ${userIdOrEmail} OR LOWER(email) = ${userIdOrEmail.trim().toLowerCase()};
+    `;
+    return true;
+  } catch (err) {
+    console.warn('[Neon] Failed to mark telegram_notified:', err);
+    return false;
+  }
+}
+

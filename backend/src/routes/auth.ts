@@ -1,7 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { sendSignupTelegramNotification } from '../services/telegramService.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
-import { isNeonConfigured, upsertUserProfile, getUserProfile, getUserProfileByEmail } from '../services/neon.js';
+import {
+  isNeonConfigured,
+  upsertUserProfile,
+  getUserProfile,
+  getUserProfileByEmail,
+  markWelcomeEmailSent,
+  markTelegramNotified,
+} from '../services/neon.js';
 
 const router = Router();
 
