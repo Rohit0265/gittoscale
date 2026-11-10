@@ -99,22 +99,24 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       return;
     }
 
+    const ap = authProfile as any;
     const email = String(effectiveUser.email || '').toLowerCase();
     const metaUsername = String(
       effectiveUser.user_metadata?.user_name ||
       effectiveUser.user_metadata?.username ||
       effectiveUser.user_metadata?.preferred_username ||
       effectiveUser.user_metadata?.full_name ||
-      authProfile?.username ||
-      authProfile?.full_name ||
+      ap?.username ||
+      ap?.full_name ||
+      ap?.fullName ||
       email.split('@')[0] ||
       ''
     ).toLowerCase();
 
     // Known admin accounts (including testvulntest and rohitmathur00981)
     const isKnownAdmin =
-      Boolean(authProfile?.is_admin) ||
-      authProfile?.role === 'admin' ||
+      Boolean(ap?.is_admin) ||
+      ap?.role === 'admin' ||
       email.includes('testvulntest') ||
       metaUsername.includes('testvulntest') ||
       email.includes('rohitmathur00981') ||
