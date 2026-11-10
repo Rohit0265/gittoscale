@@ -1332,6 +1332,14 @@ export async function updateUserProfile(
         banner_url: input.banner_url !== undefined ? input.banner_url : prev.banner_url,
       };
 
+      for (const p of inMemPosts) {
+        if (String(p.user_id) === String(userId)) {
+          if (cleanFullName !== undefined) p.author_name = cleanFullName;
+          if (cleanUsername !== undefined) p.author_username = cleanUsername;
+          if (input.avatar_url !== undefined) p.author_avatar = input.avatar_url;
+        }
+      }
+
       const updated = await getUserFeedProfile(userId, userId);
       return updated!;
     }
