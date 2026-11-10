@@ -1211,7 +1211,7 @@ export async function updateUserProfile(
       const conflictRows = await db`
         SELECT id FROM public.profiles 
         WHERE LOWER(username) = LOWER(${cleanUsername}) 
-          AND id != ${userId} 
+          AND id::text != ${userId}::text 
         LIMIT 1;
       `;
       if (conflictRows && conflictRows.length > 0) {
@@ -1222,27 +1222,72 @@ export async function updateUserProfile(
       }
     }
 
-    // 2. Upsert profile record
-    await db`
-      INSERT INTO public.profiles (id, full_name, username, email, avatar_url, banner_url, bio, updated_at)
-      VALUES (
-        ${userId},
-        ${cleanFullName || ''},
-        ${cleanUsername || null},
-        ${userEmail || ''},
-        ${input.avatar_url || null},
-        ${input.banner_url || null},
-        ${cleanBio || ''},
-        timezone('utc'::text, now())
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        full_name = CASE WHEN ${cleanFullName !== undefined} THEN ${cleanFullName} ELSE public.profiles.full_name END,
-        username = CASE WHEN ${cleanUsername !== undefined} THEN ${cleanUsername} ELSE public.profiles.username END,
-        bio = CASE WHEN ${cleanBio !== undefined} THEN ${cleanBio} ELSE public.profiles.bio END,
-        avatar_url = CASE WHEN ${input.avatar_url !== undefined} THEN ${input.avatar_url} ELSE public.profiles.avatar_url END,
-        banner_url = CASE WHEN ${input.banner_url !== undefined} THEN ${input.banner_url} ELSE public.profiles.banner_url END,
-        updated_at = timezone('utc'::text, now());
+    // 2. Fetch existing profile to preserve any unprovided fields
+    const existing = await db`
+      SELECT id, full_name, username, email, avatar_url, banner_url, bio
+      FROM public.profiles
+      WHERE id::text = ${userId}::text
+      LIMIT 1;
     `;
+
+    const existingRow = existing && existing.length > 0 ? existing[0] : null;
+    const finalFullName = cleanFullName !== undefined ? cleanFullName : (existingRow?.full_name || '');
+    const finalUsername = cleanUsername !== undefined ? (cleanUsername || null) : (existingRow?.username || null);
+    const finalBio = cleanBio !== undefined ? cleanBio : (existingRow?.bio || '');
+    const finalAvatar = input.avatar_url !== undefined ? (input.avatar_url || null) : (existingRow?.avatar_url || null);
+    const finalBanner = input.banner_url !== undefined ? (input.banner_url || null) : (existingRow?.banner_url || null);
+    const finalEmail = userEmail || existingRow?.email || '';
+
+    if (existingRow) {
+      // Update existing record directly
+      await db`
+        UPDATE public.profiles
+        SET
+          full_name = ${finalFullName},
+          username = ${finalUsername},
+          bio = ${finalBio},
+          avatar_url = ${finalAvatar},
+          banner_url = ${finalBanner},
+          email = CASE WHEN ${Boolean(finalEmail)} THEN ${finalEmail} ELSE email END,
+          updated_at = timezone('utc'::text, now())
+        WHERE id::text = ${userId}::text;
+      `;
+    } else {
+      // Insert new profile
+      await db`
+        INSERT INTO public.profiles (id, full_name, username, email, avatar_url, banner_url, bio, created_at, updated_at)
+        VALUES (
+          ${userId},
+          ${finalFullName},
+          ${finalUsername},
+          ${finalEmail},
+          ${finalAvatar},
+          ${finalBanner},
+          ${finalBio},
+          timezone('utc'::text, now()),
+          timezone('utc'::text, now())
+        );
+      `;
+    }
+
+    // Keep in-memory caches in sync
+    inMemProfiles[userId] = {
+      id: userId,
+      full_name: finalFullName,
+      username: finalUsername || deriveUsername(finalFullName, finalEmail),
+      email: finalEmail,
+      avatar_url: finalAvatar,
+      banner_url: finalBanner,
+      bio: finalBio,
+    };
+
+    for (const p of inMemPosts) {
+      if (String(p.user_id) === String(userId)) {
+        p.author_name = finalFullName;
+        p.author_username = finalUsername || p.author_username;
+        p.author_avatar = finalAvatar;
+      }
+    }
 
     const updated = await getUserFeedProfile(userId, userId);
     if (!updated) {
