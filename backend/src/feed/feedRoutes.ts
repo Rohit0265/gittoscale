@@ -820,6 +820,17 @@ router.post('/profile/:id/follow', requireAuth, async (req: AuthenticatedRequest
 // ============================================================================
 router.post('/upload', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    const userId = req.user!.id;
+    const suspension = await isUserSuspended(userId);
+    if (suspension.suspended) {
+      res.status(403).json({
+        success: false,
+        error: 'ACCOUNT_SUSPENDED',
+        message: 'Suspended accounts cannot upload media.',
+      });
+      return;
+    }
+
     const { base64Data } = req.body;
 
     if (!base64Data || typeof base64Data !== 'string') {
