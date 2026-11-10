@@ -321,7 +321,17 @@ export async function getAdminUsers(params: {
   } catch (err: any) {
     if (isDbConnectionError(err)) {
       // In-memory fallback
-      let list = Object.values(inMemAdminUsers);
+      let list = Object.values(inMemAdminUsers).map((u) => {
+        const memCount = inMemPosts.filter(
+          (p) =>
+            String(p.user_id) === String(u.id) ||
+            String(p.author?.username || '').toLowerCase() === String(u.username || '').toLowerCase()
+        ).length;
+        return {
+          ...u,
+          posts_count: memCount,
+        };
+      });
       const totalUsers = list.length;
       const activeUsers = list.filter((u) => !u.is_suspended && u.warning_count === 0).length;
       const warnedUsers = list.filter((u) => !u.is_suspended && u.warning_count > 0 && u.warning_count < 3).length;
@@ -351,7 +361,7 @@ export async function getAdminUsers(params: {
           activeUsers,
           warnedUsers,
           suspendedUsers,
-          totalPosts: 0,
+          totalPosts: inMemPosts.length,
         },
         limit,
         offset,
@@ -378,13 +388,13 @@ export async function getAdminUserPosts(targetUserId: string): Promise<FeedPost[
         p.media_items,
         p.created_at,
         p.updated_at,
-        pr.full_name as author_name,
-        pr.username as author_username,
+        COALESCE(pr.full_name, 'User') as author_name,
+        COALESCE(pr.username, 'user') as author_username,
         pr.avatar_url as author_avatar,
         COALESCE(l.like_count, 0)::int as like_count,
         COALESCE(c.comment_count, 0)::int as comment_count
       FROM public.feed_posts p
-      JOIN public.profiles pr ON pr.id = p.user_id
+      LEFT JOIN public.profiles pr ON pr.id::text = p.user_id::text
       LEFT JOIN (
         SELECT post_id, count(*)::int as like_count 
         FROM public.feed_likes 
@@ -395,42 +405,63 @@ export async function getAdminUserPosts(targetUserId: string): Promise<FeedPost[
         FROM public.feed_comments 
         GROUP BY post_id
       ) c ON c.post_id = p.id
-      WHERE p.user_id = ${targetUserId}
+      WHERE p.user_id::text = ${targetUserId}::text
+         OR p.user_id::text IN (
+           SELECT id::text FROM public.profiles 
+           WHERE id::text = ${targetUserId}::text 
+              OR LOWER(username) = LOWER(${targetUserId}) 
+              OR LOWER(email) = LOWER(${targetUserId})
+         )
       ORDER BY p.created_at DESC;
     `;
 
-    return rows.map((r) => {
-      const mediaItems = Array.isArray(r.media_items)
-        ? r.media_items
-        : r.media_url
-        ? [{ url: r.media_url, type: r.media_type || 'image' }]
-        : [];
+    if (rows && rows.length > 0) {
+      return rows.map((r: any) => {
+        let mediaItems: any[] = [];
+        if (Array.isArray(r.media_items)) {
+          mediaItems = r.media_items;
+        } else if (r.media_metadata && Array.isArray(r.media_metadata.items)) {
+          mediaItems = r.media_metadata.items;
+        } else if (r.media_url) {
+          mediaItems = [{ url: r.media_url, type: r.media_type || 'image' }];
+        }
 
-      return {
-        id: r.id,
-        user_id: r.user_id,
-        content: r.content,
-        media_url: r.media_url,
-        media_type: r.media_type,
-        media_metadata: r.media_metadata,
-        media_items: mediaItems,
-        created_at: r.created_at,
-        updated_at: r.updated_at,
-        author: {
-          id: r.user_id,
-          full_name: r.author_name || 'User',
-          username: r.author_username || 'user',
-          avatar_url: r.author_avatar || null,
-        },
-        like_count: Number(r.like_count) || 0,
-        comment_count: Number(r.comment_count) || 0,
-      };
-    });
-  } catch (err: any) {
-    if (isDbConnectionError(err)) {
-      return [];
+        return {
+          id: r.id,
+          user_id: r.user_id,
+          content: r.content,
+          media_url: r.media_url,
+          media_type: r.media_type,
+          media_metadata: r.media_metadata,
+          media_items: mediaItems,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+          author: {
+            id: r.user_id,
+            full_name: r.author_name || 'User',
+            username: r.author_username || 'user',
+            avatar_url: r.author_avatar || null,
+          },
+          like_count: Number(r.like_count) || 0,
+          comment_count: Number(r.comment_count) || 0,
+        };
+      });
     }
-    throw err;
+
+    // In-memory fallback if 0 rows in DB
+    const matchingMem = inMemPosts.filter(
+      (p) =>
+        String(p.user_id) === String(targetUserId) ||
+        String(p.author?.username || '').toLowerCase() === String(targetUserId).toLowerCase()
+    );
+    return matchingMem;
+  } catch (err: any) {
+    const matchingMem = inMemPosts.filter(
+      (p) =>
+        String(p.user_id) === String(targetUserId) ||
+        String(p.author?.username || '').toLowerCase() === String(targetUserId).toLowerCase()
+    );
+    return matchingMem;
   }
 }
 

@@ -21,6 +21,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { adminApi, AdminUserRecord, AdminStats } from '../../services/adminApi';
+import { feedApi } from '../../feed/services/feedApi';
 import { FeedPost } from '../../feed/types';
 import { getAvatarColor, getInitial } from '../../feed/utils/avatarUtils';
 import { formatRelativeTime } from '../../feed/utils/formatTime';
@@ -170,12 +171,26 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const handleInspectUser = async (user: AdminUserRecord) => {
     setSelectedUser(user);
     setIsLoadingPosts(true);
+    const activeToken = token || (typeof getAuthToken === 'function' ? getAuthToken() : null);
     try {
-      const posts = await adminApi.getUserPosts(user.id, token);
-      setUserPosts(posts);
+      let posts = await adminApi.getUserPosts(user.id, activeToken);
+      if ((!posts || posts.length === 0) && user.id) {
+        try {
+          const feedPosts = await feedApi.getUserPosts(user.id, activeToken);
+          if (feedPosts && feedPosts.length > 0) {
+            posts = feedPosts;
+          }
+        } catch {}
+      }
+      setUserPosts(posts || []);
     } catch (err: any) {
-      showToast(err?.response?.data?.message || 'Failed to load user posts', 'error');
-      setUserPosts([]);
+      try {
+        const feedPosts = await feedApi.getUserPosts(user.id, activeToken);
+        setUserPosts(feedPosts || []);
+      } catch {
+        showToast(err?.response?.data?.message || 'Failed to load user posts', 'error');
+        setUserPosts([]);
+      }
     } finally {
       setIsLoadingPosts(false);
     }
