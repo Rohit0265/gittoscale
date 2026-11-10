@@ -808,20 +808,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             {/* Drawer Header */}
             <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {selectedUser.avatar_url ? (
-                  <img
-                    src={selectedUser.avatar_url}
-                    alt={selectedUser.full_name}
-                    className="w-11 h-11 rounded-full object-cover border border-slate-700"
-                  />
-                ) : (
-                  <div
-                    className="w-11 h-11 rounded-full text-white font-bold text-sm flex items-center justify-center uppercase shadow-xs"
-                    style={{ background: getAvatarColor(selectedUser.id || selectedUser.full_name) }}
-                  >
-                    {getInitial(selectedUser.full_name)}
-                  </div>
-                )}
+                <UserAvatar
+                  src={selectedUser.avatar_url}
+                  name={selectedUser.full_name || selectedUser.username}
+                  seed={selectedUser.id || selectedUser.full_name}
+                  className="w-11 h-11 rounded-full border border-slate-700"
+                  fallbackClassName="w-11 h-11 rounded-full text-white font-bold text-sm flex items-center justify-center uppercase shadow-xs"
+                />
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-base font-bold text-white">{selectedUser.full_name}</h2>

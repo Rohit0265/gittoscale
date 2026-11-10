@@ -3,6 +3,7 @@ import { X, Camera, Loader2, AlertCircle, Check, User, Trash2, Sparkles } from '
 import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
 import { getAvatarColor, getRandomBannerColor, getInitial } from '../utils/avatarUtils';
+import { UserAvatar } from './UserAvatar';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -339,20 +340,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           {/* 2. Avatar Editor */}
           <div className="flex items-center gap-4">
             <div className="relative shrink-0 group">
-              {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  alt="Avatar preview"
-                  className="w-20 h-20 rounded-full object-cover border-4 border-slate-100 dark:border-neutral-800 shadow-md"
-                />
-              ) : (
-                <div
-                  className="w-20 h-20 rounded-full text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-slate-100 dark:border-neutral-800 shadow-md"
-                  style={{ background: getAvatarColor(profile.id || fullName) }}
-                >
-                  {getInitial(fullName)}
-                </div>
-              )}
+              <UserAvatar
+                src={avatarPreview}
+                name={fullName}
+                seed={profile.id || fullName}
+                className="w-20 h-20 rounded-full border-4 border-slate-100 dark:border-neutral-800 shadow-md"
+                fallbackClassName="w-20 h-20 rounded-full text-white text-2xl font-bold flex items-center justify-center uppercase border-4 border-slate-100 dark:border-neutral-800 shadow-md"
+              />
 
               {/* Upload overlay */}
               <button
