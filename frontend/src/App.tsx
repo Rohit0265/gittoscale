@@ -2284,7 +2284,7 @@ export const App: React.FC = () => {
   if (currentView === 'admin') {
     return (
       <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
-        <AdminPage onNavigate={handleNavigate} isDark={isDark} />
+        <AdminPage user={user} token={authToken} onNavigate={handleNavigate} isDark={isDark} />
       </Suspense>
     );
   }
