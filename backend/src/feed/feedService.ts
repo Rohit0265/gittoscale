@@ -1,7 +1,9 @@
 import { getSql } from '../services/neon.js';
 import { FeedPost, FeedComment, UserProfileFeed, MediaItem, UpdateProfileInput } from './types.js';
-import { extractR2KeyFromUrl } from '../services/r2Service.js';
+import { extractR2KeyFromUrl, deleteFromR2 } from '../services/r2Service.js';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // In-memory fallbacks when Neon is offline (e.g. unit testing or network timeouts)
 export const inMemPosts: any[] = [];
@@ -665,13 +667,43 @@ export async function updateFeedPost(
 }
 
 /**
- * Delete a post. Verifies ownership in query.
+ * Delete a post. Verifies ownership, purges media from Cloudflare R2 and disk,
+ * and deletes post from database (cascading all comments, likes, and bookmarks).
  */
 export async function deleteFeedPost(postId: string, userId: string): Promise<boolean> {
+  const cleanPostMedia = async (mediaUrl?: string | null, metadata?: any) => {
+    const keysToDelete = new Set<string>();
+
+    if (metadata?.r2Key) keysToDelete.add(metadata.r2Key);
+    if (metadata?.items && Array.isArray(metadata.items)) {
+      for (const it of metadata.items) {
+        if (it.r2Key) keysToDelete.add(it.r2Key);
+        const k = extractR2KeyFromUrl(it.url);
+        if (k) keysToDelete.add(k);
+      }
+    }
+    const directKey = extractR2KeyFromUrl(mediaUrl);
+    if (directKey) keysToDelete.add(directKey);
+
+    for (const key of keysToDelete) {
+      deleteFromR2(key).catch((err) => {
+        console.warn(`[Feed Delete] Failed to delete object from R2 (${key}):`, err?.message || err);
+      });
+
+      // Also remove local file if present on disk
+      try {
+        const localPath = path.join(process.cwd(), 'uploads', key);
+        if (fs.existsSync(localPath)) {
+          await fs.promises.unlink(localPath).catch(() => {});
+        }
+      } catch {}
+    }
+  };
+
   try {
     const db = getSql();
     const checkRows = await db`
-      SELECT user_id FROM public.feed_posts WHERE id = ${postId} LIMIT 1;
+      SELECT user_id, media_url, media_metadata FROM public.feed_posts WHERE id = ${postId} LIMIT 1;
     `;
 
     if (!checkRows || checkRows.length === 0) {
@@ -681,6 +713,10 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
       throw new Error('FORBIDDEN_NOT_OWNER');
     }
 
+    // 1. Purge media from Cloudflare R2 and local disk
+    await cleanPostMedia(checkRows[0].media_url, checkRows[0].media_metadata);
+
+    // 2. Delete post row from PostgreSQL (Neon) - cascades foreign keys
     await db`
       DELETE FROM public.feed_posts WHERE id = ${postId} AND user_id = ${userId};
     `;
@@ -690,6 +726,9 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
       const idx = inMemPosts.findIndex((p) => p.id === postId);
       if (idx === -1) return false;
       if (inMemPosts[idx].user_id !== userId) throw new Error('FORBIDDEN_NOT_OWNER');
+
+      const post = inMemPosts[idx];
+      await cleanPostMedia(post.media_url, post.media_metadata);
       inMemPosts.splice(idx, 1);
       return true;
     }
