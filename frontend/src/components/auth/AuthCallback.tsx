@@ -94,6 +94,16 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
           }
           // Only redirect if running as a primary window/tab
           if (mounted) {
+            if (session.user?.email) {
+              api.notifySignup({
+                name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
+                email: session.user.email,
+                userId: session.user.id,
+                avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+                provider: session.user.app_metadata?.provider || 'OAuth',
+                createdAt: session.user.created_at,
+              });
+            }
             setStatus('success');
             setTimeout(() => {
               const destination = pendingAction?.returnUrl || '/app';
@@ -117,6 +127,16 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
                 return;
               }
               if (mounted) {
+                if (newSession.user?.email) {
+                  api.notifySignup({
+                    name: newSession.user.user_metadata?.full_name || newSession.user.user_metadata?.name || newSession.user.email?.split('@')[0],
+                    email: newSession.user.email,
+                    userId: newSession.user.id,
+                    avatarUrl: newSession.user.user_metadata?.avatar_url || newSession.user.user_metadata?.picture,
+                    provider: newSession.user.app_metadata?.provider || 'OAuth',
+                    createdAt: newSession.user.created_at,
+                  });
+                }
                 setStatus('success');
                 setTimeout(() => {
                   const destination = pendingAction?.returnUrl || '/app';
