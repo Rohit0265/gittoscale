@@ -171,16 +171,16 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
           <div className="max-w-xl flex-1 self-center lg:order-last">
             <FeaturedIcon icon={Zap} size="lg" color="brand" theme="light" />
             <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-              Publish your architectures & get peer feedback
+              Now you can even share your design and projects too
             </h2>
             <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
-              Turn your system simulation results into rich community posts. Share your scaling breakthroughs, discuss architectural trade-offs, and receive constructive feedback from senior engineers.
+              Seamlessly share your verified architecture blueprints, live simulation topologies, and full imported repository projects with colleagues or the engineering community.
             </p>
             <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
               {[
-                'Publish interactive architecture graphs with verified simulation metrics',
-                'Debate distributed trade-offs (ACID vs BASE, sharding, backpressure)',
-                'Attach multi-media diagrams, video walkthroughs, and benchmark logs',
+                'Share complete architecture designs with interactive node topologies',
+                'Publish imported repository projects, service dependencies, and bottlenecks',
+                'Collaborate on scaling solutions, trade-off analyses, and capacity benchmarks',
               ].map((feat) => (
                 <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
               ))}
