@@ -76,6 +76,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const accountAvatar = isOwner ? extractAccountAvatar(user) : null;
   const effectiveAvatar = profile?.avatar_url || accountAvatar;
   const defaultBannerBg = getRandomBannerColor(profile?.id || profile?.username || profile?.full_name);
+  const [bannerImgFailed, setBannerImgFailed] = useState(false);
+
+  React.useEffect(() => {
+    setBannerImgFailed(false);
+  }, [profile?.banner_url]);
 
   const handleFollowClick = async () => {
     if (!user) {
