@@ -17,6 +17,7 @@ import {
   toggleFeedLike,
   toggleFeedDislike,
   toggleFeedBookmark,
+  incrementPostView,
   getPostComments,
   addPostComment,
   deletePostComment,
@@ -254,6 +255,10 @@ router.get('/posts/:id', optionalAuth, async (req: AuthenticatedRequest, res: Re
       return;
     }
 
+    // Increment post view in background
+    incrementPostView(postId).catch(() => {});
+    post.views_count = (post.views_count || 0) + 1;
+
     res.json({
       success: true,
       data: post,
@@ -458,6 +463,26 @@ router.post('/posts/:id/bookmark', requireAuth, async (req: AuthenticatedRequest
     res.status(500).json({
       success: false,
       error: 'Failed to update bookmark status.',
+    });
+  }
+});
+
+// ============================================================================
+// 6.5 POST /api/feed/posts/:id/view - Record view impression
+// ============================================================================
+router.post('/posts/:id/view', optionalAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const postId = req.params.id;
+    const viewsCount = await incrementPostView(postId);
+    res.json({
+      success: true,
+      views_count: viewsCount,
+    });
+  } catch (error: any) {
+    console.error('[Feed API] Failed to increment view:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record view.',
     });
   }
 });

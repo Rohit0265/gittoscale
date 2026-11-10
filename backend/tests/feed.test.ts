@@ -434,4 +434,38 @@ describe('Social Feed API Endpoints & Security', () => {
     const notFound = savedResAfter.body.data.find((p: any) => p.id === postId);
     expect(notFound).toBeUndefined();
   });
+
+  it('tracks total views on posts and increments views correctly', async () => {
+    // 1. Create a post
+    const createRes = await request(app)
+      .post('/api/feed/posts')
+      .set('Authorization', `Bearer ${user1Token}`)
+      .send({ content: 'Post to test total views metric' });
+
+    expect(createRes.status).toBe(201);
+    const postId = createRes.body.data.id;
+    expect(createRes.body.data.views_count).toBeDefined();
+
+    // 2. Increment view count
+    const viewRes1 = await request(app)
+      .post(`/api/feed/posts/${postId}/view`);
+
+    expect(viewRes1.status).toBe(200);
+    expect(viewRes1.body.success).toBe(true);
+    expect(viewRes1.body.views_count).toBeGreaterThanOrEqual(1);
+
+    // 3. Increment again
+    const viewRes2 = await request(app)
+      .post(`/api/feed/posts/${postId}/view`);
+
+    expect(viewRes2.status).toBe(200);
+    expect(viewRes2.body.views_count).toBe(viewRes1.body.views_count + 1);
+
+    // 4. Verify views_count is included in GET /api/feed/posts
+    const listRes = await request(app).get('/api/feed/posts');
+    expect(listRes.status).toBe(200);
+    const found = listRes.body.data.find((p: any) => p.id === postId);
+    expect(found).toBeDefined();
+    expect(found.views_count).toBeGreaterThanOrEqual(viewRes2.body.views_count);
+  });
 });

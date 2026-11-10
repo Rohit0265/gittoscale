@@ -117,6 +117,22 @@ export const feedApi = {
   },
 
   /**
+   * Record a view impression for a post
+   */
+  async recordView(postId: string, token?: string | null): Promise<number> {
+    try {
+      const res = await axios.post(
+        `${API_BASE}/feed/posts/${postId}/view`,
+        {},
+        { headers: getAuthHeader(token) }
+      );
+      return typeof res.data?.views_count === 'number' ? res.data.views_count : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  /**
    * Get post comments
    */
   async getComments(postId: string): Promise<FeedComment[]> {
