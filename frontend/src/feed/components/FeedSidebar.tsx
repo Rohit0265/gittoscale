@@ -63,6 +63,38 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
     };
   }, [user?.id, token]);
 
+  useEffect(() => {
+    const handleProfileUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        fullName?: string;
+        username?: string;
+        avatarUrl?: string;
+        bannerUrl?: string;
+        bio?: string;
+      }>;
+      if (customEvent.detail) {
+        const { fullName, username, avatarUrl, bannerUrl, bio } = customEvent.detail;
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                full_name: fullName !== undefined ? fullName : prev.full_name,
+                username: username !== undefined ? username : prev.username,
+                avatar_url: avatarUrl !== undefined ? avatarUrl : prev.avatar_url,
+                banner_url: bannerUrl !== undefined ? bannerUrl : prev.banner_url,
+                bio: bio !== undefined ? bio : prev.bio,
+              }
+            : null
+        );
+      }
+    };
+
+    window.addEventListener('gitoscale:profile-updated', handleProfileUpdated);
+    return () => {
+      window.removeEventListener('gitoscale:profile-updated', handleProfileUpdated);
+    };
+  }, []);
+
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
