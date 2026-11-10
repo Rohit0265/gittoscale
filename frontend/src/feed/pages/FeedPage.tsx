@@ -5,7 +5,7 @@ import { FeedSidebar } from '../components/FeedSidebar';
 import { CreatePost } from '../components/CreatePost';
 import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
-import { RefreshCw, MessageSquare, AlertCircle } from 'lucide-react';
+import { RefreshCw, MessageSquare, AlertCircle, Users } from 'lucide-react';
 import { useSmoothScroll } from '../../utils/useSmoothScroll';
 import { FloatingFeedbackButton } from '../../components/FloatingFeedbackButton';
 
@@ -54,6 +54,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     toggleLike,
     toggleDislike,
     toggleBookmark,
+    toggleFollow,
     selectedPostForComments,
     openComments,
     closeComments,
