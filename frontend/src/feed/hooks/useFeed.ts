@@ -239,6 +239,59 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     }
   };
 
+  const handleToggleFollow = async (targetUserId: string): Promise<boolean> => {
+    if (!token) throw new Error('Please sign in to follow developers.');
+
+    // Optimistic toggle
+    let nextFollowing = false;
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.user_id === targetUserId) {
+          nextFollowing = !p.author.is_following;
+          return {
+            ...p,
+            author: {
+              ...p.author,
+              is_following: nextFollowing,
+            },
+          };
+        }
+        return p;
+      })
+    );
+
+    try {
+      const res = await feedApi.toggleFollow(targetUserId, token);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.user_id === targetUserId
+            ? {
+                ...p,
+                author: {
+                  ...p.author,
+                  is_following: res.following,
+                },
+              }
+            : p
+        )
+      );
+
+      if (filter === 'following' && !res.following) {
+        setPosts((prev) => prev.filter((p) => p.user_id !== targetUserId));
+      }
+
+      window.dispatchEvent(
+        new CustomEvent('gitoscale:follow-toggled', {
+          detail: { userId: targetUserId, following: res.following, followersCount: res.followersCount },
+        })
+      );
+      return res.following;
+    } catch (err) {
+      fetchPosts();
+      throw err;
+    }
+  };
+
   const handleOpenComments = (post: FeedPost) => {
     setSelectedPostForComments(post);
   };
@@ -266,6 +319,7 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     toggleLike: handleToggleLike,
     toggleDislike: handleToggleDislike,
     toggleBookmark: handleToggleBookmark,
+    toggleFollow: handleToggleFollow,
     selectedPostForComments,
     openComments: handleOpenComments,
     closeComments: handleCloseComments,
