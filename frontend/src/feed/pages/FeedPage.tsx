@@ -165,7 +165,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
               </button>
             </div>
 
-            <span className="text-[11px] text-slate-400 dark:text-neutral-500 hidden sm:inline-block">
+            {/* <span className="text-[11px] text-slate-400 dark:text-neutral-500 hidden sm:inline-block">
               {filter === 'following'
                 ? 'Posts from developers you follow'
                 : filter === 'liked'
@@ -173,7 +173,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                 : filter === 'saved'
                 ? 'Your saved bookmarks'
                 : 'Discover designs and architectures across the community'}
-            </span>
+            </span> */}
           </div>
 
           {/* Active Filter Banner when viewing 'Your Likes' */}
