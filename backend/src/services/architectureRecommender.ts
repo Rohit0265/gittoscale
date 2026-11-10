@@ -91,7 +91,7 @@ export async function recommendArchitecture(
                 llmResult = await callGeminiRecommender(input, {
                   provider: 'gemini',
                   apiKey: geminiKey,
-                  model: 'gemini-2.0-flash',
+                  model: 'gemini-2.5-flash',
                 });
               } catch (geminiErr) {
                 console.warn('[Architecture Recommender] Gemini failover failed:', (geminiErr as any)?.message);
@@ -348,15 +348,15 @@ async function callMercuryRecommender(input: RecommenderInput, config: LLMConfig
         messages: [
           {
             role: 'system',
-            content: 'You are an elite distributed systems architect. Synthesize production cloud system design topologies. Respond strictly with valid JSON only matching the schema.',
+            content:
+              'You are an elite distributed systems architect. Synthesize production cloud system design topologies. Respond strictly with a single valid JSON object matching the schema. No markdown formatting around the JSON.',
           },
           { role: 'user', content: prompt },
         ],
-        response_format: { type: 'json_object' },
         temperature: 0.2,
       }),
     },
-    7000
+    45000
   );
 
   if (!res.ok) {
@@ -365,13 +365,14 @@ async function callMercuryRecommender(input: RecommenderInput, config: LLMConfig
   }
 
   const data: any = await res.json();
-  const rawText = data.choices?.[0]?.message?.content;
-  if (!rawText) {
+  const rawText = data.choices?.[0]?.message?.content || '';
+  if (!rawText.trim()) {
     throw new Error('Mercury-3 returned empty completion');
   }
 
   const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-  return JSON.parse(cleanJson);
+  const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+  return JSON.parse(jsonMatch ? jsonMatch[0] : cleanJson);
 }
 
 async function callOpenAIRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
@@ -418,12 +419,16 @@ async function callGroqRecommender(
   const models = Array.from(
     new Set(
       [
-        preferredModel && !preferredModel.includes('/') ? preferredModel : null,
-        'llama-3.1-8b-instant',
+        preferredModel,
+        process.env.GROQ_MODEL,
         'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'llama3-70b-8192',
+        'llama3-8b-8192',
+        'mixtral-8x7b-32768',
       ].filter(Boolean) as string[]
     )
-  ).slice(0, 2);
+  );
 
   let lastError: any = null;
   for (const model of models) {
@@ -471,17 +476,19 @@ async function callGroqRecommender(
 
 async function callGeminiRecommender(input: RecommenderInput, config: LLMConfig): Promise<any> {
   const prompt = buildRecommenderPrompt(input);
-  const preferredModel = config.model && !config.model.includes('3.5') ? config.model : null;
+  const preferredModel = config.model && !config.model.includes('mercury') && !config.model.includes('3.5') ? config.model : null;
   const models = Array.from(
     new Set(
       [
         preferredModel,
-        'gemini-2.0-flash',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash-8b',
+        'gemini-2.0-flash-exp',
         'gemini-1.5-flash',
-        'gemini-1.5-pro',
+        'gemini-2.0-flash',
       ].filter(Boolean) as string[]
     )
-  ).slice(0, 2);
+  );
 
   let lastError: any = null;
 

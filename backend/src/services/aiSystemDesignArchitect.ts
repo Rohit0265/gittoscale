@@ -616,25 +616,30 @@ export async function generateSystemDesignReport(
 
   // Helper for Gemini
   async function tryGemini(geminiKey: string): Promise<SystemDesignReportResult | null> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json' },
-      }),
-    });
-    if (res.ok) {
-      const data: any = await res.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (rawText) {
-        const parsed = JSON.parse(rawText);
-        return {
-          ...parsed,
-          fullMarkdownReport: formatFullMarkdownReport(parsed),
-        };
-      }
+    const models = ['gemini-2.5-flash', 'gemini-1.5-flash-8b', 'gemini-2.0-flash-exp', 'gemini-1.5-flash'];
+    for (const gModel of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${gModel}:generateContent?key=${geminiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json' },
+          }),
+        });
+        if (res.ok) {
+          const data: any = await res.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const parsed = JSON.parse(rawText);
+            return {
+              ...parsed,
+              fullMarkdownReport: formatFullMarkdownReport(parsed),
+            };
+          }
+        }
+      } catch {}
     }
     return null;
   }

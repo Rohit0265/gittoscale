@@ -978,10 +978,11 @@ async function callGeminiChat(
       [
         preferredModel,
         input.llmConfig?.model,
-        'gemini-2.0-flash',
-        'gemini-1.5-flash',
         'gemini-2.5-flash',
         'gemini-1.5-flash-8b',
+        'gemini-2.0-flash-exp',
+        'gemini-1.5-flash',
+        'gemini-2.0-flash',
       ].filter(Boolean) as string[]
     )
   );
@@ -1433,7 +1434,13 @@ export async function streamAIChatReply(
           (process.env.LLM_PROVIDER === 'gemini' ? process.env.LLM_API_KEY : undefined);
 
         if (geminiApiKey) {
-          const geminiModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+          const geminiModels = [
+            'gemini-2.5-flash',
+            'gemini-1.5-flash-8b',
+            'gemini-2.0-flash-exp',
+            'gemini-1.5-flash',
+            'gemini-2.0-flash',
+          ];
           const chatContents: any[] = [];
           const priorHistory = extractRelevantConversationHistory(input.history);
           for (const msg of priorHistory) {
@@ -1474,9 +1481,11 @@ export async function streamAIChatReply(
           new Set(
             [
               model,
-              'gemini-2.0-flash',
-              'gemini-1.5-flash',
               'gemini-2.5-flash',
+              'gemini-1.5-flash-8b',
+              'gemini-2.0-flash-exp',
+              'gemini-1.5-flash',
+              'gemini-2.0-flash',
             ].filter(Boolean) as string[]
           )
         );
