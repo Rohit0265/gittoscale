@@ -30,6 +30,8 @@ import {
 import { captureArchitectureSnapshot } from '../utils/captureSnapshot';
 import { AutoSaveStatus } from '../services/playgroundPersistence';
 import { UserDropdownMenu } from './UserDropdownMenu';
+import { extractAccountAvatar } from '../feed/utils/avatarUtils';
+import { UserAvatar } from '../feed/components/UserAvatar';
 
 interface HeaderProps {
   scenarios: ScenarioFixture[];
@@ -457,9 +459,15 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-2 px-2 sm:px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#141416] text-slate-700 dark:text-neutral-200 transition-all shadow-xs cursor-pointer shrink-0"
           >
             {user ? (
-              <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 flex items-center justify-center font-bold text-xs shrink-0 relative">
-                {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U').toUpperCase()}
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-slate-400 dark:bg-neutral-500 border border-white dark:border-[#0A0A0A]" />
+              <div className="relative shrink-0">
+                <UserAvatar
+                  src={extractAccountAvatar(user)}
+                  name={user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  seed={user.id || user.email}
+                  className="w-6 h-6 rounded-full"
+                  fallbackClassName="w-6 h-6 rounded-full text-white flex items-center justify-center font-bold text-[11px]"
+                />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-[#0A0A0A]" />
               </div>
             ) : (
               <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-700 dark:text-neutral-300 shrink-0">
