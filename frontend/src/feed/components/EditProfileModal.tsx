@@ -197,6 +197,15 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         token
       );
 
+      // Immediately sync AuthContext & user_metadata so change reflects across Header, Sidebar, Dropdown everywhere
+      await updateUserProfileData({
+        fullName: updated.full_name,
+        username: updated.username,
+        avatarUrl: updated.avatar_url,
+        bannerUrl: updated.banner_url,
+        bio: updated.bio,
+      });
+
       // Persist banner locally for sidebar instant mirror
       try {
         if (bannerUrl) {
