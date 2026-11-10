@@ -627,6 +627,7 @@ export const api = {
     userId?: string;
     avatarUrl?: string;
     provider?: string;
+    createdAt?: string;
   }): Promise<void> {
     try {
       await fetch(`${API_BASE}/auth/notify-signup`, {

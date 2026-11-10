@@ -309,17 +309,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             const sessionUser = sessionData?.session?.user || sessionData?.user;
-            if (sessionUser) {
-              const createdAtTs = new Date(sessionUser.created_at || 0).getTime();
-              const isNewUser = Date.now() - createdAtTs < 60000;
-              if (isNewUser) {
-                api.notifySignup({
-                  name: sessionUser.user_metadata?.full_name || sessionUser.user_metadata?.name || sessionUser.email?.split('@')[0],
-                  email: sessionUser.email,
-                  userId: sessionUser.id,
-                  provider: provider,
-                });
-              }
+            if (sessionUser?.email) {
+              // Reliably dispatch signup notification. Backend database idempotently
+              // checks whether welcome email & Telegram alert have already been fulfilled.
+              api.notifySignup({
+                name: sessionUser.user_metadata?.full_name || sessionUser.user_metadata?.name || sessionUser.email?.split('@')[0],
+                email: sessionUser.email,
+                userId: sessionUser.id,
+                avatarUrl: sessionUser.user_metadata?.avatar_url || sessionUser.user_metadata?.picture,
+                provider: provider,
+                createdAt: sessionUser.created_at,
+              });
             }
 
             const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;

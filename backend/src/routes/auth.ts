@@ -124,7 +124,8 @@ router.post('/signup', (req: Request, res: Response) => {
 
 /**
  * POST /api/auth/notify-signup
- * Dispatches a Telegram notification when a user signs up via Supabase (OAuth or Email/Password)
+ * Dispatches a Telegram notification and welcome email when a user signs up via Supabase (OAuth or Email/Password).
+ * Uses database-backed flags (telegram_notified & welcome_email_sent) to prevent duplicate alerts.
  */
 router.post('/notify-signup', async (req: Request, res: Response) => {
   const { name, email, userId, avatarUrl, provider, createdAt } = req.body || {};
@@ -140,15 +141,20 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
   const cleanName = (typeof name === 'string' && name.trim()) || cleanEmail.split('@')[0];
   const effectiveUserId = (typeof userId === 'string' && userId.trim()) || `usr_${Date.now().toString(36)}`;
 
-  let isBrandNewUser = true;
+  let needsTelegramAlert = true;
+  let needsWelcomeEmail = true;
 
-  // 1. Check if user already exists in PostgreSQL (Neon) database
+  // 1. Check existing state in PostgreSQL (Neon) database
   if (isNeonConfigured()) {
     try {
       const existing = (await getUserProfile(effectiveUserId)) || (await getUserProfileByEmail(cleanEmail));
       if (existing) {
-        isBrandNewUser = false;
-        console.log('[Auth Route] User already exists in Neon database:', cleanEmail, '(skipping Telegram alert)');
+        if (existing.telegram_notified) {
+          needsTelegramAlert = false;
+        }
+        if (existing.welcome_email_sent) {
+          needsWelcomeEmail = false;
+        }
       }
 
       await upsertUserProfile({
@@ -164,33 +170,48 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
   }
 
   try {
-    // Only dispatch notifications if user didn't exist in the database yet
-    if (isBrandNewUser) {
+    // Dispatch Telegram alert if not yet sent for this account
+    if (needsTelegramAlert) {
       sendSignupTelegramNotification({
         name: cleanName,
         email: cleanEmail,
         userId: effectiveUserId,
         provider: typeof provider === 'string' ? provider : undefined,
         createdAt: typeof createdAt === 'string' ? createdAt : new Date().toISOString(),
-      }).catch((err) => {
-        console.warn('[Auth Route] Telegram signup alert error:', err);
-      });
+      })
+        .then((sent) => {
+          if (sent) {
+            markTelegramNotified(effectiveUserId);
+          }
+        })
+        .catch((err) => {
+          console.warn('[Auth Route] Telegram signup alert error:', err);
+        });
+    }
 
-      // Dispatch custom template welcome email to the newly onboarded user
+    // Dispatch custom template welcome email to the newly onboarded user
+    if (needsWelcomeEmail) {
       sendWelcomeEmail({
         name: cleanName,
         email: cleanEmail,
         userId: effectiveUserId,
         provider: typeof provider === 'string' ? provider : undefined,
-      }).catch((err) => {
-        console.warn('[Auth Route] Welcome email dispatch error:', err);
-      });
+      })
+        .then((res) => {
+          if (res.success) {
+            markWelcomeEmailSent(effectiveUserId);
+          }
+        })
+        .catch((err) => {
+          console.warn('[Auth Route] Welcome email dispatch error:', err);
+        });
     }
 
     return res.json({
       success: true,
-      message: isBrandNewUser ? 'New signup stored and notification sent.' : 'Existing user profile synced.',
-      isNewUser: isBrandNewUser,
+      message: needsTelegramAlert || needsWelcomeEmail ? 'New signup processed and notifications queued.' : 'Existing user profile synced.',
+      needsTelegramAlert,
+      needsWelcomeEmail,
       user: {
         id: effectiveUserId,
         name: cleanName,
@@ -207,10 +228,11 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
 
 /**
  * POST /api/auth/sync-profile
- * Saves or updates authenticated user profile in PostgreSQL (Neon)
+ * Saves or updates authenticated user profile in PostgreSQL (Neon).
+ * Automatically delivers pending welcome email and telegram alerts if not yet fulfilled.
  */
 router.post('/sync-profile', async (req: Request, res: Response) => {
-  const { id, email, fullName, avatarUrl } = req.body || {};
+  const { id, email, fullName, avatarUrl, provider } = req.body || {};
 
   if (!id || !email) {
     return res.status(400).json({ success: false, error: 'id and email are required' });
@@ -218,12 +240,52 @@ router.post('/sync-profile', async (req: Request, res: Response) => {
 
   if (isNeonConfigured()) {
     try {
+      const cleanEmail = String(email).trim().toLowerCase();
+      const effectiveId = String(id).trim();
+      const existing = (await getUserProfile(effectiveId)) || (await getUserProfileByEmail(cleanEmail));
+
       const profile = await upsertUserProfile({
-        id: String(id),
+        id: effectiveId,
         full_name: fullName,
-        email: String(email).trim().toLowerCase(),
+        email: cleanEmail,
         avatar_url: avatarUrl || null,
       });
+
+      // Check whether this account still requires welcome email or telegram alert
+      const needsTelegram = !existing?.telegram_notified;
+      const needsEmail = !existing?.welcome_email_sent;
+
+      if (needsTelegram) {
+        sendSignupTelegramNotification({
+          name: fullName || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          userId: effectiveId,
+          provider: typeof provider === 'string' ? provider : 'OAuth / SSO',
+          createdAt: existing?.created_at || new Date().toISOString(),
+        })
+          .then((sent) => {
+            if (sent) markTelegramNotified(effectiveId);
+          })
+          .catch((err) => {
+            console.warn('[Auth Route Sync] Telegram alert error:', err);
+          });
+      }
+
+      if (needsEmail) {
+        sendWelcomeEmail({
+          name: fullName || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          userId: effectiveId,
+          provider: typeof provider === 'string' ? provider : 'OAuth / SSO',
+        })
+          .then((res) => {
+            if (res.success) markWelcomeEmailSent(effectiveId);
+          })
+          .catch((err) => {
+            console.warn('[Auth Route Sync] Welcome email error:', err);
+          });
+      }
+
       return res.json({ success: true, profile });
     } catch (err: any) {
       console.error('[Auth Route] Error syncing user profile:', err);
