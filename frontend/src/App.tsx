@@ -2281,6 +2281,14 @@ export const App: React.FC = () => {
     );
   }
 
+  if (currentView === 'admin') {
+    return (
+      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+        <AdminPage onNavigate={handleNavigate} isDark={isDark} />
+      </Suspense>
+    );
+  }
+
   if (currentView === 'cookie-policy' || currentView === 'privacy-policy' || currentView === 'terms') {
     return (
       <Suspense fallback={<LegalPageSkeleton />}>
