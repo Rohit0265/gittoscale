@@ -525,6 +525,7 @@ export async function createFeedPost(data: {
         },
         like_count: 0,
         comment_count: 0,
+        views_count: 0,
         has_liked: false,
       };
     }
