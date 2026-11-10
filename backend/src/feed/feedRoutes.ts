@@ -801,9 +801,9 @@ router.get('/profile/:id/saved', optionalAuth, async (req: AuthenticatedRequest,
 });
 
 // ============================================================================
-// 12. POST /api/feed/profile/:id/follow - Follow / Unfollow user
+// 12. POST /api/feed/profile/:id/follow & /users/:id/follow - Follow / Unfollow user
 // ============================================================================
-router.post('/profile/:id/follow', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+const handleFollowToggle = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const followingId = req.params.id;
     const followerId = req.user!.id;
@@ -839,7 +839,10 @@ router.post('/profile/:id/follow', requireAuth, async (req: AuthenticatedRequest
       error: 'Failed to update follow status.',
     });
   }
-});
+};
+
+router.post('/profile/:id/follow', requireAuth, handleFollowToggle);
+router.post('/users/:id/follow', requireAuth, handleFollowToggle);
 
 // ============================================================================
 // 13. POST /api/feed/upload - Media Upload with strict 1MB video restriction & magic byte validation
