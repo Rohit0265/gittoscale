@@ -36,6 +36,7 @@ export interface FeedPost {
     full_name: string;
     username: string;
     avatar_url?: string | null;
+    is_following?: boolean;
   };
   like_count: number;
   comment_count: number;
@@ -59,6 +60,7 @@ export interface FeedComment {
     full_name: string;
     username: string;
     avatar_url?: string | null;
+    is_following?: boolean;
   };
 }
 
