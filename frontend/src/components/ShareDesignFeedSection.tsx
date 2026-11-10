@@ -2,7 +2,6 @@ import React, { FC, HTMLAttributes } from 'react';
 import {
   MessageSquare,
   Zap,
-  BarChart3,
   Check,
   ArrowRight,
 } from 'lucide-react';
@@ -204,51 +203,6 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
                 src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = '/demo-basic.png';
-                }}
-                className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
-              />
-            </AlternateImageMockup>
-          </div>
-        </div>
-
-        {/* Feature 3: Bookmark, fork, and test proven topologies */}
-        <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
-          <div className="max-w-xl flex-1 self-center">
-            <FeaturedIcon icon={BarChart3} size="lg" color="brand" theme="light" />
-            <h2 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-              Bookmark, fork, and test proven topologies
-            </h2>
-            <p className="mt-2 text-base text-slate-600 dark:text-neutral-400 md:mt-4 md:text-lg leading-relaxed">
-              Never design high-scale systems in isolation. Save your favorite community architectures, duplicate verified setups, and run custom stress simulations under peak burst traffic.
-            </p>
-            <ul className="mt-8 flex flex-col gap-4 pl-2 md:gap-5 md:pl-4">
-              {[
-                'Save top-rated architectures directly to your personal library',
-                'Stress-test cloned community designs under extreme traffic spikes',
-                'Export comprehensive system design specifications and capacity reports',
-              ].map((feat) => (
-                <CheckItemText key={feat} size="md" iconStyle="outlined" color="primary" text={feat} />
-              ))}
-            </ul>
-          </div>
-
-          <div className="relative w-full flex-1 h-80 sm:h-96 lg:h-128">
-            <AlternateImageMockup className="lg:left-0">
-              {/* Light mode image (hidden in dark mode) */}
-              <img
-                alt="Dashboard mockup showing application interface"
-                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-light-01.webp"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/demo-import.png';
-                }}
-                className="size-full object-contain lg:w-auto lg:max-w-none dark:hidden"
-              />
-              {/* Dark mode image (hidden in light mode) */}
-              <img
-                alt="Dashboard mockup showing application interface"
-                src="https://www.untitledui.com/marketing/screen-mockups/dashboard-desktop-mockup-dark-01.webp"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/demo-import.png';
                 }}
                 className="size-full object-contain hidden dark:block lg:w-auto lg:max-w-none"
               />
