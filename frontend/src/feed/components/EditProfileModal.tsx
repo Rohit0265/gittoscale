@@ -4,6 +4,7 @@ import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
 import { getRandomBannerColor } from '../utils/avatarUtils';
 import { UserAvatar } from './UserAvatar';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   accountAvatar,
 }) => {
   const initialAvatar = profile.avatar_url || accountAvatar || null;
+  const { updateUserProfileData } = useAuth();
   const [fullName, setFullName] = useState<string>(profile.full_name || '');
   const [username, setUsername] = useState<string>(profile.username || '');
   const [bio, setBio] = useState<string>(profile.bio || '');
