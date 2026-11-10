@@ -6,7 +6,6 @@ import { FeedPost } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { PostActions } from './PostActions';
 import { PostMenu } from './PostMenu';
-import { EditPostModal } from './EditPostModal';
 import { ShareModal } from './ShareModal';
 import { PostMediaGallery } from './PostMediaGallery';
 import { UserAvatar } from './UserAvatar';
@@ -21,7 +20,7 @@ interface PostCardProps {
   onDislike?: (postId: string) => void;
   onBookmark?: (postId: string) => void;
   onOpenComments: (post: FeedPost) => void;
-  onUpdatePost: (postId: string, newContent: string) => Promise<any>;
+  onUpdatePost?: (postId: string, newContent: string) => Promise<any>;
   onDeletePost: (postId: string) => Promise<any>;
   onNavigateToProfile: (userId: string) => void;
   onToggleFollow?: (targetUserId: string) => Promise<any>;
@@ -35,13 +34,11 @@ export const PostCard: React.FC<PostCardProps> = ({
   onDislike,
   onBookmark,
   onOpenComments,
-  onUpdatePost,
   onDeletePost,
   onNavigateToProfile,
   onToggleFollow,
   onOpenSignIn,
 }) => {
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -209,7 +206,6 @@ export const PostCard: React.FC<PostCardProps> = ({
 
           <PostMenu
             isOwner={isOwner}
-            onEdit={() => setIsEditOpen(true)}
             onDelete={handleDelete}
             onCopyLink={handleCopyDirectLink}
             onReport={() => alert('Post reported to moderators.')}

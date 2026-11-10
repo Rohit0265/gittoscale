@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreVertical, Edit3, Trash2, Flag, EyeOff, Copy } from 'lucide-react';
+import { MoreVertical, Trash2, Flag, EyeOff, Copy } from 'lucide-react';
 
 interface PostMenuProps {
   isOwner: boolean;
-  onEdit: () => void;
   onDelete: () => void;
   onCopyLink: () => void;
   onReport?: () => void;
@@ -12,7 +11,6 @@ interface PostMenuProps {
 
 export const PostMenu: React.FC<PostMenuProps> = ({
   isOwner,
-  onEdit,
   onDelete,
   onCopyLink,
   onReport,
@@ -64,31 +62,17 @@ export const PostMenu: React.FC<PostMenuProps> = ({
           </button>
 
           {isOwner ? (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(false);
-                  onEdit();
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer text-left"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Edit Post</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(false);
-                  onDelete();
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer text-left"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Post</span>
-              </button>
-            </>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(false);
+                onDelete();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer text-left"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Post</span>
+            </button>
           ) : (
             <>
               {onHide && (
