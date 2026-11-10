@@ -151,9 +151,10 @@ router.get('/posts', optionalAuth, async (req: AuthenticatedRequest, res: Respon
   try {
     const limit = Number(req.query.limit) || 20;
     const offset = Number(req.query.offset) || 0;
+    const filter = (req.query.filter as 'all' | 'following') || 'all';
     const currentUserId = req.user?.id;
 
-    const posts = await getFeedPosts(currentUserId, { limit, offset });
+    const posts = await getFeedPosts(currentUserId, { limit, offset, filter });
     res.json({
       success: true,
       data: posts,
