@@ -71,7 +71,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
       {/* Right Controls: Home Link, Theme Toggle, User Profile / Auth */}
       <div className="flex items-center gap-2 sm:gap-3">
         <button
-          onClick={onGoHome ? onGoHome : () => { window.location.href = '/'; }}
+          onClick={onGoHome}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer group"
           title="Return to Home"
         >
