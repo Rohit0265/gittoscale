@@ -104,6 +104,7 @@ export async function ensureFeedSchema(): Promise<void> {
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS warnings JSONB DEFAULT '[]'::jsonb;`;
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ;`;
     await db`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS suspension_reason TEXT;`;
+    await db`ALTER TABLE public.feed_posts ADD COLUMN IF NOT EXISTS views_count INT DEFAULT 0;`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username_unique ON public.profiles (LOWER(username)) WHERE username IS NOT NULL;`;
     await db`
       CREATE TABLE IF NOT EXISTS public.feed_dislikes (
@@ -162,6 +163,7 @@ export async function getFeedPosts(
         pr.email as author_email,
         COALESCE(l_count.count, 0)::int as like_count,
         COALESCE(c_count.count, 0)::int as comment_count,
+        COALESCE(p.views_count, 0)::int as views_count,
         CASE 
           WHEN ${currentUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
@@ -284,6 +286,7 @@ export async function getPostById(postId: string, currentUserId?: string): Promi
         pr.email as author_email,
         COALESCE(l_count.count, 0)::int as like_count,
         COALESCE(c_count.count, 0)::int as comment_count,
+        COALESCE(p.views_count, 0)::int as views_count,
         CASE 
           WHEN ${currentUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
@@ -1282,6 +1285,7 @@ export async function getUserPosts(
         pr.email as author_email,
         COALESCE(l_count.count, 0)::int as like_count,
         COALESCE(c_count.count, 0)::int as comment_count,
+        COALESCE(p.views_count, 0)::int as views_count,
         CASE 
           WHEN ${viewerUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
@@ -1395,6 +1399,7 @@ export async function getUserLikedPosts(
         pr.email as author_email,
         COALESCE(l_count.count, 0)::int as like_count,
         COALESCE(c_count.count, 0)::int as comment_count,
+        COALESCE(p.views_count, 0)::int as views_count,
         CASE 
           WHEN ${viewerUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 
@@ -1510,6 +1515,7 @@ export async function getUserSavedPosts(
         pr.email as author_email,
         COALESCE(l_count.count, 0)::int as like_count,
         COALESCE(c_count.count, 0)::int as comment_count,
+        COALESCE(p.views_count, 0)::int as views_count,
         CASE 
           WHEN ${viewerUserId || null}::text IS NOT NULL AND user_likes.id IS NOT NULL THEN true 
           ELSE false 

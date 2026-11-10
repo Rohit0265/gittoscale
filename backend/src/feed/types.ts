@@ -39,6 +39,7 @@ export interface FeedPost {
   };
   like_count: number;
   comment_count: number;
+  views_count?: number;
   has_liked?: boolean;
   has_disliked?: boolean;
   has_bookmarked?: boolean;
