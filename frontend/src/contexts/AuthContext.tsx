@@ -36,8 +36,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   isLoading: boolean;
   isConfigured: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
+  signUp: (email: string, password?: string, fullName?: string) => Promise<{ error: AuthError | Error | null }>;
+  signIn: (email: string, password?: string) => Promise<{ error: AuthError | Error | null }>;
   signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: AuthError | Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | Error | null }>;

@@ -17,11 +17,20 @@ export default function Component({
   logoText = "GS",
   brandName = "GitToScale",
 }: ModernLoginSignupProps = {}) {
-  const { signInWithOAuth } = useAuth();
+  const { signInWithOAuth, signIn, signUp } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const isLocalEnv =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0');
 
   useEffect(() => {
     let active = true;
@@ -205,7 +214,12 @@ export default function Component({
     try {
       const { error } = await signInWithOAuth(provider);
       if (error) {
-        if (error.message !== 'Sign-in cancelled') {
+        if (isLocalEnv) {
+          setMessage({
+            type: 'error',
+            text: 'OAuth redirect cancelled or not whitelisted for localhost. You can use Quick Dev Login below to sign in instantly.',
+          });
+        } else if (error.message !== 'Sign-in cancelled') {
           setMessage({ type: 'error', text: error.message || `Failed to sign in with ${providerName}` });
         }
         setIsLoading(false);
@@ -222,6 +236,74 @@ export default function Component({
       }
     } catch (err: any) {
       setMessage({ type: 'error', text: err?.message || `Failed to sign in with ${providerName}` });
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setMessage({ type: 'error', text: 'Please enter a valid email address.' });
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      if (isLogin) {
+        const { error } = await signIn(cleanEmail, password || undefined);
+        if (error) {
+          setMessage({ type: 'error', text: error.message || 'Failed to sign in.' });
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        const { error } = await signUp(cleanEmail, password || undefined, name || undefined);
+        if (error) {
+          setMessage({ type: 'error', text: error.message || 'Failed to create account.' });
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      setMessage({ type: 'success', text: isLogin ? 'Signed in successfully!' : 'Account ready!' });
+      setTimeout(() => {
+        setIsLoading(false);
+        onSuccess?.({
+          id: `usr_${Date.now().toString(36)}`,
+          email: cleanEmail,
+          name: name?.trim() || cleanEmail.split('@')[0],
+        });
+      }, 300);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err?.message || 'Authentication error.' });
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickDevLogin = async (devEmail: string, devName: string) => {
+    setIsLoading(true);
+    setMessage(null);
+    try {
+      const { error } = await signIn(devEmail, undefined);
+      if (error) {
+        setMessage({ type: 'error', text: error.message || 'Dev login failed.' });
+        setIsLoading(false);
+        return;
+      }
+      setMessage({ type: 'success', text: `Welcome, ${devName}!` });
+      setTimeout(() => {
+        setIsLoading(false);
+        onSuccess?.({
+          id: `usr_dev_${devEmail.split('@')[0]}`,
+          email: devEmail,
+          name: devName,
+        });
+      }, 250);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err?.message || 'Dev login failed.' });
       setIsLoading(false);
     }
   };
@@ -245,18 +327,17 @@ export default function Component({
     transition: 'background 0.15s ease',
   };
 
-  /*
-  const input: React.CSSProperties = {
+  const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '0.65rem 0.85rem',
     borderRadius: 6,
     border: '1px solid #333',
-    background: '#000',
+    background: '#18181b',
     color: '#fff',
     fontSize: '0.875rem',
     outline: 'none',
+    boxSizing: 'border-box',
   };
-  */
 
   /* ─── Google / GitHub / Apple SVGs ─── */
   const GoogleIcon = (
@@ -445,14 +526,15 @@ export default function Component({
               </div>
             )}
 
-            {/* <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               <input
-                style={input}
+                style={inputStyle}
                 type="email"
                 placeholder="name@work-email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
               <button
                 type="submit"
@@ -464,17 +546,31 @@ export default function Component({
                   border: 'none',
                   background: '#ededed',
                   color: '#000',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: '0.875rem',
                   cursor: isLoading ? 'wait' : 'pointer',
                   opacity: isLoading ? 0.7 : 1,
+                  transition: 'opacity 0.15s ease',
                 }}
               >
                 {isLoading ? 'Connecting...' : 'Continue with Email'}
               </button>
-            </form> */}
+            </form>
 
-            {/* <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} /> */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                margin: '0.85rem 0',
+                color: '#555',
+                fontSize: '0.75rem',
+              }}
+            >
+              <div style={{ flex: 1, height: 1, background: '#27272a' }} />
+              <span style={{ padding: '0 0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>or</span>
+              <div style={{ flex: 1, height: 1, background: '#27272a' }} />
+            </div>
 
             <button type="button" disabled={isLoading} onClick={() => handleSocialClick('Google')} style={socialBtn}>
               {GoogleIcon}Continue with Google
@@ -482,9 +578,73 @@ export default function Component({
             <button type="button" disabled={isLoading} onClick={() => handleSocialClick('GitHub')} style={socialBtn}>
               {GitHubIcon}Continue with GitHub
             </button>
-            {/* <button type="button" onClick={() => handleSocialClick('Apple')} style={{ ...socialBtn, marginBottom: 0 }}>
-              {AppleIcon}Continue with Apple
-            </button> */}
+
+            {isLocalEnv && (
+              <div
+                style={{
+                  width: '100%',
+                  marginTop: '0.75rem',
+                  padding: '0.75rem',
+                  borderRadius: 8,
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.25)',
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    ⚡ Local Dev Fast Login
+                  </span>
+                  <span style={{ fontSize: '0.65rem', color: '#93c5fd', background: 'rgba(59, 130, 246, 0.15)', padding: '1px 6px', borderRadius: 4 }}>
+                    Localhost
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => handleQuickDevLogin('admin@gitoscale.com', 'Admin')}
+                    style={{
+                      padding: '0.45rem 0.5rem',
+                      borderRadius: 6,
+                      background: '#1e293b',
+                      border: '1px solid #334155',
+                      color: '#f8fafc',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    👑 Admin
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => handleQuickDevLogin('alex@gmail.com', 'Alex Developer')}
+                    style={{
+                      padding: '0.45rem 0.5rem',
+                      borderRadius: 6,
+                      background: '#1e293b',
+                      border: '1px solid #334155',
+                      color: '#f8fafc',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    💻 Developer
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: '#888' }}>
               Don't have an account?{' '}
