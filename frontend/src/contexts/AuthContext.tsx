@@ -270,8 +270,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ── CASE 2: Supabase configured → real OAuth popup ──
       (async () => {
         try {
-          // Explicitly pass popup=true in redirect so callback knows it's running inside a popup
-          const redirectUrl = `${window.location.origin}/auth/callback?popup=true`;
+          // Explicitly pass popup=true and openerOrigin in redirect so callback knows it's running inside a popup and can communicate back across domains
+          const redirectUrl = `${window.location.origin}/auth/callback?popup=true&openerOrigin=${encodeURIComponent(window.location.origin)}`;
           const { data, error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
@@ -324,6 +324,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;
             if (curSession?.user) {
+              if (curSession.access_token && curSession.refresh_token && isSupabaseConfigured) {
+                try {
+                  await supabase.auth.setSession({
+                    access_token: curSession.access_token,
+                    refresh_token: curSession.refresh_token,
+                  });
+                } catch (setErr) {
+                  console.warn('[AuthContext] Synced session to local Supabase client warning:', setErr);
+                }
+              }
+
               setSession(curSession);
               setUser(curSession.user);
               if (curSession.provider_token) {
