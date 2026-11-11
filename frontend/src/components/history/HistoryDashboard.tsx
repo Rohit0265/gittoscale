@@ -185,10 +185,10 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
               className="h-7 w-auto object-contain transition-transform group-hover:scale-105"
             />
           </button>
-          <div className="h-4 w-px bg-slate-200 dark:bg-neutral-800" />
+          {/* <div className="h-4 w-px bg-slate-200 dark:bg-neutral-800" />
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-400">
             History & Workspace
-          </span>
+          </span> */}
         </div>
 
         <div className="flex items-center gap-3">
