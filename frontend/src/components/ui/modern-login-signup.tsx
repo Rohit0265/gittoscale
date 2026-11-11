@@ -536,6 +536,14 @@ export default function Component({
                 required
                 disabled={isLoading}
               />
+              <input
+                style={inputStyle}
+                type="password"
+                placeholder="Password (optional for local dev)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+              />
               <button
                 type="submit"
                 disabled={isLoading}
