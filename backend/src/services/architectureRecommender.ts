@@ -18,6 +18,10 @@ export interface LLMConfig {
   baseUrl?: string;
   groqApiKey?: string;
   groqModel?: string;
+  geminiApiKey?: string;
+  geminiModel?: string;
+  mercuryApiKey?: string;
+  mercuryModel?: string;
 }
 
 /**
