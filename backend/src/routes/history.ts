@@ -52,8 +52,22 @@ function deduplicateArchitectureRecords(items: any[]): any[] {
   const seen = new Set<string>();
   const result: any[] = [];
   for (const item of items) {
-    const projId = item.generation_config?.projectId;
     const normPrompt = (item.prompt || '').trim().toLowerCase();
+    const normTitle = (item.title || '').trim().toLowerCase();
+    const projId = item.generation_config?.projectId;
+
+    // Filter out unprompted default playground placeholders that are not user projects
+    if (!normPrompt && !normTitle) {
+      continue;
+    }
+    if (
+      !projId &&
+      (normPrompt === 'custom scalable architecture' || !normPrompt) &&
+      (normTitle === 'playground architecture' || !normTitle)
+    ) {
+      continue;
+    }
+
     const key = projId ? `proj_${projId}` : `prompt_${normPrompt}`;
     if (!seen.has(key)) {
       seen.add(key);
@@ -188,6 +202,16 @@ router.post('/architectures', requireAuth, async (req: AuthenticatedRequest, res
   const promptTrimmed = prompt.trim();
   const projectId = generationConfig?.projectId;
   const recordTitle = (title && typeof title === 'string' && title.trim()) || promptTrimmed.slice(0, 60) + (promptTrimmed.length > 60 ? '...' : '');
+
+  // Ignore default scratchpad placeholder saves without an active project or custom prompt
+  if (
+    !projectId &&
+    (!promptTrimmed || promptTrimmed.toLowerCase() === 'custom scalable architecture') &&
+    (!recordTitle || recordTitle.toLowerCase() === 'playground architecture')
+  ) {
+    res.status(200).json({ success: true, message: 'Default scratchpad ignored', data: null });
+    return;
+  }
 
   const newRecord = {
     user_id: userId,

@@ -129,7 +129,7 @@ router.post('/save', async (req: Request, res: Response) => {
             RETURNING *;
           `;
           return res.json({ success: true, id: updated[0].id, count: cappedMessages.length });
-        } else if (architectureData?.nodes?.length) {
+        } else if (architectureData?.nodes?.length && promptText && promptText.trim().length > 0) {
           const inserted = await insertArchitectureHistory(recordData);
           return res.json({ success: true, id: inserted.id, count: cappedMessages.length });
         } else {
@@ -173,7 +173,7 @@ router.post('/save', async (req: Request, res: Response) => {
             })
             .eq('id', existing.id);
           return res.json({ success: true, id: existing.id, count: cappedMessages.length });
-        } else if (architectureData?.nodes?.length) {
+        } else if (architectureData?.nodes?.length && promptText && promptText.trim().length > 0) {
           const { data: inserted, error } = await supabaseServer
             .from('architecture_history')
             .insert(recordData)

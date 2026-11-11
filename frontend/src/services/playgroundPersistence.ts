@@ -45,6 +45,14 @@ export function computePlaygroundHash(state: Partial<PlaygroundPersistenceState>
   return `${state.projectId || ''}#${state.prompt || ''}#${state.incomingTrafficRate || 1000}#${state.viewMode || 'detailed'}#${nodeSummary}#${edgeSummary}`;
 }
 
+export function clearActivePlaygroundStorage(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(ACTIVE_PLAYGROUND_KEY);
+    localStorage.removeItem(LAST_SYNCED_HASH_KEY);
+  } catch {}
+}
+
 /**
  * Saves playground state immediately to browser storage (localStorage).
  * Executes synchronously with zero latency to guarantee recovery even upon sudden shutdown.
@@ -52,7 +60,7 @@ export function computePlaygroundHash(state: Partial<PlaygroundPersistenceState>
 export function savePlaygroundToBrowserStorage(state: PlaygroundPersistenceState, userId?: string | null): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const raw = JSON.stringify(state);
+    const raw = JSON.stringify({ ...state, ownerUserId: userId || null });
     localStorage.setItem(ACTIVE_PLAYGROUND_KEY, raw);
 
     if (state.projectId) {
@@ -134,6 +142,10 @@ export function loadPlaygroundFromBrowserStorage(
     const globalRaw = localStorage.getItem(ACTIVE_PLAYGROUND_KEY);
     if (globalRaw) {
       const parsed = JSON.parse(globalRaw);
+      // If user is authenticated, do not load unowned or foreign active scratchpads from prior anonymous sessions
+      if (currentUserId && parsed.ownerUserId && parsed.ownerUserId !== currentUserId) {
+        return null;
+      }
       if (parsed && Array.isArray(parsed.nodes) && parsed.nodes.length > 0) {
         return parsed;
       }
@@ -154,6 +166,19 @@ export async function syncPlaygroundToDatabase(
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   if (!token) {
     return { success: false, error: 'User unauthenticated' };
+  }
+
+  // Never auto-persist generic unprompted default playground placeholders to user history
+  const rawPrompt = (state.prompt || '').trim();
+  const rawTitle = (state.title || '').trim();
+  const hasUserIntent = Boolean(
+    state.projectId ||
+    (rawPrompt && rawPrompt.toLowerCase() !== 'custom scalable architecture') ||
+    (rawTitle && rawTitle.toLowerCase() !== 'playground architecture')
+  );
+
+  if (!hasUserIntent) {
+    return { success: false, error: 'Skipped sync for unprompted default canvas' };
   }
 
   const hash = computePlaygroundHash(state);

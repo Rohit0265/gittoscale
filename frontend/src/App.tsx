@@ -687,7 +687,9 @@ export const App: React.FC = () => {
     detailedGraph: detailedGraphCacheRef.current || undefined,
     user,
     getAuthToken,
-    enabled: currentView === 'simulator' && (nodes.length > 0 || Boolean(activePromptText)),
+    enabled:
+      currentView === 'simulator' &&
+      Boolean(activePromptText || activeProject?.projectId || getProjectRouteInfo()?.projectId),
   });
 
   // Baseline comparison & project modals
