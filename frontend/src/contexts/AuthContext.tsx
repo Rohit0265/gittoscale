@@ -804,11 +804,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
     [loadProfile]
   );
-        return { error: err };
-      }
-    },
-    [loadProfile]
-  );
 
   // Sign out and purge all authentication cookies and session state
   const signOut = useCallback(async () => {
