@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { FeedPost } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { PostActions } from './PostActions';
@@ -169,30 +168,21 @@ export const PostCard: React.FC<PostCardProps> = ({
                 </button>
 
                 {!isOwner && onToggleFollow && (
-                  <button
-                    onClick={handleFollowToggle}
-                    disabled={isFollowLoading}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
-                      author.is_following
-                        ? 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 dark:bg-neutral-800 dark:hover:bg-rose-950/40 dark:text-neutral-300 dark:hover:text-rose-400 border border-slate-200/80 dark:border-neutral-700/80'
-                        : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60'
-                    }`}
-                    title={author.is_following ? 'Unfollow developer' : 'Follow developer'}
-                  >
-                    {isFollowLoading ? (
-                      <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                    ) : author.is_following ? (
-                      <>
-                        <UserCheck className="w-2.5 h-2.5" />
-                        <span>Following</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-2.5 h-2.5" />
-                        <span>Follow</span>
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <span className="text-slate-300 dark:text-neutral-700 text-xs select-none">·</span>
+                    <button
+                      onClick={handleFollowToggle}
+                      disabled={isFollowLoading}
+                      className={`text-xs font-semibold transition-colors cursor-pointer ${
+                        author.is_following
+                          ? 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-neutral-200'
+                          : 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300'
+                      }`}
+                      title={author.is_following ? 'Unfollow developer' : 'Follow developer'}
+                    >
+                      {author.is_following ? 'Following' : 'Follow'}
+                    </button>
+                  </>
                 )}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-neutral-500">
