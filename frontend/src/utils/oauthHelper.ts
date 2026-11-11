@@ -9,6 +9,27 @@ export interface OAuthBroadcastMessage {
   timestamp?: number;
 }
 
+const ALLOWED_STATIC_ORIGINS = [
+  'https://gitoscale.com',
+  'https://www.gitoscale.com',
+  'https://gittoscale.tech',
+  'https://www.gittoscale.tech',
+];
+
+/**
+ * Validates whether an origin is an authorized GitToScale origin or local development origin.
+ */
+export function isTrustedAuthOrigin(origin?: string | null): boolean {
+  if (!origin) return false;
+  if (typeof window !== 'undefined' && origin === window.location.origin) return true;
+  if (ALLOWED_STATIC_ORIGINS.includes(origin)) return true;
+  // Local development hostnames and ports
+  if (/^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/.test(origin)) return true;
+  // Vercel deployment previews
+  if (/^https:\/\/[a-zA-Z0-9_-]+\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 /**
  * Checks whether the current window was opened as an OAuth popup.
  * Uses window.name (which is retained across cross-origin redirects),
@@ -48,21 +69,58 @@ export function isOAuthPopup(): boolean {
 
 /**
  * Broadcasts an OAuth outcome (success or error) to the main opener window
- * using 3 independent channels so it works even if window.opener is severed by COOP.
+ * using 3 independent channels so it works reliably even across local development
+ * and deployed domains.
  */
-export function broadcastOAuthMessage(message: OAuthBroadcastMessage): void {
+export function broadcastOAuthMessage(message: OAuthBroadcastMessage, preferredOrigin?: string): void {
   const payload: OAuthBroadcastMessage = {
     ...message,
     timestamp: Date.now(),
   };
 
-  // 1. window.opener.postMessage (targeted strictly to window.location.origin, never wildcard *)
+  // 1. window.opener.postMessage (targeted strictly to trusted origins, never wildcard *)
   if (typeof window !== 'undefined' && window.opener && window.opener !== window) {
+    const targetOrigins: string[] = [];
+
     try {
-      window.opener.postMessage(payload, window.location.origin);
-    } catch {
-      // Intentionally avoid wildcard '*' fallback to prevent cross-origin credential harvesting.
-      // BroadcastChannel and localStorage safely handle cross-window communication on the same origin.
+      const search = new URLSearchParams(window.location.search);
+      const openerOriginParam = preferredOrigin || search.get('openerOrigin');
+      if (openerOriginParam && isTrustedAuthOrigin(openerOriginParam)) {
+        targetOrigins.push(openerOriginParam);
+      }
+    } catch {}
+
+    if (window.location.origin && isTrustedAuthOrigin(window.location.origin) && !targetOrigins.includes(window.location.origin)) {
+      targetOrigins.push(window.location.origin);
+    }
+
+    // In case popup redirected to production domain but opener was local dev:
+    if (
+      window.location.origin.includes('gittoscale.tech') ||
+      window.location.origin.includes('gitoscale.com') ||
+      window.location.origin.includes('vercel.app')
+    ) {
+      const commonLocalOrigins = [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:5174',
+        'http://127.0.0.1:5174',
+      ];
+      for (const loc of commonLocalOrigins) {
+        if (!targetOrigins.includes(loc)) {
+          targetOrigins.push(loc);
+        }
+      }
+    }
+
+    for (const origin of targetOrigins) {
+      try {
+        window.opener.postMessage(payload, origin);
+      } catch {
+        // Browser silently ignores when target origin does not match recipient window
+      }
     }
   }
 
@@ -77,7 +135,7 @@ export function broadcastOAuthMessage(message: OAuthBroadcastMessage): void {
     }
   }
 
-  // 3. localStorage storage event (100% universal across all browsers on same origin)
+  // 3. localStorage storage event (universal across same origin)
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(OAUTH_STORAGE_KEY, JSON.stringify(payload));
@@ -107,7 +165,8 @@ export function listenOAuthMessage(callback: (msg: OAuthBroadcastMessage) => voi
   }
 
   const onWindowMessage = (ev: MessageEvent) => {
-    if (ev.origin && ev.origin !== window.location.origin && ev.origin !== 'null') {
+    // Only accept messages from trusted origins (self, gitoscale domains, localhost)
+    if (ev.origin && !isTrustedAuthOrigin(ev.origin) && ev.origin !== 'null') {
       return;
     }
     if (ev.data && (ev.data.type === 'GTS_OAUTH_SUCCESS' || ev.data.type === 'GTS_OAUTH_ERROR' || ev.data.type === 'GTS_OAUTH_DONE')) {
