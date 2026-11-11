@@ -1521,5 +1521,4 @@ export async function streamAIChatReply(
   await streamFallbackText(generated.reply, onToken);
   return generated;
 }
-}
 
