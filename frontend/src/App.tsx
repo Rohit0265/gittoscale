@@ -2527,6 +2527,7 @@ export const App: React.FC = () => {
         isLeftCollapsed={isLeftCollapsed}
         nodes={nodes}
         edges={edges}
+        simulationResult={simulationResult}
         projectName={activePromptText || (nodes.length === 0 ? 'Blank Project' : (defaultArchitecture?.description || 'System Architecture'))}
         saveStatus={saveStatus}
         lastSaved={lastSaved}

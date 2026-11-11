@@ -19,7 +19,7 @@ import {
   GitBranch,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScenarioFixture, ArchitectureNode, ArchitectureEdge } from '../types';
+import { ScenarioFixture, ArchitectureNode, ArchitectureEdge, SimulationResult } from '../types';
 import {
   generateMermaidDiagram,
   generateArchitectureJson,
@@ -69,6 +69,7 @@ interface HeaderProps {
   lastSaved?: Date | null;
   onForceSync?: () => void;
   onShareToFeed?: (snapshotDataUrl: string) => void;
+  simulationResult?: SimulationResult | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -103,6 +104,7 @@ export const Header: React.FC<HeaderProps> = ({
   lastSaved: _lastSaved,
   onForceSync: _onForceSync,
   onShareToFeed,
+  simulationResult,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -119,7 +121,13 @@ export const Header: React.FC<HeaderProps> = ({
   const handleShareToFeed = async () => {
     try {
       setIsCapturing(true);
-      const snapshotDataUrl = await captureArchitectureSnapshot(nodes || [], edges || [], projectName, isDark);
+      const snapshotDataUrl = await captureArchitectureSnapshot(
+        nodes || [],
+        edges || [],
+        projectName,
+        isDark,
+        simulationResult?.nodeResults
+      );
       setIsExportOpen(false);
       if (onShareToFeed) {
         onShareToFeed(snapshotDataUrl);
