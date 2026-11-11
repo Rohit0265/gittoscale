@@ -85,9 +85,8 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
               session: session,
               user: session.user,
             });
-            setTimeout(() => {
-              try { window.close(); } catch {}
-            }, 300);
+            window.close();
+            // NEVER navigate inside a popup window!
             if (mounted) {
               setStatus('success');
             }
@@ -127,9 +126,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
                   session: newSession,
                   user: newSession.user,
                 });
-                setTimeout(() => {
-                  try { window.close(); } catch {}
-                }, 300);
+                window.close();
                 if (mounted) setStatus('success');
                 return;
               }

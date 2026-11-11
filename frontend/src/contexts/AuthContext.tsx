@@ -36,8 +36,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   isLoading: boolean;
   isConfigured: boolean;
-  signUp: (email: string, password?: string, fullName?: string) => Promise<{ error: AuthError | Error | null }>;
-  signIn: (email: string, password?: string) => Promise<{ error: AuthError | Error | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
   signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: AuthError | Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | Error | null }>;
@@ -270,8 +270,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ── CASE 2: Supabase configured → real OAuth popup ──
       (async () => {
         try {
-          // Explicitly pass popup=true and openerOrigin in redirect so callback knows it's running inside a popup and can communicate back across domains
-          const redirectUrl = `${window.location.origin}/auth/callback?popup=true&openerOrigin=${encodeURIComponent(window.location.origin)}`;
+          // Explicitly pass popup=true in redirect so callback knows it's running inside a popup
+          const redirectUrl = `${window.location.origin}/auth/callback?popup=true`;
           const { data, error } = await supabase.auth.signInWithOAuth({
             provider,
             options: {
@@ -324,17 +324,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;
             if (curSession?.user) {
-              if (curSession.access_token && curSession.refresh_token && isSupabaseConfigured) {
-                try {
-                  await supabase.auth.setSession({
-                    access_token: curSession.access_token,
-                    refresh_token: curSession.refresh_token,
-                  });
-                } catch (setErr) {
-                  console.warn('[AuthContext] Synced session to local Supabase client warning:', setErr);
-                }
-              }
-
               setSession(curSession);
               setUser(curSession.user);
               if (curSession.provider_token) {
@@ -432,8 +421,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function initSession() {
       setIsLoading(true);
 
-      let hasActiveSession = false;
-
       if (isSupabaseConfigured) {
         try {
           const { data: { session: initialSession }, error } = await supabase.auth.getSession();
@@ -441,7 +428,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error fetching Supabase session:', error);
           }
           if (mounted && initialSession?.user) {
-            hasActiveSession = true;
             setSession(initialSession);
             setUser(initialSession.user);
             await loadProfile(
@@ -453,10 +439,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (err) {
           console.error('Unexpected error in session initialization:', err);
         }
-      }
-
-      // Check saved local/mock user session if no active Supabase session
-      if (!hasActiveSession) {
+      } else {
+        // Mock session mode when Supabase credentials are not in .env yet
         try {
           const savedMock = crossDomainStorage.getItem(MOCK_USER_STORAGE_KEY);
           if (savedMock) {
@@ -467,7 +451,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               user_metadata: { full_name: parsed.fullName },
               app_metadata: {},
               aud: 'authenticated',
-              created_at: parsed.createdAt || new Date().toISOString(),
+              created_at: new Date().toISOString(),
             } as unknown as User;
             setUser(mockUser);
             setProfile(parsed);
@@ -523,20 +507,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sign up
   const signUp = useCallback(
-    async (email: string, password?: string, fullName?: string): Promise<{ error: AuthError | Error | null }> => {
+    async (email: string, password: string, fullName: string): Promise<{ error: AuthError | Error | null }> => {
       setIsLoading(true);
-      const cleanEmail = email.trim().toLowerCase();
-      const cleanName = (fullName && fullName.trim()) || cleanEmail.split('@')[0];
-      const isLocalEnv = typeof window !== 'undefined' && 
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '0.0.0.0');
 
-      if (!isSupabaseConfigured || (isLocalEnv && !password)) {
-        // In-memory mock registration / local dev signup
+      if (!isSupabaseConfigured) {
+        // In-memory mock registration
         const mockId = `usr_${Date.now().toString(36)}`;
         const mockProfile: UserProfile = {
           id: mockId,
-          email: cleanEmail,
-          fullName: cleanName,
+          email: email.trim().toLowerCase(),
+          fullName: fullName.trim() || email.split('@')[0],
           createdAt: new Date().toISOString(),
         };
         const mockUser = {
@@ -554,13 +534,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
         } catch {}
 
-        // Notify via Telegram & email about new user registration
+        // Notify via Telegram about new user registration
         api.notifySignup({
           name: mockProfile.fullName,
           email: mockProfile.email,
           userId: mockProfile.id,
           provider: 'Local / Mock',
-        }).catch(() => {});
+        });
 
         setIsLoading(false);
         return { error: null };
@@ -572,52 +552,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : undefined;
 
         const { data, error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password: password || 'devPass123!',
+          email: email.trim(),
+          password,
           options: {
             data: {
-              full_name: cleanName,
+              full_name: fullName.trim(),
             },
             emailRedirectTo: redirectUrl,
           },
         });
 
         if (error) {
-          if (isLocalEnv) {
-            console.info('[AuthContext] Supabase sign up notice in local env, providing local dev session:', error.message);
-            const mockId = `usr_${Date.now().toString(36)}`;
-            const mockProfile: UserProfile = {
-              id: mockId,
-              email: cleanEmail,
-              fullName: cleanName,
-              createdAt: new Date().toISOString(),
-            };
-            const mockUser = {
-              id: mockId,
-              email: mockProfile.email,
-              user_metadata: { full_name: mockProfile.fullName },
-              app_metadata: {},
-              aud: 'authenticated',
-              created_at: mockProfile.createdAt,
-            } as unknown as User;
-
-            setUser(mockUser);
-            setProfile(mockProfile);
-            try {
-              crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
-            } catch {}
-
-            api.notifySignup({
-              name: mockProfile.fullName,
-              email: mockProfile.email,
-              userId: mockProfile.id,
-              provider: 'Local / Dev',
-            }).catch(() => {});
-
-            setIsLoading(false);
-            return { error: null };
-          }
-
           setIsLoading(false);
           return { error };
         }
@@ -633,8 +578,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Notify via Telegram about new user registration
           api.notifySignup({
-            name: cleanName || data.user.email?.split('@')[0],
-            email: data.user.email || cleanEmail,
+            name: fullName.trim() || data.user.email?.split('@')[0],
+            email: data.user.email || email.trim(),
             userId: data.user.id,
             provider: 'Email / Password',
           });
@@ -643,33 +588,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
         return { error: null };
       } catch (err: any) {
-        if (isLocalEnv) {
-          const mockId = `usr_${Date.now().toString(36)}`;
-          const mockProfile: UserProfile = {
-            id: mockId,
-            email: cleanEmail,
-            fullName: cleanName,
-            createdAt: new Date().toISOString(),
-          };
-          const mockUser = {
-            id: mockId,
-            email: mockProfile.email,
-            user_metadata: { full_name: mockProfile.fullName },
-            app_metadata: {},
-            aud: 'authenticated',
-            created_at: mockProfile.createdAt,
-          } as unknown as User;
-
-          setUser(mockUser);
-          setProfile(mockProfile);
-          try {
-            crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
-          } catch {}
-
-          setIsLoading(false);
-          return { error: null };
-        }
-
         setIsLoading(false);
         return { error: err };
       }
@@ -679,22 +597,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sign in
   const signIn = useCallback(
-    async (email: string, password?: string): Promise<{ error: AuthError | Error | null }> => {
+    async (email: string, password: string): Promise<{ error: AuthError | Error | null }> => {
       setIsLoading(true);
-      const cleanEmail = email.trim().toLowerCase();
-      const isLocalEnv = typeof window !== 'undefined' && 
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '0.0.0.0');
 
-      if (!isSupabaseConfigured || (isLocalEnv && !password)) {
-        // Mock login / local dev sign in
-        const apiRes = await api.login({ email: cleanEmail }).catch(() => null);
-        const userName = apiRes?.user?.name || cleanEmail.split('@')[0];
-        const userId = apiRes?.user?.id || `usr_${Math.random().toString(36).substring(2, 9)}`;
-
+      if (!isSupabaseConfigured) {
+        // Mock login
         const mockProfile: UserProfile = {
-          id: userId,
-          email: cleanEmail,
-          fullName: userName,
+          id: `usr_${Math.random().toString(36).substring(2, 9)}`,
+          email: email.trim().toLowerCase(),
+          fullName: email.split('@')[0],
           createdAt: new Date().toISOString(),
         };
         const mockUser = {
@@ -718,43 +629,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password: password || 'devPass123!',
+          email: email.trim(),
+          password,
         });
 
         if (error) {
-          // In local environment, seamlessly fallback to local dev session
-          if (isLocalEnv) {
-            console.info('[AuthContext] Supabase sign in failed on localhost, falling back to local dev session:', error.message);
-            const apiRes = await api.login({ email: cleanEmail }).catch(() => null);
-            const userName = apiRes?.user?.name || cleanEmail.split('@')[0];
-            const userId = apiRes?.user?.id || `usr_${Math.random().toString(36).substring(2, 9)}`;
-
-            const mockProfile: UserProfile = {
-              id: userId,
-              email: cleanEmail,
-              fullName: userName,
-              createdAt: new Date().toISOString(),
-            };
-            const mockUser = {
-              id: mockProfile.id,
-              email: mockProfile.email,
-              user_metadata: { full_name: mockProfile.fullName },
-              app_metadata: {},
-              aud: 'authenticated',
-              created_at: mockProfile.createdAt,
-            } as unknown as User;
-
-            setUser(mockUser);
-            setProfile(mockProfile);
-            try {
-              crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
-            } catch {}
-
-            setIsLoading(false);
-            return { error: null };
-          }
-
           setIsLoading(false);
           return { error };
         }
@@ -772,32 +651,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
         return { error: null };
       } catch (err: any) {
-        if (isLocalEnv) {
-          const mockProfile: UserProfile = {
-            id: `usr_${Math.random().toString(36).substring(2, 9)}`,
-            email: cleanEmail,
-            fullName: cleanEmail.split('@')[0],
-            createdAt: new Date().toISOString(),
-          };
-          const mockUser = {
-            id: mockProfile.id,
-            email: mockProfile.email,
-            user_metadata: { full_name: mockProfile.fullName },
-            app_metadata: {},
-            aud: 'authenticated',
-            created_at: mockProfile.createdAt,
-          } as unknown as User;
-
-          setUser(mockUser);
-          setProfile(mockProfile);
-          try {
-            crossDomainStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockProfile));
-          } catch {}
-
-          setIsLoading(false);
-          return { error: null };
-        }
-
         setIsLoading(false);
         return { error: err };
       }
