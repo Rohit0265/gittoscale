@@ -72,12 +72,24 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
       let archList = archRes.data || [];
       let repoList = repoRes.data || [];
 
-      // Deduplicate architecture items by projectId or prompt
+      // Deduplicate architecture items by projectId or prompt, ignoring unprompted default placeholders
       const seenArch = new Set<string>();
       const dedupedArchs: any[] = [];
       for (const item of archList) {
-        const projId = item.generation_config?.projectId;
         const normPrompt = (item.prompt || '').trim().toLowerCase();
+        const normTitle = (item.title || '').trim().toLowerCase();
+        const projId = item.generation_config?.projectId;
+
+        // Skip blank records and generic playground scratchpads
+        if (!normPrompt && !normTitle) continue;
+        if (
+          !projId &&
+          (normPrompt === 'custom scalable architecture' || !normPrompt) &&
+          (normTitle === 'playground architecture' || !normTitle)
+        ) {
+          continue;
+        }
+
         const key = projId ? `proj_${projId}` : `prompt_${normPrompt}`;
         if (!seenArch.has(key)) {
           seenArch.add(key);
