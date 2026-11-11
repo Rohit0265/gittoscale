@@ -67,9 +67,14 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
       className="flex flex-col gap-12 overflow-hidden bg-white dark:bg-[#020202] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24 border-t border-slate-200/80 dark:border-neutral-800/80 transition-colors"
     >
       <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
-        <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
-            Share your design to others
+        <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center text-center">
+          {/* Ambient Lighting Glow Behind Headline */}
+          <div
+            className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 w-72 sm:w-[500px] h-32 bg-gradient-to-r from-indigo-500/15 via-sky-500/20 to-blue-600/15 dark:from-indigo-500/25 dark:via-sky-400/20 dark:to-blue-500/25 blur-3xl rounded-full -z-10"
+            aria-hidden="true"
+          />
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl drop-shadow-md dark:drop-shadow-[0_4px_20px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_12px_rgba(0,0,0,0.1)] dark:[text-shadow:_0_2px_22px_rgba(255,255,255,0.22)]">
+            Share your design with others
           </h2>
           <p className="mt-4 text-base text-slate-600 dark:text-neutral-400 sm:text-lg md:text-xl leading-relaxed max-w-2xl">
             See what other engineers are building, explore battle-tested system architectures, and publish your own designs to collaborate with the community.
@@ -81,7 +86,7 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
         {/* Feature 1: See others' designs and what they are building */}
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl drop-shadow-xs dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
               See others' designs and what they are building
             </h2>
             <p className="mt-3 text-base text-slate-600 dark:text-neutral-400 sm:text-lg leading-relaxed">
@@ -127,7 +132,7 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
         {/* Feature 2: Share your design and projects too */}
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center lg:order-last">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl drop-shadow-xs dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
               Now you can even share your design and projects too
             </h2>
             <p className="mt-3 text-base text-slate-600 dark:text-neutral-400 sm:text-lg leading-relaxed">

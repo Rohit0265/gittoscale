@@ -718,7 +718,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
         />
       </div>
 
-      {/* Community Feed Showcase: Share Your Design to Others */}
+      {/* Community Feed Showcase: Share Your Design with Others */}
       <ShareDesignFeedSection
         onNavigate={onNavigate}
         onSelectTestSite={onSelectTestSite}
