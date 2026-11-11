@@ -7,7 +7,7 @@ import {
 
 import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
 
-interface LLMConfig {
+export interface LLMConfig {
   provider?: string; // 'openai' | 'gemini' | 'anthropic' | 'other'
   apiKey?: string;
   model?: string;

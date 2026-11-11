@@ -11,7 +11,7 @@ import { validateGraphAcyclic } from '../simulation/validation.js';
 
 import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
 
-interface LLMConfig {
+export interface LLMConfig {
   provider?: string;
   apiKey?: string;
   model?: string;
