@@ -75,7 +75,21 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
             aria-hidden="true"
           />
           <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl drop-shadow-md dark:drop-shadow-[0_4px_20px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_12px_rgba(0,0,0,0.1)] dark:[text-shadow:_0_2px_22px_rgba(255,255,255,0.22)]">
-            Share your design with others
+            {/* Mobile View (< sm): separate highlight per line */}
+            <span className="sm:hidden flex flex-col items-center">
+              <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                Share your design
+              </PenHighlight>
+              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                with others
+              </PenHighlight>
+            </span>
+            {/* Desktop View (>= sm) */}
+            <span className="hidden sm:block">
+              <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+                Share your design with others
+              </PenHighlight>
+            </span>
           </h2>
           <p className="mt-4 text-base text-slate-600 dark:text-neutral-400 sm:text-lg md:text-xl leading-relaxed max-w-2xl">
             See what other engineers are building, explore battle-tested system architectures, and publish your own designs to collaborate with the community.
