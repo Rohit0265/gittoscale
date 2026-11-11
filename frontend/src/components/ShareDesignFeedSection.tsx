@@ -251,7 +251,7 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
         <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
           <div className="max-w-xl flex-1 self-center lg:order-last">
             <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl drop-shadow-xs dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
-              Now you can even share your design and projects too
+              Share your design , projects too
             </h2>
             <p className="mt-3 text-base text-slate-600 dark:text-neutral-400 sm:text-lg leading-relaxed">
               Seamlessly share your verified architecture blueprints, live simulation topologies, and full imported repository projects with colleagues or the engineering community.
