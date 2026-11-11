@@ -268,13 +268,11 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
           </div>
 
           <div className="w-full flex-1 flex items-center justify-center">
-            <AlternateImageMockup>
-              <img
-                alt="Publish architecture designs and repository projects to the feed"
-                src="/feed-share-design.png"
-                width={1024}
-                height={491}
-                className="w-full h-full object-cover object-top hover:scale-[1.02] transition-transform duration-300"
+            <AlternateImageMockup aspectRatioClass="aspect-[16/11] sm:aspect-[1262/880]">
+              <ContinuousAutoplayVideo
+                src="/feed-share-design.mp4"
+                poster="/feed-share-design.png"
+                className="hover:scale-[1.01] transition-transform duration-300"
               />
             </AlternateImageMockup>
           </div>
