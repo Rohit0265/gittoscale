@@ -568,6 +568,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (data.user) {
+          try {
+            localStorage.removeItem('gitoscale_playground_active_state');
+            localStorage.removeItem('gitoscale_playground_last_synced_hash');
+          } catch {}
           setUser(data.user);
           setSession(data.session);
           await loadProfile(data.user.id, data.user.email || '', data.user.user_metadata);
@@ -635,6 +639,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (data.user) {
+          try {
+            localStorage.removeItem('gitoscale_playground_active_state');
+            localStorage.removeItem('gitoscale_playground_last_synced_hash');
+          } catch {}
           setUser(data.user);
           setSession(data.session);
           await loadProfile(data.user.id, data.user.email || '', data.user.user_metadata);
