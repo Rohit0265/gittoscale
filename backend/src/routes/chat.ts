@@ -379,8 +379,8 @@ router.post('/message', async (req: Request, res: Response) => {
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders?.();
 
+    let accumulated = '';
     try {
-      let accumulated = '';
       const aiResult = await streamAIChatReply(
         {
           message: message.trim(),
