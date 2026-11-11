@@ -401,7 +401,11 @@ router.post('/message', async (req: Request, res: Response) => {
     } catch (err: any) {
       console.error('[Chat API Streaming Error]', err);
       const fallbackMsg = 'Traffic is more than expected. Please retry later.';
-      res.write(`data: ${JSON.stringify({ token: fallbackMsg, fullText: fallbackMsg, done: true, reply: fallbackMsg })}\n\n`);
+      if (!accumulated) {
+        res.write(`data: ${JSON.stringify({ token: fallbackMsg, fullText: fallbackMsg, done: true, reply: fallbackMsg })}\n\n`);
+      } else {
+        res.write(`data: ${JSON.stringify({ done: true, reply: accumulated })}\n\n`);
+      }
       res.write('data: [DONE]\n\n');
       res.end();
       return;

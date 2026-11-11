@@ -1151,7 +1151,7 @@ export const App: React.FC = () => {
 
       // 2. Fetch real AI response with token-by-token streaming
       // Canvas is NOT mutated while streaming so the user experiences zero UI jumps/flashes!
-      const REFUSAL_TEST_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component))/i;
+      const REFUSAL_TEST_REGEX = /(?:don'?t have (?:direct\s+)?programmatic control to (?:draw|paint|place|render) nodes|cannot (?:directly\s+)?(?:draw|place|render) (?:visual\s+)?nodes on (?:the\s+)?canvas)/i;
       let streamedRefusalDetected = false;
       const fallbackExecExplanation = (execResult.executed && execResult.explanation) ? execResult.explanation : '';
 

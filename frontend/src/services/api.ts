@@ -603,8 +603,18 @@ export const api = {
         if (!dataStr || dataStr === '[DONE]') continue;
         try {
           const parsed = JSON.parse(dataStr);
+          if (parsed.done) {
+            if (parsed.reply) {
+              accumulated = parsed.reply;
+              onToken('', accumulated);
+            }
+            if (parsed.actionDone) {
+              actionDone = parsed.actionDone;
+            }
+            continue;
+          }
           if (parsed.token) {
-            accumulated += parsed.token;
+            accumulated = parsed.fullText !== undefined ? parsed.fullText : (accumulated + parsed.token);
             onToken(parsed.token, accumulated);
           }
           if (parsed.actionDone) {

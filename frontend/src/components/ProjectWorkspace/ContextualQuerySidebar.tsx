@@ -77,6 +77,26 @@ const MAX_CONTEXT_MESSAGES = 200;
 /**
  * Detects if a user prompt is vague, underspecified, or lacks architectural parameters.
  */
+/**
+ * Sanitizes chat text for display, stripping raw Mermaid code syntax blocks
+ * so user reads clean, professional rationale while the visual canvas handles diagram rendering.
+ */
+function cleanDisplayContent(rawText: string, isStreaming?: boolean): string {
+  if (!rawText) return '';
+  let cleaned = rawText;
+  // Strip complete mermaid code blocks
+  cleaned = cleaned.replace(/```(?:mermaid)?[\s\S]*?```/gi, '');
+  // If actively streaming, strip unclosed mermaid blocks so raw syntax doesn't glitch onto screen
+  if (isStreaming) {
+    cleaned = cleaned.replace(/```(?:mermaid)?[\s\S]*$/gi, '');
+  }
+  cleaned = cleaned.trim();
+  if (!cleaned && rawText.includes('mermaid')) {
+    return '✨ System architecture synthesized and rendered on canvas.';
+  }
+  return cleaned || rawText;
+}
+
 export function isVagueRequirement(promptText: string): boolean {
   if (!promptText || promptText === 'Scalable distributed cloud architecture') return true;
   const clean = promptText.trim().toLowerCase();
@@ -474,23 +494,43 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
     try {
       if (onExecuteChatCommand) {
         let streamAccumulated = '';
-        const handleToken = (_token: string, fullText: string) => {
-          streamAccumulated = fullText;
+        let lastRenderTime = 0;
+        let animationFrameId: number | null = null;
+
+        const updateMessageText = (newText: string, isFinal: boolean = false) => {
           setMessages((prev) =>
             prev.map((m) =>
               m.id === thinkId
                 ? {
                     ...m,
                     isThinking: false,
-                    isStreaming: true,
-                    text: fullText,
+                    isStreaming: !isFinal,
+                    text: newText,
                   }
                 : m
             )
           );
         };
 
+        const handleToken = (_token: string, fullText: string) => {
+          streamAccumulated = fullText;
+          const now = Date.now();
+          if (now - lastRenderTime > 35) {
+            lastRenderTime = now;
+            updateMessageText(fullText, false);
+          } else if (!animationFrameId) {
+            animationFrameId = requestAnimationFrame(() => {
+              animationFrameId = null;
+              lastRenderTime = Date.now();
+              updateMessageText(streamAccumulated, false);
+            });
+          }
+        };
+
         const result = await onExecuteChatCommand(text, currentContext, handleToken);
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
         const replyText = result?.reply || streamAccumulated || `Executed instruction for: "${text}". Architecture updated.`;
 
         setMessages((prev) =>
@@ -615,26 +655,10 @@ const ContextualQuerySidebarComponent: React.FC<ContextualQuerySidebarProps> = (
                 ) : (
                   <div className="ai-markdown-chat-body streamdown-chat-body">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {msg.text}
+                      {cleanDisplayContent(msg.text, msg.isStreaming)}
                     </ReactMarkdown>
                     {msg.isStreaming && (
                       <span className="inline-block w-1.5 h-3 ml-0.5 bg-indigo-500 animate-pulse align-middle" />
-                    )}
-                    {msg.text.includes('```mermaid') && !msg.isStreaming && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-neutral-800 flex items-center justify-between text-[11px]">
-                        <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Published to Canvas
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onExecuteChatCommand?.('show the architecture on canvas', messages)}
-                          className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 transition-colors cursor-pointer font-medium"
-                          title="Re-sync this architecture on canvas"
-                        >
-                          Re-sync
-                        </button>
-                      </div>
                     )}
                   </div>
                 )}

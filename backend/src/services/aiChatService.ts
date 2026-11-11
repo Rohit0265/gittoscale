@@ -517,82 +517,24 @@ export function sanitizeAssistantReply(text: string): string {
 }
 
 /**
- * Creates an onToken wrapper that buffers the initial stream characters
- * to detect and suppress any standard LLM refusal or canned disclaimer before it reaches the UI.
- * If a refusal is detected, it suppresses the entire refusal stream and flushes
- * a clean, authoritative architecture breakdown instead.
+ * Token streaming wrapper that delivers tokens immediately to the UI
+ * for fluid, instantaneous token-by-token rendering without latency pauses.
  */
 export function createStreamingSanitizer(
   onToken: (token: string) => void,
-  fallbackText?: string
+  _fallbackText?: string
 ): {
   push: (token: string) => void;
   flush: () => void;
 } {
-  let buffer = '';
-  let checked = false;
-  let isRefusing = false;
-  const REFUSAL_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component)|give you the exact step-by-step clicks)/i;
-
   return {
     push(token: string) {
-      if (isRefusing) {
-        // Drop refusal tokens from streaming to the user!
-        buffer += token;
-        return;
-      }
-
-      if (checked) {
-        if (REFUSAL_REGEX.test(token)) {
-          isRefusing = true;
-          return;
-        }
+      if (token) {
         onToken(token);
-        return;
-      }
-
-      buffer += token;
-
-      if (REFUSAL_REGEX.test(buffer)) {
-        isRefusing = true;
-        return;
-      }
-
-      // If buffer has sufficient content and is confirmed safe
-      if (
-        buffer.length > 100 ||
-        buffer.includes('\n\n') ||
-        (buffer.length > 50 && /[.!?]\s/.test(buffer))
-      ) {
-        checked = true;
-        const sanitized = sanitizeAssistantReply(buffer);
-        onToken(sanitized);
-        buffer = '';
       }
     },
     flush() {
-      if (isRefusing) {
-        const sanitized = sanitizeAssistantReply(buffer);
-        if (sanitized && !REFUSAL_REGEX.test(sanitized)) {
-          onToken(sanitized);
-        } else if (fallbackText) {
-          onToken(fallbackText);
-        } else {
-          onToken(
-            "I have synthesized and rendered the architecture components and connections directly on your interactive canvas.\n\n" +
-            "All components are live and configured. You can ask me to scale worker capacity, adjust incoming traffic, or switch to Detailed View!"
-          );
-        }
-        buffer = '';
-        return;
-      }
-
-      if (!checked && buffer.length > 0) {
-        checked = true;
-        const sanitized = sanitizeAssistantReply(buffer);
-        onToken(sanitized);
-        buffer = '';
-      }
+      // Stream completed
     },
   };
 }
@@ -738,81 +680,100 @@ async function callGroqChatStream(
   onToken: (token: string) => void
 ): Promise<{ ok: boolean; reply?: string; isRateLimited?: boolean; error?: string }> {
   const groqApiKey = input.llmConfig?.apiKey || process.env.GROQ_API_KEY;
-  const groqModel = input.llmConfig?.model || process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
   if (!groqApiKey) return { ok: false, error: 'No Groq API key available' };
 
-  try {
-    const messages: any[] = [{ role: 'system', content: systemPrompt }];
-    const priorHistory = extractRelevantConversationHistory(input.history);
-    for (const msg of priorHistory) {
-      messages.push({ role: msg.role, content: msg.content });
-    }
-    messages.push({ role: 'user', content: input.message });
+  const preferredModel = input.llmConfig?.model || process.env.GROQ_MODEL;
+  const candidateModels = Array.from(
+    new Set([
+      preferredModel,
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant',
+      'llama3-70b-8192',
+    ].filter(Boolean) as string[])
+  );
 
+  const messages: any[] = [{ role: 'system', content: systemPrompt }];
+  const priorHistory = extractRelevantConversationHistory(input.history);
+  for (const msg of priorHistory) {
+    messages.push({ role: msg.role, content: msg.content });
+  }
+  messages.push({ role: 'user', content: input.message });
+
+  let lastError = 'Groq stream failure';
+  for (const modelName of candidateModels) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90000);
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${groqApiKey}`,
-      },
-      body: JSON.stringify({
-        model: groqModel,
-        messages,
-        temperature: 0.7,
-        max_tokens: 1024,
-        stream: true,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${groqApiKey}`,
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages,
+          temperature: 0.7,
+          max_tokens: 1024,
+          stream: true,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      return { ok: false, error: `Groq stream error: ${res.status} ${errText}` };
-    }
-
-    if (!res.body) {
-      return { ok: false, error: 'No response body from Groq' };
-    }
-
-    let fullReply = '';
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith('data:')) continue;
-        const dataStr = trimmed.slice(5).trim();
-        if (!dataStr || dataStr === '[DONE]') continue;
-        try {
-          const parsed = JSON.parse(dataStr);
-          const token = parsed.choices?.[0]?.delta?.content;
-          if (token) {
-            fullReply += token;
-            onToken(token);
-          }
-        } catch {}
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        lastError = `Groq stream error (${res.status}): ${errText.slice(0, 150)}`;
+        if (res.status === 404 || res.status === 400) {
+          console.warn(`[AI Chat Stream] Groq model "${modelName}" failed (${res.status}). Trying next candidate...`);
+          continue;
+        }
+        return { ok: false, error: lastError };
       }
-    }
 
-    if (fullReply.trim()) {
-      return { ok: true, reply: fullReply.trim() };
+      if (!res.body) {
+        continue;
+      }
+
+      let fullReply = '';
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const dataStr = trimmed.slice(5).trim();
+          if (!dataStr || dataStr === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(dataStr);
+            const token = parsed.choices?.[0]?.delta?.content;
+            if (token) {
+              fullReply += token;
+              onToken(token);
+            }
+          } catch {}
+        }
+      }
+
+      if (fullReply.trim()) {
+        return { ok: true, reply: fullReply.trim() };
+      }
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      lastError = err?.message || 'Groq stream failure';
     }
-    return { ok: false, error: 'Empty content from Groq stream' };
-  } catch (err: any) {
-    return { ok: false, error: err?.message || 'Groq stream failure' };
   }
+
+  return { ok: false, error: lastError };
 }
 
 async function callMercuryChat(
@@ -1423,87 +1384,76 @@ export async function streamAIChatReply(
       : provider === 'gemini'
       ? 'gemini-2.0-flash'
       : provider === 'groq'
-      ? (process.env.GROQ_MODEL || 'llama-3.1-8b-instant')
+      ? (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile')
       : 'gpt-4o-mini');
 
   const systemPrompt = buildSystemPrompt(input.architectureContext);
-  const fallbackText = generateIntelligentConversationalFallback(input.message, input.architectureContext);
-  const sanitizer = createStreamingSanitizer(onToken, fallbackText);
+
+  let tokensEmitted = 0;
+  let fullAccumulated = '';
+  const emitToken = (token: string) => {
+    if (!token) return;
+    tokensEmitted++;
+    fullAccumulated += token;
+    onToken(token);
+  };
 
   if (apiKey || process.env.GROQ_API_KEY || (provider === 'other' && input.llmConfig?.baseUrl)) {
     try {
       if (provider === 'mercury' || provider === 'mercury-3') {
-        const mStream = await callMercuryChatStream(input, systemPrompt, sanitizer.push);
+        const mStream = await callMercuryChatStream(input, systemPrompt, emitToken);
         if (mStream.ok && mStream.reply) {
-          sanitizer.flush();
           return { reply: sanitizeAssistantReply(mStream.reply) };
         }
 
-        console.info(
-          `[AI Chat Stream] Mercury stream unavailable (${mStream.error}). Seamlessly failing over to Google Gemini stream (Priority 2)...`
-        );
+        if (tokensEmitted === 0) {
+          console.info(
+            `[AI Chat Stream] Mercury stream unavailable (${mStream.error}). Seamlessly failing over to Google Gemini stream (Priority 2)...`
+          );
 
-        // Failover to Google Gemini Stream
-        const geminiApiKey =
-          input.llmConfig?.geminiApiKey ||
-          process.env.GEMINI_API_KEY ||
-          (input.llmConfig?.provider === 'gemini' ? input.llmConfig?.apiKey : undefined) ||
-          (process.env.LLM_PROVIDER === 'gemini' ? process.env.LLM_API_KEY : undefined);
+          // Failover to Google Gemini Stream
+          const geminiApiKey =
+            input.llmConfig?.geminiApiKey ||
+            process.env.GEMINI_API_KEY ||
+            (input.llmConfig?.provider === 'gemini' ? input.llmConfig?.apiKey : undefined) ||
+            (process.env.LLM_PROVIDER === 'gemini' ? process.env.LLM_API_KEY : undefined);
 
-        if (geminiApiKey) {
-          const geminiModels = [
-            'gemini-2.5-flash',
-            'gemini-1.5-flash-8b',
-            'gemini-2.0-flash-exp',
-            'gemini-1.5-flash',
-            'gemini-2.0-flash',
-          ];
-          const chatContents: any[] = [];
-          const priorHistory = extractRelevantConversationHistory(input.history);
-          for (const msg of priorHistory) {
+          if (geminiApiKey) {
+            const geminiModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+            const chatContents: any[] = [];
+            const priorHistory = extractRelevantConversationHistory(input.history);
+            for (const msg of priorHistory) {
+              chatContents.push({
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.content }],
+              });
+            }
             chatContents.push({
-              role: msg.role === 'user' ? 'user' : 'model',
-              parts: [{ text: msg.content }],
+              role: 'user',
+              parts: [{ text: input.message }],
             });
-          }
-          chatContents.push({
-            role: 'user',
-            parts: [{ text: input.message }],
-          });
 
-          for (const gModel of geminiModels) {
-            const geminiStream = await callGeminiChatStream(gModel, geminiApiKey, systemPrompt, chatContents, sanitizer.push);
-            if (geminiStream.ok && geminiStream.reply) {
-              sanitizer.flush();
-              return { reply: sanitizeAssistantReply(geminiStream.reply) };
+            for (const gModel of geminiModels) {
+              const geminiStream = await callGeminiChatStream(gModel, geminiApiKey, systemPrompt, chatContents, emitToken);
+              if (geminiStream.ok && geminiStream.reply) {
+                return { reply: sanitizeAssistantReply(geminiStream.reply) };
+              }
+              if (tokensEmitted > 0) break;
             }
-            if (geminiStream.status === 429 || geminiStream.status === 503 || geminiStream.status === 404) {
-              console.warn(`[AI Chat Stream] Gemini model ${gModel} returned ${geminiStream.status}. Trying next...`);
-              continue;
-            }
-            break;
           }
-        }
 
-        console.info('[AI Chat Stream] Gemini stream also failed. Seamlessly failing over to Groq stream (Priority 3)...');
-
-        // Failover to Groq stream
-        const groqStream = await callGroqChatStream(input, systemPrompt, sanitizer.push);
-        if (groqStream.ok && groqStream.reply) {
-          sanitizer.flush();
-          return { reply: sanitizeAssistantReply(groqStream.reply) };
+          if (tokensEmitted === 0) {
+            console.info('[AI Chat Stream] Gemini stream also failed. Seamlessly failing over to Groq stream (Priority 3)...');
+            const groqStream = await callGroqChatStream(input, systemPrompt, emitToken);
+            if (groqStream.ok && groqStream.reply) {
+              return { reply: sanitizeAssistantReply(groqStream.reply) };
+            }
+          }
         }
       } else if (provider === 'gemini') {
         const geminiModels = Array.from(
           new Set(
-            [
-              model,
-              'gemini-2.5-flash',
-              'gemini-1.5-flash-8b',
-              'gemini-2.0-flash-exp',
-              'gemini-1.5-flash',
-              'gemini-2.0-flash',
-            ].filter(Boolean) as string[]
+            [model, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'].filter(Boolean) as string[]
           )
         );
 
@@ -1521,45 +1471,38 @@ export async function streamAIChatReply(
         });
 
         for (const gModel of geminiModels) {
-          const geminiStream = await callGeminiChatStream(gModel, apiKey || '', systemPrompt, chatContents, sanitizer.push);
+          const geminiStream = await callGeminiChatStream(gModel, apiKey || '', systemPrompt, chatContents, emitToken);
           if (geminiStream.ok && geminiStream.reply) {
-            sanitizer.flush();
             return { reply: sanitizeAssistantReply(geminiStream.reply) };
           }
-          if (geminiStream.status === 429 || geminiStream.status === 503 || geminiStream.status === 404) {
-            console.warn(`[AI Chat Stream] Gemini model ${gModel} returned ${geminiStream.status}. Trying next...`);
-            continue;
+          if (tokensEmitted > 0) break;
+        }
+
+        if (tokensEmitted === 0) {
+          // Failover to Groq stream in background
+          const groqStream = await callGroqChatStream(input, systemPrompt, emitToken);
+          if (groqStream.ok && groqStream.reply) {
+            return { reply: sanitizeAssistantReply(groqStream.reply) };
           }
-          break;
-        }
 
-        // Failover to Groq stream in background
-        const groqStream = await callGroqChatStream(input, systemPrompt, sanitizer.push);
-        if (groqStream.ok && groqStream.reply) {
-          sanitizer.flush();
-          return { reply: sanitizeAssistantReply(groqStream.reply) };
-        }
-
-        // Failover to Mercury-3 stream in background if Groq fails
-        if (process.env.MERCURY_API_KEY) {
-          console.info('[AI Chat Stream] Groq stream also failed. Seamlessly failing over to Mercury-3 stream in background...');
-          const mercuryStream = await callMercuryChatStream(input, systemPrompt, sanitizer.push);
-          if (mercuryStream.ok && mercuryStream.reply) {
-            sanitizer.flush();
-            return { reply: sanitizeAssistantReply(mercuryStream.reply) };
+          // Failover to Mercury-3 stream in background if Groq fails
+          if (process.env.MERCURY_API_KEY && tokensEmitted === 0) {
+            console.info('[AI Chat Stream] Groq stream also failed. Seamlessly failing over to Mercury-3 stream in background...');
+            const mercuryStream = await callMercuryChatStream(input, systemPrompt, emitToken);
+            if (mercuryStream.ok && mercuryStream.reply) {
+              return { reply: sanitizeAssistantReply(mercuryStream.reply) };
+            }
           }
         }
       } else if (provider === 'groq') {
-        const groqStream = await callGroqChatStream(input, systemPrompt, sanitizer.push);
+        const groqStream = await callGroqChatStream(input, systemPrompt, emitToken);
         if (groqStream.ok && groqStream.reply) {
-          sanitizer.flush();
           return { reply: sanitizeAssistantReply(groqStream.reply) };
         }
-        if (process.env.MERCURY_API_KEY) {
+        if (process.env.MERCURY_API_KEY && tokensEmitted === 0) {
           console.info('[AI Chat Stream] Groq stream failed. Seamlessly failing over to Mercury-3 stream...');
-          const mercuryStream = await callMercuryChatStream(input, systemPrompt, sanitizer.push);
+          const mercuryStream = await callMercuryChatStream(input, systemPrompt, emitToken);
           if (mercuryStream.ok && mercuryStream.reply) {
-            sanitizer.flush();
             return { reply: sanitizeAssistantReply(mercuryStream.reply) };
           }
         }
@@ -1569,10 +1512,14 @@ export async function streamAIChatReply(
     }
   }
 
-  // Fallback to generateAIChatReply and stream token by token
-  sanitizer.flush();
+  if (tokensEmitted > 0) {
+    return { reply: sanitizeAssistantReply(fullAccumulated) };
+  }
+
+  // Fallback to generateAIChatReply and stream token by token cleanly
   const generated = await generateAIChatReply(input);
   await streamFallbackText(generated.reply, onToken);
   return generated;
+}
 }
 

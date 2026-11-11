@@ -362,7 +362,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     }
 
     // 2. Stream AI response with zero premature canvas mutation
-    const REFUSAL_TEST_REGEX = /(?:my apologies|as an ai(?: assistant)?|don'?t have (?:direct )?programmatic control|you are the one driving|click the (?:add node|create component))/i;
+    const REFUSAL_TEST_REGEX = /(?:don'?t have (?:direct\s+)?programmatic control to (?:draw|paint|place|render) nodes|cannot (?:directly\s+)?(?:draw|place|render) (?:visual\s+)?nodes on (?:the\s+)?canvas)/i;
     let streamedRefusalDetected = false;
     const fallbackExecExplanation = (execResult.executed && execResult.explanation) ? execResult.explanation : '';
 
