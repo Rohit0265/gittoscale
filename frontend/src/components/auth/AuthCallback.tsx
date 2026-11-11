@@ -94,6 +94,10 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
           }
           // Only redirect if running as a primary window/tab
           if (mounted) {
+            try {
+              localStorage.removeItem('gitoscale_playground_active_state');
+              localStorage.removeItem('gitoscale_playground_last_synced_hash');
+            } catch {}
             if (session.user?.email) {
               api.notifySignup({
                 name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
