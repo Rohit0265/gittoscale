@@ -1,4 +1,4 @@
-import type { FC, HTMLAttributes } from 'react';
+import { type FC, type HTMLAttributes, useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PenHighlight } from './ui/PenShadowLine';
@@ -25,19 +25,124 @@ export const ListItemText: FC<ListItemTextProps> = ({ text, className }) => {
 // Backward compatibility alias
 export const CheckItemText = ListItemText;
 
-export const AlternateImageMockup: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
+export interface AlternateImageMockupProps extends HTMLAttributes<HTMLDivElement> {
+  aspectRatioClass?: string;
+}
+
+export const AlternateImageMockup: FC<AlternateImageMockupProps> = ({
+  className,
+  aspectRatioClass = 'aspect-[16/10] sm:aspect-[16/9] md:aspect-[2/1]',
+  children,
+  ...props
+}) => {
   return (
     <div
       className={cn(
         'w-full max-w-xl mx-auto rounded-xl bg-slate-100 dark:bg-neutral-900/90 p-1.5 shadow-2xl ring-1 ring-slate-200/80 dark:ring-neutral-800 md:rounded-2xl md:p-2 transition-all',
-        props.className,
+        className,
       )}
+      {...props}
     >
       <div className="w-full rounded-[10px] bg-white dark:bg-[#0A0A0C] p-1 md:rounded-[14px]">
-        <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[2/1] overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80 bg-[#090909]">
-          {props.children}
+        <div
+          className={cn(
+            'relative w-full overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80 bg-[#090909]',
+            aspectRatioClass,
+          )}
+        >
+          {children}
         </div>
       </div>
+    </div>
+  );
+};
+
+export interface ContinuousAutoplayVideoProps {
+  src: string;
+  poster?: string;
+  className?: string;
+}
+
+export const ContinuousAutoplayVideo: FC<ContinuousAutoplayVideoProps> = ({
+  src,
+  poster,
+  className,
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Enforce mute and autoplay properties for seamless silent playback
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
+
+    const playVideo = () => {
+      if (video.paused) {
+        const p = video.play();
+        if (p !== undefined) {
+          p.catch(() => {});
+        }
+      }
+    };
+
+    // Attempt playback immediately
+    playVideo();
+
+    // Ensure playback stays active during user scrolling or window visibility changes
+    const handleScrollOrInteract = () => {
+      playVideo();
+    };
+
+    window.addEventListener('scroll', handleScrollOrInteract, { passive: true });
+    window.addEventListener('touchstart', handleScrollOrInteract, { passive: true });
+    document.addEventListener('visibilitychange', playVideo);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            playVideo();
+          }
+        });
+      },
+      { threshold: 0.05 },
+    );
+    observer.observe(video);
+
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrInteract);
+      window.removeEventListener('touchstart', handleScrollOrInteract);
+      document.removeEventListener('visibilitychange', playVideo);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div className="relative w-full h-full select-none pointer-events-none overflow-hidden">
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+        onPause={(e) => {
+          // Keep continuously playing without stopping
+          e.currentTarget.play().catch(() => {});
+        }}
+        className={cn(
+          'w-full h-full object-cover object-top pointer-events-none select-none',
+          className,
+        )}
+      />
     </div>
   );
 };
@@ -132,13 +237,11 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
           </div>
 
           <div className="w-full flex-1 flex items-center justify-center">
-            <AlternateImageMockup>
-              <img
-                alt="Community feed posts showing shared system architectures and interactive topologies"
-                src="/feed-explore-designs.png"
-                width={1024}
-                height={491}
-                className="w-full h-full object-cover object-top hover:scale-[1.02] transition-transform duration-300"
+            <AlternateImageMockup aspectRatioClass="aspect-[16/14] sm:aspect-[950/864]">
+              <ContinuousAutoplayVideo
+                src="/feed-explore-designs.mp4"
+                poster="/feed-explore-designs.png"
+                className="hover:scale-[1.01] transition-transform duration-300"
               />
             </AlternateImageMockup>
           </div>
