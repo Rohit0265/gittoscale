@@ -8,7 +8,6 @@ import {
   Trash2,
   Calendar,
   Layers,
-  ArrowRight,
   RefreshCw,
   LogOut,
   Sun,
@@ -16,6 +15,98 @@ import {
   AlertCircle,
   Plus,
 } from 'lucide-react';
+
+interface HistoryCardProps {
+  title: string;
+  nodeCount: number;
+  createdAt?: string;
+  isDeleting: boolean;
+  deleteTitle: string;
+  onOpen: () => void;
+  onDelete: (e: React.MouseEvent) => void;
+}
+
+const HistoryCard: React.FC<HistoryCardProps> = ({
+  title,
+  nodeCount,
+  createdAt,
+  isDeleting,
+  deleteTitle,
+  onOpen,
+  onDelete,
+}) => {
+  const formatCardDate = (dateString?: string) => {
+    if (!dateString) return 'Just now';
+    try {
+      const d = new Date(dateString);
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  return (
+    <div
+      onClick={onOpen}
+      className="group relative bg-white dark:bg-[#0c0d14] border border-slate-200/90 dark:border-neutral-800/90 hover:border-slate-300 dark:hover:border-neutral-700 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-4 overflow-hidden"
+    >
+      {/* Subtle ambient hairline highlight */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-neutral-700/60 to-transparent pointer-events-none" />
+
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
+            {title}
+          </h3>
+        </div>
+      </div>
+
+      {/* Footer & Meta */}
+      <div>
+        <div className="flex items-center justify-between text-[11px] mb-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800/80">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 text-[11px] font-medium text-slate-700 dark:text-neutral-300">
+            <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
+            <span>{nodeCount} Components</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 font-mono text-[11px]">
+            <Calendar className="w-3.5 h-3.5 opacity-70" />
+            <span>{formatCardDate(createdAt)}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen();
+            }}
+            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white border border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-300 text-xs font-semibold transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
+          >
+            <span>Continue</span>
+            <ExternalLink className="w-3.5 h-3.5 opacity-80 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+          </button>
+
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isDeleting}
+            className="p-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 text-slate-400 dark:text-neutral-500 hover:text-red-500 hover:border-red-300 dark:hover:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer"
+            title={deleteTitle}
+          >
+            <Trash2 className="w-3.5 h-3.5 hover:text-red-500 transition-colors" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface HistoryDashboardProps {
   onGoHome: () => void;
@@ -150,22 +241,6 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
       alert(err?.response?.data?.message || 'Failed to delete record');
     } finally {
       setDeletingId(null);
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Just now';
-    try {
-      const d = new Date(dateString);
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return dateString;
     }
   };
 
@@ -418,63 +493,18 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                       : headingWords.slice(0, 4).join(' ') + '...';
 
                   return (
-                    <div
+                    <HistoryCard
                       key={arch.id}
-                      onClick={() =>
+                      title={cardHeading}
+                      nodeCount={nodeCount}
+                      createdAt={arch.created_at}
+                      isDeleting={deletingId === arch.id}
+                      deleteTitle="Delete architecture"
+                      onOpen={() =>
                         onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title, arch.id)
                       }
-                      className="group relative bg-white dark:bg-[#0c0d14] border border-slate-200/90 dark:border-neutral-800/90 hover:border-slate-300 dark:hover:border-neutral-700 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-4 overflow-hidden"
-                    >
-                      {/* Subtle ambient hairline highlight */}
-                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-neutral-700/60 to-transparent pointer-events-none" />
-
-                      <div>
-                        {/* Header: Title only (3-4 words, status badge and subheading removed) */}
-                        <div className="flex items-start justify-between gap-3">
-                          <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
-                            {cardHeading}
-                          </h3>
-                        </div>
-                      </div>
-
-                      {/* Footer & Meta */}
-                      <div>
-                        <div className="flex items-center justify-between text-[11px] mb-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800/80">
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 text-[11px] font-medium text-slate-700 dark:text-neutral-300">
-                            <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
-                            <span>{nodeCount} Components</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 font-mono text-[11px]">
-                            <Calendar className="w-3.5 h-3.5 opacity-70" />
-                            <span>{formatDate(arch.created_at)}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2.5">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title, arch.id);
-                            }}
-                            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white border border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-300 text-xs font-semibold transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
-                          >
-                            <span>Continue</span>
-                            <ExternalLink className="w-3.5 h-3.5 opacity-80 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={(e) => handleDeleteArchitecture(e, arch.id)}
-                            disabled={deletingId === arch.id}
-                            className="p-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 text-slate-400 dark:text-neutral-500 hover:text-red-500 hover:border-red-300 dark:hover:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer"
-                            title="Delete architecture"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 hover:text-red-500 transition-colors" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      onDelete={(e) => handleDeleteArchitecture(e, arch.id)}
+                    />
                   );
                 })}
               </div>
@@ -513,90 +543,23 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                     repo.repository_name || repo.repository_url.split('/').pop() || 'Repository';
 
                   return (
-                    <div
+                    <HistoryCard
                       key={repo.id}
-                      onClick={() =>
+                      title={repoDisplayName}
+                      nodeCount={nodeCount}
+                      createdAt={repo.created_at}
+                      isDeleting={deletingId === repo.id}
+                      deleteTitle="Delete repository"
+                      onOpen={() =>
                         onOpenRepository(
                           repo.architecture_data,
                           repoDisplayName,
-                          repo.repository_url
+                          repo.repository_url,
+                          repo.id
                         )
                       }
-                      className="group relative bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 hover:border-cyan-500/50 dark:hover:border-cyan-500/50 rounded-xl p-4.5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Header: Name and Status */}
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white line-clamp-1 group-hover:text-cyan-500 transition-colors">
-                            {repoDisplayName}
-                          </h3>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide shrink-0 ${
-                              repo.status === 'completed'
-                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'
-                                : 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/40'
-                            }`}
-                          >
-                            {repo.status}
-                          </span>
-                        </div>
-
-                        {/* URL snippet */}
-                        <a
-                          href={repo.repository_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-xs text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 mb-3 truncate"
-                        >
-                          <span className="truncate">{repo.repository_url}</span>
-                          <ExternalLink className="w-3 h-3 shrink-0" />
-                        </a>
-
-                        {/* Scan detected badges */}
-                        {repo.scan_result?.language && (
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 text-[10px] font-medium text-slate-700 dark:text-neutral-300">
-                              {repo.scan_result.language}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Footer & Meta */}
-                      <div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-500 mb-3 pt-3 border-t border-slate-100 dark:border-neutral-800/60">
-                          <div className="flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-400 group-hover:text-cyan-500 transition-colors" />
-                            <span>{nodeCount} Nodes Detected</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span>{formatDate(repo.created_at)}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-900/40 text-cyan-600 dark:text-cyan-400 text-xs font-semibold group-hover:bg-cyan-600 group-hover:text-white transition-all cursor-pointer"
-                          >
-                            <span>Open Architecture</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={(e) => handleDeleteRepository(e, repo.id)}
-                            disabled={deletingId === repo.id}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-400 dark:text-neutral-500 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
-                            title="Delete repository"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 hover:text-red-500 transition-colors" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      onDelete={(e) => handleDeleteRepository(e, repo.id)}
+                    />
                   );
                 })}
               </div>
