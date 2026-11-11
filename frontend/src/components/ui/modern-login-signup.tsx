@@ -713,22 +713,23 @@ export default function Component({
               </div>
             )}
 
-            {/* <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               <input
-                style={input}
+                style={inputStyle}
                 type="text"
                 placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                required
+                disabled={isLoading}
               />
               <input
-                style={input}
+                style={inputStyle}
                 type="email"
                 placeholder="name@work-email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
               <button
                 type="submit"
@@ -740,21 +741,35 @@ export default function Component({
                   border: 'none',
                   background: '#ededed',
                   color: '#000',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: '0.875rem',
                   cursor: isLoading ? 'wait' : 'pointer',
                   opacity: isLoading ? 0.7 : 1,
+                  transition: 'opacity 0.15s ease',
                 }}
               >
                 {isLoading ? 'Creating Account...' : 'Sign Up with Email'}
               </button>
-            </form> */}
+            </form>
 
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                margin: '0.85rem 0',
+                color: '#555',
+                fontSize: '0.75rem',
+              }}
+            >
+              <div style={{ flex: 1, height: 1, background: '#27272a' }} />
+              <span style={{ padding: '0 0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>or</span>
+              <div style={{ flex: 1, height: 1, background: '#27272a' }} />
+            </div>
 
             <button type="button" disabled={isLoading} onClick={() => handleSocialClick('Google')} style={socialBtn}>
               {GoogleIcon}Sign up with Google
             </button>
-            {/* <div style={{ height: 1, background: '#222', width: '100%', margin: '0.85rem 0' }} /> */}
             <button type="button" disabled={isLoading} onClick={() => handleSocialClick('GitHub')} style={socialBtn}>
               {GitHubIcon}Sign up with GitHub
             </button>
