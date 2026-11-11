@@ -1432,7 +1432,7 @@ export const App: React.FC = () => {
         localStorage.setItem(`gitoscale_project_${projectId}`, promptText);
       }
 
-      const projectPath = `/product/${projectId}?prompt=${encodeURIComponent(promptText)}`;
+      const projectPath = `/project/${projectId}?prompt=${encodeURIComponent(promptText)}`;
 
       if (!user) {
         savePendingAction({
@@ -2038,7 +2038,7 @@ export const App: React.FC = () => {
       }
 
       // Enter simulator view with Skeleton loading state
-      const targetUrl = `/product/${targetId}`;
+      const targetUrl = `/project/${targetId}`;
       window.history.pushState({ projectId: targetId, prompt }, '', targetUrl);
       setActiveProject({ projectId: targetId, prompt });
       setActivePromptText(prompt || '');
@@ -2097,7 +2097,7 @@ export const App: React.FC = () => {
       }
 
       // Enter simulator view with Skeleton loading state (Do NOT pass ?repo= to avoid re-triggering LLM analyzer!)
-      const targetUrl = `/product/${targetId}`;
+      const targetUrl = `/project/${targetId}`;
       window.history.pushState({ projectId: targetId, prompt: _repoName }, '', targetUrl);
       setActiveProject({ projectId: targetId, prompt: _repoName });
       setActivePromptText(_repoName);

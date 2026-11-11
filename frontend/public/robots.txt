@@ -1,17 +1,20 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
-Allow: /app
-Allow: /simulator
+Allow: /feed
 Allow: /architect
+Allow: /signup
 Allow: /terms
-Allow: /privacy-policy
-Allow: /cookie-policy
+Allow: /privacy
+Allow: /cookie
 
-# Disallow private user sessions, internal APIs, and auth callbacks
+# Disallow private user sessions, admin, protected workspace routes, and internal APIs
 Disallow: /api/
 Disallow: /auth/
+Disallow: /admin
+Disallow: /app
 Disallow: /history
+Disallow: /profile
 Disallow: /product/
 Disallow: /project/
 
