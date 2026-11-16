@@ -130,7 +130,7 @@ export const CollabPlayground: React.FC<CollabPlaygroundProps> = ({
   isDark = true,
   onToggleTheme,
 }) => {
-  const { user, profile, getAuthToken } = useAuth();
+  const { user, getAuthToken } = useAuth();
 
   // Meeting & Participants State
   const [meeting, setMeeting] = useState<CollabMeeting | null>(null);
@@ -146,7 +146,7 @@ export const CollabPlayground: React.FC<CollabPlaygroundProps> = ({
   const [nodes, setNodes] = useState<ArchitectureNode[]>([]);
   const [edges, setEdges] = useState<ArchitectureEdge[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [incomingTrafficRate, setIncomingTrafficRate] = useState<number>(1000);
+  const [incomingTrafficRate] = useState<number>(1000);
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
 
   // Peer cursors
@@ -168,7 +168,7 @@ export const CollabPlayground: React.FC<CollabPlaygroundProps> = ({
     async (curNodes: ArchitectureNode[], curEdges: ArchitectureEdge[], rate: number) => {
       if (curNodes.length === 0) return;
       try {
-        const res = await api.simulateArchitecture({
+        const res = await api.simulate({
           nodes: curNodes,
           edges: curEdges,
           incomingTrafficRate: rate,
