@@ -5,18 +5,13 @@ import {
   MessageSquare,
   Crown,
   Shield,
-  ShieldAlert,
-  ShieldCheck,
   Send,
   UserX,
   Lock,
   Unlock,
   CheckCircle2,
   AlertCircle,
-  Clock,
   ArrowUp,
-  Sliders,
-  ChevronDown,
 } from 'lucide-react';
 import { CollabMeeting, CollabParticipant, CollabMessage } from '../../services/collabApi';
 import { ArchitectureNode, ArchitectureEdge, SimulationResult } from '../../types';
@@ -63,7 +58,7 @@ export const CollabLeftPanel: React.FC<CollabLeftPanelProps> = ({
   incomingTrafficRate,
   simulationResult,
   onApplyArchitectureChange,
-  isDark = true,
+  isDark: _isDark = true,
 }) => {
   const [activeTab, setActiveTab] = useState<CollabTab>('participants');
   const [chatInput, setChatInput] = useState('');
@@ -182,13 +177,13 @@ export const CollabLeftPanel: React.FC<CollabLeftPanelProps> = ({
       }
 
       // 2. Query backend AI Copilot with live shared context
-      const reply = await api.chatWithCopilot({
+      const reply = await api.sendChatMessage(null, {
         message: prompt,
         architectureContext: {
           nodes,
           edges,
           trafficRate: incomingTrafficRate,
-          bottlenecks: simulationResult?.rankedBottlenecks || [],
+          bottlenecks: simulationResult?.bottlenecks || [],
           projectDescription: meeting.title,
         },
       });
