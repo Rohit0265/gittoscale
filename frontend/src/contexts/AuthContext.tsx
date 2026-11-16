@@ -28,6 +28,12 @@ export type PendingAction =
       returnUrl: string;
       llmConfig?: any;
       createdAt: number;
+    }
+  | {
+      type: 'collab';
+      meetingId: string;
+      returnUrl: string;
+      createdAt: number;
     };
 
 interface AuthContextType {

@@ -86,6 +86,12 @@ const ProfilePage = React.lazy(() =>
 const AdminPage = React.lazy(() =>
   import('./components/admin/AdminPage').then((m) => ({ default: m.AdminPage }))
 );
+const CollabLandingPage = React.lazy(() =>
+  import('./components/collab/CollabLandingPage').then((m) => ({ default: m.CollabLandingPage }))
+);
+const CollabPlayground = React.lazy(() =>
+  import('./components/collab/CollabPlayground').then((m) => ({ default: m.CollabPlayground }))
+);
 
 import {
   AppWorkspaceSkeleton,
@@ -165,6 +171,17 @@ const isAppDomain = () => {
   );
 };
 
+export const getCollabMeetingId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const match =
+    window.location.pathname.match(/\/collab\/meeting\/([a-zA-Z0-9_-]+)/i) ||
+    window.location.pathname.match(/\/collab\/([a-zA-Z0-9_-]+)/i);
+  if (match && match[1] && match[1].toLowerCase() !== 'meeting') {
+    return match[1];
+  }
+  return null;
+};
+
 export type AppView =
   | 'landing'
   | 'simulator'
@@ -182,11 +199,14 @@ export type AppView =
   | 'unverified'
   | 'feed'
   | 'feed-profile'
+  | 'collab-landing'
+  | 'collab-meeting'
   | 'admin';
 
 const isValidAppPath = (path: string): boolean => {
   if (path === '/' || path === '') return true;
   if (path === '/app' || path.startsWith('/app/')) return true;
+  if (path === '/collab' || path.startsWith('/collab')) return true;
   if (path === '/feed' || path.startsWith('/feed')) return true;
   if (path === '/profile' || path.startsWith('/profile')) return true;
   if (path === '/admin' || path.startsWith('/admin')) return true;
@@ -230,6 +250,12 @@ const getInitialView = (): AppView => {
   if (isOAuthPopup()) return 'auth-callback';
   const path = window.location.pathname.toLowerCase();
   if (path === '/admin' || path.startsWith('/admin')) return 'admin';
+  if (path === '/collab') return 'collab-landing';
+  if (path.startsWith('/collab/')) {
+    const mId = getCollabMeetingId();
+    if (mId) return 'collab-meeting';
+    return 'collab-landing';
+  }
   if (path === '/feed') return 'feed';
   if (path === '/profile' || path.startsWith('/profile') || path.startsWith('/feed/profile/')) return 'feed-profile';
   if (path === '/signup') return 'signup';
@@ -1980,6 +2006,9 @@ export const App: React.FC = () => {
             setLoading(false);
           }
         })();
+      } else if (action.type === 'collab') {
+        window.history.pushState({}, '', dest);
+        setCurrentView('collab-meeting');
       }
     }
   }, [user, pendingAction, clearPendingAction, handleGenerateFromPrompt, handleImportArchitecture]);
@@ -2279,6 +2308,53 @@ export const App: React.FC = () => {
     return (
       <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
         <AdminPage user={user} token={authToken} onNavigate={handleNavigate} isDark={isDark} />
+      </Suspense>
+    );
+  }
+
+  if (currentView === 'collab-landing') {
+    return (
+      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+        <CollabLandingPage
+          onNavigateToMeeting={(meetingId) => {
+            window.history.pushState({}, '', `/collab/meeting/${meetingId}`);
+            setCurrentView('collab-meeting');
+          }}
+          onGoHome={handleGoHome}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+        />
+      </Suspense>
+    );
+  }
+
+  if (currentView === 'collab-meeting') {
+    const meetingId = getCollabMeetingId() || '';
+    return (
+      <Suspense fallback={<AppWorkspaceSkeleton isDark={isDark} />}>
+        <CollabPlayground
+          meetingId={meetingId}
+          onLeaveMeeting={() => {
+            window.history.pushState({}, '', '/collab');
+            setCurrentView('collab-landing');
+          }}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          onOpenInNormalPlayground={(newNodes, newEdges) => {
+            setNodes(newNodes);
+            setEdges(newEdges);
+            window.history.pushState({}, '', '/app');
+            setCurrentView('simulator');
+          }}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+        />
       </Suspense>
     );
   }
