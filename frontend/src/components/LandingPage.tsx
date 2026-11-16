@@ -480,8 +480,18 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
             />
           </div>
 
-          {/* Right: Feed with external icon */}
-          <nav className="flex items-center">
+          {/* Right: Collab & Feed Navigation */}
+          <nav className="flex items-center gap-1 sm:gap-1.5">
+            <a
+              href="/collab"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Open GitToScale Collab in new tab"
+            >
+              <span>Collab</span>
+              <ExternalLink className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+            </a>
             <a
               href="/feed"
               target="_blank"
