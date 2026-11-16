@@ -227,8 +227,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-2.5 sm:px-4 flex items-center justify-between z-40 shrink-0 transition-colors w-full">
-      {/* Brand & Title */}
-      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+      {/* Brand & Collab Navigation */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
           onClick={onGoHome}
           className="flex items-center text-left group hover:opacity-85 transition-opacity cursor-pointer"
@@ -240,6 +240,19 @@ export const Header: React.FC<HeaderProps> = ({
             className="h-6 sm:h-7 md:h-8 w-auto object-contain transition-transform group-hover:scale-105"
           />
         </button>
+
+        {/* Collab Navigation Link */}
+        <a
+          href="/collab"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-200/90 dark:border-indigo-900/80 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 hover:text-indigo-900 dark:hover:text-indigo-200 transition-all shadow-2xs group cursor-pointer"
+          title="Open GitToScale Collab in new tab"
+        >
+          <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+          <span>Collab</span>
+          <ExternalLink className="w-3 h-3 text-indigo-500/80 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+        </a>
       </div>
 
       {/* Main Operational Controls (Play/Pause, Reset, AI Architect, Stars, and User Button) */}
