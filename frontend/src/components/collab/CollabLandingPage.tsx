@@ -4,20 +4,16 @@ import {
   Users,
   Video,
   ArrowRight,
-  Sparkles,
   ShieldCheck,
   Zap,
   MessageSquare,
   Lock,
   Layers,
-  Copy,
-  Check,
   AlertCircle,
   Loader2,
   ChevronRight,
   Sun,
   Moon,
-  Laptop,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { collabApi } from '../../services/collabApi';
@@ -37,7 +33,7 @@ export const CollabLandingPage: React.FC<CollabLandingPageProps> = ({
   isDark = true,
   onToggleTheme,
 }) => {
-  const { user, profile, getAuthToken } = useAuth();
+  const { user, getAuthToken } = useAuth();
   const [meetingTitle, setMeetingTitle] = useState('');
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [isCreating, setIsCreating] = useState(false);
