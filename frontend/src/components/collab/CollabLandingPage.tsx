@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
+  Sparkles,
   MessageSquare,
   Lock,
   Layers,
