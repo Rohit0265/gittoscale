@@ -22,6 +22,7 @@ import chatRoute from './routes/chat.js';
 import telemetryRoute from './routes/telemetry.js';
 import feedRoute from './feed/feedRoutes.js';
 import adminRoute from './routes/admin.js';
+import collabRoute from './routes/collab.js';
 import { telemetryMiddleware } from './middleware/telemetry.js';
 
 import { loadEnvFiles } from './utils/env.js';
@@ -89,6 +90,7 @@ export function createApp() {
   app.use('/api/telemetry', telemetryRoute);
   app.use('/api/feed', feedRoute);
   app.use('/api/admin', adminRoute);
+  app.use('/api/collab', collabRoute);
 
   // Serve uploaded media if present (in development or non-Vercel environments)
   const localUploadsPath = path.resolve(process.cwd(), 'uploads');
