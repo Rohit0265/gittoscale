@@ -1,12 +1,10 @@
 import { io, Socket } from 'socket.io-client';
-import { CollabMeeting, CollabParticipant, CollabMessage } from './collabApi';
 
 const RAW_BACKEND_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').trim();
 const SOCKET_BASE = RAW_BACKEND_URL.replace(/\/+$/, '') || window.location.origin;
 
 class CollabSocketService {
   private socket: Socket | null = null;
-  private currentMeetingId: string | null = null;
 
   connect(): Socket {
     if (this.socket && this.socket.connected) {
@@ -43,7 +41,6 @@ class CollabSocketService {
     user: { id: string; fullName: string; avatarUrl?: string }
   ) {
     const s = this.connect();
-    this.currentMeetingId = meetingId;
     s.emit('join-meeting', { meetingId, user });
   }
 
@@ -91,7 +88,6 @@ class CollabSocketService {
       this.socket.disconnect();
       this.socket = null;
     }
-    this.currentMeetingId = null;
   }
 }
 
