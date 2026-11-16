@@ -1,4 +1,5 @@
 import { createApp } from './app.js';
+import { initCollabSocketServer } from './collab/socketHandler.js';
 
 import { execSync } from 'node:child_process';
 
@@ -26,6 +27,9 @@ function startServer() {
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`[Backend] System Design Playground API listening on http://0.0.0.0:${PORT}`);
   });
+
+  // Attach real-time collaborative Socket.IO server
+  initCollabSocketServer(server);
 
   server.on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') {
