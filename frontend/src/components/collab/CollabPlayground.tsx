@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Users,
   Copy,
   Check,
   Share2,
@@ -10,13 +9,6 @@ import {
   Loader2,
   LogOut,
   Power,
-  RotateCcw,
-  Sparkles,
-  Download,
-  FolderGit2,
-  ChevronDown,
-  Shield,
-  Layers,
   ArrowLeft,
   Sun,
   Moon,
@@ -39,8 +31,6 @@ import {
   ArchitectureNode,
   ArchitectureEdge,
   SimulationResult,
-  ScenarioFixture,
-  ComponentType,
 } from '../../types';
 
 interface CollabPlaygroundProps {
