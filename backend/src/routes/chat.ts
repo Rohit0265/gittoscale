@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Router, Request, Response } from 'express';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
 import {
@@ -6,6 +7,8 @@ import {
   insertArchitectureHistory,
 } from '../services/neon.js';
 import { generateAIChatReply, streamAIChatReply } from '../services/aiChatService.js';
+import { resolveUserFromRequest } from '../middleware/auth.js';
+import { checkAndIncrementAiUsage } from '../services/subscriptionService.js';
 
 const router = Router();
 
