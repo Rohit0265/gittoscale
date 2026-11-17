@@ -43,6 +43,7 @@ interface InnerMeetingCanvasProps {
   isDark: boolean;
   canEdit: boolean;
   isRightCollapsed: boolean;
+  rightSidebarWidth?: number;
 }
 
 const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
@@ -62,6 +63,7 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
   isDark,
   canEdit,
   isRightCollapsed,
+  rightSidebarWidth = 360,
 }) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -99,6 +101,7 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
         isLeftCollapsed={true}
         isRightCollapsed={isRightCollapsed}
         leftSidebarWidth={0}
+        rightSidebarWidth={rightSidebarWidth}
       />
       <LiveCursorOverlay cursors={remoteCursors} />
     </div>
