@@ -301,6 +301,36 @@ WHERE IT LIVES:
   - frontend/src/components/FloatingFeedbackButton.tsx & FeedbackModal.tsx -> User feedback UI.
 
 
+--------------------------------------------------------------------------------
+FEATURE 9: REAL-TIME COLLABORATIVE SYSTEM DESIGN (GITTOSCALE COLLAB)
+--------------------------------------------------------------------------------
+WHAT IT DOES:
+  Enables multi-user real-time collaborative system architecture design. Users can
+  create secure rooms with unique join codes and shareable links, invite teammates,
+  and work together on the exact same interactive React Flow architecture canvas.
+  Includes live peer mouse cursors, instant node/edge sync, host permission modes
+  (Host-Only, Collaborative, Controlled), participant permission management, an
+  integrated shared AI copilot, and in-session live text chat.
+
+WHERE IT LIVES:
+  - Frontend Components & Services:
+    • frontend/src/components/collab/CollabLandingPage.tsx -> Landing page to Create or Join.
+    • frontend/src/components/collab/CollabPlayground.tsx  -> Collaborative workspace mounting ArchitectureCanvas.
+    • frontend/src/components/collab/CollabLeftPanel.tsx   -> Left sidebar combining Live Participants,
+                                                             Shared AI Copilot, and In-Session Chat.
+    • frontend/src/components/collab/LiveCursorOverlay.tsx -> ViewportPortal overlay rendering peer cursors & name tags.
+    • frontend/src/services/collabApi.ts                   -> REST client for meetings, participants, permissions.
+    • frontend/src/services/collabSocket.ts                -> Socket.IO real-time client.
+    • frontend/src/components/Header.tsx                   -> "Collab ↗" external navigation button.
+    • frontend/src/components/LandingPage.tsx              -> "Collab ↗" pill navbar item.
+  - Backend Services & Sockets:
+    • backend/src/collab/socketHandler.ts                  -> Socket.IO server handling rooms, cursors, ops, chat.
+    • backend/src/collab/types.ts                          -> Collab interfaces and models.
+    • backend/src/services/collabService.ts                -> Room state management, DB persistence & in-memory cache.
+    • backend/src/routes/collab.ts                         -> REST endpoints (/api/collab/*).
+    • supabase/migrations/20261116000000_collab_meetings.sql -> SQL schema for meetings, participants, messages.
+
+
 ================================================================================
 4. DATABASE SCHEMA & DATA MODEL (POSTGRESQL / SUPABASE)
 ================================================================================
