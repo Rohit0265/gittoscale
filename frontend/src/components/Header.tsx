@@ -487,6 +487,20 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* GitHub Star Button */}
 
+        {/* Pricing / Upgrade Button */}
+        <button
+          type="button"
+          onClick={() => {
+            window.history.pushState({}, '', '/payment');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }}
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-600/10 hover:bg-violet-600/20 text-violet-400 border border-violet-500/20 transition-all cursor-pointer shrink-0"
+          title="View Pricing & Plans"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+          <span className="hidden sm:inline">Pricing</span>
+        </button>
+
         {/* User Button: Container for User Profile, Theme, Import Repo, History, and Scenario */}
         <div ref={menuRef} className="relative shrink-0">
           <button
