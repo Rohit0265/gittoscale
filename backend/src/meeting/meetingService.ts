@@ -5,6 +5,7 @@ import {
   MeetingParticipant,
   MeetingRole,
   ArchitectureState,
+  MeetingChatMessage,
 } from './types.js';
 
 const PARTICIPANT_PALETTE = [
@@ -21,6 +22,7 @@ const PARTICIPANT_PALETTE = [
 
 export const inMemMeetings = new Map<string, Meeting>();
 export const inMemMeetingParticipants = new Map<string, MeetingParticipant[]>();
+export const inMemMeetingMessages = new Map<string, MeetingChatMessage[]>();
 
 let hasEnsuredMeetingSchema = false;
 
@@ -58,6 +60,19 @@ export async function ensureMeetingSchema(): Promise<void> {
     `;
     await db`CREATE INDEX IF NOT EXISTS idx_meetings_status ON public.meetings (status);`;
     await db`CREATE INDEX IF NOT EXISTS idx_meeting_participants_meeting ON public.meeting_participants (meeting_id);`;
+    await db`
+      CREATE TABLE IF NOT EXISTS public.meeting_messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        meeting_id UUID NOT NULL REFERENCES public.meetings(id) ON DELETE CASCADE,
+        user_id TEXT NOT NULL,
+        user_name TEXT NOT NULL,
+        user_avatar TEXT,
+        content TEXT NOT NULL,
+        message_type VARCHAR(20) NOT NULL DEFAULT 'chat',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+      );
+    `;
+    await db`CREATE INDEX IF NOT EXISTS idx_meeting_messages_meeting ON public.meeting_messages (meeting_id, created_at ASC);`;
     hasEnsuredMeetingSchema = true;
   } catch (err: any) {
     console.warn('[Meeting Schema] Auto-migration check warning:', err?.message || err);
@@ -461,4 +476,96 @@ export async function endMeeting(meetingId: string, hostUserId: string): Promise
   }
 
   return meeting;
+}
+
+const MAX_MESSAGES_PER_MEETING = 500;
+
+/**
+ * Persists a meeting chat message (memory + Neon when available).
+ */
+export async function saveMeetingMessage(
+  meetingId: string,
+  user: { id: string; fullName: string; avatarUrl?: string },
+  content: string,
+  messageType: MeetingChatMessage['message_type'] = 'chat'
+): Promise<MeetingChatMessage> {
+  const safeContent = String(content || '').trim().slice(0, 4000);
+  if (!safeContent) {
+    throw new Error('Message content is required.');
+  }
+
+  const message: MeetingChatMessage = {
+    id: crypto.randomUUID(),
+    meeting_id: meetingId,
+    user_id: user.id,
+    user_name: user.fullName || 'Participant',
+    user_avatar: user.avatarUrl || null,
+    content: safeContent,
+    message_type: messageType,
+    created_at: new Date().toISOString(),
+  };
+
+  const list = inMemMeetingMessages.get(meetingId) || [];
+  list.push(message);
+  inMemMeetingMessages.set(meetingId, list.slice(-MAX_MESSAGES_PER_MEETING));
+
+  if (isNeonConfigured()) {
+    try {
+      const db = getSql();
+      await db`
+        INSERT INTO public.meeting_messages (
+          id, meeting_id, user_id, user_name, user_avatar, content, message_type, created_at
+        ) VALUES (
+          ${message.id}, ${message.meeting_id}, ${message.user_id}, ${message.user_name},
+          ${message.user_avatar}, ${message.content}, ${message.message_type}, ${message.created_at}
+        );
+      `;
+    } catch (err: any) {
+      console.warn('[Meeting] DB message persist warning:', err?.message || err);
+    }
+  }
+
+  return message;
+}
+
+/**
+ * Retrieves recent messages for a meeting (memory cache or Neon).
+ */
+export async function getMeetingMessages(
+  meetingId: string,
+  limit = 200
+): Promise<MeetingChatMessage[]> {
+  const cached = inMemMeetingMessages.get(meetingId);
+  if (cached && cached.length > 0) {
+    return cached.slice(-limit);
+  }
+
+  if (isNeonConfigured()) {
+    try {
+      await ensureMeetingSchema();
+      const db = getSql();
+      const rows = await db`
+        SELECT * FROM public.meeting_messages
+        WHERE meeting_id = ${meetingId}
+        ORDER BY created_at ASC
+        LIMIT ${limit};
+      `;
+      const messages: MeetingChatMessage[] = rows.map((r) => ({
+        id: r.id,
+        meeting_id: r.meeting_id,
+        user_id: r.user_id,
+        user_name: r.user_name,
+        user_avatar: r.user_avatar || null,
+        content: r.content,
+        message_type: (r.message_type || 'chat') as MeetingChatMessage['message_type'],
+        created_at: r.created_at,
+      }));
+      inMemMeetingMessages.set(meetingId, messages);
+      return messages;
+    } catch (err: any) {
+      console.warn('[Meeting] DB messages fetch warning:', err?.message || err);
+    }
+  }
+
+  return [];
 }

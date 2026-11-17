@@ -17,9 +17,10 @@ interface UseMeetingYjsProps {
     fullName: string;
     avatarUrl?: string;
   } | null;
+  token?: string | null;
 }
 
-export function useMeetingYjs({ meetingId, user }: UseMeetingYjsProps) {
+export function useMeetingYjs({ meetingId, user, token }: UseMeetingYjsProps) {
   const managerRef = useRef<YjsMeetingManager | null>(null);
 
   const [meeting, setMeeting] = useState<Meeting | null>(null);
@@ -63,6 +64,9 @@ export function useMeetingYjs({ meetingId, user }: UseMeetingYjsProps) {
       onChatMessage: (msg) => {
         setChatMessages((prev) => [...prev, msg]);
       },
+      onChatHistoryInitial: (messages) => {
+        setChatMessages(messages);
+      },
       onRoleChanged: (newRole) => {
         setRole(newRole);
       },
@@ -78,13 +82,13 @@ export function useMeetingYjs({ meetingId, user }: UseMeetingYjsProps) {
     });
 
     managerRef.current = manager;
-    manager.connect(meetingId, user);
+    manager.connect(meetingId, user, { token });
 
     return () => {
       manager.disconnect();
       managerRef.current = null;
     };
-  }, [meetingId, user?.id, user?.fullName, user?.avatarUrl]);
+  }, [meetingId, user?.id, user?.fullName, user?.avatarUrl, token]);
 
   // Methods to interact with the shared meeting
   const updateNodes = useCallback((newNodes: any[]) => {

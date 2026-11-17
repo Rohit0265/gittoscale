@@ -8,6 +8,8 @@ import {
   Loader2,
   AlertTriangle,
   ArrowLeft,
+  Bot,
+  Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArchitectureCanvas } from '../../components/Canvas/ArchitectureCanvas';
@@ -18,6 +20,7 @@ import { useMeetingYjs } from '../hooks/useMeetingYjs';
 import { MeetingHeader } from '../components/MeetingHeader';
 import { MeetingParticipantsPanel } from '../components/MeetingParticipantsPanel';
 import { MeetingChatPanel } from '../components/MeetingChatPanel';
+import { MeetingAIPanel } from '../components/MeetingAIPanel';
 import { LiveCursorOverlay } from '../components/LiveCursorOverlay';
 import { meetingApi } from '../services/meetingApi';
 
@@ -117,7 +120,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [activeLeftTab, setActiveLeftTab] = useState<'components' | 'participants' | 'chat'>('components');
+  const [activeLeftTab, setActiveLeftTab] = useState<'ai' | 'chats' | 'participants' | 'tools'>('ai');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Authenticated user payload for Yjs meeting room
@@ -129,6 +132,8 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
       avatarUrl: user.user_metadata?.avatar_url,
     };
   }, [user]);
+
+  const authToken = getAuthToken();
 
   // Hook connecting Yjs and Socket.IO
   const {
@@ -158,6 +163,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   } = useMeetingYjs({
     meetingId,
     user: userPayload,
+    token: authToken,
   });
 
   // Load meeting metadata & verify access
@@ -447,18 +453,30 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
         {/* Left Sidebar (Components / Participants / Chat) */}
         {isSidebarOpen && (
           <aside className="w-72 sm:w-80 h-full border-r border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0">
-            {/* Sidebar Tabs */}
+            {/* Sidebar Tabs + Tools */}
             <div className="h-11 border-b border-slate-200 dark:border-neutral-800 flex items-center px-2 gap-1 bg-slate-50/50 dark:bg-neutral-900/40">
               <button
-                onClick={() => setActiveLeftTab('components')}
+                onClick={() => setActiveLeftTab('ai')}
                 className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                  activeLeftTab === 'components'
+                  activeLeftTab === 'ai'
                     ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Components</span>
+                <Bot className="w-3.5 h-3.5" />
+                <span>AI</span>
+              </button>
+
+              <button
+                onClick={() => setActiveLeftTab('chats')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  activeLeftTab === 'chats'
+                    ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Chats</span>
               </button>
 
               <button
@@ -470,25 +488,68 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span>Team ({participants.length})</span>
+                <span>Participants</span>
               </button>
 
+              <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700 mx-0.5 shrink-0" />
+
               <button
-                onClick={() => setActiveLeftTab('chat')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                  activeLeftTab === 'chat'
+                onClick={() => setActiveLeftTab('tools')}
+                title="Architecture tools"
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer ${
+                  activeLeftTab === 'tools'
                     ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                 }`}
               >
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>Chat</span>
+                <Wrench className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Tools</span>
               </button>
             </div>
 
             {/* Sidebar Tab Content */}
             <div className="flex-1 overflow-hidden">
-              {activeLeftTab === 'components' && (
+              {activeLeftTab === 'ai' && (
+                <MeetingAIPanel
+                  nodes={nodes}
+                  edges={edges}
+                  projectDescription={meeting?.title}
+                  canEdit={canEdit}
+                  token={authToken}
+                  onApplyArchitecture={(newNodes, newEdges) => {
+                    if (!canEdit) return;
+                    updateNodes(newNodes);
+                    updateEdges(newEdges);
+                    setSelectedNodeId(null);
+                  }}
+                />
+              )}
+
+              {activeLeftTab === 'participants' && (
+                <MeetingParticipantsPanel
+                  isOpen
+                  onClose={() => setIsSidebarOpen(false)}
+                  participants={participants}
+                  presences={presences}
+                  currentUserId={user?.id}
+                  isHost={role === 'host'}
+                  onSetRole={setParticipantRole}
+                  onKickParticipant={kickParticipant}
+                />
+              )}
+
+              {activeLeftTab === 'chats' && (
+                <MeetingChatPanel
+                  isOpen
+                  onClose={() => setIsSidebarOpen(false)}
+                  messages={chatMessages}
+                  onSendMessage={(text) => sendChatMessage(text, 'chat')}
+                  currentUserId={user?.id}
+                  syncStatus={syncStatus}
+                />
+              )}
+
+              {activeLeftTab === 'tools' && (
                 <div className="h-full overflow-y-auto">
                   {!canEdit && (
                     <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-900/50 text-[11px] text-amber-700 dark:text-amber-400 flex items-center gap-2">
@@ -511,29 +572,6 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
                     embedded
                   />
                 </div>
-              )}
-
-              {activeLeftTab === 'participants' && (
-                <MeetingParticipantsPanel
-                  isOpen
-                  onClose={() => setIsSidebarOpen(false)}
-                  participants={participants}
-                  presences={presences}
-                  currentUserId={user?.id}
-                  isHost={role === 'host'}
-                  onSetRole={setParticipantRole}
-                  onKickParticipant={kickParticipant}
-                />
-              )}
-
-              {activeLeftTab === 'chat' && (
-                <MeetingChatPanel
-                  isOpen
-                  onClose={() => setIsSidebarOpen(false)}
-                  messages={chatMessages}
-                  onSendMessage={(text) => sendChatMessage(text, 'chat')}
-                  currentUserId={user?.id}
-                />
               )}
             </div>
           </aside>

@@ -10,6 +10,7 @@ import {
   removeParticipant,
   toggleMeetingLock,
   endMeeting,
+  getMeetingMessages,
 } from './meetingService.js';
 
 const router = Router();
@@ -214,6 +215,19 @@ router.post('/:id/end', requireAuth, async (req: AuthenticatedRequest, res: Resp
     res.json({ success: true, meeting });
   } catch (err: any) {
     res.status(403).json({ success: false, error: err?.message || 'Failed to end meeting' });
+  }
+});
+
+/**
+ * GET /api/meetings/:id/messages
+ * Retrieves persistent meeting chat history (authenticated meeting participants).
+ */
+router.get('/:id/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const messages = await getMeetingMessages(req.params.id);
+    res.json({ success: true, messages });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: 'Failed to fetch meeting messages' });
   }
 });
 

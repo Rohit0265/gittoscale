@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Meeting, MeetingParticipant, MeetingRole } from '../types';
+import { Meeting, MeetingParticipant, MeetingRole, MeetingChatMessage } from '../types';
 
 const RAW_BACKEND_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '').trim();
 const CLEAN_URL = RAW_BACKEND_URL.replace(/\/+$/, '');
@@ -77,5 +77,11 @@ export const meetingApi = {
   async getSnapshot(meetingId: string): Promise<{ nodes: any[]; edges: any[] }> {
     const res = await axios.get(`${API_BASE}/meetings/${meetingId}/snapshot`);
     return res.data.architecture;
+  },
+
+  async getMessages(meetingId: string, token: string): Promise<MeetingChatMessage[]> {
+    const headers = { Authorization: `Bearer ${token}` };
+    const res = await axios.get(`${API_BASE}/meetings/${meetingId}/messages`, { headers });
+    return res.data.messages;
   },
 };

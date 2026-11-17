@@ -17,6 +17,7 @@ export interface YjsMeetingCallbacks {
   onParticipantsChange?: (participants: MeetingParticipant[]) => void;
   onPresencesChange?: (presences: ParticipantPresence[]) => void;
   onRemoteCursorsChange?: (cursors: RemoteCursor[]) => void;
+  onChatHistoryInitial?: (messages: MeetingChatMessage[]) => void;
   onChatMessage?: (msg: MeetingChatMessage) => void;
   onRoleChanged?: (newRole: MeetingRole) => void;
   onLockChanged?: (isLocked: boolean) => void;
@@ -80,7 +81,8 @@ export class YjsMeetingManager {
 
   public connect(
     meetingId: string,
-    user: { id: string; fullName: string; avatarUrl?: string }
+    user: { id: string; fullName: string; avatarUrl?: string },
+    opts?: { token?: string | null }
   ) {
     this.meetingId = meetingId;
     this.user = user;
@@ -101,6 +103,9 @@ export class YjsMeetingManager {
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
       timeout: 10000,
+      auth: {
+        token: opts?.token || undefined,
+      },
     });
 
     this.socket.on('connect', () => {
@@ -135,6 +140,7 @@ export class YjsMeetingManager {
         isLocked: boolean;
         participants: MeetingParticipant[];
         presences: ParticipantPresence[];
+        messages: MeetingChatMessage[];
         yjsUpdate: string;
       }) => {
         this.currentRole = payload.role;
@@ -153,6 +159,9 @@ export class YjsMeetingManager {
         this.callbacks.onMeetingStateLoaded?.(payload.meeting, payload.role, payload.isLocked);
         this.callbacks.onParticipantsChange?.(payload.participants);
         this.callbacks.onPresencesChange?.(payload.presences);
+        if (Array.isArray(payload.messages)) {
+          this.callbacks.onChatHistoryInitial?.(payload.messages);
+        }
         this.callbacks.onSyncStatusChange?.('synced');
       }
     );
@@ -169,7 +178,29 @@ export class YjsMeetingManager {
       }
     });
 
-    // 3. Remote Cursor updates
+    // 3. Awareness / presence updates (cursors, editing indicators)
+    this.socket.on('presence-updated', (payload: { presences: ParticipantPresence[] }) => {
+      const presences = payload?.presences || [];
+      this.callbacks.onPresencesChange?.(presences);
+
+      // Derive live cursors from presence (only entries with a cursor position)
+      const nextCursors: RemoteCursor[] = [];
+      for (const p of presences) {
+        if (p.userId !== this.user?.id && p.cursor) {
+          nextCursors.push({
+            userId: p.userId,
+            userName: p.userName,
+            color: p.color,
+            x: p.cursor.x,
+            y: p.cursor.y,
+          });
+        }
+      }
+      this.activeCursors = new Map(nextCursors.map((c) => [c.userId, c]));
+      this.callbacks.onRemoteCursorsChange?.(nextCursors);
+    });
+
+    // Legacy remote-cursor coalescing (kept for backward compatibility / no-op)
     this.socket.on(
       'remote-cursor',
       (data: { userId: string; userName: string; color: string; x: number; y: number }) => {
@@ -185,12 +216,7 @@ export class YjsMeetingManager {
       }
     );
 
-    // 4. Awareness Presences
-    this.socket.on('presence-updated', (presences: ParticipantPresence[]) => {
-      this.callbacks.onPresencesChange?.(presences);
-    });
-
-    // 5. Participant joined / left
+    // 4. Participant joined / left
     this.socket.on(
       'participant-joined',
       (payload: { participant: MeetingParticipant; participants: MeetingParticipant[]; presences: ParticipantPresence[] }) => {
@@ -201,45 +227,51 @@ export class YjsMeetingManager {
 
     this.socket.on(
       'participant-left',
-      (payload: { userId: string; participants: MeetingParticipant[]; presences: ParticipantPresence[] }) => {
+      (payload: { userId: string; participants?: MeetingParticipant[]; presences?: ParticipantPresence[] }) => {
         this.activeCursors.delete(payload.userId);
         this.callbacks.onRemoteCursorsChange?.(Array.from(this.activeCursors.values()));
-        this.callbacks.onParticipantsChange?.(payload.participants);
-        this.callbacks.onPresencesChange?.(payload.presences);
+        if (Array.isArray(payload.participants)) {
+          this.callbacks.onParticipantsChange?.(payload.participants);
+        }
+        if (Array.isArray(payload.presences)) {
+          this.callbacks.onPresencesChange?.(payload.presences);
+        }
       }
     );
 
-    // 6. Role updated
+    // 5. Role updated (host changed someone's role)
     this.socket.on('role-updated', (payload: { userId: string; role: MeetingRole; participants: MeetingParticipant[] }) => {
       if (payload.userId === this.user?.id) {
         this.currentRole = payload.role;
         this.callbacks.onRoleChanged?.(payload.role);
       }
-      this.callbacks.onParticipantsChange?.(payload.participants);
+      if (Array.isArray(payload.participants)) {
+        this.callbacks.onParticipantsChange?.(payload.participants);
+      }
     });
 
-    // 7. Lock state updated
+    // 6. Lock state updated
     this.socket.on('lock-updated', (payload: { isLocked: boolean }) => {
       this.isLocked = payload.isLocked;
       this.callbacks.onLockChanged?.(payload.isLocked);
     });
 
-    // 8. Meeting ended
+    // 7. Meeting ended
     this.socket.on('meeting-ended', (payload: { message?: string }) => {
       this.callbacks.onMeetingEnded?.(payload.message || 'The meeting was concluded by the host.');
     });
 
-    // 9. Kicked from meeting
+    // 8. Kicked from meeting
     this.socket.on('kicked', (payload: { reason?: string }) => {
       this.callbacks.onMeetingEnded?.(payload.reason || 'You were removed from this meeting by the host.');
     });
 
-    // 10. Chat Message
+    // 9. Chat Message
     this.socket.on('chat-message', (msg: MeetingChatMessage) => {
       this.callbacks.onChatMessage?.(msg);
     });
 
-    // 11. Permission Denied / Error
+    // 10. Permission Denied / Error
     this.socket.on('permission-denied', (payload: { reason: string }) => {
       this.callbacks.onError?.(payload.reason);
     });

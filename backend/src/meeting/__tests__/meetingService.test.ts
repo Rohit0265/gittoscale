@@ -8,6 +8,8 @@ import {
   removeParticipant,
   toggleMeetingLock,
   endMeeting,
+  saveMeetingMessage,
+  getMeetingMessages,
 } from '../meetingService.js';
 
 describe('Meeting Service', () => {
@@ -122,5 +124,48 @@ describe('Meeting Service', () => {
     await expect(
       endMeeting(meetingId, 'random-person')
     ).rejects.toThrow('Only the meeting host can end the meeting.');
+  });
+
+  it('persists meeting chat messages and returns them in order', async () => {
+    const m1 = await saveMeetingMessage(
+      meetingId,
+      hostUser,
+      'Hello team',
+      'chat'
+    );
+    const m2 = await saveMeetingMessage(
+      meetingId,
+      participantUser,
+      'Architecture looks good',
+      'chat'
+    );
+    const sys = await saveMeetingMessage(
+      meetingId,
+      { id: 'system', fullName: 'System' },
+      'Host joined',
+      'system'
+    );
+
+    expect(m1.id).toBeDefined();
+    expect(m1.content).toBe('Hello team');
+    expect(m1.message_type).toBe('chat');
+    expect(m2.user_name).toBe(participantUser.fullName);
+    expect(sys.message_type).toBe('system');
+
+    const messages = await getMeetingMessages(meetingId);
+    expect(messages.length).toBeGreaterThanOrEqual(3);
+    expect(messages[0].content).toBe('Hello team');
+    expect(messages[1].content).toBe('Architecture looks good');
+    expect(messages[2].content).toBe('Host joined');
+  });
+
+  it('caps message retrieval to the requested limit', async () => {
+    for (let i = 0; i < 5; i++) {
+      await saveMeetingMessage(meetingId, hostUser, `msg ${i}`, 'chat');
+    }
+    const limited = await getMeetingMessages(meetingId, 2);
+    expect(limited.length).toBe(2);
+    expect(limited[0].content).toBe('msg 3');
+    expect(limited[1].content).toBe('msg 4');
   });
 });
