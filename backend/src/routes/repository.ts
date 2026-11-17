@@ -280,4 +280,95 @@ router.post('/test-llm', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Lists the authenticated user's GitHub repositories (both public and private)
+ * using their OAuth token or Personal Access Token.
+ */
+router.post('/user-repos', async (req: Request, res: Response) => {
+  try {
+    const rawToken = req.body?.githubToken || req.headers.authorization?.replace(/^Bearer\s+/i, '');
+    const token = typeof rawToken === 'string' ? rawToken.trim() : '';
+
+    if (!token) {
+      return res.status(400).json({
+        error: 'Missing Token',
+        message: 'A GitHub access token is required to list your repositories.',
+      });
+    }
+
+    // 1. Fetch user profile from GitHub API
+    const userResp = await fetch('https://api.github.com/user', {
+      headers: {
+        'User-Agent': 'GitToScale-Architecture-Scanner/1.0',
+        Accept: 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!userResp.ok) {
+      const errText = await userResp.text().catch(() => '');
+      return res.status(userResp.status).json({
+        error: 'GitHub Authentication Failed',
+        message: 'Invalid or expired GitHub token. Please reconnect your GitHub account.',
+        details: errText,
+      });
+    }
+
+    const userData: any = await userResp.json();
+
+    // 2. Fetch user repositories (up to 100, sorted by updated, including private repos)
+    const reposResp = await fetch(
+      'https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator',
+      {
+        headers: {
+          'User-Agent': 'GitToScale-Architecture-Scanner/1.0',
+          Accept: 'application/vnd.github.v3+json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!reposResp.ok) {
+      const errText = await reposResp.text().catch(() => '');
+      return res.status(reposResp.status).json({
+        error: 'GitHub Repositories Error',
+        message: 'Failed to retrieve repositories from GitHub.',
+        details: errText,
+      });
+    }
+
+    const rawRepos: any = await reposResp.json();
+    const repos = Array.isArray(rawRepos)
+      ? rawRepos.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          fullName: r.full_name,
+          htmlUrl: r.html_url,
+          private: Boolean(r.private),
+          description: r.description || null,
+          language: r.language || null,
+          stars: r.stargazers_count || 0,
+          updatedAt: r.updated_at,
+          defaultBranch: r.default_branch || 'main',
+        }))
+      : [];
+
+    return res.json({
+      success: true,
+      user: {
+        login: userData.login,
+        name: userData.name || userData.login,
+        avatarUrl: userData.avatar_url,
+        totalPrivateRepos: userData.total_private_repos || 0,
+      },
+      repos,
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      message: err?.message || 'Failed to communicate with GitHub API.',
+    });
+  }
+});
+
 export default router;
