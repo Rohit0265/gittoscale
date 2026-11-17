@@ -113,7 +113,7 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
 
                       {/* Live Editing indicator */}
                       {isEditing && (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400 font-medium animate-pulse">
+                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-500 font-medium animate-pulse">
                           <Sparkles className="w-2.5 h-2.5" />
                           <span>Editing</span>
                         </span>
