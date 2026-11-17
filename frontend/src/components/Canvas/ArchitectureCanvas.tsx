@@ -332,40 +332,41 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
       const sNode = nodeMap.get(edge.source);
       const tNode = nodeMap.get(edge.target);
 
-      let sourceHandle: string | undefined = undefined;
-      let targetHandle: string | undefined = undefined;
+      let sourceHandle: string | undefined = (edge as any).sourceHandle;
+      let targetHandle: string | undefined = (edge as any).targetHandle;
 
-      if (sNode && tNode) {
-        const dy = tNode.position.y - sNode.position.y;
-        const dx = tNode.position.x - sNode.position.x;
+      if (!sourceHandle || !targetHandle) {
+        if (sNode && tNode) {
+          const sy = sNode.position?.y ?? 0;
+          const ty = tNode.position?.y ?? 0;
+          const sx = sNode.position?.x ?? 0;
+          const tx = tNode.position?.x ?? 0;
+          const dy = ty - sy;
+          const dx = tx - sx;
 
-        if (dy > 120) {
-          // Downward tree flow
-          if (dx < -80) {
-            sourceHandle = 'source-bottom-left';
-          } else if (dx > 80) {
-            sourceHandle = 'source-bottom-right';
+          if (dy > 90) {
+            // Downward tree flow
+            if (dx < -60) {
+              sourceHandle = 'source-bottom-left';
+            } else if (dx > 60) {
+              sourceHandle = 'source-bottom-right';
+            } else {
+              sourceHandle = 'source-bottom';
+            }
+            targetHandle = 'target-top';
+          } else if (Math.abs(dy) <= 90) {
+            // Peer horizontal connection in same row/tier
+            if (dx >= 0) {
+              sourceHandle = 'source-right';
+              targetHandle = 'target-left';
+            } else {
+              sourceHandle = 'source-left';
+              targetHandle = 'target-right';
+            }
           } else {
-            sourceHandle = 'source-bottom';
-          }
-          targetHandle = 'target-top';
-        } else if (Math.abs(dy) <= 120) {
-          // Peer horizontal connection in same row/tier
-          if (dx >= 0) {
-            sourceHandle = 'source-right';
-            targetHandle = 'target-left';
-          } else {
-            sourceHandle = 'source-left';
-            targetHandle = 'target-right';
-          }
-        } else {
-          // Upward flow
-          if (dx >= 0) {
-            sourceHandle = 'source-right';
-            targetHandle = 'target-left';
-          } else {
-            sourceHandle = 'source-left';
-            targetHandle = 'target-right';
+            // Upward flow
+            sourceHandle = 'source-top';
+            targetHandle = 'target-bottom';
           }
         }
       }
@@ -505,12 +506,14 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
         id: `edge-${connection.source}-${connection.target}-${Date.now().toString().slice(-4)}`,
         source: connection.source,
         target: connection.target,
+        sourceHandle: connection.sourceHandle || undefined,
+        targetHandle: connection.targetHandle || undefined,
         requestsPerInput: 1.0,
         enabled: true,
         isBidirectional: true,
         communicationType: 'http',
         label: 'http',
-      };
+      } as any;
       onAddEdge(newEdge);
 
       setRfEdges((eds) =>
@@ -625,7 +628,17 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
             transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
           }}
           className="!bg-white dark:!bg-[#0A0A0A] !border !border-slate-200 dark:!border-neutral-800 shadow-none !rounded-xl [&>button]:!bg-white dark:[&>button]:!bg-[#0A0A0A] [&>button]:!border-slate-200 dark:[&>button]:!border-neutral-800 [&>button]:!fill-slate-600 dark:[&>button]:!fill-slate-300 [&>button:hover]:!bg-slate-100 dark:[&>button:hover]:!bg-[#141414] [&>button]:!text-slate-600 dark:[&>button]:!text-slate-300 z-10"
-        />
+        >
+          {onAutoLayout && (
+            <ControlButton
+              onClick={onAutoLayout}
+              title="Auto-arrange Diagram (Clean Tree Layout)"
+              className="hover:!bg-slate-100 dark:hover:!bg-[#141414] cursor-pointer"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
+            </ControlButton>
+          )}
+        </Controls>
         <MiniMap
           position="bottom-right"
           style={{
