@@ -109,6 +109,7 @@ router.post('/:id/join', requireAuth, async (req: AuthenticatedRequest, res: Res
       success: true,
       meeting: result.meeting,
       participant: result.participant,
+      role: result.participant.role,
       participants: result.participants,
     });
   } catch (err: any) {
@@ -180,10 +181,10 @@ router.delete(
 );
 
 /**
- * POST /api/meetings/:id/lock
+ * PUT/POST /api/meetings/:id/lock
  * Host locks or unlocks the architecture canvas.
  */
-router.post('/:id/lock', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+const handleToggleLock = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const hostUser = req.user!;
     const parsed = ToggleLockSchema.safeParse(req.body);
@@ -197,7 +198,10 @@ router.post('/:id/lock', requireAuth, async (req: AuthenticatedRequest, res: Res
   } catch (err: any) {
     res.status(403).json({ success: false, error: err?.message || 'Failed to update lock' });
   }
-});
+};
+
+router.put('/:id/lock', requireAuth, handleToggleLock);
+router.post('/:id/lock', requireAuth, handleToggleLock);
 
 /**
  * POST /api/meetings/:id/end
