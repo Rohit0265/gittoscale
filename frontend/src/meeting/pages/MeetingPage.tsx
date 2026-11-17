@@ -486,7 +486,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             className="absolute left-3 top-3 z-30 flex items-center gap-1.5 p-2 bg-white/95 dark:bg-[#0A0A0A]/95 hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl shadow-xs transition-all cursor-pointer group"
             title="Expand Sidebar"
           >
-            <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
+            <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-black dark:group-hover:text-white transition-colors" />
           </button>
         )}
 
@@ -497,58 +497,124 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             className="absolute right-3 top-3 z-30 flex items-center gap-1.5 p-2 bg-white/95 dark:bg-[#0A0A0A]/95 hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl shadow-xs transition-all cursor-pointer group"
             title="Expand Inspector & Components"
           >
-            <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
+            <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-black dark:group-hover:text-white transition-colors" />
           </button>
         )}
 
         {/* Left Sidebar (AI Copilot / Chats / Participants) */}
         {isSidebarOpen && (
-          <aside className="w-72 sm:w-80 h-full border-r border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0">
-            {/* Sidebar Tabs (Icons Only, No Text) + Sidebar Toggle Button */}
-            <div className="h-11 border-b border-slate-200 dark:border-neutral-800 flex items-center px-2 gap-1 bg-slate-50/50 dark:bg-neutral-900/40">
-              <button
-                onClick={() => setActiveLeftTab('ai')}
-                title="AI Copilot"
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
-                  activeLeftTab === 'ai'
-                    ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-                }`}
-              >
-                <Bot className="w-4 h-4" />
-              </button>
+          <aside className="w-72 sm:w-80 h-full border-r border-slate-200/80 dark:border-neutral-800/80 bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0 select-none">
+            {/* Swiggy-inspired Elevated Tab Switcher + Integrated Collapse Toggle */}
+            <div className="h-12 border-b border-slate-200/80 dark:border-neutral-800/80 flex items-center px-2.5 gap-2 bg-slate-50/70 dark:bg-[#0c0c0c] shrink-0">
+              <div className="flex-1 flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-[#141414] border border-slate-200/80 dark:border-neutral-800 text-xs relative gap-1">
+                {/* Tab 1: AI */}
+                <button
+                  type="button"
+                  onClick={() => setActiveLeftTab('ai')}
+                  title="AI Copilot"
+                  className="relative flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-medium transition-colors cursor-pointer group"
+                >
+                  {activeLeftTab === 'ai' && (
+                    <motion.div
+                      layoutId="left-tab-card"
+                      className="absolute inset-0 rounded-xl bg-white dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700/80 shadow-xs"
+                      transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                    />
+                  )}
+                  <span className={`relative z-10 flex items-center gap-1.5 transition-colors ${
+                    activeLeftTab === 'ai'
+                      ? 'text-slate-900 dark:text-white font-semibold'
+                      : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+                  }`}>
+                    <Bot className="w-3.5 h-3.5" />
+                    <span>Copilot</span>
+                  </span>
 
-              <button
-                onClick={() => setActiveLeftTab('chats')}
-                title="Live Chat"
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
-                  activeLeftTab === 'chats'
-                    ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4" />
-              </button>
+                  {activeLeftTab === 'ai' && (
+                    <motion.div
+                      layoutId="left-tab-line"
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2.5px] w-6 rounded-full bg-slate-900 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)] z-20"
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                    />
+                  )}
+                </button>
 
-              <button
-                onClick={() => setActiveLeftTab('participants')}
-                title={`Participants (${participants.length})`}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer relative ${
-                  activeLeftTab === 'participants'
-                    ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-              </button>
+                {/* Tab 2: Chat */}
+                <button
+                  type="button"
+                  onClick={() => setActiveLeftTab('chats')}
+                  title="Live Meeting Chat"
+                  className="relative flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-medium transition-colors cursor-pointer group"
+                >
+                  {activeLeftTab === 'chats' && (
+                    <motion.div
+                      layoutId="left-tab-card"
+                      className="absolute inset-0 rounded-xl bg-white dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700/80 shadow-xs"
+                      transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                    />
+                  )}
+                  <span className={`relative z-10 flex items-center gap-1.5 transition-colors ${
+                    activeLeftTab === 'chats'
+                      ? 'text-slate-900 dark:text-white font-semibold'
+                      : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+                  }`}>
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Chat</span>
+                  </span>
 
-              <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700 mx-0.5 shrink-0" />
+                  {activeLeftTab === 'chats' && (
+                    <motion.div
+                      layoutId="left-tab-line"
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2.5px] w-6 rounded-full bg-slate-900 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)] z-20"
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                    />
+                  )}
+                </button>
+
+                {/* Tab 3: Participants */}
+                <button
+                  type="button"
+                  onClick={() => setActiveLeftTab('participants')}
+                  title={`Participants (${participants.length})`}
+                  className="relative flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-medium transition-colors cursor-pointer group"
+                >
+                  {activeLeftTab === 'participants' && (
+                    <motion.div
+                      layoutId="left-tab-card"
+                      className="absolute inset-0 rounded-xl bg-white dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700/80 shadow-xs"
+                      transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                    />
+                  )}
+                  <span className={`relative z-10 flex items-center gap-1.5 transition-colors ${
+                    activeLeftTab === 'participants'
+                      ? 'text-slate-900 dark:text-white font-semibold'
+                      : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+                  }`}>
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Peers</span>
+                    {participants.length > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 font-mono font-medium">
+                        {participants.length}
+                      </span>
+                    )}
+                  </span>
+
+                  {activeLeftTab === 'participants' && (
+                    <motion.div
+                      layoutId="left-tab-line"
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2.5px] w-6 rounded-full bg-slate-900 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)] z-20"
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                    />
+                  )}
+                </button>
+              </div>
 
               {/* Sidebar Collapse Toggle Button */}
               <button
+                type="button"
                 onClick={() => setIsSidebarOpen(false)}
                 title="Collapse Sidebar"
-                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
               >
                 <PanelLeftClose className="w-4 h-4" />
               </button>

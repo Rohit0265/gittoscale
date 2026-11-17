@@ -176,7 +176,7 @@ export const MeetingChatPanel: React.FC<MeetingChatPanelProps> = ({
                   <div
                     className={`px-3 py-2 rounded-xl text-xs max-w-[85%] break-words ${
                       isMe
-                        ? 'bg-indigo-600 text-white rounded-tr-xs'
+                        ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-medium rounded-tr-xs shadow-xs'
                         : 'bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-800 dark:text-neutral-200 rounded-tl-xs'
                     }`}
                   >
@@ -203,12 +203,12 @@ export const MeetingChatPanel: React.FC<MeetingChatPanelProps> = ({
             onKeyDown={handleKeyDown}
             rows={Math.min(4, Math.max(1, inputText.split('\n').length))}
             placeholder="Send a message… (Enter to send, Shift+Enter for new line)"
-            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-xs text-slate-900 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none min-h-[36px] max-h-28"
+            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-xs text-slate-900 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-600 resize-none min-h-[36px] max-h-28"
           />
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white transition-all cursor-pointer shrink-0"
+            className="p-2 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-40 text-white dark:text-neutral-950 transition-all cursor-pointer shrink-0"
             title="Send (Enter)"
           >
             <ArrowUp className="w-4 h-4" />
