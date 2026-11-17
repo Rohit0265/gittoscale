@@ -273,7 +273,10 @@ export const ComponentsListCard: React.FC<ComponentsListCardProps> = ({
                       autoFocus
                       onChange={(e) => setRenameValue(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSaveRename(node.id);
+                        if (e.key === 'Enter') {
+                          if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                          handleSaveRename(node.id);
+                        }
                         if (e.key === 'Escape') setRenamingNodeId(null);
                       }}
                       onBlur={() => handleSaveRename(node.id)}
