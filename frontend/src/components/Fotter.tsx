@@ -41,6 +41,14 @@ export const Fotter: React.FC<FotterProps> = ({ brandName = 'GitToScale', onNavi
           {/* Legal / Policy Navigation Links */}
           <nav className="gts-legal-links" aria-label="Legal & Policies">
             <a
+              href="/payment"
+              onClick={(e) => handleLegalClick(e, '/payment')}
+              className="gts-legal-link"
+            >
+              Pricing
+            </a>
+            <span className="gts-legal-dot" aria-hidden="true">&bull;</span>
+            <a
               href="/cookie"
               onClick={(e) => handleLegalClick(e, '/cookie')}
               className="gts-legal-link"
