@@ -25,6 +25,38 @@ export interface YjsMeetingCallbacks {
   onError?: (error: string) => void;
 }
 
+function normalizeChatMessage(raw: any): MeetingChatMessage {
+  if (!raw) {
+    return {
+      id: String(Date.now()),
+      meetingId: '',
+      senderId: '',
+      senderName: 'Participant',
+      senderAvatar: null,
+      text: '',
+      type: 'chat',
+      timestamp: new Date().toISOString(),
+    };
+  }
+  return {
+    id: String(raw.id || Date.now() + Math.random()),
+    meetingId: String(raw.meetingId || raw.meeting_id || ''),
+    senderId: String(raw.senderId || raw.user_id || ''),
+    senderName: String(raw.senderName || raw.user_name || 'Participant'),
+    senderAvatar: raw.senderAvatar || raw.user_avatar || null,
+    text: String(raw.text ?? raw.content ?? ''),
+    type: (raw.type || raw.message_type || 'chat') as 'chat' | 'system' | 'ai',
+    timestamp: String(raw.timestamp || raw.created_at || new Date().toISOString()),
+    meeting_id: String(raw.meetingId || raw.meeting_id || ''),
+    user_id: String(raw.senderId || raw.user_id || ''),
+    user_name: String(raw.senderName || raw.user_name || 'Participant'),
+    user_avatar: raw.senderAvatar || raw.user_avatar || null,
+    content: String(raw.text ?? raw.content ?? ''),
+    message_type: (raw.type || raw.message_type || 'chat') as 'chat' | 'system' | 'ai',
+    created_at: String(raw.timestamp || raw.created_at || new Date().toISOString()),
+  };
+}
+
 export class YjsMeetingManager {
   private socket: Socket | null = null;
   private doc: Y.Doc;
@@ -160,7 +192,7 @@ export class YjsMeetingManager {
         this.callbacks.onParticipantsChange?.(payload.participants);
         this.callbacks.onPresencesChange?.(payload.presences);
         if (Array.isArray(payload.messages)) {
-          this.callbacks.onChatHistoryInitial?.(payload.messages);
+          this.callbacks.onChatHistoryInitial?.(payload.messages.map(normalizeChatMessage));
         }
         this.callbacks.onSyncStatusChange?.('synced');
       }
@@ -267,8 +299,8 @@ export class YjsMeetingManager {
     });
 
     // 9. Chat Message
-    this.socket.on('chat-message', (msg: MeetingChatMessage) => {
-      this.callbacks.onChatMessage?.(msg);
+    this.socket.on('chat-message', (raw: any) => {
+      this.callbacks.onChatMessage?.(normalizeChatMessage(raw));
     });
 
     // 10. Permission Denied / Error
