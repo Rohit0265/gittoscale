@@ -2555,8 +2555,8 @@ export const App: React.FC = () => {
           }}
           onSimulate={(recNodes: ArchitectureNode[], recEdges: ArchitectureEdge[]) => {
             const basicToUse = { nodes: recNodes, edges: recEdges };
-            baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
-            basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
+            baseBasicGraphRef.current = structuredClone(basicToUse);
+            basicGraphCacheRef.current = structuredClone(basicToUse);
 
             const detailed = buildDetailedArchitecture(recNodes, recEdges, activePromptText || 'Recommended Architecture');
             const verticalDetailedNodes = toVerticalTree(detailed.nodes, detailed.edges || []);
