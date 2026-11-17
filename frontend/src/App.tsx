@@ -3008,6 +3008,15 @@ export const App: React.FC = () => {
         </div>
       )}
 
+      {/* Plan Limit Modal (Displays when user exceeds free plan AI or meeting quotas) */}
+      <PlanLimitModal
+        isDark={isDark}
+        onUpgrade={() => {
+          window.history.pushState({}, '', '/payment');
+          setCurrentView('payment');
+        }}
+      />
+
       {/* Floating Feedback & Recommendations Button (stuck to bottom-right, smoothly floats above playground MiniMap when right sidebar collapses) */}
       <FloatingFeedbackButton
         className={
