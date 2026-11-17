@@ -45,6 +45,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
   signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: AuthError | Error | null }>;
+  connectGithubForRepoScan: () => Promise<{ error: Error | null; token?: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | Error | null }>;
   updatePassword: (password: string) => Promise<{ error: AuthError | Error | null }>;
@@ -314,6 +315,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               try { popup.close(); } catch {}
             }
 
+            const isConnectingGithubOnly = sessionStorage.getItem('gts_connecting_github_only') === 'true';
+            const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;
+
+            if (curSession?.provider_token) {
+              try {
+                localStorage.setItem('gts_github_token', curSession.provider_token);
+              } catch {}
+            }
+
+            // If connecting GitHub solely for repo scanning while already logged in,
+            // preserve the primary logged-in user (e.g. Google owner) without modifying settings.
+            if (isConnectingGithubOnly) {
+              try {
+                sessionStorage.removeItem('gts_connecting_github_only');
+              } catch {}
+              resolve({ error: null });
+              return;
+            }
+
             const sessionUser = sessionData?.session?.user || sessionData?.user;
             if (sessionUser?.email) {
               // Reliably dispatch signup notification. Backend database idempotently
@@ -328,15 +348,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               });
             }
 
-            const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;
             if (curSession?.user) {
               setSession(curSession);
               setUser(curSession.user);
-              if (curSession.provider_token) {
-                try {
-                  localStorage.setItem('gts_github_token', curSession.provider_token);
-                } catch {}
-              }
               await loadProfile(
                 curSession.user.id,
                 curSession.user.email || '',
