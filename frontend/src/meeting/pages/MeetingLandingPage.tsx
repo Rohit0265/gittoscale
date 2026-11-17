@@ -134,9 +134,9 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
         {/* Action Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mt-12 text-left">
           {/* Card A: Create Meeting */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-neutral-800 shadow-xl flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-800/80 transition-all">
+          <div className="p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-neutral-800 shadow-xl flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-700 transition-all">
             <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <div className="w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
                 <Plus className="w-6 h-6" />
               </div>
 
@@ -159,7 +159,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
               <button
                 onClick={handleCreateMeeting}
                 disabled={isCreating}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 disabled:opacity-50 text-xs font-semibold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isCreating ? (
                   <>
@@ -177,10 +177,10 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
           </div>
 
           {/* Card B: Join Meeting */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-neutral-800 shadow-xl flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-800/80 transition-all">
+          <div className="p-6 rounded-2xl bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-neutral-800 shadow-xl flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-700 transition-all">
             <form onSubmit={handleJoinMeeting} className="space-y-3 flex-1 flex flex-col justify-between">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <div className="w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
                   <Users className="w-6 h-6" />
                 </div>
 
@@ -204,7 +204,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
                     value={meetingInput}
                     onChange={(e) => setMeetingInput(e.target.value)}
                     placeholder="Paste Meeting ID or Link..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-xs text-slate-900 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-xs text-slate-900 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
                   />
                 </div>
               </div>
@@ -236,7 +236,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full mt-16 text-center sm:text-left">
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-center sm:justify-start text-xs font-semibold text-slate-900 dark:text-white">
-              <Layers className="w-4 h-4 text-indigo-500" />
+              <Layers className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
               <span>Real-Time Yjs Sync</span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-neutral-400">
@@ -246,7 +246,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-center sm:justify-start text-xs font-semibold text-slate-900 dark:text-white">
-              <Shield className="w-4 h-4 text-emerald-500" />
+              <Shield className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
               <span>Host Permissions</span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-neutral-400">
@@ -256,7 +256,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-center sm:justify-start text-xs font-semibold text-slate-900 dark:text-white">
-              <Users className="w-4 h-4 text-blue-500" />
+              <Users className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
               <span>Live Presence</span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-neutral-400">
