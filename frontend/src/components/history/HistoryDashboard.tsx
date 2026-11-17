@@ -190,8 +190,8 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
       archList = dedupedArchs;
 
       if (sortOrder === 'asc') {
-        archList = [...archList].reverse();
-        repoList = [...repoList].reverse();
+        archList = archList.toReversed();
+        repoList = repoList.toReversed();
       }
 
       setArchitectures(archList);
