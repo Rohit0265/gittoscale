@@ -351,6 +351,12 @@ router.get('/history', async (req: Request, res: Response) => {
   }
 });
 
+function getChatClientIdentifier(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket.remoteAddress || 'guest';
+  return 'anon_' + crypto.createHash('md5').update(ip).digest('hex').substring(0, 16);
+}
+
 /**
  * POST /api/chat/message
  * Generates an authentic AI response with live playground architecture context.
@@ -367,6 +373,21 @@ router.post('/message', async (req: Request, res: Response) => {
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Message is required' });
+  }
+
+  const user = await resolveUserFromRequest(req);
+  const userId = user?.id || (await getUserIdFromReq(req)) || getChatClientIdentifier(req);
+
+  const check = await checkAndIncrementAiUsage(userId);
+  if (!check.allowed) {
+    return res.status(403).json({
+      error: 'PLAN_LIMIT_REACHED',
+      message: 'You have reached your free plan limit. Upgrade your plan to continue using AI-powered architecture generation.',
+      upgradeUrl: '/payment',
+      plan: check.plan,
+      used: check.used,
+      limit: check.limit,
+    });
   }
 
   const wantsStream = Boolean(
