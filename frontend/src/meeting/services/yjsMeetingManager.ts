@@ -260,6 +260,10 @@ export class YjsMeetingManager {
     return this.currentRole;
   }
 
+  public getMeetingId(): string | null {
+    return this.meetingId;
+  }
+
   public getIsLocked(): boolean {
     return this.isLocked;
   }
