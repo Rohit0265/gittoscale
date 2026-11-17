@@ -84,6 +84,19 @@ describe('Meeting Service', () => {
     expect(peer?.role).toBe('viewer');
   });
 
+  it('allows the host to promote another participant to host role', async () => {
+    await setParticipantRole(meetingId, hostUser.id, participantUser.id, 'host');
+    const participants = await getParticipants(meetingId);
+    const peer = participants.find((p) => p.user_id === participantUser.id);
+    expect(peer?.role).toBe('host');
+
+    // Promoted host can now also perform host actions (e.g., demoting back to editor)
+    await setParticipantRole(meetingId, participantUser.id, participantUser.id, 'editor');
+    const updatedParticipants = await getParticipants(meetingId);
+    const updatedPeer = updatedParticipants.find((p) => p.user_id === participantUser.id);
+    expect(updatedPeer?.role).toBe('editor');
+  });
+
   it('rejects non-host from changing participant roles', async () => {
     await expect(
       setParticipantRole(meetingId, 'fake-intruder-id', participantUser.id, 'editor')
