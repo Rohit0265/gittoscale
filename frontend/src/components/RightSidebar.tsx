@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   PanelRightClose,
   Sliders,
+  Layers,
+  AlertTriangle,
   ArrowRight,
 } from 'lucide-react';
 import {
@@ -80,37 +83,73 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
 
   return (
     <div className="w-full h-full flex flex-col bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-200 select-none overflow-hidden">
-      {/* 1. Header with Tab Switcher & Integrated Collapse Toggle */}
-      <div className="flex items-center gap-2 p-3 pb-2.5 border-b border-slate-100 dark:border-neutral-800/80 shrink-0">
-        <div className="flex-1 flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-xs">
+      {/* 1. Header with Swiggy-inspired Elevated Tab Switcher & Integrated Collapse Toggle */}
+      <div className="flex items-center gap-2 p-2.5 pb-2 border-b border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#0c0c0c] shrink-0">
+        <div className="flex-1 flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-[#141414] border border-slate-200/80 dark:border-neutral-800 text-xs relative gap-1">
           {/* Tab 1: Components */}
           <button
             type="button"
             onClick={() => setActiveTab('components')}
-            className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
-              activeTab === 'components'
-                ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
-                : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-            }`}
+            className="relative flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-medium transition-colors cursor-pointer group"
             title="Components Library"
           >
-            <span>Components</span>
+            {activeTab === 'components' && (
+              <motion.div
+                layoutId="right-tab-card"
+                className="absolute inset-0 rounded-xl bg-white dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700/80 shadow-xs"
+                transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+              />
+            )}
+            <span className={`relative z-10 flex items-center gap-1.5 transition-colors ${
+              activeTab === 'components'
+                ? 'text-slate-900 dark:text-white font-semibold'
+                : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+            }`}>
+              <Layers className="w-3.5 h-3.5" />
+              <span>Components</span>
+            </span>
+
+            {activeTab === 'components' && (
+              <motion.div
+                layoutId="right-tab-line"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2.5px] w-6 rounded-full bg-slate-900 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)] z-20"
+                transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+              />
+            )}
           </button>
 
           {/* Tab 2: Inspector */}
           <button
             type="button"
             onClick={() => setActiveTab('inspector')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
-              activeTab === 'inspector'
-                ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
-                : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-            }`}
+            className="relative flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-medium transition-colors cursor-pointer group"
             title="Inspect Selected Component"
           >
-            <span>Inspector</span>
-            {selectedNode && (
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-600 dark:bg-neutral-300 shrink-0" />
+            {activeTab === 'inspector' && (
+              <motion.div
+                layoutId="right-tab-card"
+                className="absolute inset-0 rounded-xl bg-white dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700/80 shadow-xs"
+                transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+              />
+            )}
+            <span className={`relative z-10 flex items-center gap-1.5 transition-colors ${
+              activeTab === 'inspector'
+                ? 'text-slate-900 dark:text-white font-semibold'
+                : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+            }`}>
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Inspector</span>
+              {selectedNode && (
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-white shrink-0" />
+              )}
+            </span>
+
+            {activeTab === 'inspector' && (
+              <motion.div
+                layoutId="right-tab-line"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2.5px] w-6 rounded-full bg-slate-900 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)] z-20"
+                transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+              />
             )}
           </button>
 
@@ -118,18 +157,36 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('bottlenecks')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
-              activeTab === 'bottlenecks'
-                ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
-                : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
-            }`}
+            className="relative flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-medium transition-colors cursor-pointer group"
             title="Performance Bottlenecks"
           >
-            <span>Issues</span>
-            {bottlenecksCount > 0 && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 font-mono font-bold">
-                {bottlenecksCount}
-              </span>
+            {activeTab === 'bottlenecks' && (
+              <motion.div
+                layoutId="right-tab-card"
+                className="absolute inset-0 rounded-xl bg-white dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700/80 shadow-xs"
+                transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+              />
+            )}
+            <span className={`relative z-10 flex items-center gap-1.5 transition-colors ${
+              activeTab === 'bottlenecks'
+                ? 'text-slate-900 dark:text-white font-semibold'
+                : 'text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
+            }`}>
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span>Issues</span>
+              {bottlenecksCount > 0 && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 font-mono font-bold">
+                  {bottlenecksCount}
+                </span>
+              )}
+            </span>
+
+            {activeTab === 'bottlenecks' && (
+              <motion.div
+                layoutId="right-tab-line"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[2.5px] w-6 rounded-full bg-slate-900 dark:bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)] z-20"
+                transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+              />
             )}
           </button>
         </div>
@@ -207,7 +264,7 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('components')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs transition-colors cursor-pointer shadow-none"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-medium text-xs transition-colors cursor-pointer shadow-xs"
               >
                 <span>View Components</span>
                 <ArrowRight className="w-3.5 h-3.5" />
