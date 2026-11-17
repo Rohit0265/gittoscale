@@ -14,6 +14,9 @@ import { checkAndIncrementAiUsage } from '../services/subscriptionService.js';
 const router = Router();
 
 function getClientIdentifier(req: Request): string {
+  if (process.env.NODE_ENV === 'test') {
+    return 'anon_test_' + (req.headers['x-test-session-id'] || crypto.randomUUID());
+  }
   const forwarded = req.headers['x-forwarded-for'];
   const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket.remoteAddress || 'guest';
   return 'anon_' + crypto.createHash('md5').update(ip).digest('hex').substring(0, 16);
