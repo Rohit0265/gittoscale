@@ -25,19 +25,24 @@ import { MeetingChatPanel } from '../components/MeetingChatPanel';
 import { MeetingAIPanel } from '../components/MeetingAIPanel';
 import { LiveCursorOverlay } from '../components/LiveCursorOverlay';
 import { meetingApi } from '../services/meetingApi';
+import { toVerticalTree } from '../../utils/treeLayout';
 
 interface InnerMeetingCanvasProps {
   nodes: ArchitectureNode[];
   edges: ArchitectureEdge[];
   selectedNodeId: string | null;
+  selectedEdgeId?: string | null;
   onSelectNode: (id: string | null) => void;
+  onSelectEdge?: (id: string | null) => void;
   onNodesChangePosition: (changes: any[]) => void;
   onAddEdge: (connection: any) => void;
   onToggleEdge: (id: string) => void;
   onDeleteNode?: (id: string) => void;
   onDeleteEdge?: (id: string) => void;
   onUpdateNode?: (node: ArchitectureNode) => void;
+  onUpdateEdge?: (edgeId: string, updates: Partial<ArchitectureEdge>) => void;
   onDuplicateNode?: (node: ArchitectureNode) => void;
+  onAutoLayout?: () => void;
   remoteCursors: any[];
   onMouseMoveInCanvas: (x: number, y: number) => void;
   isDark: boolean;
@@ -50,14 +55,18 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
   nodes,
   edges,
   selectedNodeId,
+  selectedEdgeId,
   onSelectNode,
+  onSelectEdge,
   onNodesChangePosition,
   onAddEdge,
   onToggleEdge,
   onDeleteNode,
   onDeleteEdge,
   onUpdateNode,
+  onUpdateEdge,
   onDuplicateNode,
+  onAutoLayout,
   remoteCursors,
   onMouseMoveInCanvas,
   isDark,
@@ -88,14 +97,18 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
         nodeResults={{}}
         edgeResults={{}}
         selectedNodeId={selectedNodeId}
+        selectedEdgeId={selectedEdgeId}
         onSelectNode={onSelectNode}
+        onSelectEdge={onSelectEdge}
         onNodesChangePosition={canEdit ? onNodesChangePosition : () => {}}
         onAddEdge={canEdit ? onAddEdge : () => {}}
         onToggleEdge={canEdit ? onToggleEdge : () => {}}
         onDeleteNode={canEdit ? onDeleteNode : undefined}
         onDeleteEdge={canEdit ? onDeleteEdge : undefined}
         onUpdateNode={canEdit ? onUpdateNode : undefined}
+        onUpdateEdge={canEdit ? onUpdateEdge : undefined}
         onDuplicateNode={canEdit ? onDuplicateNode : undefined}
+        onAutoLayout={canEdit ? onAutoLayout : undefined}
         isDark={isDark}
         viewMode="detailed"
         isLeftCollapsed={true}
@@ -122,6 +135,38 @@ export interface MeetingPageProps {
   onViewSaved?: () => void;
 }
 
+function findCleanNodePosition(existingNodes: ArchitectureNode[]): { x: number; y: number } {
+  if (existingNodes.length === 0) {
+    return { x: 350, y: 150 };
+  }
+
+  const NODE_W = 280;
+  const NODE_H = 160;
+
+  // Search a clean grid with 3 columns, spacing nodes comfortably without collision
+  const cols = 3;
+  for (let index = 0; index < 60; index++) {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const testX = 320 + col * (NODE_W + 50);
+    const testY = 140 + row * (NODE_H + 50);
+
+    const collides = existingNodes.some((n) => {
+      const nx = n.position?.x ?? 0;
+      const ny = n.position?.y ?? 0;
+      return Math.abs(nx - testX) < NODE_W && Math.abs(ny - testY) < NODE_H;
+    });
+
+    if (!collides) {
+      return { x: testX, y: testY };
+    }
+  }
+
+  // Fallback: place below lowest node with generous gap
+  const maxY = Math.max(...existingNodes.map((n) => n.position?.y ?? 150));
+  return { x: 350, y: maxY + NODE_H + 40 };
+}
+
 export const MeetingPage: React.FC<MeetingPageProps> = ({
   meetingId,
   onLeaveMeeting,
@@ -139,6 +184,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [activeLeftTab, setActiveLeftTab] = useState<'ai' | 'chats' | 'participants'>('ai');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightCollapsed, setIsRightCollapsed] = useState(true);
@@ -345,29 +391,42 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   }
 
   // Architecture manipulation callbacks
-  const handleNodesChangePosition = (changes: any[]) => {
-    if (!canEdit) return;
-    const updated = nodes.map((node) => {
-      const change = changes.find((c) => c.id === node.id);
-      if (change && change.type === 'position' && change.position) {
-        return { ...node, position: change.position };
+  const handleNodesChangePosition = (changesOrNodes: any) => {
+    if (!canEdit || !changesOrNodes) return;
+    if (Array.isArray(changesOrNodes)) {
+      // Check if passed updated ArchitectureNode[] directly
+      if (
+        changesOrNodes.length > 0 &&
+        typeof changesOrNodes[0] === 'object' &&
+        'id' in changesOrNodes[0] &&
+        'position' in changesOrNodes[0] &&
+        'type' in changesOrNodes[0] &&
+        changesOrNodes[0].type !== 'position'
+      ) {
+        updateNodes(changesOrNodes);
+        return;
       }
-      return node;
-    });
-    updateNodes(updated);
+      // If passed React Flow NodeChange[]
+      const updated = nodes.map((node) => {
+        const change = changesOrNodes.find((c: any) => c.id === node.id);
+        if (change && change.type === 'position' && change.position) {
+          return { ...node, position: change.position };
+        }
+        return node;
+      });
+      updateNodes(updated);
+    }
   };
 
   const handleAddNode = (type: ComponentType, name: string) => {
     if (!canEdit) return;
     const newId = `${type}-${Date.now().toString().slice(-4)}`;
+    const position = findCleanNodePosition(nodes);
     const newNode: ArchitectureNode = {
       id: newId,
       name: name || type,
       type,
-      position: {
-        x: 350 + (nodes.length % 5) * 40,
-        y: 200 + (nodes.length % 5) * 40,
-      },
+      position,
       capacityPerSecond: type === 'database' ? 600 : type === 'cache' ? 2500 : 800,
       workerCount: 2,
       enabled: true,
@@ -402,14 +461,21 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
 
   const handleDuplicateNode = (nodeToDup: ArchitectureNode) => {
     if (!canEdit) return;
+    const newId = `${nodeToDup.type}-${Date.now().toString().slice(-4)}`;
+    const candidateX = (nodeToDup.position?.x ?? 300) + 320;
+    const candidateY = nodeToDup.position?.y ?? 150;
+    const collides = nodes.some(
+      (n) =>
+        Math.abs((n.position?.x ?? 0) - candidateX) < 260 &&
+        Math.abs((n.position?.y ?? 0) - candidateY) < 140
+    );
+    const position = collides ? findCleanNodePosition(nodes) : { x: candidateX, y: candidateY };
+
     const dup: ArchitectureNode = {
       ...nodeToDup,
-      id: `${nodeToDup.type}-${Date.now().toString().slice(-4)}`,
+      id: newId,
       name: `${nodeToDup.name} (Copy)`,
-      position: {
-        x: nodeToDup.position.x + 40,
-        y: nodeToDup.position.y + 40,
-      },
+      position,
     };
     updateNodes([...nodes, dup]);
     setSelectedNodeId(dup.id);
@@ -419,16 +485,26 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const handleAddEdge = (newEdge: any) => {
     if (!canEdit) return;
     if (!newEdge.source || !newEdge.target || newEdge.source === newEdge.target) return;
-    const edgeId = newEdge.id || `edge-${newEdge.source}-${newEdge.target}`;
-    if (edges.some((e) => e.id === edgeId)) return;
+    // Prevent duplicate edges between the same two nodes
+    const isDuplicate = edges.some(
+      (e) =>
+        (e.source === newEdge.source && e.target === newEdge.target) ||
+        (e.source === newEdge.target && e.target === newEdge.source)
+    );
+    if (isDuplicate) return;
 
+    const edgeId = newEdge.id || `edge-${newEdge.source}-${newEdge.target}-${Date.now().toString().slice(-4)}`;
     const edgeWithDefaults: ArchitectureEdge = {
       id: edgeId,
       source: newEdge.source,
       target: newEdge.target,
+      sourceHandle: newEdge.sourceHandle,
+      targetHandle: newEdge.targetHandle,
       requestsPerInput: 1,
       enabled: true,
       isBidirectional: true,
+      communicationType: newEdge.communicationType || 'http',
+      label: newEdge.label || 'http',
       ...newEdge,
     };
     updateEdges([...edges, edgeWithDefaults]);
@@ -445,6 +521,28 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const handleDeleteEdge = (edgeId: string) => {
     if (!canEdit) return;
     updateEdges(edges.filter((e) => e.id !== edgeId));
+    if (selectedEdgeId === edgeId) {
+      setSelectedEdgeId(null);
+    }
+  };
+
+  const handleUpdateEdge = (edgeId: string, updates: Partial<ArchitectureEdge>) => {
+    if (!canEdit) return;
+    const updated = edges.map((e) => (e.id === edgeId ? { ...e, ...updates } : e));
+    updateEdges(updated);
+  };
+
+  const handleSelectEdge = (edgeId: string | null) => {
+    setSelectedEdgeId(edgeId);
+    if (edgeId) {
+      setSelectedNodeId(null);
+    }
+  };
+
+  const handleAutoLayout = () => {
+    if (!canEdit || nodes.length === 0) return;
+    const laidOut = toVerticalTree(nodes, edges);
+    updateNodes(laidOut);
   };
 
   const handleUpdateEdgeMultiplier = (edgeId: string, multiplier: number) => {
@@ -731,20 +829,25 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             nodes={nodes}
             edges={edges}
             selectedNodeId={selectedNodeId}
+            selectedEdgeId={selectedEdgeId}
             onSelectNode={(id) => {
               setSelectedNodeId(id);
               if (id) {
+                setSelectedEdgeId(null);
                 setIsRightCollapsed(false);
               }
               broadcastAwareness(false, id);
             }}
+            onSelectEdge={handleSelectEdge}
             onNodesChangePosition={handleNodesChangePosition}
             onAddEdge={handleAddEdge}
             onToggleEdge={handleToggleEdge}
             onDeleteNode={handleDeleteNode}
             onDeleteEdge={handleDeleteEdge}
             onUpdateNode={handleUpdateNode}
+            onUpdateEdge={handleUpdateEdge}
             onDuplicateNode={handleDuplicateNode}
+            onAutoLayout={handleAutoLayout}
             remoteCursors={remoteCursors}
             onMouseMoveInCanvas={(x, y) => {
               broadcastCursor(x, y);

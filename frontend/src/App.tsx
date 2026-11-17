@@ -1730,11 +1730,30 @@ export const App: React.FC = () => {
 
   const handleAddNode = (type: ComponentType, name: string) => {
     const newId = `${type}-${Date.now().toString().slice(-4)}`;
+    // Avoid nodes piling over each other: use smart 3-column non-overlapping grid layout
+    const NODE_W = 280;
+    const NODE_H = 160;
+    let targetX = 350;
+    let targetY = 140;
+    for (let i = 0; i < 50; i++) {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      const testX = 320 + col * (NODE_W + 50);
+      const testY = 140 + row * (NODE_H + 50);
+      const collides = nodes.some(
+        (n) => Math.abs((n.position?.x ?? 0) - testX) < NODE_W && Math.abs((n.position?.y ?? 0) - testY) < NODE_H
+      );
+      if (!collides) {
+        targetX = testX;
+        targetY = testY;
+        break;
+      }
+    }
     const newNode: ArchitectureNode = {
       id: newId,
       name,
       type,
-      position: { x: 400 + Math.random() * 200, y: 150 + Math.random() * 200 },
+      position: { x: targetX, y: targetY },
       capacityPerSecond: type === 'database' ? 600 : type === 'cache' ? 2500 : 800,
       workerCount: 2,
       enabled: true,
@@ -2754,6 +2773,11 @@ export const App: React.FC = () => {
                 isLeftCollapsed={isLeftCollapsed}
                 isRightCollapsed={isRightCollapsed}
                 leftSidebarWidth={leftSidebarWidth}
+                onAutoLayout={() => {
+                  if (nodes.length === 0) return;
+                  const laidOut = toVerticalTree(nodes, edges);
+                  setNodes(laidOut);
+                }}
               />
             </>
           )}
