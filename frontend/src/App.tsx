@@ -725,6 +725,7 @@ export const App: React.FC = () => {
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
   const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
   const [isImportRepoOpen, setIsImportRepoOpen] = useState<boolean>(false);
+  const [isStartMeetingModalOpen, setIsStartMeetingModalOpen] = useState<boolean>(false);
   const [isStartProjectModalOpen, setIsStartProjectModalOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     const path = window.location.pathname.toLowerCase();
