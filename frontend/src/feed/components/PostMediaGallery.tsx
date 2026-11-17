@@ -91,7 +91,7 @@ interface PostMediaGalleryProps {
 export const PostMediaGallery: React.FC<PostMediaGalleryProps> = ({ mediaItems }) => {
   // Sort items to ensure video is always first: "remember if user upload any video keep it at first showing"
   const sortedItems = React.useMemo(() => {
-    return [...mediaItems].sort((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
+    return mediaItems.toSorted((a, b) => (a.type === 'video' ? -1 : b.type === 'video' ? 1 : 0));
   }, [mediaItems]);
 
   const [activeSlide, setActiveSlide] = useState(0);
