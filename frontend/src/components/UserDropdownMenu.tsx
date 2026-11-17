@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { User, Bookmark, Heart, FolderGit2, History, Moon, Sun, LogOut, LogIn, UserPlus, Sparkles } from 'lucide-react';
 import { UserProfileFeed } from '../feed/types';
 import { feedApi } from '../feed/services/feedApi';
 import { extractAccountAvatar } from '../feed/utils/avatarUtils';
@@ -177,6 +177,22 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
             </span>
           </button>
         )}
+
+        {/* Pricing & Plans */}
+        <button
+          type="button"
+          onClick={() => {
+            onClose?.();
+            window.history.pushState({}, '', '/payment');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group text-left"
+        >
+          <Sparkles className="w-4 h-4 text-violet-500 group-hover:text-violet-400 transition-colors" />
+          <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+            Pricing & Pro
+          </span>
+        </button>
 
         {/* 2. Theme */}
         <div className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200">
@@ -380,6 +396,22 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
             </span>
           </button>
         )}
+
+        {/* Pricing & Pro */}
+        <button
+          type="button"
+          onClick={() => {
+            onClose?.();
+            window.history.pushState({}, '', '/payment');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group text-left"
+        >
+          <Sparkles className="w-4 h-4 text-violet-500 group-hover:text-violet-400 transition-colors" />
+          <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+            Pricing & Pro
+          </span>
+        </button>
 
         <div className="my-1 border-t border-slate-100 dark:border-neutral-800/70" />
 

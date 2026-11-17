@@ -28,6 +28,7 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
   const [includeArchitecture, setIncludeArchitecture] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLimitReached, setIsLimitReached] = useState(false);
   const [createdMeeting, setCreatedMeeting] = useState<Meeting | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -37,6 +38,7 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setIsLimitReached(false);
 
     try {
       const architectureState = includeArchitecture
@@ -54,7 +56,15 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
       setCreatedMeeting(meeting);
       onMeetingCreated(meeting);
     } catch (err: any) {
-      setError(err?.response?.data?.error || err?.message || 'Failed to start meeting.');
+      if (err?.response?.data?.error === 'PLAN_LIMIT_REACHED') {
+        setIsLimitReached(true);
+        setError(
+          err.response.data.message ||
+            'You have reached your free plan limit of 3 meetings. Upgrade your plan to continue hosting live collaborative meetings.'
+        );
+      } else {
+        setError(err?.response?.data?.error || err?.message || 'Failed to start meeting.');
+      }
     } finally {
       setLoading(false);
     }
