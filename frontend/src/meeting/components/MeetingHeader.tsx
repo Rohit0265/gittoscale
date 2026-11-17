@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Copy,
   Check,
@@ -7,13 +7,15 @@ import {
   PhoneOff,
   LogOut,
   Users,
-  Radio,
   Sun,
   Moon,
-  Shield,
-  Edit3,
-  Eye,
+  ChevronDown,
+  User,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { UserDropdownMenu } from '../../components/UserDropdownMenu';
+import { UserAvatar } from '../../feed/components/UserAvatar';
+import { extractAccountAvatar } from '../../feed/utils/avatarUtils';
 import { Meeting, MeetingRole, YjsSyncStatus } from '../types';
 
 interface MeetingHeaderProps {
@@ -29,6 +31,16 @@ interface MeetingHeaderProps {
   onEndMeeting?: () => void;
   isDark?: boolean;
   onToggleTheme?: () => void;
+  user?: any;
+  token?: string | null;
+  onSignOut?: () => void;
+  onOpenAuth?: () => void;
+  onOpenSignUp?: () => void;
+  onOpenHistory?: () => void;
+  onNavigateToProfile?: (userId: string) => void;
+  onViewLikes?: () => void;
+  onViewSaved?: () => void;
+  onGoHome?: () => void;
 }
 
 export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
@@ -44,9 +56,40 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   onEndMeeting,
   isDark = true,
   onToggleTheme,
+  user,
+  token,
+  onSignOut,
+  onOpenAuth,
+  onOpenSignUp,
+  onOpenHistory,
+  onNavigateToProfile,
+  onViewLikes,
+  onViewSaved,
+  onGoHome,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   const handleCopyLink = () => {
     if (!meeting) return;
@@ -65,47 +108,26 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
 
   return (
     <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-3 sm:px-5 flex items-center justify-between z-40 shrink-0 w-full select-none transition-colors">
-      {/* Left: Branding & Meeting Info */}
+      {/* Left: GitToScale Logo */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
+        <button
+          onClick={onGoHome}
+          className="flex items-center text-left group hover:opacity-85 transition-opacity cursor-pointer"
+          title="Return to GitToScale"
+        >
           <img
             src={isDark ? '/logo.png' : '/logo-light.png'}
             alt="GitToScale"
-            className="h-6 w-auto object-contain"
+            className="h-6 sm:h-7 w-auto object-contain transition-transform group-hover:scale-105"
           />
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-400 text-xs font-semibold">
-            <Radio className="w-3 h-3 text-indigo-500 animate-pulse" />
-            <span>Live Meeting</span>
-          </div>
-        </div>
-
-        <div className="h-5 w-px bg-slate-200 dark:bg-neutral-800 hidden sm:block" />
-
-        {/* Meeting Title & ID */}
-        <div className="hidden sm:flex flex-col">
-          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate max-w-[200px] md:max-w-[280px]">
-            {meeting?.title || 'System Design Meeting'}
-          </span>
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-neutral-400">
-            <span>ID:</span>
-            <button
-              onClick={handleCopyId}
-              className="inline-flex items-center gap-1 font-mono hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              title="Copy Meeting ID"
-            >
-              <span>{meeting?.id ? `${meeting.id.slice(0, 8)}...` : '...'}</span>
-              {copiedId ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3 text-slate-400" />}
-            </button>
-          </div>
-        </div>
+        </button>
       </div>
 
-      {/* Center: Sync Status & Role Indicator */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Sync Indicator */}
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-300">
+      {/* Center: Meeting Code with Copy Button & Live Sync indicator */}
+      <div className="flex items-center gap-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-xs text-slate-700 dark:text-neutral-200 shadow-2xs">
           <span
-            className={`w-2 h-2 rounded-full ${
+            className={`w-2 h-2 rounded-full shrink-0 ${
               syncStatus === 'synced'
                 ? 'bg-emerald-500 ring-2 ring-emerald-500/20'
                 : syncStatus === 'syncing'
@@ -114,49 +136,40 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
                 ? 'bg-blue-500 animate-pulse'
                 : 'bg-rose-500'
             }`}
+            title={syncStatus === 'synced' ? 'Real-Time Synchronized' : syncStatus}
           />
-          <span className="capitalize hidden md:inline">
-            {syncStatus === 'synced'
-              ? 'Real-Time Sync'
-              : syncStatus === 'syncing'
-              ? 'Syncing changes...'
-              : syncStatus === 'connecting'
-              ? 'Connecting...'
-              : 'Offline'}
+          <span className="text-slate-400 dark:text-neutral-500 text-[11px] hidden xs:inline">Meeting Code:</span>
+          <span className="font-mono font-semibold tracking-wide text-slate-900 dark:text-white select-all text-xs">
+            {meeting?.id || '...'}
           </span>
+          <button
+            onClick={handleCopyId}
+            className="p-1 rounded hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+            title="Copy Meeting Code"
+          >
+            {copiedId ? (
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
+          </button>
         </div>
 
-        {/* User Role Badge */}
-        <div
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border ${
-            role === 'host'
-              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300'
-              : role === 'editor'
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300'
-              : 'bg-slate-100 dark:bg-neutral-800/80 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-300'
-          }`}
-        >
-          {role === 'host' && <Shield className="w-3 h-3 text-amber-500" />}
-          {role === 'editor' && <Edit3 className="w-3 h-3 text-emerald-500" />}
-          {role === 'viewer' && <Eye className="w-3 h-3 text-slate-400" />}
-          <span className="capitalize">{role}</span>
-        </div>
-
-        {/* Lock Status */}
+        {/* Canvas Lock Status if locked */}
         {isLocked && (
-          <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400">
             <Lock className="w-3 h-3" />
             <span className="hidden sm:inline">Locked</span>
           </div>
         )}
       </div>
 
-      {/* Right Controls: Share, Host Lock, Participants, Leave/End */}
+      {/* Right Controls: Invite, Host Lock, Participants, Theme, Leave/End, User Profile */}
       <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Copy Invite Link */}
         <button
           onClick={handleCopyLink}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all cursor-pointer"
           title="Copy Invitation Link"
         >
           {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
@@ -167,7 +180,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         {role === 'host' && onToggleLock && (
           <button
             onClick={() => onToggleLock(!isLocked)}
-            className={`p-2 rounded-lg text-xs font-medium border transition-colors ${
+            className={`p-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
               isLocked
                 ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-100'
                 : 'bg-slate-100 dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-200 dark:hover:bg-neutral-800'
@@ -181,7 +194,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         {/* Participants Panel Toggle */}
         <button
           onClick={onToggleParticipants}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
             isParticipantsOpen
               ? 'bg-slate-200 dark:bg-neutral-800 border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white'
               : 'bg-slate-100 dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-200 dark:hover:bg-neutral-800'
@@ -196,7 +209,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         {onToggleTheme && (
           <button
             onClick={onToggleTheme}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -207,7 +220,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         {role === 'host' && onEndMeeting && (
           <button
             onClick={onEndMeeting}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition-all"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition-all cursor-pointer"
             title="End Meeting for Everyone"
           >
             <PhoneOff className="w-3.5 h-3.5" />
@@ -219,13 +232,73 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         {role !== 'host' && (
           <button
             onClick={onLeaveMeeting}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-300 transition-colors"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
             title="Leave Meeting"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Leave</span>
           </button>
         )}
+
+        {/* User Profile Menu (After End/Leave) */}
+        <div ref={menuRef} className="relative shrink-0 ml-1">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-800/80 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-neutral-700 cursor-pointer"
+            title="User Account Menu"
+          >
+            {user ? (
+              <div className="relative shrink-0">
+                <UserAvatar
+                  src={extractAccountAvatar(user)}
+                  name={user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  seed={user.id || user.email}
+                  className="w-7 h-7 rounded-full"
+                  fallbackClassName="w-7 h-7 rounded-full text-white flex items-center justify-center font-bold text-xs"
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-[#0A0A0A]" />
+              </div>
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-700 dark:text-neutral-300">
+                <User className="w-4 h-4 text-slate-600 dark:text-neutral-300" />
+              </div>
+            )}
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 dark:text-neutral-500 transition-transform duration-200 ${
+                isMenuOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                className="absolute right-0 top-full mt-2 z-50"
+              >
+                <UserDropdownMenu
+                  variant="app"
+                  user={user}
+                  token={token}
+                  isDark={isDark}
+                  onToggleTheme={onToggleTheme}
+                  onOpenHistory={onOpenHistory}
+                  onSignOut={onSignOut}
+                  onClose={() => setIsMenuOpen(false)}
+                  onOpenAuth={onOpenAuth}
+                  onOpenSignUp={onOpenSignUp}
+                  onNavigateToProfile={onNavigateToProfile}
+                  onViewLikes={onViewLikes}
+                  onViewSaved={onViewSaved}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </header>
   );
