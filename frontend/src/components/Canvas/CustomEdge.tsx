@@ -342,13 +342,13 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                 const renderIcon = () => {
                   switch (type.iconName) {
                     case 'arrow':
-                      return <ArrowRight className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />;
+                      return <ArrowRight className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors" />;
                     case 'zap':
-                      return <Zap className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-amber-500 transition-colors" />;
+                      return <Zap className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors" />;
                     case 'refresh':
-                      return <RefreshCw className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-blue-500 transition-colors" />;
+                      return <RefreshCw className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors" />;
                     case 'globe':
-                      return <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-sky-500 transition-colors" />;
+                      return <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors" />;
                   }
                 };
 
@@ -397,7 +397,7 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
                     edgeData.isBidirectional
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800'
+                      ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 border-neutral-900 dark:border-white'
                       : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border-slate-200 dark:border-neutral-700'
                   }`}
                 >

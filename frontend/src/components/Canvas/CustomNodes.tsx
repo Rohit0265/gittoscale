@@ -82,7 +82,7 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
   };
 
   const getCardBorder = () => {
-    if (selected) return 'ring-2 ring-indigo-500 border-indigo-500 shadow-none';
+    if (selected) return 'ring-2 ring-neutral-900 dark:ring-white border-neutral-900 dark:border-white shadow-xs';
     switch (status) {
       case 'overloaded':
         return 'border-red-400 dark:border-red-500/80 bg-red-50/20 dark:bg-red-950/30 shadow-none';
@@ -130,26 +130,40 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
     <div
       className={`group relative rounded-xl border p-3.5 w-64 transition-all duration-200 cursor-pointer ${getCardBorder()}`}
     >
-      {/* Target Handles (Top center, Left, and Right for tree routing) */}
+      {/* Target & Source Handles with dedicated non-overlapping coordinates */}
       {!isSource && (
         <>
+          {/* Top Target Handle */}
           <Handle
             type="target"
             id="target-top"
             position={Position.Top}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-600"
+            style={{ left: '50%' }}
+            className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
           />
+          {/* Left Target Handle (Offset at 36% to avoid overlapping source-left) */}
           <Handle
             type="target"
             id="target-left"
             position={Position.Left}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-600"
+            style={{ top: '36%' }}
+            className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
           />
+          {/* Right Target Handle (Offset at 64% to avoid overlapping source-right) */}
           <Handle
             type="target"
             id="target-right"
             position={Position.Right}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-600"
+            style={{ top: '64%' }}
+            className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
+          />
+          {/* Bottom Target Handle (For reverse / upward connections) */}
+          <Handle
+            type="target"
+            id="target-bottom"
+            position={Position.Bottom}
+            style={{ left: '60%' }}
+            className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
           />
         </>
       )}
@@ -228,38 +242,52 @@ export const ArchitectureCustomNode: React.FC<NodeProps> = memo(({ data, selecte
         )}
       </div>
 
-      {/* Source Handles (Bottom Left 25%, Center 50%, Right 75%, and Sides for clean tree branching) */}
+      {/* Source Handles (Distributed to never collide with target handles) */}
+      {/* Top Source Handle (For clean upward flow) */}
+      <Handle
+        type="source"
+        id="source-top"
+        position={Position.Top}
+        style={{ left: '35%' }}
+        className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
+      />
+      {/* Bottom Center Source Handle */}
       <Handle
         type="source"
         id="source-bottom"
         position={Position.Bottom}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
+        style={{ left: '40%' }}
+        className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
       />
       <Handle
         type="source"
         id="source-bottom-left"
         position={Position.Bottom}
-        style={{ left: '25%' }}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
+        style={{ left: '20%' }}
+        className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
       />
       <Handle
         type="source"
         id="source-bottom-right"
         position={Position.Bottom}
-        style={{ left: '75%' }}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
+        style={{ left: '80%' }}
+        className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
       />
+      {/* Right Source Handle (Offset at 36% to avoid target-right at 64%) */}
       <Handle
         type="source"
         id="source-right"
         position={Position.Right}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
+        style={{ top: '36%' }}
+        className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
       />
+      {/* Left Source Handle (Offset at 64% to avoid target-left at 36%) */}
       <Handle
         type="source"
         id="source-left"
         position={Position.Left}
-        className="!w-2.5 !h-2.5 !bg-indigo-500 !border-2 !border-white dark:!border-[#141416] hover:!bg-indigo-700"
+        style={{ top: '64%' }}
+        className="!w-3 !h-3 !bg-neutral-800 dark:!bg-neutral-200 !border-2 !border-white dark:!border-[#141416] hover:!scale-125 hover:!bg-black dark:hover:!bg-white transition-all cursor-crosshair z-30"
       />
     </div>
   );
