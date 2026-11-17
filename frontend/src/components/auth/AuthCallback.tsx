@@ -304,6 +304,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••••••"
@@ -321,6 +322,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••••••"
