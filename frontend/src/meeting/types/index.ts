@@ -51,6 +51,7 @@ export interface RemoteCursor {
   color: string;
   x: number;
   y: number;
+  role?: MeetingRole;
 }
 
 export interface MeetingChatMessage {

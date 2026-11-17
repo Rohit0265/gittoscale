@@ -4,9 +4,6 @@ import {
   Plus,
   ArrowRight,
   Loader2,
-  Sparkles,
-  Shield,
-  Layers,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { meetingApi } from '../services/meetingApi';
@@ -117,12 +114,6 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
       {/* Hero Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-20 flex flex-col items-center text-center">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-semibold mb-6 shadow-2xs">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Real-Time Collaborative Architecture (Yjs Powered)</span>
-        </div>
-
         <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white max-w-2xl leading-tight">
           Design and scale architectures together in real time.
         </h1>
@@ -229,39 +220,6 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-
-        {/* Feature Highlights */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full mt-16 text-center sm:text-left">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 justify-center sm:justify-start text-xs font-semibold text-slate-900 dark:text-white">
-              <Layers className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
-              <span>Real-Time Yjs Sync</span>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-neutral-400">
-              Conflict-free replicated data types guarantee instant synchronization without canvas jitter.
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 justify-center sm:justify-start text-xs font-semibold text-slate-900 dark:text-white">
-              <Shield className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
-              <span>Host Permissions</span>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-neutral-400">
-              Assign Editor or Viewer roles. Restrict canvas modifications or freeze edits during design presentations.
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 justify-center sm:justify-start text-xs font-semibold text-slate-900 dark:text-white">
-              <Users className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
-              <span>Live Presence</span>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-neutral-400">
-              See collaborator cursors, names, and live interaction badges across your architecture canvas.
-            </p>
           </div>
         </div>
       </main>
