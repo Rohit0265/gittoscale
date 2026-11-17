@@ -170,7 +170,7 @@ export const MeetingAIPanel: React.FC<MeetingAIPanelProps> = ({
             <div
               className={`max-w-[92%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
                 msg.sender === 'user'
-                  ? 'bg-indigo-600 text-white rounded-br-sm font-medium whitespace-pre-wrap'
+                  ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 rounded-br-sm font-medium whitespace-pre-wrap shadow-xs'
                   : msg.error
                   ? 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 rounded-bl-sm'
                   : 'bg-slate-100 dark:bg-[#121316] border border-slate-200/80 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 rounded-bl-sm shadow-xs'
@@ -182,7 +182,7 @@ export const MeetingAIPanel: React.FC<MeetingAIPanelProps> = ({
                 <div className="ai-markdown-chat-body">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                   {msg.streaming && (
-                    <span className="inline-block w-1.5 h-3 ml-0.5 bg-indigo-500 animate-pulse align-middle" />
+                    <span className="inline-block w-1.5 h-3 ml-0.5 bg-neutral-400 dark:bg-white animate-pulse align-middle" />
                   )}
                 </div>
               )}
@@ -193,7 +193,7 @@ export const MeetingAIPanel: React.FC<MeetingAIPanelProps> = ({
         {/* AI loading state while waiting for first token */}
         {processing && messages[messages.length - 1]?.text === '' && (
           <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-neutral-800/60 border border-slate-200 dark:border-neutral-700/50 w-fit">
-            <Loader2 className="w-3.5 h-3.5 text-indigo-500 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-200 animate-spin" />
             <span className="text-[10.5px] text-slate-500 dark:text-neutral-400 font-medium">
               Consulting Architecture Copilot...
             </span>
@@ -213,7 +213,7 @@ export const MeetingAIPanel: React.FC<MeetingAIPanelProps> = ({
             {canEdit ? (
               <button
                 onClick={handleApply}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-neutral-900 hover:bg-black text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 shadow-xs transition-all cursor-pointer"
               >
                 <Wand2 className="w-3.5 h-3.5" />
                 <span>Apply to Shared Architecture</span>
@@ -252,12 +252,12 @@ export const MeetingAIPanel: React.FC<MeetingAIPanelProps> = ({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about this architecture…"
           disabled={processing}
-          className="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-neutral-900/60 border border-slate-200 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+          className="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-neutral-900/60 border border-slate-200 dark:border-neutral-800 text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-600 disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={!input.trim() || processing}
-          className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white transition-all cursor-pointer shrink-0"
+          className="p-2 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-40 text-white dark:text-neutral-950 transition-all cursor-pointer shrink-0"
           title="Ask AI (Enter)"
         >
           {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUp className="w-4 h-4" />}
