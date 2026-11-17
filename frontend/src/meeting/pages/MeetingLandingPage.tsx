@@ -150,8 +150,21 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
               </p>
 
               {createError && (
-                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-600 dark:text-rose-400">
-                  {createError}
+                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-600 dark:text-rose-300 space-y-2">
+                  <p className="font-medium">{createError}</p>
+                  {isLimitReached && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.history.pushState({}, '', '/payment');
+                        window.dispatchEvent(new PopStateEvent('popstate'));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors cursor-pointer"
+                    >
+                      <span>Upgrade Plan</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               )}
             </div>
