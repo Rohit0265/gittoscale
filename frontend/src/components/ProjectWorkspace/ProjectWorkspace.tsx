@@ -312,16 +312,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         if (prompt && prompt.trim().length > 0) {
           targetPrompt = prompt;
         } else {
-          const pastUserMsg = [...chatHistory]
-            .reverse()
-            .find(
-              (m: any) =>
-                m.sender === 'user' &&
-                m.text &&
-                !m.text.toLowerCase().includes('canvas') &&
-                !m.text.toLowerCase().includes('didnt show') &&
-                !m.text.toLowerCase().includes("didn't show")
-            );
+          const pastUserMsg = chatHistory.findLast(
+            (m: any) =>
+              m.sender === 'user' &&
+              m.text &&
+              !m.text.toLowerCase().includes('canvas') &&
+              !m.text.toLowerCase().includes('didnt show') &&
+              !m.text.toLowerCase().includes("didn't show")
+          );
           targetPrompt =
             pastUserMsg?.text ||
             'Scalable distributed cloud architecture with API Gateway, microservices, and database';
