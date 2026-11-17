@@ -2874,6 +2874,23 @@ export const App: React.FC = () => {
         </Suspense>
       )}
 
+      {/* Start Collaborative Architecture Meeting Modal */}
+      {isStartMeetingModalOpen && (
+        <StartMeetingModal
+          isOpen={isStartMeetingModalOpen}
+          onClose={() => setIsStartMeetingModalOpen(false)}
+          initialNodes={nodes}
+          initialEdges={edges}
+          projectName={activePromptText || defaultArchitecture?.description}
+          token={authToken}
+          onMeetingCreated={(createdMeeting) => {
+            setIsStartMeetingModalOpen(false);
+            window.history.pushState({}, '', `/meeting/${createdMeeting.id}`);
+            setCurrentView('collab-meeting');
+          }}
+        />
+      )}
+
       {/* Start Project: Enter Idea or Import Repo Modal */}
       {isStartProjectModalOpen && (
         <Suspense fallback={null}>
