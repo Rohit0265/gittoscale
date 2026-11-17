@@ -46,7 +46,6 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
           participants.map((p) => {
             const presence = presenceMap.get(p.user_id);
             const isMe = p.user_id === currentUserId;
-            const isUserHost = p.role === 'host';
             const userColor = presence?.color || p.color || '#4F46E5';
             const isEditing = presence?.isEditing;
 
