@@ -641,6 +641,15 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                 activePrompt={prompt}
                 viewMode={viewMode}
                 isDark={isDark}
+                onAutoLayout={() => {
+                  if (activeNodes.length === 0) return;
+                  const laidOut = toVerticalTree(activeNodes, activeEdges);
+                  if (viewMode === 'detailed') {
+                    setDetailedGraph((prev) => ({ ...prev, nodes: laidOut }));
+                  } else {
+                    setBasicGraph((prev) => ({ ...prev, nodes: laidOut }));
+                  }
+                }}
               />
             ) : (
               <ArchitectureCanvas
@@ -675,6 +684,15 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                 }}
                 viewMode={viewMode}
                 isDark={isDark}
+                onAutoLayout={() => {
+                  if (activeNodes.length === 0) return;
+                  const laidOut = toVerticalTree(activeNodes, activeEdges);
+                  if (viewMode === 'detailed') {
+                    setDetailedGraph((prev) => ({ ...prev, nodes: laidOut }));
+                  } else {
+                    setBasicGraph((prev) => ({ ...prev, nodes: laidOut }));
+                  }
+                }}
               />
             )}
           </div>
