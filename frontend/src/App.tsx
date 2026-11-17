@@ -1575,8 +1575,8 @@ export const App: React.FC = () => {
     baseGraph: { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] },
     scen: ScenarioFixture
   ): { nodes: ArchitectureNode[]; edges: ArchitectureEdge[] } => {
-    let newNodes: ArchitectureNode[] = JSON.parse(JSON.stringify(baseGraph.nodes));
-    let newEdges: ArchitectureEdge[] = JSON.parse(JSON.stringify(baseGraph.edges));
+    let newNodes: ArchitectureNode[] = structuredClone(baseGraph.nodes);
+    let newEdges: ArchitectureEdge[] = structuredClone(baseGraph.edges);
 
     // Apply node overrides (matching direct node id or parentId for detailed submodules)
     if (scen.nodeOverrides && Object.keys(scen.nodeOverrides).length > 0) {
@@ -1931,12 +1931,12 @@ export const App: React.FC = () => {
       repoUrl?: string
     ) => {
       const basicToUse = basicGraph || { nodes: newNodes, edges: newEdges };
-      baseBasicGraphRef.current = JSON.parse(JSON.stringify(basicToUse));
-      basicGraphCacheRef.current = JSON.parse(JSON.stringify(basicToUse));
+      baseBasicGraphRef.current = structuredClone(basicToUse);
+      basicGraphCacheRef.current = structuredClone(basicToUse);
 
       if (detailedGraph) {
-        baseDetailedGraphRef.current = JSON.parse(JSON.stringify(detailedGraph));
-        detailedGraphCacheRef.current = JSON.parse(JSON.stringify(detailedGraph));
+        baseDetailedGraphRef.current = structuredClone(detailedGraph);
+        detailedGraphCacheRef.current = structuredClone(detailedGraph);
       } else {
         baseDetailedGraphRef.current = null;
         detailedGraphCacheRef.current = null;
