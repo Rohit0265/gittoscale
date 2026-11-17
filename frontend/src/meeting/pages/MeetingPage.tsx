@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import {
   Users,
@@ -219,7 +220,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-[#050505] text-slate-800 dark:text-neutral-100">
         <div className="w-full max-w-md p-6 rounded-2xl bg-white dark:bg-[#0c0c0c] border border-slate-200 dark:border-neutral-800 shadow-xl text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 mx-auto flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+          <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 mx-auto flex items-center justify-center text-neutral-900 dark:text-white">
             <Users className="w-6 h-6" />
           </div>
           <div>
@@ -230,7 +231,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           </div>
           <button
             onClick={onOpenAuth}
-            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 text-xs font-semibold shadow-md transition-all cursor-pointer"
           >
             Sign In with GitToScale
           </button>
@@ -244,7 +245,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-[#050505] text-slate-800 dark:text-neutral-100">
         <div className="w-full max-w-md p-6 rounded-2xl bg-white dark:bg-[#0c0c0c] border border-slate-200 dark:border-neutral-800 shadow-xl text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 mx-auto flex items-center justify-center text-amber-600 dark:text-amber-400">
+          <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 mx-auto flex items-center justify-center text-neutral-900 dark:text-white">
             <Info className="w-6 h-6" />
           </div>
           <div>
@@ -255,7 +256,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           </div>
           <button
             onClick={onLeaveMeeting}
-            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md transition-all cursor-pointer inline-flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 text-xs font-semibold shadow-md transition-all cursor-pointer inline-flex items-center justify-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Return to GitToScale</span>
@@ -292,7 +293,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   if (initialLoading) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#050505] text-slate-700 dark:text-neutral-300 gap-3">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        <Loader2 className="w-8 h-8 text-neutral-400 dark:text-neutral-200 animate-spin" />
         <span className="text-xs font-medium">Entering collaborative meeting...</span>
       </div>
     );
