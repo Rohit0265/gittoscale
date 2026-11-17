@@ -24,8 +24,8 @@
    - [1. Interactive Architecture Canvas & Traffic Simulation](#1-interactive-architecture-canvas--traffic-simulation)
    - [2. AI System Design Architect & Recommender](#2-ai-system-design-architect--recommender)
    - [3. GitHub Repository Code-to-Architecture Scanner](#3-github-repository-code-to-architecture-scanner)
-   - [4. Real-Time Collaborative Design Meetings (Yjs + WebSockets)](#4-real-time-collaborative-design-meetings-yjs--websockets)
-   - [5. Community Feed & Architecture Sharing](#5-community-feed--architecture-sharing)
+   - [4. Real-Time Collaborative Design Meetings (Collab)](#4-real-time-collaborative-design-meetings-collab)
+   - [5. Community Feed & Architecture Social Discovery](#5-community-feed--architecture-social-discovery)
    - [6. Polar Subscription & Monetization System](#6-polar-subscription--monetization-system)
    - [7. Telemetry, Admin Moderation & Notifications](#7-telemetry-admin-moderation--notifications)
 4. [Mathematical Simulation Model](#-mathematical-simulation-model)
@@ -116,28 +116,81 @@ Unlike traditional static diagramming tools (such as Lucidchart, Visio, or Excal
 
 ---
 
-### 4. Real-Time Collaborative Design Meetings (Yjs + WebSockets)
+### 4. Real-Time Collaborative Design Meetings (Collab)
 
-- **CRDT-Powered Canvas Sync**: Powered by **Yjs** and `y-websocket` for conflict-free real-time synchronization with zero canvas jitter.
-- **Role-Based Access Control**:
-  - **Host**: Complete administrative control; can assign roles, lock the canvas, kick participants, and end meetings.
-  - **Editor**: Full interactive canvas editing, node movement, connection creation, and parameter tuning.
-  - **Viewer**: Read-only presence; can view live movements and interact in chat without altering diagram state.
-- **Live Ephemeral Presence**:
-  - Live cursor tracking with assigned user colors from an 8-tone palette.
-  - Presence badges, participant rosters, and live indicator pills.
-- **Integrated Meeting Chat**:
-  - Real-time in-room text chat persisted to Neon PostgreSQL.
-  - Instant shareable invitation URLs (`/meeting/:id` and `/collab/:id`).
+GitToScale provides a Google Docs/Figma-style real-time collaboration engine built specifically for distributed systems architecture reviews, team RFC discussions, and live technical interviews.
+
+#### Architectural Foundation (Yjs + WebSockets)
+- **Conflict-Free Replicated Data Types (CRDTs)**: Utilizes **Yjs** (`yjs` and `y-websocket`) to synchronize graph state across all connected clients.
+- **Instantaneous Multi-Peer Synchronization**: Node movements, coordinate transforms, service property edits, connection additions, and deletions are broadcasted over persistent WebSockets with zero jitter and automatic conflict resolution.
+- **State Initialization**: When creating a meeting, hosts can either initialize the room with their current active playground architecture (transferring all nodes, edges, and traffic parameters) or start with a fresh blank canvas.
+
+#### Advanced Host Permissions & Governance
+- **Role Hierarchy**:
+  - **Host**: The room creator (or any participant promoted to Host).
+    - **Promotion**: Hosts can promote any other participant to **Host** (multi-host co-moderation).
+    - **Role Reassignment**: Seamlessly switch any participant between **Host**, **Editor**, and **Viewer**.
+    - **Canvas Lock**: Freeze diagram modifications for all editors and viewers during presentations.
+    - **Participant Kick**: Disconnect and remove disruptive participants from the room.
+    - **Terminate Room**: End the session cleanly for all participants simultaneously.
+  - **Editor**:
+    - Can freely add, connect, drag, configure, and delete nodes and edges.
+    - Properties updated by editors reflect immediately on all connected peers.
+  - **Viewer (Read-Only)**:
+    - Designed for stakeholders, managers, or interviewers observing a design review.
+    - Prevented from altering the diagram, moving nodes, or changing configurations.
+    - **Clutter-Free Canvas**: To keep presentations clean, **viewer cursors are automatically hidden from the canvas**, ensuring the screen is not obscured by dozens of inactive cursors.
+- **Controlled Invitation Security**:
+  - **Host-Only Invitation URLs & Codes**: When a user is not the host, the shareable invite link and meeting code are hidden to prevent unauthorized distribution. Only hosts can copy and broadcast the room URL.
+
+#### Live Presence & Ephemeral Cursors
+- **Dynamic User Palettes**: Each collaborator is assigned a distinct color from an 8-tone participant palette (Indigo, Emerald, Amber, Red, Violet, Blue, Pink, Cyan, Orange).
+- **Smooth Cursor Interpolation**: Live cursor positions with user name tags follow pointer movements across the canvas in real time.
+- **Live Presence Badges**: Header pill indicating real-time active collaborator count with individual user avatars and status indicators.
+
+#### Synchronized In-Room Chat
+- **Side-by-Side Discussion Panel**: Meeting rooms include a built-in text chat panel alongside the visual canvas.
+- **Database Persistence**: Messages are broadcasted in real time to the room and persisted to **Neon PostgreSQL** (`meeting_messages`) with author metadata, avatar links, and ISO timestamps.
+
+#### Quota & Access Rules
+- **Joining is 100% Free & Unlimited**: Anyone with a meeting link (guest or registered user) can join and participate without using any quota.
+- **Hosting Quotas**: Free plan users can host up to 3 collaborative meetings; GitToScale Pro users enjoy unlimited meeting creation.
 
 ---
 
-### 5. Community Feed & Architecture Sharing
+### 5. Community Feed & Architecture Social Discovery
 
-- **Public Architectural Feed**: Discover, inspect, and fork production architectures shared by other software engineers.
-- **Rich Media Snapshots**: Automatic canvas rendering and snapshot upload to **Cloudflare R2 Object Storage**.
-- **Social Interactions**: Like, bookmark, view counters, and follow developers.
-- **Developer Profiles**: Customizable profile pages with usernames, bios, avatar images, custom banners, and saved design collections.
+GitToScale includes a built-in community platform for discovering, studying, forking, and sharing production cloud architectures created by software engineers worldwide.
+
+#### Publishing & Snapshot Capture
+- **One-Click Publishing**: Click **"Share to Community Feed"** directly from the canvas export menu.
+- **Automatic High-Resolution Snapshotting**: Uses HTML5 Canvas / DOM capture to render an exact visual snapshot of the architecture layout.
+- **Cloudflare R2 Object Storage Integration**: Snapshot media (images and demonstration videos) are compressed and uploaded directly to **Cloudflare R2** and delivered globally via Cloudflare CDN.
+- **Metadata & Tags**: Publishers can add titles, architectural descriptions, technology tags (e.g. `#microservices`, `#kafka`, `#kubernetes`, `#cqrs`), and link the post to original GitHub repositories.
+- **Full Architecture Payload Serialization**: The full node-and-edge JSON topology is stored alongside the post, enabling one-click cloning.
+
+#### Feed Browsing & One-Click Forking
+- **Interactive Feed Interface (`/feed`)**: Modern responsive card layout displaying snapshot previews, architect profiles, publication dates, and key metrics.
+- **Instant Playground Forking**: Users can click **"Open in Playground"** on any community post to immediately load that exact architecture into their personal simulator, test its capacity limits under traffic spikes, tweak worker fleets, or benchmark against baseline scenarios.
+- **Filter & Search Engine**:
+  - **Search**: Fast text search across architecture titles, descriptions, and tags.
+  - **Feed Filters**: Switch between **All Architectures**, **Trending**, and **Following** (curated posts from followed architects).
+
+#### Social Engagement & Community Metrics
+- **Interactive Likes**: Heart community architectures with instant real-time counter updates.
+- **Bookmarks & Saved Blueprints**: Bookmark reference designs to build a personal library of architectural patterns.
+- **View & Impression Tracking**: Automatically tracks and increments total post views as users inspect architecture details.
+- **Follow System**: Follow prominent systems architects and receive their latest designs in your personalized feed.
+
+#### Developer Profiles (`/profile` & `/feed/profile/:id`)
+- **Custom Profile Branding**:
+  - Upload custom high-resolution banner images (stored on Cloudflare R2).
+  - Custom user avatars, full name, unique `@username` handle (with backend uniqueness enforcement), and engineering biography.
+- **Public & Private Tabs**:
+  1. **Architectures Shared**: All public architecture blueprints authored by the user.
+  2. **Saved Designs**: The user's private collection of bookmarked architectures.
+  3. **Liked Designs**: Feed of architectures the user has upvoted.
+- **Profile Synchronization**: Edits to profiles sync instantaneously across Supabase Authentication metadata, Neon PostgreSQL `public.profiles`, and active user sessions.
 
 ---
 
