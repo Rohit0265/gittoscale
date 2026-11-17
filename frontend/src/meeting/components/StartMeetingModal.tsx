@@ -234,26 +234,6 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
               </div>
             </div>
 
-            {error && (
-              <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/10 text-xs text-red-300">
-                <p className="font-medium mb-2">{error}</p>
-                {isLimitReached && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      window.history.pushState({}, '', '/payment');
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors cursor-pointer"
-                  >
-                    <span>Upgrade Plan</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            )}
-
             <div className="pt-2 flex items-center justify-end gap-2">
               <button
                 type="button"
