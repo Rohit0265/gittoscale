@@ -59,7 +59,6 @@ class ChatErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
 
 export const MeetingChatPanel: React.FC<MeetingChatPanelProps> = ({
   isOpen,
-  onClose,
   messages,
   onSendMessage,
   currentUserId,
