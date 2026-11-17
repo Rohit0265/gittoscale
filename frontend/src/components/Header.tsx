@@ -249,12 +249,12 @@ export const Header: React.FC<HeaderProps> = ({
           href="/collab"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-200/90 dark:border-indigo-900/80 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 hover:text-indigo-900 dark:hover:text-indigo-200 transition-all shadow-2xs group cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-neutral-800 bg-slate-100/80 dark:bg-[#141414] text-slate-800 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white transition-all shadow-2xs group cursor-pointer"
           title="Open GitToScale Collab in new tab"
         >
-          <Users className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+          <Users className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
           <span>Collab</span>
-          <ExternalLink className="w-3 h-3 text-indigo-500/80 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          <ExternalLink className="w-3 h-3 text-slate-400 dark:text-neutral-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </a>
       </div>
 
@@ -299,10 +299,10 @@ export const Header: React.FC<HeaderProps> = ({
         {onStartMeeting && (
           <button
             onClick={onStartMeeting}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-200 dark:border-indigo-900/80 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all shadow-2xs cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-neutral-800 bg-slate-100/80 dark:bg-[#141414] text-slate-800 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white transition-all shadow-2xs cursor-pointer shrink-0"
             title="Start real-time collaborative meeting with teammates"
           >
-            <Radio className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+            <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
             <span className="hidden md:inline">Start Meeting</span>
           </button>
         )}
