@@ -72,6 +72,7 @@ interface HeaderProps {
   onForceSync?: () => void;
   onShareToFeed?: (snapshotDataUrl: string) => void;
   simulationResult?: SimulationResult | null;
+  onStartMeeting?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -107,6 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
   onForceSync: _onForceSync,
   onShareToFeed,
   simulationResult,
+  onStartMeeting,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -291,6 +293,18 @@ export const Header: React.FC<HeaderProps> = ({
           <RotateCcw className="w-3.5 h-3.5 text-slate-600 dark:text-neutral-300" />
           <span className="hidden sm:inline">Reset</span>
         </button>
+
+        {/* Start Collaborative Meeting Button */}
+        {onStartMeeting && (
+          <button
+            onClick={onStartMeeting}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-200 dark:border-indigo-900/80 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all shadow-2xs cursor-pointer shrink-0"
+            title="Start real-time collaborative meeting with teammates"
+          >
+            <Radio className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+            <span className="hidden md:inline">Start Meeting</span>
+          </button>
+        )}
 
         {/* Start New Project (Dropdown: Blank Project, Describe Idea, or Import GitHub Repo) */}
         {onOpenNewProject && (
