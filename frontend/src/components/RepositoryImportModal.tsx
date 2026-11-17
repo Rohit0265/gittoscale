@@ -49,7 +49,7 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
   isUserAuthenticated = true,
   onRequireAuth,
 }) => {
-  const { signInWithOAuth } = useAuth();
+  const { connectGithubForRepoScan } = useAuth();
   const [repoUrl, setRepoUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,35 +107,26 @@ export const RepositoryImportModal: React.FC<RepositoryImportModalProps> = ({
     }
   }, [isOpen, githubToken]);
 
-  // Handle OAuth Connect
+  // Handle GitHub Connect for Repo Scanning (Preserves primary Google/logged-in user)
   const handleConnectGithub = async () => {
     setIsConnecting(true);
     setError(null);
     try {
-      const res = await signInWithOAuth('github');
+      const res = await connectGithubForRepoScan();
       if (res.error) {
         setError(res.error.message || 'Failed to authenticate with GitHub.');
         setIsConnecting(false);
         return;
       }
 
-      // Check token in localStorage or polling briefly for popup callback
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        const token = localStorage.getItem('gts_github_token');
-        if (token) {
-          clearInterval(interval);
-          setGithubToken(token);
-          fetchRepos(token);
-          setIsConnecting(false);
-        } else if (attempts > 30) {
-          clearInterval(interval);
-          setIsConnecting(false);
-        }
-      }, 500);
+      const token = res.token || localStorage.getItem('gts_github_token');
+      if (token) {
+        setGithubToken(token);
+        await fetchRepos(token);
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to start GitHub authentication.');
+    } finally {
       setIsConnecting(false);
     }
   };

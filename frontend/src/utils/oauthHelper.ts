@@ -2,10 +2,12 @@ export const OAUTH_CHANNEL_NAME = 'gts_oauth_channel';
 export const OAUTH_STORAGE_KEY = 'gts_oauth_event';
 
 export interface OAuthBroadcastMessage {
-  type: 'GTS_OAUTH_SUCCESS' | 'GTS_OAUTH_ERROR' | 'GTS_OAUTH_DONE';
+  type: 'GTS_OAUTH_SUCCESS' | 'GTS_OAUTH_ERROR' | 'GTS_OAUTH_DONE' | 'GTS_GITHUB_CONNECT_DONE';
   session?: any;
   user?: any;
   error?: string;
+  token?: string;
+  login?: string;
   timestamp?: number;
 }
 
