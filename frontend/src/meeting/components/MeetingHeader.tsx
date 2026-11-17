@@ -127,7 +127,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
                 : syncStatus === 'syncing'
                 ? 'bg-amber-500 animate-pulse'
                 : syncStatus === 'connecting'
-                ? 'bg-blue-500 animate-pulse'
+                ? 'bg-neutral-400 dark:bg-neutral-500 animate-pulse'
                 : 'bg-rose-500'
             }`}
             title={syncStatus === 'synced' ? 'Real-Time Synchronized' : syncStatus}
@@ -138,7 +138,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
           </span>
           <button
             onClick={handleCopyId}
-            className="p-1 rounded hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+            className="p-1 rounded hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             title="Copy Meeting Code"
           >
             {copiedId ? (
@@ -158,15 +158,15 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         )}
       </div>
 
-      {/* Right Controls: Invite, Host Lock, Participants, Theme, Leave/End, User Profile */}
+      {/* Right Controls: Invite, Host Lock, Leave/End, User Profile */}
       <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Copy Invite Link */}
         <button
           onClick={handleCopyLink}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 hover:bg-black text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 border border-neutral-700/60 dark:border-transparent shadow-xs transition-all cursor-pointer"
           title="Copy Invitation Link"
         >
-          {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+          {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
           <span className="hidden sm:inline">{copiedLink ? 'Copied Link!' : 'Invite'}</span>
         </button>
 
