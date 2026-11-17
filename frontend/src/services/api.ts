@@ -259,6 +259,31 @@ export const api = {
     return res.data;
   },
 
+  async getUserGithubRepos(githubToken: string): Promise<{
+    success: boolean;
+    user?: {
+      login: string;
+      name?: string;
+      avatarUrl?: string;
+      totalPrivateRepos?: number;
+    };
+    repos: Array<{
+      id: number;
+      name: string;
+      fullName: string;
+      htmlUrl: string;
+      private: boolean;
+      description?: string | null;
+      language?: string | null;
+      stars: number;
+      updatedAt: string;
+      defaultBranch?: string;
+    }>;
+  }> {
+    const res = await axios.post(`${API_BASE}/repository/user-repos`, { githubToken });
+    return res.data;
+  },
+
   async getLLMStatus(forceRefresh = false): Promise<{ hasKey: boolean; provider: string; model?: string }> {
     return dedupedGet<{ hasKey: boolean; provider: string; model?: string }>('/repository/llm-status', {
       ttlMs: 20000,
