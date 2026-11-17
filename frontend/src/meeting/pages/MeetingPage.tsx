@@ -850,7 +850,9 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             onAutoLayout={handleAutoLayout}
             remoteCursors={remoteCursors}
             onMouseMoveInCanvas={(x, y) => {
-              broadcastCursor(x, y);
+              if (role !== 'viewer' && canEdit) {
+                broadcastCursor(x, y);
+              }
             }}
             isDark={isDark}
             canEdit={canEdit}
