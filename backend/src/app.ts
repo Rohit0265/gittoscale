@@ -22,7 +22,7 @@ import chatRoute from './routes/chat.js';
 import telemetryRoute from './routes/telemetry.js';
 import feedRoute from './feed/feedRoutes.js';
 import adminRoute from './routes/admin.js';
-import collabRoute from './routes/collab.js';
+import meetingRoutes from './meeting/meetingRoutes.js';
 import { telemetryMiddleware } from './middleware/telemetry.js';
 
 import { loadEnvFiles } from './utils/env.js';
