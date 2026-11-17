@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import '@xyflow/react/dist/style.css';
 import {
   ReactFlow,
   Background,
   Controls,
+  ControlButton,
   MiniMap,
   BackgroundVariant,
   Node,
@@ -33,6 +34,7 @@ import {
   Power,
   Trash2,
   Zap,
+  LayoutGrid,
 } from 'lucide-react';
 
 interface ArchitectureCanvasProps {
@@ -63,6 +65,7 @@ interface ArchitectureCanvasProps {
   isRightCollapsed?: boolean;
   leftSidebarWidth?: number;
   rightSidebarWidth?: number;
+  onAutoLayout?: () => void;
 }
 
 const NodeFocusController: React.FC<{
@@ -73,8 +76,8 @@ const NodeFocusController: React.FC<{
   const { setCenter, fitView } = useReactFlow();
 
   // Re-fit canvas into view when switching between basic and detailed view modes
-  const prevViewModeRef = React.useRef(viewMode);
-  React.useEffect(() => {
+  const prevViewModeRef = useRef(viewMode);
+  useEffect(() => {
     if (prevViewModeRef.current !== viewMode) {
       prevViewModeRef.current = viewMode;
       const timer = setTimeout(() => {
@@ -85,9 +88,9 @@ const NodeFocusController: React.FC<{
   }, [viewMode, fitView]);
 
   // Automatically center & fit architecture whenever new nodes are generated or canvas hydrates from empty
-  const prevNodeCountRef = React.useRef<number>(nodes.length);
-  const prevNodeIdsRef = React.useRef<string>(nodes.map((n) => n.id).sort().join(','));
-  React.useEffect(() => {
+  const prevNodeCountRef = useRef<number>(nodes.length);
+  const prevNodeIdsRef = useRef<string>(nodes.map((n) => n.id).sort().join(','));
+  useEffect(() => {
     const currentIds = nodes.map((n) => n.id).sort().join(',');
     const wasEmpty = prevNodeCountRef.current === 0 && nodes.length > 0;
     const isMajorChange =
@@ -105,15 +108,20 @@ const NodeFocusController: React.FC<{
     }
   }, [nodes, fitView]);
 
-  React.useEffect(() => {
-    if (selectedNodeId) {
+  // Only smooth-center onto a node when the user explicitly selects a different node
+  const prevSelectedIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedNodeId && selectedNodeId !== prevSelectedIdRef.current) {
+      prevSelectedIdRef.current = selectedNodeId;
       const target = nodes.find((n) => n.id === selectedNodeId);
-      if (target) {
+      if (target && target.position) {
         setCenter(target.position.x + 128, target.position.y + 60, {
-          duration: 600,
-          zoom: 1.15,
+          duration: 500,
+          zoom: 1.1,
         });
       }
+    } else if (!selectedNodeId) {
+      prevSelectedIdRef.current = null;
     }
   }, [selectedNodeId, nodes, setCenter]);
 
@@ -156,6 +164,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   isRightCollapsed = false,
   leftSidebarWidth = 340,
   rightSidebarWidth = 360,
+  onAutoLayout,
 }) => {
   const [isLargeScreen, setIsLargeScreen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
