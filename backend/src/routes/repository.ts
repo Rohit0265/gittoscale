@@ -1,5 +1,6 @@
 import path from 'node:path';
 import os from 'node:os';
+import crypto from 'node:crypto';
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { buildStaticRepositoryInventory } from '../services/staticScanner.js';
@@ -7,8 +8,16 @@ import { analyzeArchitectureWithLLM } from '../services/architectureAnalyzer.js'
 import { convertAnalysisToArchitecture } from '../services/diagramGenerator.js';
 import { validateGraphAcyclic } from '../simulation/validation.js';
 import { validateSafeLlmBaseUrl } from '../utils/ssrfGuard.js';
+import { resolveUserFromRequest } from '../middleware/auth.js';
+import { checkAndIncrementAiUsage } from '../services/subscriptionService.js';
 
 const router = Router();
+
+function getClientIdentifier(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket.remoteAddress || 'guest';
+  return 'anon_' + crypto.createHash('md5').update(ip).digest('hex').substring(0, 16);
+}
 
 const analyzeSchema = z.object({
   localPath: z.string().optional(),
@@ -45,6 +54,21 @@ router.post('/analyze', async (req: Request, res: Response) => {
       return res.status(400).json({
         error: 'Missing Input',
         message: 'Please provide either a localPath or repoUrl.',
+      });
+    }
+
+    const user = await resolveUserFromRequest(req);
+    const userId = user?.id || getClientIdentifier(req);
+
+    const check = await checkAndIncrementAiUsage(userId);
+    if (!check.allowed) {
+      return res.status(403).json({
+        error: 'PLAN_LIMIT_REACHED',
+        message: 'You have reached your free plan limit. Upgrade your plan to continue using AI-powered architecture generation.',
+        upgradeUrl: '/payment',
+        plan: check.plan,
+        used: check.used,
+        limit: check.limit,
       });
     }
 
