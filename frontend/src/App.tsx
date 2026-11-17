@@ -374,10 +374,13 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const root = document.documentElement;
+    const meta = document.querySelector('meta[name="color-scheme"]');
     if (isDark) {
       root.classList.add('dark');
+      if (meta) meta.setAttribute('content', 'dark');
     } else {
       root.classList.remove('dark');
+      if (meta) meta.setAttribute('content', 'light');
     }
   }, [isDark]);
 
