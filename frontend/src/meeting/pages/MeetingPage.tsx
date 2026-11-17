@@ -3,7 +3,6 @@ import { ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import {
   Users,
   MessageSquare,
-  Layers,
   Info,
   Loader2,
   AlertTriangle,
