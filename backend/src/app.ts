@@ -90,7 +90,7 @@ export function createApp() {
   app.use('/api/telemetry', telemetryRoute);
   app.use('/api/feed', feedRoute);
   app.use('/api/admin', adminRoute);
-  app.use('/api/collab', collabRoute);
+  app.use('/api/meetings', meetingRoutes);
 
   // Serve uploaded media if present (in development or non-Vercel environments)
   const localUploadsPath = path.resolve(process.cwd(), 'uploads');

@@ -1,5 +1,5 @@
 import { createApp } from './app.js';
-import { initCollabSocketServer } from './collab/socketHandler.js';
+import { initMeetingSocketServer } from './meeting/yjsServer.js';
 
 import { execSync } from 'node:child_process';
 
