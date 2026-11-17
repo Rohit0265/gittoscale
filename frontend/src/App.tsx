@@ -92,6 +92,10 @@ const MeetingLandingPage = React.lazy(() =>
 const MeetingPage = React.lazy(() =>
   import('./meeting').then((m) => ({ default: m.MeetingPage }))
 );
+const PaymentPage = React.lazy(() =>
+  import('./components/payment/PaymentPage').then((m) => ({ default: m.PaymentPage }))
+);
+import { PlanLimitModal } from './components/payment/PlanLimitModal';
 import { StartMeetingModal } from './meeting';
 
 import {
