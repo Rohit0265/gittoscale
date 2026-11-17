@@ -88,7 +88,7 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
         {!createdMeeting ? (
           <form onSubmit={handleStart} className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
                 <Users className="w-5 h-5" />
               </div>
               <div>
@@ -116,7 +116,7 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Distributed Cache Design Review"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-xs text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-xs text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
                 maxLength={80}
               />
             </div>
@@ -127,7 +127,7 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
                   type="checkbox"
                   checked={includeArchitecture}
                   onChange={(e) => setIncludeArchitecture(e.target.checked)}
-                  className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
+                  className="mt-0.5 rounded text-neutral-900 focus:ring-neutral-500"
                 />
                 <div className="text-xs">
                   <span className="font-semibold text-slate-800 dark:text-neutral-200 block">
@@ -151,7 +151,7 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white shadow-sm transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 disabled:opacity-50 shadow-xs transition-all cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -208,7 +208,7 @@ export const StartMeetingModal: React.FC<StartMeetingModalProps> = ({
               <button
                 type="button"
                 onClick={handleEnter}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-all cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-neutral-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 shadow-md transition-all cursor-pointer"
               >
                 <span>Enter Meeting Room</span>
                 <ArrowRight className="w-4 h-4" />
