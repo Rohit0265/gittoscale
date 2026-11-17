@@ -86,12 +86,13 @@ const ProfilePage = React.lazy(() =>
 const AdminPage = React.lazy(() =>
   import('./components/admin/AdminPage').then((m) => ({ default: m.AdminPage }))
 );
-const CollabLandingPage = React.lazy(() =>
-  import('./components/collab/CollabLandingPage').then((m) => ({ default: m.CollabLandingPage }))
+const MeetingLandingPage = React.lazy(() =>
+  import('./meeting').then((m) => ({ default: m.MeetingLandingPage }))
 );
-const CollabPlayground = React.lazy(() =>
-  import('./components/collab/CollabPlayground').then((m) => ({ default: m.CollabPlayground }))
+const MeetingPage = React.lazy(() =>
+  import('./meeting').then((m) => ({ default: m.MeetingPage }))
 );
+import { StartMeetingModal } from './meeting';
 
 import {
   AppWorkspaceSkeleton,
