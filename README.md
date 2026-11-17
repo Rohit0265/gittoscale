@@ -448,9 +448,3 @@ npm test
 - ✅ **Repository Scanning**: Verified static manifest analysis across Docker Compose, Node, Go, Python, and Java codebases.
 - ✅ **Multi-Tier AI LLM Failover**: Verified seamless failover from Mercury-3 $\to$ Gemini $\to$ Groq $\to$ offline expert synthesizer.
 
----
-
-
-<p align="center">
-  Built with ❤️ for software architects and distributed systems engineers worldwide.
-</p>
