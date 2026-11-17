@@ -175,6 +175,7 @@ const isAppDomain = () => {
 export const getCollabMeetingId = (): string | null => {
   if (typeof window === 'undefined') return null;
   const match =
+    window.location.pathname.match(/\/meeting\/([a-zA-Z0-9_-]+)/i) ||
     window.location.pathname.match(/\/collab\/meeting\/([a-zA-Z0-9_-]+)/i) ||
     window.location.pathname.match(/\/collab\/([a-zA-Z0-9_-]+)/i);
   if (match && match[1] && match[1].toLowerCase() !== 'meeting') {
@@ -208,6 +209,7 @@ const isValidAppPath = (path: string): boolean => {
   if (path === '/' || path === '') return true;
   if (path === '/app' || path.startsWith('/app/')) return true;
   if (path === '/collab' || path.startsWith('/collab')) return true;
+  if (path === '/meeting' || path.startsWith('/meeting')) return true;
   if (path === '/feed' || path.startsWith('/feed')) return true;
   if (path === '/profile' || path.startsWith('/profile')) return true;
   if (path === '/admin' || path.startsWith('/admin')) return true;
@@ -251,8 +253,8 @@ const getInitialView = (): AppView => {
   if (isOAuthPopup()) return 'auth-callback';
   const path = window.location.pathname.toLowerCase();
   if (path === '/admin' || path.startsWith('/admin')) return 'admin';
-  if (path === '/collab') return 'collab-landing';
-  if (path.startsWith('/collab/')) {
+  if (path === '/collab' || path === '/meeting') return 'collab-landing';
+  if (path.startsWith('/collab/') || path.startsWith('/meeting/')) {
     const mId = getCollabMeetingId();
     if (mId) return 'collab-meeting';
     return 'collab-landing';
@@ -2007,7 +2009,7 @@ export const App: React.FC = () => {
             setLoading(false);
           }
         })();
-      } else if (action.type === 'collab') {
+      } else if (action.type === 'collab' || (action as any).type === 'meeting') {
         window.history.pushState({}, '', dest);
         setCurrentView('collab-meeting');
       }
@@ -2316,9 +2318,9 @@ export const App: React.FC = () => {
   if (currentView === 'collab-landing') {
     return (
       <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
-        <CollabLandingPage
-          onNavigateToMeeting={(meetingId) => {
-            window.history.pushState({}, '', `/collab/meeting/${meetingId}`);
+        <MeetingLandingPage
+          onJoinMeeting={(meetingId) => {
+            window.history.pushState({}, '', `/meeting/${meetingId}`);
             setCurrentView('collab-meeting');
           }}
           onGoHome={handleGoHome}
@@ -2327,7 +2329,6 @@ export const App: React.FC = () => {
             setCurrentView('signin');
           }}
           isDark={isDark}
-          onToggleTheme={handleToggleTheme}
         />
       </Suspense>
     );
@@ -2337,7 +2338,7 @@ export const App: React.FC = () => {
     const meetingId = getCollabMeetingId() || '';
     return (
       <Suspense fallback={<AppWorkspaceSkeleton isDark={isDark} />}>
-        <CollabPlayground
+        <MeetingPage
           meetingId={meetingId}
           onLeaveMeeting={() => {
             window.history.pushState({}, '', '/collab');
@@ -2346,12 +2347,6 @@ export const App: React.FC = () => {
           onOpenAuth={() => {
             window.history.pushState({}, '', '/signin');
             setCurrentView('signin');
-          }}
-          onOpenInNormalPlayground={(newNodes, newEdges) => {
-            setNodes(newNodes);
-            setEdges(newEdges);
-            window.history.pushState({}, '', '/app');
-            setCurrentView('simulator');
           }}
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
