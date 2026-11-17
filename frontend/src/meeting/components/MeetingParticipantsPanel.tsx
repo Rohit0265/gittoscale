@@ -122,28 +122,27 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
                   </div>
                 </div>
 
-                {/* Right: Host Actions (Cannot change own host role or kick self) */}
-                {isHost && !isMe && !isUserHost && (
-                  <div className="flex items-center gap-1 shrink-0">
-                    {/* Toggle Editor / Viewer Role */}
-                    <button
-                      onClick={() =>
-                        onSetRole?.(p.user_id, p.role === 'editor' ? 'viewer' : 'editor')
+                {/* Right: Host Actions (Host can assign Host, Editor, or Viewer roles; cannot change own role) */}
+                {isHost && !isMe && (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Role Dropdown: Host can promote to Host, Editor, or Viewer */}
+                    <select
+                      value={p.role}
+                      onChange={(e) =>
+                        onSetRole?.(p.user_id, e.target.value as MeetingRole)
                       }
-                      className={`px-2 py-1 rounded text-[10px] font-medium border transition-colors ${
-                        p.role === 'editor'
-                          ? 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-50'
-                          : 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
-                      }`}
-                      title={p.role === 'editor' ? 'Demote to Viewer' : 'Promote to Editor'}
+                      className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 hover:border-slate-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer shadow-2xs"
+                      title="Change participant role"
                     >
-                      {p.role === 'editor' ? 'Make Viewer' : 'Make Editor'}
-                    </button>
+                      <option value="host">👑 Host</option>
+                      <option value="editor">✏️ Editor</option>
+                      <option value="viewer">👁️ Viewer</option>
+                    </select>
 
                     {/* Kick Participant */}
                     <button
                       onClick={() => onKickParticipant?.(p.user_id)}
-                      className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                      className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                       title="Remove participant"
                     >
                       <UserX className="w-3.5 h-3.5" />
@@ -160,11 +159,11 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
       <div className="p-3 border-t border-slate-200 dark:border-neutral-800 text-[11px] text-slate-500 dark:text-neutral-400 bg-slate-50/50 dark:bg-neutral-900/30">
         {isHost ? (
           <p>
-            You are the <strong>Host</strong>. You can promote participants to <strong>Editor</strong> or restrict them to <strong>Viewer</strong>.
+            You are a <strong>Host</strong>. You can promote participants to <strong>Host</strong> or <strong>Editor</strong>, restrict them to <strong>Viewer</strong>, and invite collaborators.
           </p>
         ) : (
           <p>
-            Only the <strong>Host</strong> can grant editing permissions or lock the architecture.
+            Only <strong>Hosts</strong> can invite new participants, manage roles, or lock the architecture.
           </p>
         )}
       </div>
