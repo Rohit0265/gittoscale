@@ -207,6 +207,7 @@ export type AppView =
   | 'feed-profile'
   | 'collab-landing'
   | 'collab-meeting'
+  | 'payment'
   | 'admin';
 
 const isValidAppPath = (path: string): boolean => {
@@ -217,6 +218,7 @@ const isValidAppPath = (path: string): boolean => {
   if (path === '/feed' || path.startsWith('/feed')) return true;
   if (path === '/profile' || path.startsWith('/profile')) return true;
   if (path === '/admin' || path.startsWith('/admin')) return true;
+  if (path === '/payment' || path.startsWith('/payment') || path === '/pricing') return true;
   if (path === '/signup' || path === '/signin' || path === '/forgot-password') return true;
   if (path.startsWith('/auth')) return true;
   if (path === '/history') return true;
@@ -257,6 +259,7 @@ const getInitialView = (): AppView => {
   if (isOAuthPopup()) return 'auth-callback';
   const path = window.location.pathname.toLowerCase();
   if (path === '/admin' || path.startsWith('/admin')) return 'admin';
+  if (path === '/payment' || path.startsWith('/payment') || path === '/pricing') return 'payment';
   if (path === '/collab' || path === '/meeting') return 'collab-landing';
   if (path.startsWith('/collab/') || path.startsWith('/meeting/')) {
     const mId = getCollabMeetingId();
