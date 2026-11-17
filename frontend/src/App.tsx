@@ -2045,6 +2045,9 @@ export const App: React.FC = () => {
       } else if (action.type === 'collab' || (action as any).type === 'meeting') {
         window.history.pushState({}, '', dest);
         setCurrentView('collab-meeting');
+      } else if (action.type === 'payment') {
+        window.history.pushState({}, '', '/payment?action=checkout');
+        setCurrentView('payment');
       }
     }
   }, [user, pendingAction, clearPendingAction, handleGenerateFromPrompt, handleImportArchitecture]);
@@ -2344,6 +2347,26 @@ export const App: React.FC = () => {
     return (
       <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
         <AdminPage user={user} token={authToken} onNavigate={handleNavigate} isDark={isDark} />
+      </Suspense>
+    );
+  }
+
+  if (currentView === 'payment') {
+    return (
+      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+        <PaymentPage
+          onGoHome={handleGoHome}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          onOpenSignUp={() => {
+            window.history.pushState({}, '', '/signup');
+            setCurrentView('signup');
+          }}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+        />
       </Suspense>
     );
   }
