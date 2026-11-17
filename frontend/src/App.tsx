@@ -2351,6 +2351,28 @@ export const App: React.FC = () => {
           }}
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
+          onGoHome={handleGoHome}
+          onOpenSignUp={() => {
+            window.history.pushState({}, '', '/signup');
+            setCurrentView('signup');
+          }}
+          onOpenHistory={() => {
+            window.history.pushState({}, '', '/history');
+            setCurrentView('history');
+          }}
+          onNavigateToProfile={(profileUserId) => {
+            const targetUrl = user?.id && profileUserId === user.id ? '/profile' : `/feed/profile/${profileUserId}`;
+            window.history.pushState({}, '', targetUrl);
+            setCurrentView('feed-profile');
+          }}
+          onViewLikes={() => {
+            window.history.pushState({}, '', '/feed?filter=liked');
+            setCurrentView('feed');
+          }}
+          onViewSaved={() => {
+            window.history.pushState({}, '', '/feed?filter=saved');
+            setCurrentView('feed');
+          }}
         />
       </Suspense>
     );
