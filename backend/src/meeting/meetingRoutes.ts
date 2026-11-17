@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { checkAndIncrementMeetingUsage } from '../services/subscriptionService.js';
 import {
   createMeeting,
   getMeetingById,
@@ -44,6 +45,20 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
     const parsed = CreateMeetingSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ success: false, error: 'Invalid input', details: parsed.error.format() });
+      return;
+    }
+
+    const check = await checkAndIncrementMeetingUsage(user.id);
+    if (!check.allowed) {
+      res.status(403).json({
+        success: false,
+        error: 'PLAN_LIMIT_REACHED',
+        message: 'You have reached your free plan limit of 3 meetings. Upgrade your plan to continue hosting live collaborative meetings.',
+        upgradeUrl: '/payment',
+        plan: check.plan,
+        used: check.used,
+        limit: check.limit,
+      });
       return;
     }
 
