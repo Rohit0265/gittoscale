@@ -62,6 +62,7 @@ interface ArchitectureCanvasProps {
   isLeftCollapsed?: boolean;
   isRightCollapsed?: boolean;
   leftSidebarWidth?: number;
+  rightSidebarWidth?: number;
 }
 
 const NodeFocusController: React.FC<{
@@ -154,6 +155,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   isLeftCollapsed = false,
   isRightCollapsed = false,
   leftSidebarWidth = 340,
+  rightSidebarWidth = 360,
 }) => {
   const [isLargeScreen, setIsLargeScreen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
@@ -168,7 +170,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
   }, []);
 
   const controlsShiftX = isLargeScreen ? (isLeftCollapsed ? 0 : leftSidebarWidth + 16) : 0;
-  const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -368) : 0;
+  const minimapShiftX = isLargeScreen ? (isRightCollapsed ? 0 : -(rightSidebarWidth + 8)) : 0;
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
