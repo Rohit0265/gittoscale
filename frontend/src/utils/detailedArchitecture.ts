@@ -13,8 +13,8 @@ export function buildDetailedArchitecture(
   // Never wipe out the user's custom design with a generic hardcoded template.
   if (basicNodes && basicNodes.length > 0) {
     return {
-      nodes: JSON.parse(JSON.stringify(basicNodes)),
-      edges: JSON.parse(JSON.stringify(basicEdges || [])),
+      nodes: structuredClone(basicNodes),
+      edges: structuredClone(basicEdges || []),
     };
   }
 
