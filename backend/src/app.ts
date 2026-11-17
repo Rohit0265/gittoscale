@@ -23,6 +23,7 @@ import telemetryRoute from './routes/telemetry.js';
 import feedRoute from './feed/feedRoutes.js';
 import adminRoute from './routes/admin.js';
 import meetingRoutes from './meeting/meetingRoutes.js';
+import paymentRoute from './routes/payment.js';
 import { telemetryMiddleware } from './middleware/telemetry.js';
 
 import { loadEnvFiles } from './utils/env.js';
@@ -72,7 +73,14 @@ export function createApp() {
     })
   );
 
-  app.use(express.json({ limit: '15mb' }));
+  app.use(
+    express.json({
+      limit: '15mb',
+      verify: (req: any, _res: any, buf: Buffer) => {
+        req.rawBody = buf;
+      },
+    })
+  );
   app.use(express.urlencoded({ limit: '15mb', extended: true }));
   app.use(telemetryMiddleware);
 
@@ -91,6 +99,7 @@ export function createApp() {
   app.use('/api/feed', feedRoute);
   app.use('/api/admin', adminRoute);
   app.use('/api/meetings', meetingRoutes);
+  app.use('/api/payment', paymentRoute);
 
   // Serve uploaded media if present (in development or non-Vercel environments)
   const localUploadsPath = path.resolve(process.cwd(), 'uploads');
