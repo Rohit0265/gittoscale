@@ -20,9 +20,9 @@ interface MeetingHeaderProps {
   role: MeetingRole;
   isLocked: boolean;
   syncStatus: YjsSyncStatus;
-  participantCount: number;
-  onToggleParticipants: () => void;
-  isParticipantsOpen: boolean;
+  participantCount?: number;
+  onToggleParticipants?: () => void;
+  isParticipantsOpen?: boolean;
   onToggleLock?: (locked: boolean) => void;
   onLeaveMeeting: () => void;
   onEndMeeting?: () => void;
@@ -45,9 +45,6 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   role,
   isLocked,
   syncStatus,
-  participantCount,
-  onToggleParticipants,
-  isParticipantsOpen,
   onToggleLock,
   onLeaveMeeting,
   onEndMeeting,
