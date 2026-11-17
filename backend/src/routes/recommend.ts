@@ -1,13 +1,37 @@
+import crypto from 'node:crypto';
 import { Router, Request, Response } from 'express';
 import { recommenderInputSchema } from '../services/recommenderTypes.js';
 import { recommendArchitecture } from '../services/architectureRecommender.js';
 import { generateSystemDesignReport } from '../services/aiSystemDesignArchitect.js';
+import { resolveUserFromRequest } from '../middleware/auth.js';
+import { checkAndIncrementAiUsage } from '../services/subscriptionService.js';
 
 const router = Router();
+
+function getClientIdentifier(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket.remoteAddress || 'guest';
+  return 'anon_' + crypto.createHash('md5').update(ip).digest('hex').substring(0, 16);
+}
 
 // Endpoint for AI System Design Architect 7-Phase Report
 router.post('/design-report', async (req: Request, res: Response) => {
   try {
+    const user = await resolveUserFromRequest(req);
+    const userId = user?.id || getClientIdentifier(req);
+
+    const check = await checkAndIncrementAiUsage(userId);
+    if (!check.allowed) {
+      return res.status(403).json({
+        error: 'PLAN_LIMIT_REACHED',
+        message: 'You have reached your free plan limit. Upgrade your plan to continue using AI-powered architecture generation.',
+        upgradeUrl: '/payment',
+        plan: check.plan,
+        used: check.used,
+        limit: check.limit,
+      });
+    }
+
     const report = await generateSystemDesignReport(req.body);
     return res.json(report);
   } catch (err: any) {
@@ -30,6 +54,21 @@ router.post('/', async (req: Request, res: Response) => {
         error: 'Validation Error',
         message: 'Invalid request payload for architecture recommendation.',
         details: parseResult.error.format(),
+      });
+    }
+
+    const user = await resolveUserFromRequest(req);
+    const userId = user?.id || getClientIdentifier(req);
+
+    const check = await checkAndIncrementAiUsage(userId);
+    if (!check.allowed) {
+      return res.status(403).json({
+        error: 'PLAN_LIMIT_REACHED',
+        message: 'You have reached your free plan limit. Upgrade your plan to continue using AI-powered architecture generation.',
+        upgradeUrl: '/payment',
+        plan: check.plan,
+        used: check.used,
+        limit: check.limit,
       });
     }
 
@@ -68,4 +107,3 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 export default router;
-
