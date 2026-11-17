@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Loader2, Send, Sparkles, AlertTriangle, Check, Wand2 } from 'lucide-react';
+import { Loader2, ArrowUp, Sparkles, AlertTriangle, Check, Wand2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { api } from '../../services/api';
@@ -260,7 +260,7 @@ export const MeetingAIPanel: React.FC<MeetingAIPanelProps> = ({
           className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white transition-all cursor-pointer shrink-0"
           title="Ask AI (Enter)"
         >
-          {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUp className="w-4 h-4" />}
         </button>
       </form>
     </div>
