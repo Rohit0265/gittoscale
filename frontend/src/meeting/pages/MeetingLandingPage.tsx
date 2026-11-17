@@ -93,7 +93,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#040404] text-slate-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#040404] text-slate-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-neutral-800 selection:text-white">
       {/* Top Bar */}
       <header className="h-16 border-b border-slate-200 dark:border-neutral-900 px-6 sm:px-12 flex items-center justify-between">
         <button
@@ -118,7 +118,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
       {/* Hero Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-20 flex flex-col items-center text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 text-xs font-semibold mb-6 shadow-2xs">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-semibold mb-6 shadow-2xs">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Real-Time Collaborative Architecture (Yjs Powered)</span>
         </div>
