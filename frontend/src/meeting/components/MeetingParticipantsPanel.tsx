@@ -1,18 +1,16 @@
 import React from 'react';
 import {
-  Users,
   Shield,
   Edit3,
   Eye,
   UserX,
-  X,
   Sparkles,
 } from 'lucide-react';
 import { MeetingParticipant, MeetingRole, ParticipantPresence } from '../types';
 
 interface MeetingParticipantsPanelProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   participants: MeetingParticipant[];
   presences: ParticipantPresence[];
   currentUserId?: string;
@@ -23,7 +21,6 @@ interface MeetingParticipantsPanelProps {
 
 export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> = ({
   isOpen,
-  onClose,
   participants,
   presences,
   currentUserId,
@@ -38,24 +35,7 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
   presences.forEach((p) => presenceMap.set(p.userId, p));
 
   return (
-    <aside className="w-72 sm:w-80 h-full border-l border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#080808] flex flex-col z-30 shrink-0 select-none transition-colors">
-      {/* Panel Header */}
-      <div className="h-12 border-b border-slate-200 dark:border-neutral-800 px-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-          <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
-            Participants ({participants.length})
-          </span>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
-          title="Close panel"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
+    <div className="h-full flex flex-col overflow-hidden select-none transition-colors">
       {/* Participants List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {participants.length === 0 ? (
@@ -188,6 +168,6 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
           </p>
         )}
       </div>
-    </aside>
+    </div>
   );
 };

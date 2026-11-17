@@ -41,7 +41,6 @@ interface InnerMeetingCanvasProps {
   onMouseMoveInCanvas: (x: number, y: number) => void;
   isDark: boolean;
   canEdit: boolean;
-  isLeftCollapsed: boolean;
   isRightCollapsed: boolean;
 }
 
@@ -61,7 +60,6 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
   onMouseMoveInCanvas,
   isDark,
   canEdit,
-  isLeftCollapsed,
   isRightCollapsed,
 }) => {
   const { screenToFlowPosition } = useReactFlow();
@@ -97,9 +95,9 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
         onDuplicateNode={canEdit ? onDuplicateNode : undefined}
         isDark={isDark}
         viewMode="detailed"
-        isLeftCollapsed={isLeftCollapsed}
+        isLeftCollapsed={true}
         isRightCollapsed={isRightCollapsed}
-        leftSidebarWidth={isLeftCollapsed ? 0 : 320}
+        leftSidebarWidth={0}
       />
       <LiveCursorOverlay cursors={remoteCursors} />
     </div>
@@ -626,7 +624,6 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             }}
             isDark={isDark}
             canEdit={canEdit}
-            isLeftCollapsed={!isSidebarOpen}
             isRightCollapsed={isRightCollapsed}
           />
         </ReactFlowProvider>
@@ -660,12 +657,12 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           </aside>
         </div>
 
-        {/* Floating Feedback Button */}
+        {/* Floating Feedback Button (floats smoothly on top of MiniMap playground) */}
         <FloatingFeedbackButton
           className={
             isRightCollapsed
-              ? 'bottom-5 right-5 sm:bottom-6 sm:right-6'
-              : 'bottom-5 right-5 sm:bottom-6 sm:right-[380px]'
+              ? 'bottom-5 right-5 sm:bottom-[180px] sm:right-6'
+              : 'bottom-5 right-5 sm:bottom-[180px] sm:right-[384px]'
           }
         />
       </div>
