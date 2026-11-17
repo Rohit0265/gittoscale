@@ -406,6 +406,254 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, [loadProfile]);
 
+  const connectGithubForRepoScan = useCallback((): Promise<{ error: Error | null; token?: string }> => {
+    return new Promise((resolve) => {
+      const W = 480;
+      const H = 600;
+      const left = Math.max(0, window.screenX + (window.outerWidth - W) / 2);
+      const top  = Math.max(0, window.screenY + (window.outerHeight - H) / 2);
+      const features = `width=${W},height=${H},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+
+      try {
+        sessionStorage.setItem('gts_connecting_github_only', 'true');
+      } catch {}
+
+      if (!isSupabaseConfigured) {
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Connect GitHub – Scan Repositories</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+    .card{width:100%;max-width:396px;border:1px solid #dadce0;border-radius:12px;padding:32px 28px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+    .logo{margin-bottom:14px;display:flex;justify-content:center}
+    h1{font-size:20px;font-weight:600;color:#202124;margin-bottom:6px}
+    .sub{font-size:13px;color:#5f6368;margin-bottom:20px;line-height:1.4}
+    .item{display:flex;align-items:center;padding:12px 14px;cursor:pointer;border-radius:8px;border:1px solid #e0e0e0;transition:all .12s;text-align:left;width:100%;background:#fafafa;margin-bottom:8px}
+    .item:hover{background:#f0f4f9;border-color:#1a73e8}
+    .avatar{width:36px;height:36px;border-radius:50%;background:#24292f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;margin-right:12px;flex-shrink:0}
+    .info .name{font-size:14px;color:#202124;font-weight:600}
+    .info .desc{font-size:12px;color:#5f6368;margin-top:1px}
+    .notice{font-size:11px;color:#80868b;margin-top:16px;line-height:1.4}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="#24292f"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    </div>
+    <h1>Connect GitHub</h1>
+    <p class="sub">Grant repository access to scan public & private architectures. Your existing user profile remains untouched.</p>
+    <button class="item" onclick="choose('octocat-dev')">
+      <div class="avatar">GH</div>
+      <div class="info">
+        <div class="name">@octocat-dev</div>
+        <div class="desc">Authorize all repositories (private + public)</div>
+      </div>
+    </button>
+    <div class="notice">
+      🔒 Scopes: <code>repo read:user</code><br/>
+      Your current login account remains unchanged.
+    </div>
+  </div>
+  <script>
+    function choose(login) {
+      const token = 'mock_gh_token_' + login + '_' + Date.now();
+      const payload = { type: 'GTS_GITHUB_CONNECT_DONE', token, login };
+      try {
+        if (window.opener) {
+          window.opener.postMessage(payload, '*');
+        }
+      } catch(e) {}
+      try {
+        new BroadcastChannel('gts_oauth_channel').postMessage(payload);
+      } catch(e) {}
+      try {
+        localStorage.setItem('gts_github_token', token);
+      } catch(e) {}
+      setTimeout(function() { window.close(); }, 150);
+    }
+  </script>
+</body>
+</html>`;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+        const popup = window.open(blobUrl, 'github_connect_scan', features);
+
+        let timer: ReturnType<typeof setInterval>;
+        let isDone = false;
+
+        const handleConnectDone = (token: string) => {
+          if (isDone) return;
+          isDone = true;
+          cleanup();
+          try {
+            sessionStorage.removeItem('gts_connecting_github_only');
+            localStorage.setItem('gts_github_token', token);
+          } catch {}
+          if (popup && !popup.closed) {
+            try { popup.close(); } catch {}
+          }
+          // IMPORTANT: DOES NOT TOUCH user, profile, OR session!
+          resolve({ error: null, token });
+        };
+
+        const unlisten = listenOAuthMessage((msg) => {
+          if (msg.type === 'GTS_GITHUB_CONNECT_DONE' && msg.token) {
+            handleConnectDone(msg.token);
+          }
+        });
+
+        const cleanup = () => {
+          clearInterval(timer);
+          unlisten();
+          URL.revokeObjectURL(blobUrl);
+        };
+
+        timer = setInterval(() => {
+          if (popup && popup.closed) {
+            cleanup();
+            if (!isDone) {
+              const saved = localStorage.getItem('gts_github_token');
+              if (saved) {
+                resolve({ error: null, token: saved });
+              } else {
+                resolve({ error: new Error('GitHub connection was cancelled') });
+              }
+            }
+          }
+        }, 400);
+        return;
+      }
+
+      // If Supabase IS configured:
+      (async () => {
+        try {
+          const redirectUrl = `${window.location.origin}/auth/callback?popup=true`;
+          let authUrl = '';
+          if (user) {
+            const { data, error } = await supabase.auth.linkIdentity({
+              provider: 'github',
+              options: {
+                redirectTo: redirectUrl,
+                scopes: 'repo read:user',
+              },
+            });
+            if (error || !data?.url) {
+              const { data: fallbackData, error: fallbackError } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                  redirectTo: redirectUrl,
+                  skipBrowserRedirect: true,
+                  scopes: 'repo read:user',
+                },
+              });
+              if (fallbackError || !fallbackData?.url) {
+                resolve({ error: fallbackError || error || new Error('No OAuth URL returned') });
+                return;
+              }
+              authUrl = fallbackData.url;
+            } else {
+              authUrl = data.url;
+            }
+          } else {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+              provider: 'github',
+              options: {
+                redirectTo: redirectUrl,
+                skipBrowserRedirect: true,
+                scopes: 'repo read:user',
+              },
+            });
+            if (error || !data?.url) {
+              resolve({ error: error || new Error('No OAuth URL returned') });
+              return;
+            }
+            authUrl = data.url;
+          }
+
+          const popup = window.open(authUrl, 'github_oauth_scan', features);
+          if (!popup) {
+            window.location.href = authUrl;
+            resolve({ error: null });
+            return;
+          }
+
+          let timer: ReturnType<typeof setInterval>;
+          let isResolved = false;
+
+          const handleAuthSuccess = async (sessionData: any) => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+
+            if (popup && !popup.closed) {
+              try { popup.close(); } catch {}
+            }
+
+            try {
+              sessionStorage.removeItem('gts_connecting_github_only');
+            } catch {}
+
+            const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;
+            const capturedToken = (curSession as any)?.provider_token || localStorage.getItem('gts_github_token') || undefined;
+
+            if (capturedToken) {
+              try {
+                localStorage.setItem('gts_github_token', capturedToken);
+              } catch {}
+            }
+
+            // CRITICAL: If the user was already logged in (e.g. Google), DO NOT overwrite user/profile!
+            resolve({ error: null, token: capturedToken });
+          };
+
+          const handleAuthError = (errMessage?: string) => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+            if (popup && !popup.closed) {
+              try { popup.close(); } catch {}
+            }
+            resolve({ error: new Error(errMessage || 'GitHub authentication failed') });
+          };
+
+          const unlisten = listenOAuthMessage((msg) => {
+            if (msg.type === 'GTS_OAUTH_SUCCESS') {
+              handleAuthSuccess(msg);
+            } else if (msg.type === 'GTS_OAUTH_ERROR') {
+              handleAuthError(msg.error);
+            }
+          });
+
+          const cleanup = () => {
+            clearInterval(timer);
+            unlisten();
+          };
+
+          timer = setInterval(() => {
+            if (popup.closed) {
+              cleanup();
+              if (!isResolved) {
+                const token = localStorage.getItem('gts_github_token');
+                if (token) {
+                  resolve({ error: null, token });
+                } else {
+                  resolve({ error: new Error('GitHub connection cancelled') });
+                }
+              }
+            }
+          }, 400);
+        } catch (err: any) {
+          resolve({ error: err });
+        }
+      })();
+    });
+  }, [user]);
+
 
 
 
@@ -524,6 +772,254 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (subscription) subscription.unsubscribe();
     };
   }, [loadProfile]);
+
+  const connectGithubForRepoScan = useCallback((): Promise<{ error: Error | null; token?: string }> => {
+    return new Promise((resolve) => {
+      const W = 480;
+      const H = 600;
+      const left = Math.max(0, window.screenX + (window.outerWidth - W) / 2);
+      const top  = Math.max(0, window.screenY + (window.outerHeight - H) / 2);
+      const features = `width=${W},height=${H},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+
+      try {
+        sessionStorage.setItem('gts_connecting_github_only', 'true');
+      } catch {}
+
+      if (!isSupabaseConfigured) {
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Connect GitHub – Scan Repositories</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+    .card{width:100%;max-width:396px;border:1px solid #dadce0;border-radius:12px;padding:32px 28px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+    .logo{margin-bottom:14px;display:flex;justify-content:center}
+    h1{font-size:20px;font-weight:600;color:#202124;margin-bottom:6px}
+    .sub{font-size:13px;color:#5f6368;margin-bottom:20px;line-height:1.4}
+    .item{display:flex;align-items:center;padding:12px 14px;cursor:pointer;border-radius:8px;border:1px solid #e0e0e0;transition:all .12s;text-align:left;width:100%;background:#fafafa;margin-bottom:8px}
+    .item:hover{background:#f0f4f9;border-color:#1a73e8}
+    .avatar{width:36px;height:36px;border-radius:50%;background:#24292f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;margin-right:12px;flex-shrink:0}
+    .info .name{font-size:14px;color:#202124;font-weight:600}
+    .info .desc{font-size:12px;color:#5f6368;margin-top:1px}
+    .notice{font-size:11px;color:#80868b;margin-top:16px;line-height:1.4}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="#24292f"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    </div>
+    <h1>Connect GitHub</h1>
+    <p class="sub">Grant repository access to scan public & private architectures. Your existing user profile remains untouched.</p>
+    <button class="item" onclick="choose('octocat-dev')">
+      <div class="avatar">GH</div>
+      <div class="info">
+        <div class="name">@octocat-dev</div>
+        <div class="desc">Authorize all repositories (private + public)</div>
+      </div>
+    </button>
+    <div class="notice">
+      🔒 Scopes: <code>repo read:user</code><br/>
+      Your current login account remains unchanged.
+    </div>
+  </div>
+  <script>
+    function choose(login) {
+      const token = 'mock_gh_token_' + login + '_' + Date.now();
+      const payload = { type: 'GTS_GITHUB_CONNECT_DONE', token, login };
+      try {
+        if (window.opener) {
+          window.opener.postMessage(payload, '*');
+        }
+      } catch(e) {}
+      try {
+        new BroadcastChannel('gts_oauth_channel').postMessage(payload);
+      } catch(e) {}
+      try {
+        localStorage.setItem('gts_github_token', token);
+      } catch(e) {}
+      setTimeout(function() { window.close(); }, 150);
+    }
+  </script>
+</body>
+</html>`;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+        const popup = window.open(blobUrl, 'github_connect_scan', features);
+
+        let timer: ReturnType<typeof setInterval>;
+        let isDone = false;
+
+        const handleConnectDone = (token: string) => {
+          if (isDone) return;
+          isDone = true;
+          cleanup();
+          try {
+            sessionStorage.removeItem('gts_connecting_github_only');
+            localStorage.setItem('gts_github_token', token);
+          } catch {}
+          if (popup && !popup.closed) {
+            try { popup.close(); } catch {}
+          }
+          // IMPORTANT: DOES NOT TOUCH user, profile, OR session!
+          resolve({ error: null, token });
+        };
+
+        const unlisten = listenOAuthMessage((msg) => {
+          if (msg.type === 'GTS_GITHUB_CONNECT_DONE' && msg.token) {
+            handleConnectDone(msg.token);
+          }
+        });
+
+        const cleanup = () => {
+          clearInterval(timer);
+          unlisten();
+          URL.revokeObjectURL(blobUrl);
+        };
+
+        timer = setInterval(() => {
+          if (popup && popup.closed) {
+            cleanup();
+            if (!isDone) {
+              const saved = localStorage.getItem('gts_github_token');
+              if (saved) {
+                resolve({ error: null, token: saved });
+              } else {
+                resolve({ error: new Error('GitHub connection was cancelled') });
+              }
+            }
+          }
+        }, 400);
+        return;
+      }
+
+      // If Supabase IS configured:
+      (async () => {
+        try {
+          const redirectUrl = `${window.location.origin}/auth/callback?popup=true`;
+          let authUrl = '';
+          if (user) {
+            const { data, error } = await supabase.auth.linkIdentity({
+              provider: 'github',
+              options: {
+                redirectTo: redirectUrl,
+                scopes: 'repo read:user',
+              },
+            });
+            if (error || !data?.url) {
+              const { data: fallbackData, error: fallbackError } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                  redirectTo: redirectUrl,
+                  skipBrowserRedirect: true,
+                  scopes: 'repo read:user',
+                },
+              });
+              if (fallbackError || !fallbackData?.url) {
+                resolve({ error: fallbackError || error || new Error('No OAuth URL returned') });
+                return;
+              }
+              authUrl = fallbackData.url;
+            } else {
+              authUrl = data.url;
+            }
+          } else {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+              provider: 'github',
+              options: {
+                redirectTo: redirectUrl,
+                skipBrowserRedirect: true,
+                scopes: 'repo read:user',
+              },
+            });
+            if (error || !data?.url) {
+              resolve({ error: error || new Error('No OAuth URL returned') });
+              return;
+            }
+            authUrl = data.url;
+          }
+
+          const popup = window.open(authUrl, 'github_oauth_scan', features);
+          if (!popup) {
+            window.location.href = authUrl;
+            resolve({ error: null });
+            return;
+          }
+
+          let timer: ReturnType<typeof setInterval>;
+          let isResolved = false;
+
+          const handleAuthSuccess = async (sessionData: any) => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+
+            if (popup && !popup.closed) {
+              try { popup.close(); } catch {}
+            }
+
+            try {
+              sessionStorage.removeItem('gts_connecting_github_only');
+            } catch {}
+
+            const curSession = sessionData?.session || (await supabase.auth.getSession()).data.session;
+            const capturedToken = (curSession as any)?.provider_token || localStorage.getItem('gts_github_token') || undefined;
+
+            if (capturedToken) {
+              try {
+                localStorage.setItem('gts_github_token', capturedToken);
+              } catch {}
+            }
+
+            // CRITICAL: If the user was already logged in (e.g. Google), DO NOT overwrite user/profile!
+            resolve({ error: null, token: capturedToken });
+          };
+
+          const handleAuthError = (errMessage?: string) => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+            if (popup && !popup.closed) {
+              try { popup.close(); } catch {}
+            }
+            resolve({ error: new Error(errMessage || 'GitHub authentication failed') });
+          };
+
+          const unlisten = listenOAuthMessage((msg) => {
+            if (msg.type === 'GTS_OAUTH_SUCCESS') {
+              handleAuthSuccess(msg);
+            } else if (msg.type === 'GTS_OAUTH_ERROR') {
+              handleAuthError(msg.error);
+            }
+          });
+
+          const cleanup = () => {
+            clearInterval(timer);
+            unlisten();
+          };
+
+          timer = setInterval(() => {
+            if (popup.closed) {
+              cleanup();
+              if (!isResolved) {
+                const token = localStorage.getItem('gts_github_token');
+                if (token) {
+                  resolve({ error: null, token });
+                } else {
+                  resolve({ error: new Error('GitHub connection cancelled') });
+                }
+              }
+            }
+          }, 400);
+        } catch (err: any) {
+          resolve({ error: err });
+        }
+      })();
+    });
+  }, [user]);
 
   // Sign up
   const signUp = useCallback(
@@ -912,6 +1408,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUp,
         signIn,
         signInWithOAuth,
+        connectGithubForRepoScan,
         signOut,
         resetPassword,
         updatePassword,
