@@ -18,6 +18,53 @@ const API_BASE = CLEAN_URL
 // Safe default timeout (60 seconds) to allow multi-tier LLM generation & prevent premature aborts
 axios.defaults.timeout = 60000;
 
+export function getStoredAuthToken(): string | null {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('sb-') || key.includes('-auth-token'))) {
+        const item = localStorage.getItem(key);
+        if (item) {
+          const parsed = JSON.parse(item);
+          if (parsed?.access_token) return parsed.access_token;
+        }
+      }
+    }
+    const mockUser = localStorage.getItem('gitoscale_mock_user');
+    if (mockUser) {
+      const u = JSON.parse(mockUser);
+      return `mock_jwt_${btoa(JSON.stringify({ id: u.id, email: u.email, name: u.fullName }))}`;
+    }
+  } catch {}
+  return null;
+}
+
+axios.interceptors.request.use((config) => {
+  if (!config.headers.Authorization) {
+    const token = getStoredAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 403 && error.response?.data?.error === 'PLAN_LIMIT_REACHED') {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('gitoscale:plan_limit', {
+            detail: error.response.data,
+          })
+        );
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // =========================================================================
 // In-Flight Request Deduplication & Cache Layer
 // Prevents duplicate concurrent API calls, race conditions, and double-fetching
@@ -709,5 +756,72 @@ export const api = {
       return null;
     }
   },
+
+  async getPaymentStatus(token?: string | null): Promise<SubscriptionStatusResponse> {
+    const authToken = token || getStoredAuthToken();
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+    const res = await axios.get(`${API_BASE}/payment/status`, { headers });
+    return res.data;
+  },
+
+  async createCheckoutSession(token?: string | null): Promise<CreateCheckoutResponse> {
+    const authToken = token || getStoredAuthToken();
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+    const res = await axios.post(`${API_BASE}/payment/create-checkout`, {}, { headers });
+    return res.data;
+  },
+
+  async completeMockCheckout(userId?: string, token?: string | null): Promise<{ success: boolean; plan: string }> {
+    const authToken = token || getStoredAuthToken();
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+    const res = await axios.post(`${API_BASE}/payment/mock-complete`, { userId }, { headers });
+    return res.data;
+  },
 };
+
+export interface SubscriptionStatusResponse {
+  success: boolean;
+  userId: string;
+  isAuthenticated: boolean;
+  plan: 'free' | 'pro';
+  subscriptionStatus: string;
+  limits: {
+    aiGenerations: {
+      used: number;
+      limit: number | null;
+      remaining: number | null;
+    };
+    meetings: {
+      used: number;
+      limit: number | null;
+      remaining: number | null;
+    };
+    manualEditing: {
+      limit: null;
+      unlimited: true;
+    };
+  };
+  subscription: {
+    polarCustomerId: string | null;
+    polarSubscriptionId: string | null;
+    startDate: string | null;
+    expirationDate: string | null;
+  };
+  product: {
+    id: string;
+    name: string;
+    price: string;
+    interval: string;
+    currency: string;
+    description: string;
+    features: string[];
+  };
+}
+
+export interface CreateCheckoutResponse {
+  success: boolean;
+  url: string;
+  checkoutId?: string;
+  isMock?: boolean;
+}
 
