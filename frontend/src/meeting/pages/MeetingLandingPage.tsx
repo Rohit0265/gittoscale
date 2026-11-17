@@ -26,6 +26,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [isLimitReached, setIsLimitReached] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
 
   const handleCreateMeeting = async () => {
@@ -36,6 +37,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
     setIsCreating(true);
     setCreateError(null);
+    setIsLimitReached(false);
 
     try {
       const token = await getAuthToken();
@@ -49,7 +51,15 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
       onJoinMeeting(meeting.id);
     } catch (err: any) {
-      setCreateError(err?.response?.data?.error || err?.message || 'Failed to create meeting.');
+      if (err?.response?.data?.error === 'PLAN_LIMIT_REACHED') {
+        setIsLimitReached(true);
+        setCreateError(
+          err.response.data.message ||
+            'You have reached your free plan limit of 3 meetings. Upgrade your plan to continue hosting live collaborative meetings.'
+        );
+      } else {
+        setCreateError(err?.response?.data?.error || err?.message || 'Failed to create meeting.');
+      }
     } finally {
       setIsCreating(false);
     }
