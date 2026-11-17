@@ -2605,6 +2605,7 @@ export const App: React.FC = () => {
         saveStatus={saveStatus}
         lastSaved={lastSaved}
         onForceSync={forceSyncNow}
+        onStartMeeting={() => setIsStartMeetingModalOpen(true)}
         onShareToFeed={async (snapshotDataUrl) => {
           try {
             const res = await fetch(snapshotDataUrl);
