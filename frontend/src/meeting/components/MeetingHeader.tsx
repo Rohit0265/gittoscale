@@ -6,9 +6,6 @@ import {
   Unlock,
   PhoneOff,
   LogOut,
-  Users,
-  Sun,
-  Moon,
   ChevronDown,
   User,
 } from 'lucide-react';
@@ -188,31 +185,6 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
             title={isLocked ? 'Unlock Canvas for Editors' : 'Lock Canvas (Freeze Edits)'}
           >
             {isLocked ? <Lock className="w-4 h-4 text-rose-500" /> : <Unlock className="w-4 h-4" />}
-          </button>
-        )}
-
-        {/* Participants Panel Toggle */}
-        <button
-          onClick={onToggleParticipants}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-            isParticipantsOpen
-              ? 'bg-slate-200 dark:bg-neutral-800 border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white'
-              : 'bg-slate-100 dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-200 dark:hover:bg-neutral-800'
-          }`}
-          title="Toggle Participants Panel"
-        >
-          <Users className="w-3.5 h-3.5" />
-          <span>{participantCount}</span>
-        </button>
-
-        {/* Theme Toggle */}
-        {onToggleTheme && (
-          <button
-            onClick={onToggleTheme}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
         )}
 
