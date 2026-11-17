@@ -19,6 +19,7 @@ import {
   GitBranch,
   ExternalLink,
   Users,
+  Radio,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture, ArchitectureNode, ArchitectureEdge, SimulationResult } from '../types';
