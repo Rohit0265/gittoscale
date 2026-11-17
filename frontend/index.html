@@ -3,16 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
     <title>GitToScale — Turn Code into Interactive System Architectures & Capacity Simulations</title>
 
     <!-- Theme initialization (Defaults to dark mode) -->
     <script>
       try {
         var theme = localStorage.getItem('gitoscale-theme');
+        var meta = document.querySelector('meta[name="color-scheme"]');
         if (theme === 'light') {
           document.documentElement.classList.remove('dark');
+          if (meta) meta.content = 'light';
         } else {
           document.documentElement.classList.add('dark');
+          if (meta) meta.content = 'dark';
         }
       } catch (e) {
         document.documentElement.classList.add('dark');
