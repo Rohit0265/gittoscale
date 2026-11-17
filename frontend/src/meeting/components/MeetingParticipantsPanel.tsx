@@ -95,8 +95,10 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
                     )}
                     {/* Online Presence Dot */}
                     <span
-                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-neutral-900"
-                      title="Online"
+                      className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-neutral-900 ${
+                        presence ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-neutral-600'
+                      }`}
+                      title={presence ? 'Online' : 'Offline'}
                     />
                   </div>
 

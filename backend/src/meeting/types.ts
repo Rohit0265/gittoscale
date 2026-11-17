@@ -44,3 +44,16 @@ export interface ParticipantPresence {
   selectedNodeId?: string | null;
   lastActive: number;
 }
+
+export type MeetingMessageType = 'chat' | 'system' | 'ai';
+
+export interface MeetingChatMessage {
+  id: string;
+  meeting_id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar?: string | null;
+  content: string;
+  message_type: MeetingMessageType;
+  created_at: string;
+}
