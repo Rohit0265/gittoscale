@@ -28,8 +28,8 @@ function startServer() {
     console.log(`[Backend] System Design Playground API listening on http://0.0.0.0:${PORT}`);
   });
 
-  // Attach real-time collaborative Socket.IO server
-  initCollabSocketServer(server);
+  // Attach real-time collaborative Yjs / Socket.IO meeting server
+  initMeetingSocketServer(server);
 
   server.on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') {
