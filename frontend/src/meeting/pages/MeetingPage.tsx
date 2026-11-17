@@ -8,7 +8,6 @@ import {
   Loader2,
   AlertTriangle,
   ArrowLeft,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArchitectureCanvas } from '../../components/Canvas/ArchitectureCanvas';
@@ -292,25 +291,22 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
 
   const handleAddNode = (type: ComponentType, name: string) => {
     if (!canEdit) return;
+    const newId = `${type}-${Date.now().toString().slice(-4)}`;
     const newNode: ArchitectureNode = {
-      id: `node-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      type: 'custom',
+      id: newId,
+      name: name || type,
+      type,
       position: {
         x: 350 + (nodes.length % 5) * 40,
         y: 200 + (nodes.length % 5) * 40,
       },
-      data: {
-        label: name || type,
-        type,
-        tier: 'service',
-        isExternal: false,
-        specs: {
-          instances: 1,
-          cpuPerInstance: 2,
-          memoryPerInstance: 4,
-          storagePerInstance: 50,
-          networkBandwidth: 1000,
-        },
+      capacityPerSecond: type === 'database' ? 600 : type === 'cache' ? 2500 : 800,
+      workerCount: 2,
+      enabled: true,
+      config: {
+        baselineLatencyMs: type === 'database' ? 30 : type === 'cache' ? 2 : 15,
+        maxQueueSize: 2000,
+        overflowPolicy: 'reject',
       },
     };
     updateNodes([...nodes, newNode]);
@@ -339,39 +335,33 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     if (!canEdit) return;
     const dup: ArchitectureNode = {
       ...nodeToDup,
-      id: `node-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id: `${nodeToDup.type}-${Date.now().toString().slice(-4)}`,
+      name: `${nodeToDup.name} (Copy)`,
       position: {
         x: nodeToDup.position.x + 40,
         y: nodeToDup.position.y + 40,
-      },
-      data: {
-        ...nodeToDup.data,
-        label: `${nodeToDup.data.label} (Copy)`,
       },
     };
     updateNodes([...nodes, dup]);
     setSelectedNodeId(dup.id);
   };
 
-  const handleAddEdge = (connection: any) => {
+  const handleAddEdge = (newEdge: any) => {
     if (!canEdit) return;
-    if (!connection.source || !connection.target || connection.source === connection.target) return;
-    const edgeId = `edge-${connection.source}-${connection.target}`;
+    if (!newEdge.source || !newEdge.target || newEdge.source === newEdge.target) return;
+    const edgeId = newEdge.id || `edge-${newEdge.source}-${newEdge.target}`;
     if (edges.some((e) => e.id === edgeId)) return;
 
-    const newEdge: ArchitectureEdge = {
+    const edgeWithDefaults: ArchitectureEdge = {
       id: edgeId,
-      source: connection.source,
-      target: connection.target,
-      type: 'custom',
-      animated: true,
-      data: {
-        protocol: 'HTTP/REST',
-        isSync: true,
-        multiplier: 1.0,
-      },
+      source: newEdge.source,
+      target: newEdge.target,
+      requestsPerInput: 1,
+      enabled: true,
+      isBidirectional: true,
+      ...newEdge,
     };
-    updateEdges([...edges, newEdge]);
+    updateEdges([...edges, edgeWithDefaults]);
   };
 
   const handleToggleEdge = (edgeId: string) => {
@@ -393,10 +383,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
       if (e.id === edgeId) {
         return {
           ...e,
-          data: {
-            ...e.data,
-            multiplier,
-          },
+          requestsPerInput: multiplier,
         };
       }
       return e;
