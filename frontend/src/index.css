@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light dark;
   --bg-app: #f8fafc;
   --surface-card: #ffffff;
   --surface-subtle: #f1f5f9;
@@ -14,9 +15,21 @@
   --text-muted: #64748b;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-track: #f1f5f9;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
 }
 
 .dark {
+  color-scheme: dark;
   --bg-app: #020202;
   --surface-card: #0A0A0A;
   --surface-subtle: #141414;
@@ -28,6 +41,9 @@
   --text-muted: #71717a;
   --accent: #6366f1;
   --accent-hover: #4f46e5;
+  --scrollbar-thumb: #262626;
+  --scrollbar-track: #0a0a0a;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 @layer base {
