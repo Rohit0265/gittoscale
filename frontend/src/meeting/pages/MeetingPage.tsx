@@ -143,6 +143,48 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightCollapsed, setIsRightCollapsed] = useState(true);
 
+  // Resizable sidebar widths (up to 50% max of screen width)
+  const [leftWidth, setLeftWidth] = useState(320);
+  const [rightWidth, setRightWidth] = useState(360);
+  const [isResizingLeft, setIsResizingLeft] = useState(false);
+  const [isResizingRight, setIsResizingRight] = useState(false);
+
+  useEffect(() => {
+    if (!isResizingLeft && !isResizingRight) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isResizingLeft) {
+        const maxWidth = Math.floor(window.innerWidth * 0.5);
+        const newWidth = Math.max(260, Math.min(maxWidth, e.clientX));
+        setLeftWidth(newWidth);
+      }
+      if (isResizingRight) {
+        const maxWidth = Math.floor(window.innerWidth * 0.5);
+        const newWidth = Math.max(280, Math.min(maxWidth, window.innerWidth - e.clientX));
+        setRightWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingLeft(false);
+      setIsResizingRight(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizingLeft, isResizingRight]);
+
   // Authenticated user payload for Yjs meeting room
   const userPayload = useMemo(() => {
     if (!user) return null;
@@ -506,7 +548,22 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
 
         {/* Left Sidebar (AI Copilot / Chats / Participants) */}
         {isSidebarOpen && (
-          <aside className="w-72 sm:w-80 h-full border-r border-slate-200/80 dark:border-neutral-800/80 bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0 select-none">
+          <aside
+            style={{ width: `${leftWidth}px` }}
+            className="relative h-full border-r border-slate-200/80 dark:border-neutral-800/80 bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0 select-none"
+          >
+            {/* Right-edge Resizer Drag Handle */}
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsResizingLeft(true);
+              }}
+              className="absolute top-0 -right-1.5 w-3 h-full cursor-col-resize z-40 group flex items-center justify-center hover:bg-neutral-500/20 active:bg-neutral-500/40 transition-colors"
+              title="Drag to resize sidebar (max 50% screen)"
+            >
+              <div className="w-0.5 h-8 rounded-full bg-neutral-300 dark:bg-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+
             {/* Swiggy-inspired Elevated Tab Switcher + Integrated Collapse Toggle */}
             <div className="h-12 border-b border-slate-200/80 dark:border-neutral-800/80 flex items-center px-2.5 gap-2 bg-slate-50/70 dark:bg-[#0c0c0c] shrink-0">
               <div className="flex-1 flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-[#141414] border border-slate-200/80 dark:border-neutral-800 text-xs relative gap-1">
@@ -695,16 +752,33 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             isDark={isDark}
             canEdit={canEdit}
             isRightCollapsed={isRightCollapsed}
+            rightSidebarWidth={rightWidth}
           />
         </ReactFlowProvider>
 
-        {/* Right Docked Panel: Unified Full-Height Right Sidebar */}
+        {/* Right Docked Panel: Unified Full-Height Resizable Right Sidebar */}
         <div
           className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-transform duration-300 ease-in-out ${
             isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
           }`}
+          style={{ width: `${rightWidth}px` }}
         >
-          <aside className="w-[calc(100vw-24px)] max-w-[360px] sm:w-[350px] md:w-[360px] h-full flex flex-col shrink-0 overflow-hidden select-none pointer-events-auto bg-white dark:bg-[#0A0A0A] border-l border-slate-200 dark:border-neutral-800 shadow-xl md:shadow-none">
+          <aside
+            style={{ width: `${rightWidth}px` }}
+            className="w-full h-full flex flex-col shrink-0 overflow-hidden select-none pointer-events-auto bg-white dark:bg-[#0A0A0A] border-l border-slate-200 dark:border-neutral-800 shadow-xl md:shadow-none relative"
+          >
+            {/* Left-edge Resizer Drag Handle */}
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsResizingRight(true);
+              }}
+              className="absolute top-0 -left-1.5 w-3 h-full cursor-col-resize z-40 group flex items-center justify-center hover:bg-neutral-500/20 active:bg-neutral-500/40 transition-colors"
+              title="Drag to resize inspector (max 50% screen)"
+            >
+              <div className="w-0.5 h-8 rounded-full bg-neutral-300 dark:bg-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+
             <RightSidebar
               nodes={nodes}
               edges={edges}
@@ -732,8 +806,9 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           className={
             isRightCollapsed
               ? 'bottom-5 right-5 sm:bottom-[180px] sm:right-6'
-              : 'bottom-5 right-5 sm:bottom-[180px] sm:right-[384px]'
+              : 'bottom-5 right-5 sm:bottom-[180px]'
           }
+          style={!isRightCollapsed ? { right: `${rightWidth + 24}px` } : undefined}
         />
       </div>
     </div>
