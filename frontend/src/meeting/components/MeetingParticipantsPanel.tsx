@@ -82,8 +82,8 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
                       <img
                         src={p.user_avatar}
                         alt={p.user_name}
-                        className="w-8 h-8 rounded-full object-cover ring-2"
-                        style={{ ringColor: userColor }}
+                        className="w-8 h-8 rounded-full object-cover border-2"
+                        style={{ borderColor: userColor }}
                       />
                     ) : (
                       <div
