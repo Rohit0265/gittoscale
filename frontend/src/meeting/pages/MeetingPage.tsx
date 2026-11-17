@@ -3,17 +3,19 @@ import { ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import {
   Users,
   MessageSquare,
-  Info,
   Loader2,
   AlertTriangle,
   ArrowLeft,
   Bot,
-  Wrench,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightOpen,
+  Info,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArchitectureCanvas } from '../../components/Canvas/ArchitectureCanvas';
-import { ComponentInspector } from '../../components/ComponentInspector';
-import { ComponentsListCard } from '../../components/ComponentsListCard';
+import { RightSidebar } from '../../components/RightSidebar';
+import { FloatingFeedbackButton } from '../../components/FloatingFeedbackButton';
 import { ArchitectureNode, ArchitectureEdge, ComponentType } from '../../types';
 import { useMeetingYjs } from '../hooks/useMeetingYjs';
 import { MeetingHeader } from '../components/MeetingHeader';
@@ -39,6 +41,8 @@ interface InnerMeetingCanvasProps {
   onMouseMoveInCanvas: (x: number, y: number) => void;
   isDark: boolean;
   canEdit: boolean;
+  isLeftCollapsed: boolean;
+  isRightCollapsed: boolean;
 }
 
 const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
@@ -57,6 +61,8 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
   onMouseMoveInCanvas,
   isDark,
   canEdit,
+  isLeftCollapsed,
+  isRightCollapsed,
 }) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -91,9 +97,9 @@ const InnerMeetingCanvas: React.FC<InnerMeetingCanvasProps> = ({
         onDuplicateNode={canEdit ? onDuplicateNode : undefined}
         isDark={isDark}
         viewMode="detailed"
-        isLeftCollapsed={false}
-        isRightCollapsed={true}
-        leftSidebarWidth={320}
+        isLeftCollapsed={isLeftCollapsed}
+        isRightCollapsed={isRightCollapsed}
+        leftSidebarWidth={isLeftCollapsed ? 0 : 320}
       />
       <LiveCursorOverlay cursors={remoteCursors} />
     </div>
@@ -106,6 +112,12 @@ export interface MeetingPageProps {
   onOpenAuth: () => void;
   isDark?: boolean;
   onToggleTheme?: () => void;
+  onGoHome?: () => void;
+  onOpenSignUp?: () => void;
+  onOpenHistory?: () => void;
+  onNavigateToProfile?: (userId: string) => void;
+  onViewLikes?: () => void;
+  onViewSaved?: () => void;
 }
 
 export const MeetingPage: React.FC<MeetingPageProps> = ({
@@ -114,13 +126,20 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   onOpenAuth,
   isDark = true,
   onToggleTheme,
+  onGoHome,
+  onOpenSignUp,
+  onOpenHistory,
+  onNavigateToProfile,
+  onViewLikes,
+  onViewSaved,
 }) => {
-  const { user, getAuthToken } = useAuth();
+  const { user, getAuthToken, signOut } = useAuth();
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [activeLeftTab, setActiveLeftTab] = useState<'ai' | 'chats' | 'participants' | 'tools'>('ai');
+  const [activeLeftTab, setActiveLeftTab] = useState<'ai' | 'chats' | 'participants'>('ai');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isRightCollapsed, setIsRightCollapsed] = useState(true);
 
   // Authenticated user payload for Yjs meeting room
   const userPayload = useMemo(() => {
@@ -316,6 +335,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     };
     updateNodes([...nodes, newNode]);
     setSelectedNodeId(newNode.id);
+    setIsRightCollapsed(false);
     broadcastAwareness(true, newNode.id);
   };
 
@@ -349,6 +369,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     };
     updateNodes([...nodes, dup]);
     setSelectedNodeId(dup.id);
+    setIsRightCollapsed(false);
   };
 
   const handleAddEdge = (newEdge: any) => {
@@ -372,7 +393,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const handleToggleEdge = (edgeId: string) => {
     if (!canEdit) return;
     const updated = edges.map((e) =>
-      e.id === edgeId ? { ...e, animated: !e.animated } : e
+      e.id === edgeId ? { ...e, enabled: !e.enabled } : e
     );
     updateEdges(updated);
   };
@@ -396,7 +417,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     updateEdges(updated);
   };
 
-  const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
+  const selectedNode = nodes.find((n) => n.id === selectedNodeId);
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-white dark:bg-[#020202] text-slate-900 dark:text-neutral-100">
@@ -432,6 +453,16 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
         }
         isDark={isDark}
         onToggleTheme={onToggleTheme}
+        user={user}
+        token={authToken}
+        onSignOut={signOut}
+        onOpenAuth={onOpenAuth}
+        onOpenSignUp={onOpenSignUp}
+        onOpenHistory={onOpenHistory}
+        onNavigateToProfile={onNavigateToProfile}
+        onViewLikes={onViewLikes}
+        onViewSaved={onViewSaved}
+        onGoHome={onGoHome}
       />
 
       {/* Error Toast if permission denied or error */}
@@ -449,60 +480,78 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
 
       {/* Main Collaborative Area */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Sidebar (Components / Participants / Chat) */}
+        {/* Re-expand trigger for left sidebar */}
+        {!isSidebarOpen && (
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="absolute left-3 top-3 z-30 flex items-center gap-1.5 p-2 bg-white/95 dark:bg-[#0A0A0A]/95 hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl shadow-xs transition-all cursor-pointer group"
+            title="Expand Sidebar"
+          >
+            <PanelLeftOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
+          </button>
+        )}
+
+        {/* Re-expand trigger for right sidebar */}
+        {isRightCollapsed && (
+          <button
+            onClick={() => setIsRightCollapsed(false)}
+            className="absolute right-3 top-3 z-30 flex items-center gap-1.5 p-2 bg-white/95 dark:bg-[#0A0A0A]/95 hover:bg-slate-50 dark:hover:bg-[#141414] border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl shadow-xs transition-all cursor-pointer group"
+            title="Expand Inspector & Components"
+          >
+            <PanelRightOpen className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
+          </button>
+        )}
+
+        {/* Left Sidebar (AI Copilot / Chats / Participants) */}
         {isSidebarOpen && (
           <aside className="w-72 sm:w-80 h-full border-r border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0">
-            {/* Sidebar Tabs + Tools */}
+            {/* Sidebar Tabs (Icons Only, No Text) + Sidebar Toggle Button */}
             <div className="h-11 border-b border-slate-200 dark:border-neutral-800 flex items-center px-2 gap-1 bg-slate-50/50 dark:bg-neutral-900/40">
               <button
                 onClick={() => setActiveLeftTab('ai')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                title="AI Copilot"
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
                   activeLeftTab === 'ai'
                     ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                 }`}
               >
-                <Bot className="w-3.5 h-3.5" />
-                <span>AI</span>
+                <Bot className="w-4 h-4" />
               </button>
 
               <button
                 onClick={() => setActiveLeftTab('chats')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                title="Live Chat"
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
                   activeLeftTab === 'chats'
                     ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                 }`}
               >
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>Chats</span>
+                <MessageSquare className="w-4 h-4" />
               </button>
 
               <button
                 onClick={() => setActiveLeftTab('participants')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer relative ${
+                title={`Participants (${participants.length})`}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer relative ${
                   activeLeftTab === 'participants'
                     ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
                     : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                 }`}
               >
-                <Users className="w-3.5 h-3.5" />
-                <span>Participants</span>
+                <Users className="w-4 h-4" />
               </button>
 
               <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700 mx-0.5 shrink-0" />
 
+              {/* Sidebar Collapse Toggle Button */}
               <button
-                onClick={() => setActiveLeftTab('tools')}
-                title="Architecture tools"
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer ${
-                  activeLeftTab === 'tools'
-                    ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-                }`}
+                onClick={() => setIsSidebarOpen(false)}
+                title="Collapse Sidebar"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
               >
-                <Wrench className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Tools</span>
+                <PanelLeftClose className="w-4 h-4" />
               </button>
             </div>
 
@@ -547,31 +596,6 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
                   syncStatus={syncStatus}
                 />
               )}
-
-              {activeLeftTab === 'tools' && (
-                <div className="h-full overflow-y-auto">
-                  {!canEdit && (
-                    <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-900/50 text-[11px] text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                      <Info className="w-3.5 h-3.5 shrink-0" />
-                      <span>You have Viewer access. Canvas modifications are disabled.</span>
-                    </div>
-                  )}
-                  <ComponentsListCard
-                    nodes={nodes}
-                    selectedNodeId={selectedNodeId}
-                    onSelectNode={(id) => {
-                      setSelectedNodeId(id);
-                      broadcastAwareness(false, id);
-                    }}
-                    onAddNode={handleAddNode}
-                    onDeleteNode={handleDeleteNode}
-                    onToggleNode={() => {}}
-                    onUpdateNode={handleUpdateNode}
-                    nodeResults={{}}
-                    embedded
-                  />
-                </div>
-              )}
             </div>
           </aside>
         )}
@@ -584,6 +608,9 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             selectedNodeId={selectedNodeId}
             onSelectNode={(id) => {
               setSelectedNodeId(id);
+              if (id) {
+                setIsRightCollapsed(false);
+              }
               broadcastAwareness(false, id);
             }}
             onNodesChangePosition={handleNodesChangePosition}
@@ -599,25 +626,48 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
             }}
             isDark={isDark}
             canEdit={canEdit}
+            isLeftCollapsed={!isSidebarOpen}
+            isRightCollapsed={isRightCollapsed}
           />
         </ReactFlowProvider>
 
-        {/* Right Component Inspector */}
-        {selectedNode && (
-          <aside className="w-80 h-full border-l border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#080808] z-20 shrink-0">
-            <ComponentInspector
-              node={selectedNode}
+        {/* Right Docked Panel: Unified Full-Height Right Sidebar */}
+        <div
+          className={`absolute right-0 top-0 bottom-0 z-20 pointer-events-none transition-transform duration-300 ease-in-out ${
+            isRightCollapsed ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+          }`}
+        >
+          <aside className="w-[calc(100vw-24px)] max-w-[360px] sm:w-[350px] md:w-[360px] h-full flex flex-col shrink-0 overflow-hidden select-none pointer-events-auto bg-white dark:bg-[#0A0A0A] border-l border-slate-200 dark:border-neutral-800 shadow-xl md:shadow-none">
+            <RightSidebar
+              nodes={nodes}
               edges={edges}
-              onClose={() => setSelectedNodeId(null)}
-              onDeleteNode={canEdit ? handleDeleteNode : undefined}
-              onUpdateNode={canEdit ? handleUpdateNode : () => {}}
-              onUpdateEdgeMultiplier={canEdit ? handleUpdateEdgeMultiplier : () => {}}
-              onDeleteEdge={canEdit ? handleDeleteEdge : undefined}
-              allNodes={nodes}
-              embedded
+              selectedNodeId={selectedNodeId}
+              selectedNode={selectedNode}
+              simulationResult={null}
+              onSelectNode={(id) => {
+                setSelectedNodeId(id);
+                broadcastAwareness(false, id);
+              }}
+              onAddNode={handleAddNode}
+              onDeleteNode={handleDeleteNode}
+              onToggleNode={() => {}}
+              onUpdateNode={handleUpdateNode}
+              onUpdateEdgeMultiplier={handleUpdateEdgeMultiplier}
+              onDeleteEdge={handleDeleteEdge}
+              viewMode="detailed"
+              onToggleCollapse={() => setIsRightCollapsed(true)}
             />
           </aside>
-        )}
+        </div>
+
+        {/* Floating Feedback Button */}
+        <FloatingFeedbackButton
+          className={
+            isRightCollapsed
+              ? 'bottom-5 right-5 sm:bottom-6 sm:right-6'
+              : 'bottom-5 right-5 sm:bottom-6 sm:right-[380px]'
+          }
+        />
       </div>
     </div>
   );
