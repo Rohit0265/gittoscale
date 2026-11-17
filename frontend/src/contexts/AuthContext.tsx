@@ -30,7 +30,7 @@ export type PendingAction =
       createdAt: number;
     }
   | {
-      type: 'collab';
+      type: 'collab' | 'meeting';
       meetingId: string;
       returnUrl: string;
       createdAt: number;
