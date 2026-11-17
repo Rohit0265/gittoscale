@@ -193,6 +193,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                 >
                   {isPro ? 'Pro Member' : 'Free Plan'}
                 </span>
+                {loading && <Loader2 className="w-3 h-3 animate-spin text-neutral-400" />}
               </div>
             )}
           </div>
