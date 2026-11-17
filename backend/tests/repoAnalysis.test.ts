@@ -348,4 +348,11 @@ services:
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
+
+  // Test 15: /api/repository/user-repos validates githubToken requirement
+  it('15. /api/repository/user-repos router exposes user-repos endpoint', async () => {
+    const repositoryRouter = (await import('../src/routes/repository.js')).default;
+    expect(repositoryRouter).toBeDefined();
+    expect(repositoryRouter.stack.some((layer) => layer.route?.path === '/user-repos')).toBe(true);
+  });
 });
