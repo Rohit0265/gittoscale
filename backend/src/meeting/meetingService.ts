@@ -317,19 +317,18 @@ export async function setParticipantRole(
 ): Promise<MeetingParticipant> {
   const meeting = await getMeetingById(meetingId);
   if (!meeting) throw new Error('Meeting not found');
-  if (meeting.host_id !== hostUserId) {
+
+  const list = inMemMeetingParticipants.get(meetingId) || [];
+  const caller = list.find((p) => p.user_id === hostUserId);
+  const isCallerHost = meeting.host_id === hostUserId || caller?.role === 'host';
+  if (!isCallerHost) {
     throw new Error('Only the meeting host can change participant roles.');
   }
 
-  const list = inMemMeetingParticipants.get(meetingId) || [];
   const target = list.find((p) => p.user_id === targetUserId);
   if (!target) throw new Error('Participant not found');
 
-  if (target.user_id === meeting.host_id) {
-    target.role = 'host';
-  } else {
-    target.role = newRole === 'host' ? 'editor' : newRole;
-  }
+  target.role = newRole;
 
   if (isNeonConfigured()) {
     try {
@@ -357,14 +356,17 @@ export async function removeParticipant(
 ): Promise<void> {
   const meeting = await getMeetingById(meetingId);
   if (!meeting) throw new Error('Meeting not found');
-  if (meeting.host_id !== hostUserId) {
+
+  const list = inMemMeetingParticipants.get(meetingId) || [];
+  const caller = list.find((p) => p.user_id === hostUserId);
+  const isCallerHost = meeting.host_id === hostUserId || caller?.role === 'host';
+  if (!isCallerHost) {
     throw new Error('Only the meeting host can remove participants.');
   }
   if (targetUserId === hostUserId) {
     throw new Error('The host cannot be removed from their own meeting.');
   }
 
-  const list = inMemMeetingParticipants.get(meetingId) || [];
   inMemMeetingParticipants.set(
     meetingId,
     list.filter((p) => p.user_id !== targetUserId)
@@ -393,7 +395,11 @@ export async function toggleMeetingLock(
 ): Promise<Meeting> {
   const meeting = await getMeetingById(meetingId);
   if (!meeting) throw new Error('Meeting not found');
-  if (meeting.host_id !== hostUserId) {
+
+  const list = inMemMeetingParticipants.get(meetingId) || [];
+  const caller = list.find((p) => p.user_id === hostUserId);
+  const isCallerHost = meeting.host_id === hostUserId || caller?.role === 'host';
+  if (!isCallerHost) {
     throw new Error('Only the meeting host can lock or unlock the architecture.');
   }
 
@@ -453,7 +459,11 @@ export async function saveArchitectureState(
 export async function endMeeting(meetingId: string, hostUserId: string): Promise<Meeting> {
   const meeting = await getMeetingById(meetingId);
   if (!meeting) throw new Error('Meeting not found');
-  if (meeting.host_id !== hostUserId) {
+
+  const list = inMemMeetingParticipants.get(meetingId) || [];
+  const caller = list.find((p) => p.user_id === hostUserId);
+  const isCallerHost = meeting.host_id === hostUserId || caller?.role === 'host';
+  if (!isCallerHost) {
     throw new Error('Only the meeting host can end the meeting.');
   }
 
