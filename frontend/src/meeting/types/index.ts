@@ -62,6 +62,14 @@ export interface MeetingChatMessage {
   text: string;
   type: 'chat' | 'system' | 'ai';
   timestamp: string;
+  // Aliases for backend parity
+  meeting_id?: string;
+  user_id?: string;
+  user_name?: string;
+  user_avatar?: string | null;
+  content?: string;
+  message_type?: 'chat' | 'system' | 'ai';
+  created_at?: string;
 }
 
 export type YjsSyncStatus = 'connecting' | 'connected' | 'syncing' | 'synced' | 'disconnected' | 'error';
