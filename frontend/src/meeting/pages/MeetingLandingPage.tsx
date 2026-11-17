@@ -12,7 +12,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { meetingApi } from '../services/meetingApi';
 
 interface MeetingLandingPageProps {
-  header?: React.ReactNode;
   onJoinMeeting: (meetingId: string) => void;
   onOpenAuth: () => void;
   onGoHome: () => void;
@@ -20,7 +19,6 @@ interface MeetingLandingPageProps {
 }
 
 export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
-  header,
   onJoinMeeting,
   onOpenAuth,
   onGoHome,
@@ -96,30 +94,26 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-[#040404] text-slate-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
-      {/* Top Header */}
-      {header ? (
-        header
-      ) : (
-        <header className="h-16 border-b border-slate-200 dark:border-neutral-900 px-6 sm:px-12 flex items-center justify-between">
-          <button
-            onClick={onGoHome}
-            className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer"
-          >
-            <img
-              src={isDark ? '/logo.png' : '/logo-light.png'}
-              alt="GitToScale"
-              className="h-7 w-auto object-contain"
-            />
-          </button>
+      {/* Top Bar */}
+      <header className="h-16 border-b border-slate-200 dark:border-neutral-900 px-6 sm:px-12 flex items-center justify-between">
+        <button
+          onClick={onGoHome}
+          className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer"
+        >
+          <img
+            src={isDark ? '/logo.png' : '/logo-light.png'}
+            alt="GitToScale"
+            className="h-7 w-auto object-contain"
+          />
+        </button>
 
-          <button
-            onClick={onGoHome}
-            className="text-xs font-semibold text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            Back to Playground
-          </button>
-        </header>
-      )}
+        <button
+          onClick={onGoHome}
+          className="text-xs font-semibold text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+        >
+          Back to Playground
+        </button>
+      </header>
 
       {/* Hero Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-20 flex flex-col items-center text-center">
