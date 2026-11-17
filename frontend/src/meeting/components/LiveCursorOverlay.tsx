@@ -7,11 +7,13 @@ interface LiveCursorOverlayProps {
 }
 
 export const LiveCursorOverlay: React.FC<LiveCursorOverlayProps> = memo(({ cursors }) => {
-  if (!cursors || cursors.length === 0) return null;
+  // Do not render live cursors for participants with 'viewer' role
+  const visibleCursors = (cursors || []).filter((cursor) => cursor && cursor.role !== 'viewer');
+  if (visibleCursors.length === 0) return null;
 
   return (
     <ViewportPortal>
-      {cursors.map((cursor) => (
+      {visibleCursors.map((cursor) => (
         <div
           key={cursor.userId}
           style={{

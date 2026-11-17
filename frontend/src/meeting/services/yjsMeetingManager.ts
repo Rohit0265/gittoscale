@@ -215,16 +215,17 @@ export class YjsMeetingManager {
       const presences = payload?.presences || [];
       this.callbacks.onPresencesChange?.(presences);
 
-      // Derive live cursors from presence (only entries with a cursor position)
+      // Derive live cursors from presence (only entries with a cursor position and non-viewer role)
       const nextCursors: RemoteCursor[] = [];
       for (const p of presences) {
-        if (p.userId !== this.user?.id && p.cursor) {
+        if (p.userId !== this.user?.id && p.cursor && p.role !== 'viewer') {
           nextCursors.push({
             userId: p.userId,
             userName: p.userName,
             color: p.color,
             x: p.cursor.x,
             y: p.cursor.y,
+            role: p.role,
           });
         }
       }
@@ -276,6 +277,10 @@ export class YjsMeetingManager {
       if (payload.userId === this.user?.id) {
         this.currentRole = payload.role;
         this.callbacks.onRoleChanged?.(payload.role);
+      }
+      if (payload.role === 'viewer') {
+        this.activeCursors.delete(payload.userId);
+        this.callbacks.onRemoteCursorsChange?.(Array.from(this.activeCursors.values()));
       }
       if (Array.isArray(payload.participants)) {
         this.callbacks.onParticipantsChange?.(payload.participants);
@@ -388,6 +393,7 @@ export class YjsMeetingManager {
   // --- Live Awareness Broadcasting ---
   public broadcastCursor(x: number, y: number) {
     if (!this.socket || !this.socket.connected) return;
+    if (this.currentRole === 'viewer') return;
     if (this.cursorThrottleTimer) return;
 
     this.cursorThrottleTimer = setTimeout(() => {
