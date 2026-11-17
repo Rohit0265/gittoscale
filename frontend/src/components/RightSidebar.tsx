@@ -85,6 +85,18 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
     <div className="w-full h-full flex flex-col bg-white dark:bg-[#0A0A0A] text-slate-800 dark:text-slate-200 select-none overflow-hidden">
       {/* 1. Header with Swiggy-inspired Elevated Tab Switcher & Integrated Collapse Toggle */}
       <div className="flex items-center gap-2 p-2.5 pb-2 border-b border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/50 dark:bg-[#0c0c0c] shrink-0">
+        {/* Integrated Panel Collapse Toggle (positioned on the left before tabs) */}
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            title="Collapse sidebar"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
+          >
+            <PanelRightClose className="w-4 h-4" />
+          </button>
+        )}
+
         <div className="flex-1 flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-[#141414] border border-slate-200/80 dark:border-neutral-800 text-xs relative gap-1">
           {/* Tab 1: Components */}
           <button
@@ -190,18 +202,6 @@ const RightSidebarComponent: React.FC<RightSidebarProps> = ({
             )}
           </button>
         </div>
-
-        {/* Integrated Panel Collapse Toggle */}
-        {onToggleCollapse && (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            title="Collapse sidebar"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
-          >
-            <PanelRightClose className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
       {/* 2. Tab Content Area (Scrollable full height) */}
