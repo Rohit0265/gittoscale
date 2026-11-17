@@ -407,7 +407,7 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
     // 3. Cursor movement
     socket.on('cursor-move', (payload: { x?: number; y?: number }) => {
       const session = clientSessions.get(socket.id);
-      if (!session) return;
+      if (!session || session.role === 'viewer') return;
 
       const presences = roomPresences.get(session.meetingId);
       if (!presences) return;
@@ -510,6 +510,23 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
           for (const [, sess] of clientSessions.entries()) {
             if (sess.meetingId === session.meetingId && sess.userId === payload.targetUserId) {
               sess.role = updated.role;
+            }
+          }
+
+          // If role changed to viewer, clear cursor and editing state in presence
+          const presences = roomPresences.get(session.meetingId);
+          if (presences) {
+            const p = presences.get(payload.targetUserId);
+            if (p) {
+              p.role = updated.role;
+              if (updated.role === 'viewer') {
+                p.cursor = null;
+                p.isEditing = false;
+                p.selectedNodeId = null;
+              }
+              io.to(`meeting:${session.meetingId}`).emit('presence-updated', {
+                presences: Array.from(presences.values()),
+              });
             }
           }
 
