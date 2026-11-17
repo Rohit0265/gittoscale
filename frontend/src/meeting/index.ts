@@ -6,6 +6,7 @@ export * from './components/LiveCursorOverlay';
 export * from './components/MeetingHeader';
 export * from './components/MeetingParticipantsPanel';
 export * from './components/MeetingChatPanel';
+export * from './components/MeetingAIPanel';
 export * from './components/StartMeetingModal';
 export * from './pages/MeetingPage';
 export * from './pages/MeetingLandingPage';

@@ -178,7 +178,7 @@ export const getCollabMeetingId = (): string | null => {
     window.location.pathname.match(/\/meeting\/([a-zA-Z0-9_-]+)/i) ||
     window.location.pathname.match(/\/collab\/meeting\/([a-zA-Z0-9_-]+)/i) ||
     window.location.pathname.match(/\/collab\/([a-zA-Z0-9_-]+)/i);
-  if (match && match[1] && match[1].toLowerCase() !== 'meeting') {
+  if (match && match[1] && match[1].toLowerCase() !== 'meeting' && match[1].toLowerCase() !== 'join') {
     return match[1];
   }
   return null;
