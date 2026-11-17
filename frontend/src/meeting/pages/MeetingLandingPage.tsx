@@ -7,8 +7,6 @@ import {
   Sparkles,
   Shield,
   Layers,
-  ExternalLink,
-  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { meetingApi } from '../services/meetingApi';
