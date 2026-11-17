@@ -34,6 +34,12 @@ export type PendingAction =
       meetingId: string;
       returnUrl: string;
       createdAt: number;
+    }
+  | {
+      type: 'payment';
+      action?: 'checkout';
+      returnUrl: string;
+      createdAt: number;
     };
 
 interface AuthContextType {
