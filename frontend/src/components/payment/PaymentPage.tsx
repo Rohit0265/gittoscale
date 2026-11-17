@@ -3,19 +3,13 @@ import {
   Check,
   Zap,
   Sparkles,
-  ShieldCheck,
-  Users,
-  Cpu,
-  Layers,
   ArrowRight,
   Loader2,
   AlertCircle,
   CheckCircle2,
-  HelpCircle,
   ArrowLeft,
   Sun,
   Moon,
-  ExternalLink,
 } from 'lucide-react';
 import { api, SubscriptionStatusResponse } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -31,7 +25,6 @@ interface PaymentPageProps {
 export const PaymentPage: React.FC<PaymentPageProps> = ({
   onGoHome,
   onOpenAuth,
-  onOpenSignUp,
   isDark = true,
   onToggleTheme,
 }) => {
