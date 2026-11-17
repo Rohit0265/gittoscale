@@ -117,37 +117,57 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         </button>
       </div>
 
-      {/* Center: Meeting Code with Copy Button & Live Sync indicator */}
+      {/* Center: Meeting Code with Copy Button & Live Sync indicator (Code only visible to Host) */}
       <div className="flex items-center gap-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-xs text-slate-700 dark:text-neutral-200 shadow-2xs">
-          <span
-            className={`w-2 h-2 rounded-full shrink-0 ${
-              syncStatus === 'synced'
-                ? 'bg-emerald-500 ring-2 ring-emerald-500/20'
-                : syncStatus === 'syncing'
-                ? 'bg-amber-500 animate-pulse'
-                : syncStatus === 'connecting'
-                ? 'bg-neutral-400 dark:bg-neutral-500 animate-pulse'
-                : 'bg-rose-500'
-            }`}
-            title={syncStatus === 'synced' ? 'Real-Time Synchronized' : syncStatus}
-          />
-          <span className="text-slate-400 dark:text-neutral-500 text-[11px] hidden xs:inline">Meeting Code:</span>
-          <span className="font-mono font-semibold tracking-wide text-slate-900 dark:text-white select-all text-xs">
-            {meeting?.id || '...'}
-          </span>
-          <button
-            onClick={handleCopyId}
-            className="p-1 rounded hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-            title="Copy Meeting Code"
-          >
-            {copiedId ? (
-              <Check className="w-3.5 h-3.5 text-emerald-500" />
-            ) : (
-              <Copy className="w-3.5 h-3.5" />
-            )}
-          </button>
-        </div>
+        {role === 'host' ? (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-xs text-slate-700 dark:text-neutral-200 shadow-2xs">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                syncStatus === 'synced'
+                  ? 'bg-emerald-500 ring-2 ring-emerald-500/20'
+                  : syncStatus === 'syncing'
+                  ? 'bg-amber-500 animate-pulse'
+                  : syncStatus === 'connecting'
+                  ? 'bg-neutral-400 dark:bg-neutral-500 animate-pulse'
+                  : 'bg-rose-500'
+              }`}
+              title={syncStatus === 'synced' ? 'Real-Time Synchronized' : syncStatus}
+            />
+            <span className="text-slate-400 dark:text-neutral-500 text-[11px] hidden xs:inline">Meeting Code:</span>
+            <span className="font-mono font-semibold tracking-wide text-slate-900 dark:text-white select-all text-xs">
+              {meeting?.id || '...'}
+            </span>
+            <button
+              onClick={handleCopyId}
+              className="p-1 rounded hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+              title="Copy Meeting Code"
+            >
+              {copiedId ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-xs text-slate-700 dark:text-neutral-200 shadow-2xs">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                syncStatus === 'synced'
+                  ? 'bg-emerald-500 ring-2 ring-emerald-500/20'
+                  : syncStatus === 'syncing'
+                  ? 'bg-amber-500 animate-pulse'
+                  : syncStatus === 'connecting'
+                  ? 'bg-neutral-400 dark:bg-neutral-500 animate-pulse'
+                  : 'bg-rose-500'
+              }`}
+              title={syncStatus === 'synced' ? 'Real-Time Synchronized' : syncStatus}
+            />
+            <span className="text-slate-600 dark:text-neutral-300 text-xs font-semibold max-w-[200px] truncate">
+              {meeting?.title || 'Architecture Session'}
+            </span>
+          </div>
+        )}
 
         {/* Canvas Lock Status if locked */}
         {isLocked && (
@@ -160,15 +180,17 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
 
       {/* Right Controls: Invite, Host Lock, Leave/End, User Profile */}
       <div className="flex items-center gap-1.5 sm:gap-2">
-        {/* Copy Invite Link */}
-        <button
-          onClick={handleCopyLink}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 hover:bg-black text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 border border-neutral-700/60 dark:border-transparent shadow-xs transition-all cursor-pointer"
-          title="Copy Invitation Link"
-        >
-          {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{copiedLink ? 'Copied Link!' : 'Invite'}</span>
-        </button>
+        {/* Copy Invite Link (Host Only) */}
+        {role === 'host' && (
+          <button
+            onClick={handleCopyLink}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 hover:bg-black text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 border border-neutral-700/60 dark:border-transparent shadow-xs transition-all cursor-pointer"
+            title="Copy Invitation Link"
+          >
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{copiedLink ? 'Copied Link!' : 'Invite'}</span>
+          </button>
+        )}
 
         {/* Host Canvas Lock Toggle */}
         {role === 'host' && onToggleLock && (
