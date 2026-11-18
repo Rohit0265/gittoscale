@@ -53,13 +53,15 @@ const checkIsAppDomain = () => {
   );
 };
 
-const PAGES = ['top', 'features', 'community-feed', 'use-cases', 'faq'];
+const PAGES = ['top', 'features', 'community-feed', 'collab', 'use-cases', 'pricing', 'faq'];
 
 const PAGE_LABELS: Record<string, string> = {
   top: 'Home',
   features: 'Features',
   'community-feed': 'Community',
+  collab: 'Collab',
   'use-cases': 'Use Cases',
+  pricing: 'Pricing',
   faq: 'FAQ',
 };
 
