@@ -293,10 +293,6 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
               <ExternalLink className="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
             </button>
           </div>
-
-          <p className="mt-4 font-mono text-[11px] text-slate-500 dark:text-neutral-500">
-            Free tier hosts 3 rooms · joining is always unlimited
-          </p>
         </div>
 
         {/* Mockup column */}
