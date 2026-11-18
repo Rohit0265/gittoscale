@@ -4,7 +4,6 @@ import {
   MousePointer2,
   Radio,
   MessagesSquare,
-  Sparkles,
   ArrowRight,
   ExternalLink,
   Wifi,
@@ -205,23 +204,6 @@ const RoomMockup: React.FC<{ isDark: boolean }> = ({ isDark }) => {
             </span>
           </div>
         </div>
-      </div>
-
-      {/* AI note strip — below the frame, never overlapping the canvas */}
-      <div
-        className={`mt-3 flex items-start gap-2.5 rounded-2xl border px-3.5 py-2.5 backdrop-blur-md ${
-          isDark
-            ? 'border-neutral-800/80 bg-neutral-900/50 text-neutral-300'
-            : 'border-slate-200/80 bg-white/80 text-slate-700'
-        }`}
-      >
-        <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-500" />
-        <p className="text-[11px] leading-relaxed">
-          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-500">
-            AI note ·{' '}
-          </span>
-          Payments queue saturates before Postgres. Add workers, then re-run the spike.
-        </p>
       </div>
     </div>
   );
