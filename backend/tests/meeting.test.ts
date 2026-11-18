@@ -120,4 +120,24 @@ describe('Meeting API Endpoints (/api/meetings)', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.meeting.status).toBe('ended');
   });
+
+  it('retrieves user meetings history for authenticated user', async () => {
+    const res = await request(app)
+      .get('/api/meetings/user/history')
+      .set('Authorization', `Bearer ${hostToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.meetings)).toBe(true);
+    expect(res.body.meetings.some((m: any) => m.id === createdMeetingId)).toBe(true);
+  });
+
+  it('allows user to delete a meeting from their history', async () => {
+    const res = await request(app)
+      .delete(`/api/meetings/${createdMeetingId}`)
+      .set('Authorization', `Bearer ${hostToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
 });
