@@ -25,6 +25,7 @@ import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accor
 import { PenHighlight } from './ui/PenShadowLine';
 import { ShareDesignFeedSection } from './ShareDesignFeedSection';
 import { useSmoothScroll } from '../utils/useSmoothScroll';
+import { LandingHeader } from './LandingHeader';
 
 interface LandingPageProps {
   onSelectTestSite: () => void;
