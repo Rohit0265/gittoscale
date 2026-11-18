@@ -175,28 +175,6 @@ const STATS = [
   { value: '3 tiers', label: 'community · verified · private' },
 ];
 
-interface FloatChipProps {
-  icon: typeof Heart;
-  label: string;
-  className?: string;
-  tone: string;
-  delay: string;
-}
-
-/** Small floating metric chip layered over the video mockup. */
-const FloatChip: FC<FloatChipProps> = ({ icon: Icon, label, className = '', tone, delay }) => (
-  <div
-    className={cn(
-      'absolute z-20 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-2.5 py-1.5 shadow-lg backdrop-blur-md animate-[gtsFeedFloat_6s_ease-in-out_infinite]',
-      className,
-    )}
-    style={{ animationDelay: delay }}
-  >
-    <Icon className={cn('h-3.5 w-3.5', tone)} />
-    <span className="font-mono text-[11px] font-semibold tracking-tight text-white">{label}</span>
-  </div>
-);
-
 export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavigate }) => {
   const openFeed = () => {
     if (onNavigate) {
