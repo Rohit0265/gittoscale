@@ -193,9 +193,15 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
             </span>
           </div>
 
-          <div className="mb-6 flex items-baseline gap-1.5">
+          <div className="mb-6 flex flex-wrap items-baseline gap-2.5">
             <span className="text-4xl font-extrabold tracking-tight text-zinc-950">
-              $29
+              ₹299
+            </span>
+            <span className="text-lg font-semibold text-zinc-400 line-through">
+              ₹399
+            </span>
+            <span className="rounded-full bg-zinc-950 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              25% OFF
             </span>
             <span className="text-sm font-medium text-zinc-500">/ month</span>
           </div>
