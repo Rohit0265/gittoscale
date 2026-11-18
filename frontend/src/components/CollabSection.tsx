@@ -9,7 +9,6 @@ import {
   ExternalLink,
   Wifi,
 } from 'lucide-react';
-import { PenHighlight } from './ui/PenShadowLine';
 
 export interface CollabSectionProps {
   /** Navigates to the full collaborative rooms landing page (/collab). */
@@ -24,22 +23,19 @@ const CAPABILITIES = [
     icon: MousePointer2,
     title: 'Live cursors & shared canvas',
     body: 'Every teammate gets a named cursor on the same architecture canvas. Drag a node and it moves for everyone — no refresh, no merge conflicts.',
-    accent: 'text-cyan-500',
-    ring: 'group-hover:border-cyan-400/60',
+    hoverColor: 'group-hover:text-cyan-400',
   },
   {
     icon: MessagesSquare,
     title: 'Threaded design chat',
     body: 'Talk through trade-offs beside the diagram. Decisions stay attached to the room instead of scattering across Slack and docs.',
-    accent: 'text-violet-500',
-    ring: 'group-hover:border-violet-400/60',
+    hoverColor: 'group-hover:text-violet-400',
   },
   {
     icon: Radio,
     title: 'Shared simulation runs',
     body: 'Trigger a 10x traffic spike once and the whole room watches the same bottleneck light up — the same evidence, at the same second.',
-    accent: 'text-amber-500',
-    ring: 'group-hover:border-amber-400/60',
+    hoverColor: 'group-hover:text-amber-400',
   },
 ];
 
@@ -70,14 +66,11 @@ const RoomMockup: React.FC<{ isDark: boolean }> = ({ isDark }) => {
           isDark ? 'shadow-black/60' : 'shadow-slate-300/40'
         }`}
       >
-        {/* Window chrome */}
+        {/* Window chrome (clean header without macOS dots) */}
         <div className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${hairline}`}>
           <div className="flex min-w-0 items-center gap-2">
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-400/80" />
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-400/80" />
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400/80" />
             <span
-              className={`ml-1.5 truncate font-mono text-[10px] sm:text-[11px] ${
+              className={`truncate font-mono text-[10px] sm:text-[11px] ${
                 isDark ? 'text-neutral-400' : 'text-slate-500'
               }`}
             >
@@ -256,12 +249,6 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
       style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 900px' }}
       className="relative w-full overflow-hidden border-t border-slate-200/80 bg-white px-4 py-20 transition-colors dark:border-neutral-900 dark:bg-[#050506] sm:px-6 sm:py-24 lg:px-10"
     >
-      {/* Ambient aurora backdrop */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-64 bg-gradient-to-b from-cyan-500/[0.07] via-violet-500/[0.05] to-transparent dark:from-cyan-500/[0.09] dark:via-violet-500/[0.07]"
-      />
-
       <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
         {/* Copy column */}
         <div className="max-w-xl">
@@ -270,23 +257,9 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
             Collaborative design rooms
           </span>
 
-          <h2 className="mt-5 text-3xl font-black leading-[0.98] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[46px]">
-            <span className="sm:hidden flex flex-col items-start">
-              <PenHighlight className="block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
-                Design the system
-              </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
-                together, live.
-              </PenHighlight>
-            </span>
-            <span className="hidden sm:block">
-              <PenHighlight className="block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
-                Design the system
-              </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
-                together, live.
-              </PenHighlight>
-            </span>
+          <h2 className="mt-5 text-3xl font-black leading-[1.05] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[46px]">
+            Design the system <br />
+            together, live.
           </h2>
 
           <p className="mt-5 text-base leading-relaxed text-slate-600 dark:text-neutral-400 sm:text-lg">
@@ -301,10 +274,10 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
               return (
                 <div
                   key={cap.title}
-                  className={`group flex gap-3.5 rounded-2xl border border-slate-200/90 bg-white/70 p-4 transition-all hover:shadow-md dark:border-neutral-800/80 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/70 ${cap.ring}`}
+                  className="group flex gap-3.5 rounded-2xl border border-slate-200/90 bg-white/70 p-4 dark:border-neutral-800/80 dark:bg-neutral-900/40"
                 >
                   <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900">
-                    <Icon className={`h-4 w-4 ${cap.accent}`} />
+                    <Icon className={`h-4 w-4 text-slate-800 dark:text-white transition-colors duration-200 ${cap.hoverColor}`} />
                   </span>
                   <div>
                     <h3 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
@@ -346,10 +319,6 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
 
         {/* Mockup column */}
         <div className="relative w-full">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -inset-6 -z-10 rounded-[32px] bg-gradient-to-tr from-cyan-500/10 via-transparent to-violet-500/10 blur-2xl"
-          />
           <RoomMockup isDark={isDark} />
         </div>
       </div>
