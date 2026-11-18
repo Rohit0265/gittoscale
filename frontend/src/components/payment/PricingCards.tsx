@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Zap, ArrowRight, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
+import { Check, ArrowRight, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
 
 export interface PricingCardsProps {
   /** Explicit dark-mode flag; falls back to neutral dark styling when omitted. */
