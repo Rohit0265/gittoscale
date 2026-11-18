@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import {
-  FolderGit2,
   Search,
   ExternalLink,
   Trash2,
@@ -14,6 +13,10 @@ import {
   Moon,
   AlertCircle,
   Plus,
+  Github,
+  Users,
+  Radio,
+  UserCheck,
 } from 'lucide-react';
 
 interface HistoryCardProps {
@@ -22,6 +25,15 @@ interface HistoryCardProps {
   createdAt?: string;
   isDeleting: boolean;
   deleteTitle: string;
+  isGithub?: boolean;
+  isCollab?: boolean;
+  meetingStatus?: string;
+  hostName?: string;
+  actionLabel?: string;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
   onOpen: () => void;
   onDelete: (e: React.MouseEvent) => void;
 }
@@ -32,6 +44,12 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
   createdAt,
   isDeleting,
   deleteTitle,
+  isGithub = false,
+  isCollab = false,
+  meetingStatus,
+  hostName,
+  actionLabel = 'Continue',
+  secondaryAction,
   onOpen,
   onDelete,
 }) => {
@@ -60,11 +78,48 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-neutral-700/60 to-transparent pointer-events-none" />
 
       <div>
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
-            {title}
-          </h3>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
+              {title}
+            </h3>
+          </div>
+
+          {/* GitHub Repository small icon & badge */}
+          {isGithub && (
+            <div
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-700/80 text-[11px] font-medium text-slate-700 dark:text-neutral-300 shrink-0 shadow-2xs"
+              title="Scanned from GitHub Repository"
+            >
+              <Github className="w-3.5 h-3.5 text-slate-800 dark:text-neutral-200" />
+              <span className="text-[10px] uppercase font-mono tracking-wider font-semibold">GitHub</span>
+            </div>
+          )}
+
+          {/* Collab Live / Ended status badge */}
+          {isCollab && (
+            <div className="shrink-0">
+              {meetingStatus === 'active' ? (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  <span>Live</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-slate-500 dark:text-neutral-400 bg-slate-100 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700">
+                  <span>Ended</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Collab Host Info */}
+        {isCollab && hostName && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-neutral-400 mt-1">
+            <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
+            <span className="truncate">Host: {hostName}</span>
+          </div>
+        )}
       </div>
 
       {/* Footer & Meta */}
@@ -88,10 +143,26 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
               onOpen();
             }}
             className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white border border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-300 text-xs font-semibold transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
+            title={actionLabel}
           >
-            <span>Continue</span>
+            <span>{actionLabel}</span>
             <ExternalLink className="w-3.5 h-3.5 opacity-80 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
           </button>
+
+          {secondaryAction && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                secondaryAction.onClick();
+              }}
+              className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 text-xs font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+              title={secondaryAction.label}
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span>{secondaryAction.label}</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -126,7 +197,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
   onToggleTheme,
 }) => {
   const { profile, signOut, getAuthToken } = useAuth();
-  const [activeTab, setActiveTab] = useState<'architectures' | 'repositories'>('architectures');
+  const [activeTab, setActiveTab] = useState<'architectures' | 'collab'>('architectures');
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,9 +206,9 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
 
   // Data states
   const [architectures, setArchitectures] = useState<any[]>([]);
-  const [repositories, setRepositories] = useState<any[]>([]);
+  const [collabMeetings, setCollabMeetings] = useState<any[]>([]);
   const [totalArch, setTotalArch] = useState(0);
-  const [totalRepo, setTotalRepo] = useState(0);
+  const [totalCollab, setTotalCollab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -149,7 +220,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
     const token = getAuthToken();
 
     try {
-      const [archRes, repoRes] = await Promise.all([
+      const [archRes, repoRes, meetingRes] = await Promise.all([
         api.getArchitectureHistory(token, {
           q: searchQuery.trim() || undefined,
           status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -158,20 +229,23 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
           q: searchQuery.trim() || undefined,
           status: statusFilter !== 'all' ? statusFilter : undefined,
         }),
+        api.getUserMeetings(token),
       ]);
 
-      let archList = archRes.data || [];
-      let repoList = repoRes.data || [];
+      const rawArchList = archRes.data || [];
+      const rawRepoList = repoRes.data || [];
+      const meetingsList = meetingRes.meetings || [];
 
-      // Deduplicate architecture items by projectId or prompt, ignoring unprompted default placeholders
+      // 1. Process and deduplicate prompt architectures
       const seenArch = new Set<string>();
-      const dedupedArchs: any[] = [];
-      for (const item of archList) {
+      const processedArchs: any[] = [];
+
+      for (const item of rawArchList) {
         const normPrompt = (item.prompt || '').trim().toLowerCase();
         const normTitle = (item.title || '').trim().toLowerCase();
         const projId = item.generation_config?.projectId;
 
-        // Skip blank records and generic playground scratchpads
+        // Skip blank records
         if (!normPrompt && !normTitle) continue;
         if (
           !projId &&
@@ -184,20 +258,75 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
         const key = projId ? `proj_${projId}` : `prompt_${normPrompt}`;
         if (!seenArch.has(key)) {
           seenArch.add(key);
-          dedupedArchs.push(item);
+          const isFromRepo = Boolean(
+            item.repository_url ||
+            item.generation_config?.repo ||
+            item.generation_config?.repositoryUrl ||
+            (item.prompt && item.prompt.includes('github.com'))
+          );
+
+          processedArchs.push({
+            ...item,
+            isGithub: isFromRepo,
+          });
         }
       }
-      archList = dedupedArchs;
 
-      if (sortOrder === 'asc') {
-        archList = archList.toReversed();
-        repoList = repoList.toReversed();
+      // 2. Merge GitHub scanned repositories into the architectures section
+      const mappedRepoItems = rawRepoList.map((repo: any) => ({
+        id: repo.id,
+        isGithub: true,
+        title: repo.repository_name || repo.repository_url?.split('/').pop() || 'GitHub Repository',
+        prompt: repo.repository_url || '',
+        repository_url: repo.repository_url,
+        repository_name: repo.repository_name,
+        architecture_data: repo.architecture_data,
+        created_at: repo.created_at,
+        updated_at: repo.updated_at || repo.created_at,
+      }));
+
+      // Combine architectures + repositories
+      let mergedArchitectures = [...processedArchs, ...mappedRepoItems];
+
+      // Sort by creation date
+      mergedArchitectures.sort((a, b) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+      });
+
+      // Filter search if query exists
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        mergedArchitectures = mergedArchitectures.filter((item) => {
+          const t = (item.title || '').toLowerCase();
+          const p = (item.prompt || '').toLowerCase();
+          const r = (item.repository_name || '').toLowerCase();
+          return t.includes(q) || p.includes(q) || r.includes(q);
+        });
       }
 
-      setArchitectures(archList);
-      setTotalArch(archList.length);
-      setRepositories(repoList);
-      setTotalRepo(repoRes.total || repoList.length);
+      // Process Collab Meetings
+      let processedMeetings = [...meetingsList];
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        processedMeetings = processedMeetings.filter((m) => {
+          const t = (m.title || '').toLowerCase();
+          const h = (m.host_name || '').toLowerCase();
+          return t.includes(q) || h.includes(q);
+        });
+      }
+
+      processedMeetings.sort((a, b) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+      });
+
+      setArchitectures(mergedArchitectures);
+      setTotalArch(mergedArchitectures.length);
+      setCollabMeetings(processedMeetings);
+      setTotalCollab(processedMeetings.length);
     } catch (err: any) {
       console.error('Failed to load history:', err);
       setError(err?.response?.data?.message || err?.message || 'Failed to fetch history records.');
@@ -211,14 +340,23 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
   }, [fetchHistories]);
 
   // Handle Delete Architecture
-  const handleDeleteArchitecture = async (e: React.MouseEvent, id: string) => {
+  const handleDeleteArchitecture = async (e: React.MouseEvent, item: any) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this saved architecture?')) return;
-    setDeletingId(id);
+    const isRepo = item.isGithub && item.repository_url;
+    const confirmMsg = isRepo
+      ? 'Are you sure you want to delete this repository scan?'
+      : 'Are you sure you want to delete this saved architecture?';
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingId(item.id);
     try {
       const token = getAuthToken();
-      await api.deleteArchitectureHistory(token, id);
-      setArchitectures((prev) => prev.filter((a) => a.id !== id));
+      if (isRepo) {
+        await api.deleteRepositoryHistory(token, item.id);
+      } else {
+        await api.deleteArchitectureHistory(token, item.id);
+      }
+      setArchitectures((prev) => prev.filter((a) => a.id !== item.id));
       setTotalArch((prev) => Math.max(0, prev - 1));
     } catch (err: any) {
       alert(err?.response?.data?.message || 'Failed to delete record');
@@ -227,25 +365,25 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
     }
   };
 
-  // Handle Delete Repository
-  const handleDeleteRepository = async (e: React.MouseEvent, id: string) => {
+  // Handle Delete Collab Meeting
+  const handleDeleteMeeting = async (e: React.MouseEvent, meetingId: string) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this repository scan?')) return;
-    setDeletingId(id);
+    if (!window.confirm('Are you sure you want to remove this collaborative meeting from history?')) return;
+    setDeletingId(meetingId);
     try {
       const token = getAuthToken();
-      await api.deleteRepositoryHistory(token, id);
-      setRepositories((prev) => prev.filter((r) => r.id !== id));
-      setTotalRepo((prev) => Math.max(0, prev - 1));
+      await api.deleteMeeting(token, meetingId);
+      setCollabMeetings((prev) => prev.filter((m) => m.id !== meetingId));
+      setTotalCollab((prev) => Math.max(0, prev - 1));
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete record');
+      alert(err?.response?.data?.message || 'Failed to delete meeting');
     } finally {
       setDeletingId(null);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-neutral-100 flex flex-col font-sans transition-colors">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-neutral-100 flex flex-col font-sans transition-colors scroll-smooth">
       {/* Top Navigation Bar */}
       <header className="h-14 border-b border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-[#0A0A0E] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -260,10 +398,6 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
               className="h-7 w-auto object-contain transition-transform group-hover:scale-105"
             />
           </button>
-          {/* <div className="h-4 w-px bg-slate-200 dark:bg-neutral-800" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-neutral-400">
-            History & Workspace
-          </span> */}
         </div>
 
         <div className="flex items-center gap-3">
@@ -313,19 +447,19 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col scroll-smooth">
         {/* Title & Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Architecture & Repository History
+              History &amp; Workspaces
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 mt-1">
-              Reopen, review, and continue simulating any architecture created with GitToScale.
+              Reopen, review, and continue simulating any architecture or collaborative meeting created with GitToScale.
             </p>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs: Architectures (Merged with Repos) & Collab Meetings */}
           <div className="flex items-center gap-1.5 p-1 bg-slate-200/70 dark:bg-neutral-900/90 border border-slate-300 dark:border-neutral-800 rounded-xl self-start sm:self-auto">
             <button
               onClick={() => setActiveTab('architectures')}
@@ -336,19 +470,19 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>Prompt Architectures ({totalArch})</span>
+              <span>Architectures ({totalArch})</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('repositories')}
+              onClick={() => setActiveTab('collab')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'repositories'
-                  ? 'bg-white dark:bg-[#14151F] text-cyan-600 dark:text-cyan-400 shadow-xs'
+                activeTab === 'collab'
+                  ? 'bg-white dark:bg-[#14151F] text-indigo-600 dark:text-indigo-400 shadow-xs'
                   : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <FolderGit2 className="w-3.5 h-3.5" />
-              <span>GitHub Repositories ({totalRepo})</span>
+              <Users className="w-3.5 h-3.5" />
+              <span>Collab ({totalCollab})</span>
             </button>
           </div>
         </div>
@@ -364,8 +498,8 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
                 activeTab === 'architectures'
-                  ? 'Search by prompt or title...'
-                  : 'Search by repository name or URL...'
+                  ? 'Search by prompt, title, or GitHub repo...'
+                  : 'Search by meeting title or host...'
               }
               className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-[#14151F] border border-slate-200 dark:border-neutral-800 rounded-lg text-xs text-slate-800 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
@@ -421,13 +555,13 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
           </div>
         )}
 
-        {/* Loading State Skeleton with Shimmer */}
+        {/* Loading State Skeleton */}
         {loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
-                className="p-5 rounded-2xl bg-white dark:bg-[#0E1017] border border-slate-200/80 dark:border-neutral-800/80 shadow-xs space-y-4 skeleton-shimmer-layer animate-pulse"
+                className="p-5 rounded-2xl bg-white dark:bg-[#0E1017] border border-slate-200/80 dark:border-neutral-800/80 shadow-xs space-y-4 animate-pulse"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1.5 flex-1 pr-2">
@@ -454,7 +588,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
           </div>
         )}
 
-        {/* Tab 1: Architecture History List */}
+        {/* Tab 1: Architectures (Merged Prompt Architectures & GitHub Scanned Repos) */}
         {!loading && activeTab === 'architectures' && (
           <div>
             {architectures.length === 0 ? (
@@ -468,7 +602,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                 <p className="text-xs text-slate-500 dark:text-neutral-400 max-w-sm mb-4">
                   {searchQuery || statusFilter !== 'all'
                     ? 'Try clearing your search query or status filter.'
-                    : 'Submit a system prompt in the playground or synthesizer to generate and save your first production architecture.'}
+                    : 'Submit a system prompt or scan a GitHub repository in the simulator to generate and persist your architecture graph.'}
                 </p>
                 <button
                   onClick={onNavigateToSimulator}
@@ -484,7 +618,6 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                     arch.architecture_data?.nodes?.length ||
                     (Array.isArray(arch.architecture_data) ? arch.architecture_data.length : 0);
 
-                  // Extract 3-4 words for the main heading
                   const rawHeading = (arch.title || arch.prompt || '').trim();
                   const headingWords = rawHeading.split(/\s+/).filter(Boolean);
                   const cardHeading =
@@ -500,10 +633,25 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                       createdAt={arch.created_at}
                       isDeleting={deletingId === arch.id}
                       deleteTitle="Delete architecture"
-                      onOpen={() =>
-                        onOpenArchitecture(arch.architecture_data, arch.prompt, arch.title, arch.id)
-                      }
-                      onDelete={(e) => handleDeleteArchitecture(e, arch.id)}
+                      isGithub={Boolean(arch.isGithub)}
+                      onOpen={() => {
+                        if (arch.isGithub && arch.repository_url) {
+                          onOpenRepository(
+                            arch.architecture_data,
+                            arch.title,
+                            arch.repository_url,
+                            arch.id
+                          );
+                        } else {
+                          onOpenArchitecture(
+                            arch.architecture_data,
+                            arch.prompt,
+                            arch.title,
+                            arch.id
+                          );
+                        }
+                      }}
+                      onDelete={(e) => handleDeleteArchitecture(e, arch)}
                     />
                   );
                 })}
@@ -512,53 +660,70 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
           </div>
         )}
 
-        {/* Tab 2: Repository Scan History List */}
-        {!loading && activeTab === 'repositories' && (
+        {/* Tab 2: Collab Meetings (Inspect Final Synced Architectures) */}
+        {!loading && activeTab === 'collab' && (
           <div>
-            {repositories.length === 0 ? (
+            {collabMeetings.length === 0 ? (
               <div className="text-center py-16 px-4 bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 rounded-2xl flex flex-col items-center">
                 <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 flex items-center justify-center text-slate-700 dark:text-neutral-300 mb-3">
-                  <FolderGit2 className="w-6 h-6 text-slate-700 dark:text-neutral-300 hover:text-cyan-500 transition-colors" />
+                  <Users className="w-6 h-6 text-indigo-500" />
                 </div>
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-neutral-200 mb-1">
-                  No repository scan history found
+                  No collaborative meeting history found
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-neutral-400 max-w-sm mb-4">
-                  {searchQuery || statusFilter !== 'all'
-                    ? 'Try clearing your search query or status filter.'
-                    : 'Import a public GitHub repository in the simulator to automatically scan its code and persist its architecture graph.'}
+                  Host or join a live collaborative room with your team. All final architectures synchronized during the meeting are automatically preserved here.
                 </p>
-                <button
-                  onClick={onNavigateToSimulator}
-                  className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                <a
+                  href="/collab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
-                  Import Repository
-                </button>
+                  <span>Start Collab Meeting</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {repositories.map((repo) => {
-                  const nodeCount = repo.architecture_data?.nodes?.length || 0;
-                  const repoDisplayName =
-                    repo.repository_name || repo.repository_url.split('/').pop() || 'Repository';
+                {collabMeetings.map((meeting) => {
+                  const nodeCount =
+                    meeting.architecture_state?.nodes?.length ||
+                    (Array.isArray(meeting.architecture_state) ? meeting.architecture_state.length : 0);
+
+                  const title = meeting.title || 'Collaborative Architecture Session';
 
                   return (
                     <HistoryCard
-                      key={repo.id}
-                      title={repoDisplayName}
+                      key={meeting.id}
+                      title={title}
                       nodeCount={nodeCount}
-                      createdAt={repo.created_at}
-                      isDeleting={deletingId === repo.id}
-                      deleteTitle="Delete repository"
-                      onOpen={() =>
-                        onOpenRepository(
-                          repo.architecture_data,
-                          repoDisplayName,
-                          repo.repository_url,
-                          repo.id
-                        )
+                      createdAt={meeting.created_at}
+                      isDeleting={deletingId === meeting.id}
+                      deleteTitle="Remove collaborative meeting"
+                      isCollab={true}
+                      meetingStatus={meeting.status}
+                      hostName={meeting.host_name}
+                      actionLabel="View Final Architecture"
+                      secondaryAction={
+                        meeting.status === 'active'
+                          ? {
+                              label: 'Join Room',
+                              onClick: () => {
+                                window.open(`/meeting/${meeting.id}`, '_blank', 'noopener,noreferrer');
+                              },
+                            }
+                          : undefined
                       }
-                      onDelete={(e) => handleDeleteRepository(e, repo.id)}
+                      onOpen={() => {
+                        onOpenArchitecture(
+                          meeting.architecture_state,
+                          `Collab Meeting: ${title}`,
+                          title,
+                          meeting.id
+                        );
+                      }}
+                      onDelete={(e) => handleDeleteMeeting(e, meeting.id)}
                     />
                   );
                 })}
@@ -573,4 +738,3 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
 
 export const HistoryDashboard = React.memo(HistoryDashboardComponent);
 export default HistoryDashboard;
-
