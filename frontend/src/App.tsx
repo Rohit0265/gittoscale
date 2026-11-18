@@ -2210,8 +2210,32 @@ export const App: React.FC = () => {
             const redirectParam = search.get('redirect');
 
             if (redirectParam) {
-              if (redirectParam.startsWith('http')) {
-                window.location.href = redirectParam;
+              if (redirectParam.startsWith('http://') || redirectParam.startsWith('https://')) {
+                try {
+                  const targetUrl = new URL(redirectParam);
+                  const isAllowedHost =
+                    targetUrl.origin === window.location.origin ||
+                    targetUrl.hostname === 'gitoscale.com' ||
+                    targetUrl.hostname.endsWith('.gitoscale.com') ||
+                    targetUrl.hostname === 'gittoscale.tech' ||
+                    targetUrl.hostname.endsWith('.gittoscale.tech') ||
+                    targetUrl.hostname === 'localhost' ||
+                    targetUrl.hostname === '127.0.0.1';
+                  if (isAllowedHost) {
+                    window.location.href = redirectParam;
+                    return;
+                  }
+                } catch {
+                  // Fall through to safe default for invalid or untrusted URLs
+                }
+                window.history.pushState({}, '', '/');
+                setCurrentView('landing');
+                return;
+              }
+              if (redirectParam.startsWith('//')) {
+                // Prevent protocol-relative URL redirection exploits
+                window.history.pushState({}, '', '/');
+                setCurrentView('landing');
                 return;
               }
               if (redirectParam === '/') {

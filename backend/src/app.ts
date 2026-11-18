@@ -50,7 +50,9 @@ export function createApp() {
     'https://www.gitoscale.com',
     'https://gittoscale.tech',
     'https://www.gittoscale.tech',
+    'https://gitoscale.vercel.app',
     ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ];
 
   app.use(
@@ -58,10 +60,15 @@ export function createApp() {
       origin: (origin, callback) => {
         // Allow requests with no origin (e.g. mobile apps, curl, or automated test runners)
         if (!origin) return callback(null, true);
+
+        const isAllowedVercelDeployment =
+          origin.endsWith('.vercel.app') &&
+          (origin.includes('gitoscale') || process.env.NODE_ENV !== 'production');
+
         if (
           process.env.NODE_ENV !== 'production' ||
           allowedOrigins.includes(origin) ||
-          origin.endsWith('.vercel.app') ||
+          isAllowedVercelDeployment ||
           origin.startsWith('http://localhost:') ||
           origin.startsWith('http://127.0.0.1:')
         ) {
