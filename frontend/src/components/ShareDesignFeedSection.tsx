@@ -1,17 +1,13 @@
 import { type FC, type HTMLAttributes, useEffect, useRef } from 'react';
 import {
   ArrowRight,
-  BadgeCheck,
   GitFork,
-  Heart,
   MessagesSquare,
-  Radar,
-  Rocket,
-  Sparkles,
   Users,
+  Rocket,
+  Radar,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { PenHighlight } from './ui/PenShadowLine';
 
 /* ────────────────────────────────────────────────────────────────
  * Shared primitives (exported for reuse / backwards compatibility)
@@ -150,34 +146,20 @@ const HIGHLIGHTS = [
     icon: Rocket,
     title: 'Publish in one click',
     body: 'Push any canvas — prompt-generated, repo-scanned or hand-built — to the feed with its full node graph intact.',
-    accent: 'text-cyan-500',
-    wash: 'from-cyan-500/20 via-cyan-500/5',
+    hoverColor: 'group-hover:text-cyan-400',
   },
   {
     icon: GitFork,
     title: 'Fork real architectures',
     body: 'Open a verified post from another engineer, fork it into your canvas, then re-run the simulation with your own capacity numbers.',
-    accent: 'text-violet-500',
-    wash: 'from-violet-500/20 via-violet-500/5',
+    hoverColor: 'group-hover:text-violet-400',
   },
   {
     icon: MessagesSquare,
     title: 'Critique that sticks',
     body: 'Threads stay attached to the exact design they discuss, so reviews and trade-offs never vanish into chat history.',
-    accent: 'text-amber-500',
-    wash: 'from-amber-500/20 via-amber-500/5',
+    hoverColor: 'group-hover:text-amber-400',
   },
-];
-
-const RECENT_DROPS = [
-  { name: 'checkout-events.gts', author: 'Sara', metric: 'kafka · 3 consumers', forks: 24 },
-  { name: 'multi-tenant-auth.gts', author: 'Dev', metric: 'redis · jwt edge', forks: 41 },
-];
-
-const STATS = [
-  { value: '2.4k+', label: 'designs published' },
-  { value: '18k', label: 'forks & re-runs' },
-  { value: '3 tiers', label: 'community · verified · private' },
 ];
 
 export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavigate }) => {
@@ -196,16 +178,6 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
       style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 900px' }}
       className="relative w-full overflow-hidden border-t border-slate-200/80 bg-white py-20 transition-colors dark:border-neutral-900 dark:bg-[#020202] sm:py-24"
     >
-      {/* Ambient wash + corner bloom */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-violet-500/[0.07] via-cyan-500/[0.04] to-transparent dark:from-violet-500/[0.10] dark:via-cyan-500/[0.05]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-28 top-20 h-80 w-80 rounded-full bg-violet-500/10 blur-3xl dark:bg-violet-500/[0.13]"
-      />
-
       <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:gap-16 lg:px-10">
         {/* ── Copy column ──────────────────────────────────────── */}
         <div className="max-w-xl">
@@ -214,13 +186,9 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
             Community feed
           </span>
 
-          <h2 className="mt-5 text-3xl font-black leading-[0.97] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[44px]">
-            <PenHighlight className="block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
-              Share your design
-            </PenHighlight>
-            <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
-              with the community.
-            </PenHighlight>
+          <h2 className="mt-5 text-3xl font-black leading-[1.05] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[44px]">
+            Share your design <br />
+            with the community.
           </h2>
 
           <p className="mt-5 text-base leading-relaxed text-slate-600 dark:text-neutral-400 sm:text-lg">
@@ -235,17 +203,10 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
               return (
                 <div
                   key={item.title}
-                  className="group relative flex gap-3.5 overflow-hidden rounded-2xl border border-slate-200/90 bg-white/70 p-4 transition-all hover:-translate-y-px hover:shadow-md dark:border-neutral-800/80 dark:bg-neutral-900/40 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/70"
+                  className="group relative flex gap-3.5 rounded-2xl border border-slate-200/90 bg-white/70 p-4 dark:border-neutral-800/80 dark:bg-neutral-900/40"
                 >
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      'pointer-events-none absolute inset-y-0 left-0 w-28 bg-gradient-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100',
-                      item.wash,
-                    )}
-                  />
                   <span className="relative mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-                    <Icon className={cn('h-4 w-4', item.accent)} />
+                    <Icon className={cn('h-4 w-4 text-slate-800 dark:text-white transition-colors duration-200', item.hoverColor)} />
                   </span>
                   <div className="relative">
                     <h3 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
@@ -269,42 +230,15 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
               <span>Open the community feed</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
-            <button
-              type="button"
-              onClick={openFeed}
-              className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-800"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-violet-500" />
-              <span>Publish a design</span>
-            </button>
           </div>
-
-          <dl className="mt-9 grid grid-cols-3 gap-4 border-t border-slate-200/80 pt-6 dark:border-neutral-800/80">
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <dt className="font-mono text-lg font-bold tracking-tight text-slate-900 dark:text-white sm:text-xl">
-                  {stat.value}
-                </dt>
-                <dd className="mt-0.5 text-[11px] leading-tight text-slate-500 dark:text-neutral-500">
-                  {stat.label}
-                </dd>
-              </div>
-            ))}
-          </dl>
         </div>
 
         {/* ── Video showcase column ────────────────────────────── */}
         <div className="relative w-full">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -inset-5 -z-10 rounded-[34px] bg-gradient-to-tr from-violet-500/15 via-transparent to-cyan-500/15 blur-2xl"
-          />
-
           <AlternateImageMockup aspectRatioClass="aspect-[16/13] sm:aspect-[1262/880]">
             <ContinuousAutoplayVideo
               src="/feed-share-design.mp4"
               poster="/feed-share-design.png"
-              className="transition-transform duration-500 hover:scale-[1.015]"
             />
 
             {/* Scrim so the top chrome row stays legible */}
@@ -313,16 +247,9 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
               className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/55 to-transparent"
             />
 
-            {/* App chrome row */}
+            {/* App chrome row (clean header without macOS dots) */}
             <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-2 px-3 py-2.5">
-              <div className="flex min-w-0 items-center gap-1.5">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-rose-400/80" />
-                <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400/80" />
-                <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400/80" />
-                <span className="ml-2 truncate font-mono text-[10px] text-white/70">
-                  gittoscale.tech/feed
-                </span>
-              </div>
+              <span className="font-mono text-[10px] text-white/70">gittoscale.tech/feed</span>
               <span className="flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2 py-0.5 backdrop-blur-md">
                 <Radar className="h-2.5 w-2.5 text-emerald-400" />
                 <span className="text-[9px] font-semibold uppercase tracking-wider text-white/90">
@@ -331,65 +258,6 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
               </span>
             </div>
           </AlternateImageMockup>
-
-          {/* Metrics strip — below the frame so it never covers the recording */}
-          <div className="mx-auto mt-4 flex w-full max-w-xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 backdrop-blur-md dark:border-neutral-800/80 dark:bg-neutral-900/50">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-[10px] font-bold text-white">
-                AK
-              </span>
-              <span className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">
-                Aarav
-              </span>
-              <span className="truncate font-mono text-[11px] text-slate-500 dark:text-neutral-500">
-                payments-v3.gts
-              </span>
-              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-cyan-500" />
-            </div>
-
-            <div className="flex items-center gap-3 font-mono text-[11px] font-semibold text-slate-600 dark:text-neutral-400">
-              <span className="flex items-center gap-1">
-                <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
-                1.2k
-              </span>
-              <span className="flex items-center gap-1">
-                <GitFork className="h-3.5 w-3.5 text-cyan-500" />
-                84
-              </span>
-              <span className="flex items-center gap-1">
-                <MessagesSquare className="h-3.5 w-3.5 text-violet-500" />
-                26
-              </span>
-            </div>
-          </div>
-
-          {/* Recent drops — hints at feed depth without adding a second section */}
-          <div className="mx-auto mt-3 w-full max-w-xl space-y-2">
-            {RECENT_DROPS.map((drop) => (
-              <button
-                key={drop.name}
-                type="button"
-                onClick={openFeed}
-                className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-white/50 px-3.5 py-2.5 text-left transition-colors hover:border-slate-300 hover:bg-white dark:border-neutral-800/70 dark:bg-neutral-900/30 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/60"
-              >
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 font-mono text-[9px] font-bold text-slate-500 dark:bg-neutral-800 dark:text-neutral-400">
-                    {drop.author.slice(0, 2)}
-                  </span>
-                  <span className="truncate font-mono text-[11px] font-semibold text-slate-700 dark:text-neutral-300">
-                    {drop.name}
-                  </span>
-                  <span className="hidden truncate text-[10px] text-slate-400 dark:text-neutral-600 sm:inline">
-                    {drop.metric}
-                  </span>
-                </span>
-                <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] font-semibold text-slate-500 dark:text-neutral-500">
-                  <GitFork className="h-3 w-3 text-cyan-500" />
-                  {drop.forks}
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </section>
