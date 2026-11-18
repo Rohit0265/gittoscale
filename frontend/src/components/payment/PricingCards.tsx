@@ -121,7 +121,7 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
 
           <div className="mb-6 flex items-baseline gap-1.5">
             <span className={`text-4xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-              $0
+              ₹0
             </span>
             <span className={`text-sm ${isDark ? 'text-neutral-500' : 'text-neutral-500'}`}>/ forever</span>
           </div>

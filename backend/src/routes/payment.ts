@@ -67,9 +67,11 @@ router.get('/status', async (req: Request, res: Response) => {
       product: {
         id: getPolarProductId(),
         name: 'GitToScale Pro',
-        price: '$29',
+        price: '₹299',
+        originalPrice: '₹399',
+        discount: '25% OFF',
         interval: 'month',
-        currency: 'USD',
+        currency: 'INR',
         description: 'Unlimited AI architecture generation, live collaborative meetings, and enterprise scaling simulator.',
         features: [
           'Unlimited AI-assisted architecture generation',
