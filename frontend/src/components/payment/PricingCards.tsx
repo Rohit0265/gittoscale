@@ -36,16 +36,28 @@ const PRO_FEATURES = [
   'Priority support directly from system architects',
 ];
 
-const FeatureRow: React.FC<{ label: string; isDark: boolean }> = ({ label, isDark }) => (
+const FeatureRow: React.FC<{ label: string; isDark: boolean; isWhiteCard?: boolean }> = ({
+  label,
+  isDark,
+  isWhiteCard = false,
+}) => (
   <div className="flex items-start gap-3">
     <span
       className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full ${
-        isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+        isWhiteCard
+          ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'
+          : isDark
+          ? 'bg-emerald-500/10 text-emerald-400'
+          : 'bg-emerald-50 text-emerald-600'
       }`}
     >
       <Check className="h-3 w-3" strokeWidth={3} />
     </span>
-    <span className={`text-[13px] leading-relaxed ${isDark ? 'text-neutral-300' : 'text-neutral-600'}`}>
+    <span
+      className={`text-[13px] leading-relaxed ${
+        isWhiteCard ? 'text-slate-700 font-medium' : isDark ? 'text-neutral-300' : 'text-neutral-600'
+      }`}
+    >
       {label}
     </span>
   </div>
@@ -151,46 +163,32 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
         </button>
       </div>
 
-      {/* ── Pro plan ──────────────────────────────────────────────── */}
+      {/* ── Pro plan (Premium White Card) ─────────────────────────── */}
       <div
-        className={`relative flex flex-col justify-between overflow-hidden rounded-3xl border p-7 sm:p-8 shadow-2xl transition-all duration-300 ${
+        className={`relative flex flex-col justify-between overflow-hidden rounded-3xl p-7 sm:p-8 transition-all duration-300 ${
           isPro
-            ? isDark
-              ? 'border-emerald-500/40 bg-gradient-to-b from-emerald-950/25 to-neutral-900 ring-1 ring-emerald-500/25'
-              : 'border-emerald-300 bg-gradient-to-b from-emerald-50 to-white ring-1 ring-emerald-200'
-            : isDark
-            ? 'border-violet-500/40 bg-gradient-to-b from-violet-950/25 to-neutral-900 ring-1 ring-violet-500/25'
-            : 'border-violet-300 bg-gradient-to-b from-violet-50 to-white ring-1 ring-violet-300/60'
+            ? 'bg-white text-slate-900 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/15 ring-4 ring-emerald-500/10'
+            : 'bg-white text-slate-900 border border-slate-200/90 shadow-2xl shadow-indigo-500/15 ring-2 ring-indigo-500/10 hover:border-indigo-300 hover:shadow-indigo-500/25'
         }`}
       >
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl ${
-            isPro ? 'bg-emerald-500/10' : 'bg-violet-500/15'
-          }`}
+          className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl bg-indigo-500/10"
         />
 
         <div className="relative">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <span
-                className={`text-[10px] font-mono uppercase tracking-[0.18em] ${
-                  isDark ? 'text-violet-300/70' : 'text-violet-500'
-                }`}
-              >
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-indigo-600">
                 Full access
               </span>
-              <h3
-                className={`mt-1 flex items-center gap-2 text-xl font-bold tracking-tight ${
-                  isDark ? 'text-white' : 'text-neutral-900'
-                }`}
-              >
+              <h3 className="mt-1 flex items-center gap-2 text-xl font-extrabold tracking-tight text-slate-950">
                 GitToScale Pro
-                <Zap className="h-4 w-4 fill-current text-violet-400" />
+                <Zap className="h-4 w-4 fill-current text-indigo-600" />
               </h3>
             </div>
             <span
-              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm ${
+              className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm ${
                 isPro
                   ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
                   : 'bg-gradient-to-r from-violet-600 to-indigo-600'
@@ -201,15 +199,15 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
           </div>
 
           <div className="mb-6 flex items-baseline gap-1.5">
-            <span className={`text-4xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+            <span className="text-4xl font-extrabold tracking-tight text-slate-950">
               $29
             </span>
-            <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>/ month</span>
+            <span className="text-sm font-medium text-slate-500">/ month</span>
           </div>
 
-          <div className="mb-7 space-y-3 border-t pt-6" style={{ borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)' }}>
+          <div className="mb-7 space-y-3 border-t border-slate-100 pt-6">
             {PRO_FEATURES.map((feature) => (
-              <FeatureRow key={feature} label={feature} isDark={isDark} />
+              <FeatureRow key={feature} label={feature} isDark={isDark} isWhiteCard={true} />
             ))}
           </div>
         </div>
@@ -220,10 +218,10 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
             if (!isPro) onUpgrade?.();
           }}
           disabled={isPro || loading}
-          className={`relative flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+          className={`relative flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
             isPro
-              ? 'cursor-default border border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-              : 'cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/25 hover:from-violet-500 hover:to-indigo-500'
+              ? 'cursor-default border border-emerald-500/30 bg-emerald-50 text-emerald-700'
+              : 'cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/30 hover:from-violet-500 hover:to-indigo-500 active:scale-[0.99]'
           }`}
         >
           {loading ? (

@@ -64,130 +64,171 @@ const RoomMockup: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     : 'bg-white border-slate-200 text-slate-700';
 
   return (
-    <div
-      className={`relative w-full overflow-hidden rounded-2xl border shadow-2xl ${panel} ${
-        isDark ? 'shadow-black/60' : 'shadow-slate-300/40'
-      }`}
-    >
-      {/* Window chrome */}
-      <div className={`flex items-center justify-between gap-3 border-b px-4 py-3 ${hairline}`}>
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
-          <span
-            className={`ml-2 font-mono text-[11px] ${
-              isDark ? 'text-neutral-400' : 'text-slate-500'
-            }`}
-          >
-            payments-platform.gts
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
-            <Wifi className="h-2.5 w-2.5" />
-            live
-          </span>
-          <div className="flex -space-x-1.5">
-            <Avatar initials="RM" tone="bg-cyan-600" />
-            <Avatar initials="AK" tone="bg-violet-600" />
-            <Avatar initials="SD" tone="bg-amber-600" />
+    <div className="relative w-full">
+      <div
+        className={`relative w-full overflow-hidden rounded-2xl border shadow-2xl ${panel} ${
+          isDark ? 'shadow-black/60' : 'shadow-slate-300/40'
+        }`}
+      >
+        {/* Window chrome */}
+        <div className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${hairline}`}>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-400/80" />
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-400/80" />
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400/80" />
             <span
-              className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-[10px] font-bold ${
-                isDark
-                  ? 'border-[#0b0b0f] bg-neutral-800 text-neutral-300'
-                  : 'border-white bg-slate-200 text-slate-600'
+              className={`ml-1.5 truncate font-mono text-[10px] sm:text-[11px] ${
+                isDark ? 'text-neutral-400' : 'text-slate-500'
               }`}
             >
-              +3
+              payments-platform.gts
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
+              <Wifi className="h-2.5 w-2.5" />
+              live
+            </span>
+            <div className="flex -space-x-1.5">
+              <Avatar initials="RM" tone="bg-cyan-600" />
+              <Avatar initials="AK" tone="bg-violet-600" />
+              <Avatar initials="SD" tone="bg-amber-600" />
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-[10px] font-bold ${
+                  isDark
+                    ? 'border-[#0b0b0f] bg-neutral-800 text-neutral-300'
+                    : 'border-white bg-slate-200 text-slate-600'
+                }`}
+              >
+                +3
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Canvas — everything positioned in percentages so nothing clips */}
+        <div className="relative aspect-[16/11] w-full sm:aspect-[16/10]">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              backgroundImage: isDark
+                ? 'linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px)'
+                : 'linear-gradient(to right, rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.06) 1px, transparent 1px)',
+              backgroundSize: '26px 26px',
+            }}
+          />
+
+          {/* Connectors in a 100x100 viewBox so they scale with the panel */}
+          <svg
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M 30 23 C 31.5 23, 32.5 15, 34 15"
+              className="stroke-slate-400/50 dark:stroke-neutral-500/50"
+              fill="none"
+              strokeWidth="1.2"
+              strokeDasharray="4 5"
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d="M 30 23 C 31.2 23, 32 63, 34 63"
+              className="stroke-slate-400/50 dark:stroke-neutral-500/50"
+              fill="none"
+              strokeWidth="1.2"
+              strokeDasharray="4 5"
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d="M 60 15 C 66 15, 66 37, 72 37"
+              className="stroke-violet-400/60"
+              fill="none"
+              strokeWidth="1.2"
+              strokeDasharray="4 5"
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d="M 60 63 C 66 63, 66 37, 72 37"
+              className="stroke-violet-400/60"
+              fill="none"
+              strokeWidth="1.2"
+              strokeDasharray="4 5"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+
+          {/* Nodes */}
+          <div
+            className={`absolute left-[4%] top-[18%] w-[26%] min-w-[88px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${nodeBase}`}
+          >
+            <p className="truncate text-[10px] font-bold tracking-tight">API Gateway</p>
+            <p className="font-mono text-[9px] opacity-60">14.2k rps</p>
+          </div>
+
+          <div
+            className={`absolute left-[34%] top-[10%] w-[26%] min-w-[88px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${nodeBase}`}
+          >
+            <p className="truncate text-[10px] font-bold tracking-tight">Orders</p>
+            <p className="font-mono text-[9px] opacity-60">48ms p99</p>
+          </div>
+
+          <div
+            className={`absolute left-[34%] top-[58%] w-[26%] min-w-[88px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${
+              isDark
+                ? 'border-amber-600/60 bg-amber-500/10 text-amber-200'
+                : 'border-amber-300 bg-amber-50 text-amber-800'
+            }`}
+          >
+            <p className="truncate text-[10px] font-bold tracking-tight">Payments</p>
+            <p className="font-mono text-[9px] opacity-70">queue 92%</p>
+          </div>
+
+          <div
+            className={`absolute left-[72%] top-[32%] w-[24%] min-w-[84px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${
+              isDark
+                ? 'border-violet-600/50 bg-violet-500/10 text-violet-200'
+                : 'border-violet-300 bg-violet-50 text-violet-800'
+            }`}
+          >
+            <p className="truncate text-[10px] font-bold tracking-tight">Postgres</p>
+            <p className="font-mono text-[9px] opacity-70">pool 61%</p>
+          </div>
+
+          {/* Live cursors */}
+          <div className="absolute left-[46%] top-[31%] z-10">
+            <MousePointer2 className="h-4 w-4 rotate-[-15deg] fill-cyan-500 text-cyan-600" />
+            <span className="ml-3 -mt-1 block w-fit rounded-md bg-cyan-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
+              Aarav
+            </span>
+          </div>
+
+          <div className="absolute left-[24%] top-[84%] z-10">
+            <MousePointer2 className="h-4 w-4 rotate-[-15deg] fill-violet-500 text-violet-600" />
+            <span className="ml-3 -mt-1 block w-fit rounded-md bg-violet-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
+              Sara
             </span>
           </div>
         </div>
       </div>
 
-      {/* Canvas area with faux nodes and a live cursor */}
-      <div className="relative h-[290px] sm:h-[330px]">
-        {/* grid */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0"
-          style={{
-            backgroundImage: isDark
-              ? 'linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px)'
-              : 'linear-gradient(to right, rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.06) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-
-        {/* connector lines */}
-        <svg aria-hidden="true" className="absolute inset-0 h-full w-full">
-          <path d="M 118 92 C 190 92, 196 150, 262 150" className="stroke-slate-400/50" fill="none" strokeWidth="1.5" strokeDasharray="5 6" />
-          <path d="M 118 92 C 190 92, 196 236, 262 236" className="stroke-slate-400/50" fill="none" strokeWidth="1.5" strokeDasharray="5 6" />
-          <path d="M 356 150 C 420 150, 424 192, 486 192" className="stroke-violet-400/60" fill="none" strokeWidth="1.5" strokeDasharray="5 6" />
-          <path d="M 356 236 C 420 236, 424 192, 486 192" className="stroke-violet-400/60" fill="none" strokeWidth="1.5" strokeDasharray="5 6" />
-        </svg>
-
-        {/* Nodes */}
-        <div className={`absolute left-4 top-[68px] w-[100px] rounded-xl border px-2.5 py-2 ${nodeBase}`}>
-          <p className="text-[10px] font-bold tracking-tight">API Gateway</p>
-          <p className="font-mono text-[9px] opacity-60">14.2k rps</p>
-        </div>
-        <div className={`absolute left-[262px] top-[126px] w-[100px] rounded-xl border px-2.5 py-2 ${nodeBase}`}>
-          <p className="text-[10px] font-bold tracking-tight">Orders</p>
-          <p className="font-mono text-[9px] opacity-60">48ms p99</p>
-        </div>
-        <div
-          className={`absolute left-[262px] top-[212px] w-[100px] rounded-xl border px-2.5 py-2 ${
-            isDark
-              ? 'border-amber-600/60 bg-amber-500/10 text-amber-200'
-              : 'border-amber-300 bg-amber-50 text-amber-800'
-          }`}
-        >
-          <p className="text-[10px] font-bold tracking-tight">Payments</p>
-          <p className="font-mono text-[9px] opacity-70">queue 92%</p>
-        </div>
-        <div
-          className={`absolute left-[486px] top-[168px] w-[104px] rounded-xl border px-2.5 py-2 ${
-            isDark
-              ? 'border-violet-600/50 bg-violet-500/10 text-violet-200'
-              : 'border-violet-300 bg-violet-50 text-violet-800'
-          }`}
-        >
-          <p className="text-[10px] font-bold tracking-tight">Postgres</p>
-          <p className="font-mono text-[9px] opacity-70">pool 61%</p>
-        </div>
-
-        {/* Live cursor 1 */}
-        <div className="absolute left-[352px] top-[152px] z-10">
-          <MousePointer2 className="h-4 w-4 rotate-[-15deg] fill-cyan-500 text-cyan-600" />
-          <span className="ml-3 -mt-1 block w-fit rounded-md bg-cyan-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
-            Aarav
+      {/* AI note strip — below the frame, never overlapping the canvas */}
+      <div
+        className={`mt-3 flex items-start gap-2.5 rounded-2xl border px-3.5 py-2.5 backdrop-blur-md ${
+          isDark
+            ? 'border-neutral-800/80 bg-neutral-900/50 text-neutral-300'
+            : 'border-slate-200/80 bg-white/80 text-slate-700'
+        }`}
+      >
+        <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-500" />
+        <p className="text-[11px] leading-relaxed">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-500">
+            AI note ·{' '}
           </span>
-        </div>
-
-        {/* Live cursor 2 */}
-        <div className="absolute left-[214px] top-[268px] z-10">
-          <MousePointer2 className="h-4 w-4 rotate-[-15deg] fill-violet-500 text-violet-600" />
-          <span className="ml-3 -mt-1 block w-fit rounded-md bg-violet-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
-            Sara
-          </span>
-        </div>
-
-        {/* Chat bubble */}
-        <div
-          className={`absolute bottom-3 right-3 max-w-[190px] rounded-xl border px-3 py-2 shadow-lg ${
-            isDark
-              ? 'border-neutral-700/80 bg-[#17171d] text-neutral-200'
-              : 'border-slate-200 bg-white text-slate-700'
-          }`}
-        >
-          <p className="mb-1 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-violet-500">
-            <Sparkles className="h-2.5 w-2.5" /> AI note
-          </p>
-          <p className="text-[10px] leading-snug">
-            Payments queue saturates before Postgres. Add workers, then re-run the spike.
-          </p>
-        </div>
+          Payments queue saturates before Postgres. Add workers, then re-run the spike.
+        </p>
       </div>
     </div>
   );
