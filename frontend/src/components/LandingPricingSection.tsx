@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { PenHighlight } from './ui/PenShadowLine';
 import { PricingCards } from './payment/PricingCards';
 import { api, SubscriptionStatusResponse } from '../services/api';

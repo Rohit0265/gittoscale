@@ -16,6 +16,8 @@ import WorkflowSteps from './WorkflowSteps';
 import FrequentlyAskedQuestions from './ui/frequently-asked-questions-with-accordion';
 import { PenHighlight } from './ui/PenShadowLine';
 import { ShareDesignFeedSection } from './ShareDesignFeedSection';
+import { CollabSection } from './CollabSection';
+import { LandingPricingSection } from './LandingPricingSection';
 import { useSmoothScroll } from '../utils/useSmoothScroll';
 import { LandingHeader } from './LandingHeader';
 
