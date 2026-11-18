@@ -3,9 +3,7 @@ import {
   ArrowRight,
   GitFork,
   MessagesSquare,
-  Users,
   Rocket,
-  Radar,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PenHighlight } from './ui/PenShadowLine';
