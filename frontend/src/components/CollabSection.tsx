@@ -234,10 +234,6 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
       <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
         {/* Copy column */}
         <div className="max-w-xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-400">
-            <Users className="h-3 w-3" />
-            Collaborative design rooms
-          </span>
 
           <h2 className="mt-5 text-3xl font-black leading-[1.05] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[46px]">
             Design the system <br />
