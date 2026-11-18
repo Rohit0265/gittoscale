@@ -367,16 +367,6 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes gtsFeedFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .animate-\\[gtsFeedFloat_6s_ease-in-out_infinite\\] { animation: none !important; }
-        }
-      `}</style>
     </section>
   );
 };
