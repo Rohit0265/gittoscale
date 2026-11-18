@@ -496,6 +496,12 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
         isDark={isDark}
       />
 
+      {/* Real-Time Collaborative Design Rooms */}
+      <CollabSection
+        onNavigate={onNavigate}
+        isDark={isDark}
+      />
+
       {/* Section 7: Use Cases (#use-cases) */}
       <section
         id="use-cases"
@@ -592,6 +598,14 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </section>
+
+      {/* Plans & Pricing */}
+      <LandingPricingSection
+        isDark={isDark}
+        onOpenSignUp={onOpenSignUp}
+        onOpenAuth={onOpenAuth}
+        onNavigate={onNavigate}
+      />
 
       {/* Optional Children */}
       {children}

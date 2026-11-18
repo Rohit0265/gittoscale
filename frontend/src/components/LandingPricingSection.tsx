@@ -9,6 +9,8 @@ export interface LandingPricingSectionProps {
   isDark?: boolean;
   /** Called when a signed-out visitor clicks "Sign Up" on the free card. */
   onOpenSignUp?: () => void;
+  /** Fallback auth handler when no dedicated sign-up handler is provided. */
+  onOpenAuth?: () => void;
   /** Called when a visitor clicks "Upgrade to Pro". */
   onOpenPayment?: () => void;
   /** Fallback navigation handler. */
@@ -18,6 +20,7 @@ export interface LandingPricingSectionProps {
 export const LandingPricingSection: React.FC<LandingPricingSectionProps> = ({
   isDark = true,
   onOpenSignUp,
+  onOpenAuth,
   onOpenPayment,
   onNavigate,
 }) => {
