@@ -536,6 +536,28 @@ export const api = {
     return res.data;
   },
 
+  async getUserMeetings(
+    token?: string | null,
+    forceRefresh = false
+  ): Promise<{ success: boolean; meetings: any[] }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    return dedupedGet<{ success: boolean; meetings: any[] }>(
+      '/meetings/user/history',
+      {
+        headers,
+        ttlMs: 5000,
+        forceRefresh,
+      }
+    );
+  },
+
+  async deleteMeeting(token: string | null, id: string): Promise<{ success: boolean }> {
+    clearApiCache('GET:/meetings/user/history');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.delete(`${API_BASE}/meetings/${id}`, { headers });
+    return res.data;
+  },
+
   // =========================================================================
   // AI Agent Chat History & Persistence (Up to 200 Context Messages)
   // =========================================================================
