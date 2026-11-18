@@ -1,26 +1,36 @@
 import { type FC, type HTMLAttributes, useEffect, useRef } from 'react';
-import { ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  Heart,
+  GitFork,
+  MessagesSquare,
+  BadgeCheck,
+  Sparkles,
+  Users,
+  Rocket,
+  Radar,
+} from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PenHighlight } from './ui/PenShadowLine';
+
+/* ────────────────────────────────────────────────────────────────
+ * Shared primitives (exported for reuse / backwards compatibility)
+ * ──────────────────────────────────────────────────────────────── */
 
 export interface ListItemTextProps {
   text: string;
   className?: string;
 }
 
-export const ListItemText: FC<ListItemTextProps> = ({ text, className }) => {
-  return (
-    <li className={cn('flex items-start gap-3.5', className)}>
-      <span
-        className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400 dark:bg-neutral-500"
-        aria-hidden="true"
-      />
-      <span className="text-base text-slate-600 dark:text-neutral-300 leading-relaxed">
-        {text}
-      </span>
-    </li>
-  );
-};
+export const ListItemText: FC<ListItemTextProps> = ({ text, className }) => (
+  <li className={cn('flex items-start gap-3.5', className)}>
+    <span
+      className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400 dark:bg-neutral-500"
+      aria-hidden="true"
+    />
+    <span className="text-base leading-relaxed text-slate-600 dark:text-neutral-300">{text}</span>
+  </li>
+);
 
 // Backward compatibility alias
 export const CheckItemText = ListItemText;
@@ -34,28 +44,26 @@ export const AlternateImageMockup: FC<AlternateImageMockupProps> = ({
   aspectRatioClass = 'aspect-[16/10] sm:aspect-[16/9] md:aspect-[2/1]',
   children,
   ...props
-}) => {
-  return (
-    <div
-      className={cn(
-        'w-full max-w-xl mx-auto rounded-xl bg-slate-100 dark:bg-neutral-900/90 p-1.5 shadow-2xl ring-1 ring-slate-200/80 dark:ring-neutral-800 md:rounded-2xl md:p-2 transition-all',
-        className,
-      )}
-      {...props}
-    >
-      <div className="w-full rounded-[10px] bg-white dark:bg-[#0A0A0C] p-1 md:rounded-[14px]">
-        <div
-          className={cn(
-            'relative w-full overflow-hidden rounded-lg ring-1 ring-slate-200/60 dark:ring-neutral-800/80 bg-[#090909]',
-            aspectRatioClass,
-          )}
-        >
-          {children}
-        </div>
+}) => (
+  <div
+    className={cn(
+      'mx-auto w-full max-w-xl rounded-xl bg-slate-100 p-1.5 shadow-2xl ring-1 ring-slate-200/80 transition-all dark:bg-neutral-900/90 dark:ring-neutral-800 md:rounded-2xl md:p-2',
+      className,
+    )}
+    {...props}
+  >
+    <div className="w-full rounded-[10px] bg-white p-1 dark:bg-[#0A0A0C] md:rounded-[14px]">
+      <div
+        className={cn(
+          'relative w-full overflow-hidden rounded-lg bg-[#090909] ring-1 ring-slate-200/60 dark:ring-neutral-800/80',
+          aspectRatioClass,
+        )}
+      >
+        {children}
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 export interface ContinuousAutoplayVideoProps {
   src: string;
@@ -63,6 +71,7 @@ export interface ContinuousAutoplayVideoProps {
   className?: string;
 }
 
+/** Silent, looped background video that keeps playing through scroll/visibility changes. */
 export const ContinuousAutoplayVideo: FC<ContinuousAutoplayVideoProps> = ({
   src,
   poster,
@@ -74,54 +83,39 @@ export const ContinuousAutoplayVideo: FC<ContinuousAutoplayVideoProps> = ({
     const video = videoRef.current;
     if (!video) return;
 
-    // Enforce mute and autoplay properties for seamless silent playback
     video.muted = true;
     video.defaultMuted = true;
     video.volume = 0;
 
-    const playVideo = () => {
+    const play = () => {
       if (video.paused) {
         const p = video.play();
-        if (p !== undefined) {
-          p.catch(() => {});
-        }
+        if (p !== undefined) p.catch(() => {});
       }
     };
 
-    // Attempt playback immediately
-    playVideo();
+    play();
 
-    // Ensure playback stays active during user scrolling or window visibility changes
-    const handleScrollOrInteract = () => {
-      playVideo();
-    };
-
-    window.addEventListener('scroll', handleScrollOrInteract, { passive: true });
-    window.addEventListener('touchstart', handleScrollOrInteract, { passive: true });
-    document.addEventListener('visibilitychange', playVideo);
+    window.addEventListener('scroll', play, { passive: true });
+    window.addEventListener('touchstart', play, { passive: true });
+    document.addEventListener('visibilitychange', play);
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            playVideo();
-          }
-        });
-      },
+      (entries) => entries.forEach((entry) => entry.isIntersecting && play()),
       { threshold: 0.05 },
     );
     observer.observe(video);
 
     return () => {
-      window.removeEventListener('scroll', handleScrollOrInteract);
-      window.removeEventListener('touchstart', handleScrollOrInteract);
-      document.removeEventListener('visibilitychange', playVideo);
+      window.removeEventListener('scroll', play);
+      window.removeEventListener('touchstart', play);
+      document.removeEventListener('visibilitychange', play);
       observer.disconnect();
     };
   }, []);
 
   return (
-    <div className="relative w-full h-full select-none pointer-events-none overflow-hidden">
+    <div className="pointer-events-none relative h-full w-full select-none overflow-hidden">
       <video
         ref={videoRef}
         src={src}
@@ -134,31 +128,77 @@ export const ContinuousAutoplayVideo: FC<ContinuousAutoplayVideoProps> = ({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-        onPause={(e) => {
-          // Keep continuously playing without stopping
-          e.currentTarget.play().catch(() => {});
-        }}
-        className={cn(
-          'w-full h-full object-cover object-top pointer-events-none select-none',
-          className,
-        )}
+        onPause={(e) => e.currentTarget.play().catch(() => {})}
+        className={cn('pointer-events-none h-full w-full select-none object-cover object-top', className)}
       />
     </div>
   );
 };
 
-export interface FeaturesAlternatingLayout01Props {
+/* ────────────────────────────────────────────────────────────────
+ * Community feed section — single showcase block
+ * ──────────────────────────────────────────────────────────────── */
+
+export interface ShareDesignFeedSectionProps {
   onNavigate?: (route: string) => void;
   onSelectTestSite?: () => void;
   isDark?: boolean;
 }
 
-export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> = ({
-  onNavigate,
-  onSelectTestSite: _onSelectTestSite,
-  isDark: _isDark,
-}) => {
-  const handleOpenFeed = () => {
+const HIGHLIGHTS = [
+  {
+    icon: Rocket,
+    title: 'Publish in one click',
+    body: 'Push any canvas — prompt-generated, repo-scanned or hand-built — to the feed with its full node graph intact.',
+    accent: 'text-cyan-500',
+    wash: 'from-cyan-500/20 via-cyan-500/5',
+  },
+  {
+    icon: GitFork,
+    title: 'Fork real architectures',
+    body: 'Open a verified post from another engineer, fork it into your canvas, then re-run the simulation with your own capacity numbers.',
+    accent: 'text-violet-500',
+    wash: 'from-violet-500/20 via-violet-500/5',
+  },
+  {
+    icon: MessagesSquare,
+    title: 'Critique that sticks',
+    body: 'Threads stay attached to the exact design they discuss, so reviews and trade-offs never vanish into chat history.',
+    accent: 'text-amber-500',
+    wash: 'from-amber-500/20 via-amber-500/5',
+  },
+];
+
+const STATS = [
+  { value: '2.4k+', label: 'designs published' },
+  { value: '18k', label: 'forks & re-runs' },
+  { value: '3 tiers', label: 'community · verified · private' },
+];
+
+interface FloatChipProps {
+  icon: typeof Heart;
+  label: string;
+  className?: string;
+  tone: string;
+  delay: string;
+}
+
+/** Small floating metric chip layered over the video mockup. */
+const FloatChip: FC<FloatChipProps> = ({ icon: Icon, label, className = '', tone, delay }) => (
+  <div
+    className={cn(
+      'absolute z-20 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-2.5 py-1.5 shadow-lg backdrop-blur-md animate-[gtsFeedFloat_6s_ease-in-out_infinite]',
+      className,
+    )}
+    style={{ animationDelay: delay }}
+  >
+    <Icon className={cn('h-3.5 w-3.5', tone)} />
+    <span className="font-mono text-[11px] font-semibold tracking-tight text-white">{label}</span>
+  </div>
+);
+
+export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavigate }) => {
+  const openFeed = () => {
     if (onNavigate) {
       onNavigate('feed');
     } else {
@@ -170,118 +210,171 @@ export const FeaturesAlternatingLayout01: FC<FeaturesAlternatingLayout01Props> =
   return (
     <section
       id="community-feed"
-      className="flex flex-col gap-12 overflow-hidden bg-white dark:bg-[#020202] py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24 border-t border-slate-200/80 dark:border-neutral-800/80 transition-colors"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 900px' }}
+      className="relative w-full overflow-hidden border-t border-slate-200/80 bg-white py-20 transition-colors dark:border-neutral-900 dark:bg-[#020202] sm:py-24"
     >
-      <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
-        <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center text-center">
-          {/* Ambient Lighting Glow Behind Headline */}
-          <div
-            className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 w-72 sm:w-[500px] h-32 bg-gradient-to-r from-indigo-500/15 via-sky-500/20 to-blue-600/15 dark:from-indigo-500/25 dark:via-sky-400/20 dark:to-blue-500/25 blur-3xl rounded-full -z-10"
-            aria-hidden="true"
-          />
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl drop-shadow-md dark:drop-shadow-[0_4px_20px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_12px_rgba(0,0,0,0.1)] dark:[text-shadow:_0_2px_22px_rgba(255,255,255,0.22)]">
-            {/* Mobile View (< sm): separate highlight per line */}
-            <span className="sm:hidden flex flex-col items-center">
-              <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+      {/* Ambient wash + corner bloom */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-violet-500/[0.07] via-cyan-500/[0.04] to-transparent dark:from-violet-500/[0.10] dark:via-cyan-500/[0.05]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-28 top-20 h-80 w-80 rounded-full bg-violet-500/10 blur-3xl dark:bg-violet-500/[0.13]"
+      />
+
+      <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:gap-16 lg:px-10">
+        {/* ── Copy column ──────────────────────────────────────── */}
+        <div className="max-w-xl">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-400">
+            <Users className="h-3 w-3" />
+            Community feed
+          </span>
+
+          <h2 className="mt-5 text-3xl font-black leading-[0.97] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[44px]">
+            <span className="flex flex-col items-start sm:hidden">
+              <PenHighlight className="block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
                 Share your design
               </PenHighlight>
-              <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-                with others
+              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
+                with the community.
               </PenHighlight>
             </span>
-            {/* Desktop View (>= sm) */}
             <span className="hidden sm:block">
-              <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-                Share your design with others
+              <PenHighlight className="block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
+                Share your design
+              </PenHighlight>
+              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
+                with the community.
               </PenHighlight>
             </span>
           </h2>
-          <p className="mt-4 text-base text-slate-600 dark:text-neutral-400 sm:text-lg md:text-xl leading-relaxed max-w-2xl">
-            See what other engineers are building, explore battle-tested system architectures, and publish your own designs to collaborate with the community.
+
+          <p className="mt-5 text-base leading-relaxed text-slate-600 dark:text-neutral-400 sm:text-lg">
+            Publish real architectures, browse what other engineers shipped, and fork their
+            topologies into your own canvas. Every post carries its live simulation data — so the
+            critique is grounded in numbers, not opinions.
           </p>
+
+          <div className="mt-8 flex flex-col gap-2.5">
+            {HIGHLIGHTS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className="group relative flex gap-3.5 overflow-hidden rounded-2xl border border-slate-200/90 bg-white/70 p-4 transition-all hover:-translate-y-px hover:shadow-md dark:border-neutral-800/80 dark:bg-neutral-900/40 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/70"
+                >
+                  <div
+                    aria-hidden="true"
+                    className={cn(
+                      'pointer-events-none absolute inset-y-0 left-0 w-28 bg-gradient-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100',
+                      item.wash,
+                    )}
+                  />
+                  <span className="relative mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+                    <Icon className={cn('h-4 w-4', item.accent)} />
+                  </span>
+                  <div className="relative">
+                    <h3 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1 text-[13px] leading-relaxed text-slate-600 dark:text-neutral-400">
+                      {item.body}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={openFeed}
+              className="group flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
+            >
+              <span>Open the community feed</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </button>
+            <button
+              type="button"
+              onClick={openFeed}
+              className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+              <span>Publish a design</span>
+            </button>
+          </div>
+
+          <dl className="mt-9 grid grid-cols-3 gap-4 border-t border-slate-200/80 pt-6 dark:border-neutral-800/80">
+            {STATS.map((stat) => (
+              <div key={stat.label}>
+                <dt className="font-mono text-lg font-bold tracking-tight text-slate-900 dark:text-white sm:text-xl">
+                  {stat.value}
+                </dt>
+                <dd className="mt-0.5 text-[11px] leading-tight text-slate-500 dark:text-neutral-500">
+                  {stat.label}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
-      </div>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 sm:gap-16 md:gap-20 md:px-8 lg:gap-24">
-        {/* Feature 1: See others' designs and what they are building */}
-        <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
-          <div className="max-w-xl flex-1 self-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl drop-shadow-xs dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
-              See others' designs and what they are building
-            </h2>
-            <p className="mt-3 text-base text-slate-600 dark:text-neutral-400 sm:text-lg leading-relaxed">
-              Explore real-world distributed architectures published by engineers worldwide. Gain direct visibility into how teams configure microservices, load balancers, message queues, and caching layers.
-            </p>
-            <ul className="mt-8 flex flex-col gap-3.5">
-              {[
-                'Inspect production topologies, cloud setups, and microservice flows',
-                'Learn from real capacity benchmarks, P99 latencies, and post-mortems',
-                'Fork community blueprints directly into your simulation canvas in one click',
-              ].map((feat) => (
-                <ListItemText key={feat} text={feat} />
-              ))}
-            </ul>
+        {/* ── Video showcase column ────────────────────────────── */}
+        <div className="relative w-full">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-5 -z-10 rounded-[34px] bg-gradient-to-tr from-violet-500/15 via-transparent to-cyan-500/15 blur-2xl"
+          />
 
-            <div className="mt-8 pt-2">
-              <button
-                type="button"
-                onClick={handleOpenFeed}
-                className="inline-flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-white hover:text-slate-600 dark:hover:text-neutral-300 transition-colors group cursor-pointer"
-              >
-                <span className="underline underline-offset-4 decoration-slate-300 dark:decoration-neutral-700 group-hover:decoration-slate-900 dark:group-hover:decoration-white transition-colors">
-                  Explore Community Feed & Posts
-                </span>
-                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-slate-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
-              </button>
+          <AlternateImageMockup aspectRatioClass="aspect-[16/13] sm:aspect-[1262/880]">
+            <ContinuousAutoplayVideo
+              src="/feed-share-design.mp4"
+              poster="/feed-share-design.png"
+              className="transition-transform duration-500 hover:scale-[1.015]"
+            />
+
+            {/* Scrim so overlay chips stay legible */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/15"
+            />
+
+            <FloatChip icon={Heart} label="1.2k" tone="fill-rose-400 text-rose-400" delay="0s" className="right-3 top-3" />
+            <FloatChip icon={GitFork} label="forked 84×" tone="text-cyan-400" delay="1.4s" className="bottom-12 left-3" />
+            <FloatChip icon={MessagesSquare} label="26 reviews" tone="text-violet-400" delay="2.8s" className="bottom-3 right-4" />
+
+            {/* Author badge */}
+            <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 rounded-full border border-white/15 bg-black/60 py-1 pl-1 pr-3 backdrop-blur-md">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-[10px] font-bold text-white">
+                AK
+              </span>
+              <span className="text-[11px] font-semibold text-white">Aarav · payments-v3.gts</span>
+              <BadgeCheck className="h-3.5 w-3.5 text-cyan-400" />
             </div>
-          </div>
 
-          <div className="w-full flex-1 flex items-center justify-center">
-            <AlternateImageMockup aspectRatioClass="aspect-[16/14] sm:aspect-[950/864]">
-              <ContinuousAutoplayVideo
-                src="/feed-explore-designs.mp4"
-                poster="/feed-explore-designs.png"
-                className="hover:scale-[1.01] transition-transform duration-300"
-              />
-            </AlternateImageMockup>
-          </div>
-        </div>
-
-        {/* Feature 2: Share your design and projects too */}
-        <div className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24 items-center">
-          <div className="max-w-xl flex-1 self-center lg:order-last">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl drop-shadow-xs dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
-              Share your design , projects and ideas with the community.
-            </h2>
-            <p className="mt-3 text-base text-slate-600 dark:text-neutral-400 sm:text-lg leading-relaxed">
-              Seamlessly share your verified architecture blueprints, live simulation topologies, and full imported repository projects with colleagues or the engineering community.
-            </p>
-            <ul className="mt-8 flex flex-col gap-3.5">
-              {[
-                'Share complete architecture designs with interactive node topologies',
-                'Publish imported repository projects, service dependencies, and bottlenecks',
-                'Collaborate on scaling solutions, trade-off analyses, and capacity benchmarks',
-              ].map((feat) => (
-                <ListItemText key={feat} text={feat} />
-              ))}
-            </ul>
-          </div>
-
-          <div className="w-full flex-1 flex items-center justify-center">
-            <AlternateImageMockup aspectRatioClass="aspect-[16/11] sm:aspect-[1262/880]">
-              <ContinuousAutoplayVideo
-                src="/feed-share-design.mp4"
-                poster="/feed-share-design.png"
-                className="hover:scale-[1.01] transition-transform duration-300"
-              />
-            </AlternateImageMockup>
-          </div>
+            {/* Live badge */}
+            <div className="absolute right-3 top-12 z-20 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-2.5 py-1 backdrop-blur-md">
+              <Radar className="h-3 w-3 text-emerald-400" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white">Live sim data</span>
+            </div>
+          </AlternateImageMockup>
         </div>
       </div>
+
+      <style>{`
+        @keyframes gtsFeedFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-\\[gtsFeedFloat_6s_ease-in-out_infinite\\] { animation: none !important; }
+        }
+      `}</style>
     </section>
   );
 };
 
-// Aliased exports for flexible usage across LandingPage
-export const ShareDesignFeedSection = FeaturesAlternatingLayout01;
-export default FeaturesAlternatingLayout01;
+// Aliased export kept for existing imports elsewhere in the app
+export const FeaturesAlternatingLayout01 = ShareDesignFeedSection;
+export default ShareDesignFeedSection;
