@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api, SubscriptionStatusResponse } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { PricingCards } from './PricingCards';
@@ -21,7 +21,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   onToggleTheme,
 }) => {
   const { user, getAuthToken, savePendingAction } = useAuth();
-  const [loading, setLoading] = useState(Boolean(user));
+  const [_loading, setLoading] = useState(Boolean(user));
   const [status, setStatus] = useState<SubscriptionStatusResponse | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{
