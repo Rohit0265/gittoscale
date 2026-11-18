@@ -287,4 +287,18 @@ router.get('/:id/snapshot', async (req, res: Response) => {
   }
 });
 
+/**
+ * DELETE /api/meetings/:id
+ * Deletes a meeting from the user's history (host only or participant leave).
+ */
+router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!;
+    await deleteMeetingForUser(req.params.id, user.id);
+    res.json({ success: true, message: 'Meeting deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: 'Failed to delete meeting' });
+  }
+});
+
 export default router;
