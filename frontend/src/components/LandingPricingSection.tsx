@@ -107,7 +107,11 @@ export const LandingPricingSection: React.FC<LandingPricingSectionProps> = ({
           isDark={isDark}
           isAuthenticated={Boolean(user)}
           isPro={isPro}
-          onSignUp={() => (onOpenSignUp ? onOpenSignUp() : goToPayment())}
+          onSignUp={() => {
+            if (onOpenSignUp) onOpenSignUp();
+            else if (onOpenAuth) onOpenAuth();
+            else goToPayment();
+          }}
           onUpgrade={goToPayment}
         />
 
