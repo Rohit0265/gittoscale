@@ -502,3 +502,16 @@ npm test
 - ✅ **Multi-Tier AI LLM Failover**: Verified seamless failover from Mercury-3 $\to$ Gemini $\to$ Groq $\to$ offline expert synthesizer.
 
 ---
+<<<<<<< HEAD
+=======
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+
+
+<p align="center">
+  Built with ❤️ for software architects and distributed systems engineers worldwide.
+</p>
+>>>>>>> 0fb53b6 (feat: Enhance CORS and redirect handling for improved security and flexibility)
