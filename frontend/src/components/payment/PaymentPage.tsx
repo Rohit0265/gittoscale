@@ -4,6 +4,7 @@ import { api, SubscriptionStatusResponse } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { PricingCards } from './PricingCards';
 import { LandingHeader } from '../LandingHeader';
+import { Fotter } from '../Fotter';
 
 interface PaymentPageProps {
   onGoHome: () => void;
@@ -11,6 +12,7 @@ interface PaymentPageProps {
   onOpenSignUp?: () => void;
   isDark?: boolean;
   onToggleTheme?: () => void;
+  onNavigate?: (route: string) => void;
 }
 
 export const PaymentPage: React.FC<PaymentPageProps> = ({
@@ -19,6 +21,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   onOpenSignUp,
   isDark = true,
   onToggleTheme,
+  onNavigate,
 }) => {
   const { user, getAuthToken, savePendingAction } = useAuth();
   const [_loading, setLoading] = useState(Boolean(user));

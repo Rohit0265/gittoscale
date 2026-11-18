@@ -169,6 +169,11 @@ const HIGHLIGHTS = [
   },
 ];
 
+const RECENT_DROPS = [
+  { name: 'checkout-events.gts', author: 'Sara', metric: 'kafka · 3 consumers', forks: 24 },
+  { name: 'multi-tenant-auth.gts', author: 'Dev', metric: 'redis · jwt edge', forks: 41 },
+];
+
 const STATS = [
   { value: '2.4k+', label: 'designs published' },
   { value: '18k', label: 'forks & re-runs' },
@@ -354,6 +359,34 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
                 26
               </span>
             </div>
+          </div>
+
+          {/* Recent drops — fills the column and hints at feed depth */}
+          <div className="mx-auto mt-3 w-full max-w-xl space-y-2">
+            {RECENT_DROPS.map((drop) => (
+              <button
+                key={drop.name}
+                type="button"
+                onClick={openFeed}
+                className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-white/50 px-3.5 py-2.5 text-left transition-colors hover:border-slate-300 hover:bg-white dark:border-neutral-800/70 dark:bg-neutral-900/30 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/60"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 font-mono text-[9px] font-bold text-slate-500 dark:bg-neutral-800 dark:text-neutral-400">
+                    {drop.author.slice(0, 2)}
+                  </span>
+                  <span className="truncate font-mono text-[11px] font-semibold text-slate-700 dark:text-neutral-300">
+                    {drop.name}
+                  </span>
+                  <span className="hidden truncate text-[10px] text-slate-400 dark:text-neutral-600 sm:inline">
+                    {drop.metric}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] font-semibold text-slate-500 dark:text-neutral-500">
+                  <GitFork className="h-3 w-3 text-cyan-500" />
+                  {drop.forks}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
