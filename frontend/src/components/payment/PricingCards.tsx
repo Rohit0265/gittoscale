@@ -45,7 +45,7 @@ const FeatureRow: React.FC<{ label: string; isDark: boolean; isWhiteCard?: boole
     <span
       className={`mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full ${
         isWhiteCard
-          ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'
+          ? 'bg-zinc-200/90 text-zinc-900 border border-zinc-300/80'
           : isDark
           ? 'bg-emerald-500/10 text-emerald-400'
           : 'bg-emerald-50 text-emerald-600'
@@ -55,7 +55,7 @@ const FeatureRow: React.FC<{ label: string; isDark: boolean; isWhiteCard?: boole
     </span>
     <span
       className={`text-[13px] leading-relaxed ${
-        isWhiteCard ? 'text-slate-700 font-medium' : isDark ? 'text-neutral-300' : 'text-neutral-600'
+        isWhiteCard ? 'text-zinc-700 font-medium' : isDark ? 'text-neutral-300' : 'text-neutral-600'
       }`}
     >
       {label}
@@ -163,35 +163,30 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
         </button>
       </div>
 
-      {/* ── Pro plan (Premium White Card) ─────────────────────────── */}
+      {/* ── Pro plan (Off-White Titanium Card) ─────────────────────── */}
       <div
         className={`relative flex flex-col justify-between overflow-hidden rounded-3xl p-7 sm:p-8 transition-all duration-300 ${
           isPro
-            ? 'bg-white text-slate-900 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/15 ring-4 ring-emerald-500/10'
-            : 'bg-white text-slate-900 border border-slate-200/90 shadow-2xl shadow-indigo-500/15 ring-2 ring-indigo-500/10 hover:border-indigo-300 hover:shadow-indigo-500/25'
+            ? 'bg-[#f4f4f5] text-zinc-950 border-2 border-zinc-950 shadow-2xl ring-2 ring-zinc-950/10'
+            : 'bg-[#f4f4f5] text-zinc-950 border border-zinc-300/90 shadow-2xl shadow-black/10 hover:border-zinc-400'
         }`}
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl bg-indigo-500/10"
-        />
-
         <div className="relative">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-indigo-600">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-zinc-500">
                 Full access
               </span>
-              <h3 className="mt-1 flex items-center gap-2 text-xl font-extrabold tracking-tight text-slate-950">
+              <h3 className="mt-1 flex items-center gap-2 text-xl font-black tracking-tight text-zinc-950">
                 GitToScale Pro
-                <Zap className="h-4 w-4 fill-current text-indigo-600" />
+                <Zap className="h-4 w-4 fill-zinc-900 text-zinc-900" />
               </h3>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm ${
+              className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
                 isPro
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
-                  : 'bg-gradient-to-r from-violet-600 to-indigo-600'
+                  ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                  : 'bg-zinc-950 text-white border border-zinc-900'
               }`}
             >
               {isPro ? 'Active' : 'Recommended'}
@@ -199,13 +194,13 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
           </div>
 
           <div className="mb-6 flex items-baseline gap-1.5">
-            <span className="text-4xl font-extrabold tracking-tight text-slate-950">
+            <span className="text-4xl font-extrabold tracking-tight text-zinc-950">
               $29
             </span>
-            <span className="text-sm font-medium text-slate-500">/ month</span>
+            <span className="text-sm font-medium text-zinc-500">/ month</span>
           </div>
 
-          <div className="mb-7 space-y-3 border-t border-slate-100 pt-6">
+          <div className="mb-7 space-y-3 border-t border-zinc-300/80 pt-6">
             {PRO_FEATURES.map((feature) => (
               <FeatureRow key={feature} label={feature} isDark={isDark} isWhiteCard={true} />
             ))}
@@ -220,24 +215,24 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
           disabled={isPro || loading}
           className={`relative flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
             isPro
-              ? 'cursor-default border border-emerald-500/30 bg-emerald-50 text-emerald-700'
-              : 'cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/30 hover:from-violet-500 hover:to-indigo-500 active:scale-[0.99]'
+              ? 'cursor-default border border-zinc-300 bg-zinc-200/80 text-zinc-700'
+              : 'cursor-pointer bg-zinc-950 text-white hover:bg-zinc-800 active:scale-[0.99] shadow-md shadow-zinc-950/20'
           }`}
         >
           {loading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin text-white" />
               <span>Connecting to checkout…</span>
             </>
           ) : isPro ? (
             <>
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle2 className="h-4 w-4 text-zinc-700" />
               <span>Active Pro Plan</span>
             </>
           ) : (
             <>
               <span>Upgrade to Pro</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-4 w-4 text-white transition-transform group-hover:translate-x-0.5" />
             </>
           )}
         </button>

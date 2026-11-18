@@ -77,10 +77,6 @@ export const LandingPricingSection: React.FC<LandingPricingSectionProps> = ({
 
       <div className="relative mx-auto w-full max-w-5xl">
         <div className="mx-auto mb-12 flex max-w-2xl flex-col items-center text-center">
-          <span className="mb-4 inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-400">
-            Pricing
-          </span>
-
           <h2 className="text-3xl font-black leading-[0.96] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[46px]">
             <span className="sm:hidden flex flex-col items-center">
               <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">

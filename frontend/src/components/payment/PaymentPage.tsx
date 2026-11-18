@@ -155,6 +155,16 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
           </div>
         )}
 
+        {/* Clean, high-impact header without eyebrow pill badge */}
+        <div className="mx-auto mb-12 flex max-w-2xl flex-col items-center text-center">
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl text-neutral-900 dark:text-white">
+            Predictable pricing for engineering teams
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-neutral-600 dark:text-neutral-400 sm:text-lg">
+            Design, simulate, and scale cloud architectures. Unlimited manual diagramming forever, with unmetered AI generation and live collaborative rooms on Pro.
+          </p>
+        </div>
+
         <PricingCards
           isDark={isDark}
           isAuthenticated={Boolean(user)}
