@@ -1,14 +1,14 @@
 import { type FC, type HTMLAttributes, useEffect, useRef } from 'react';
 import {
   ArrowRight,
-  Heart,
-  GitFork,
-  MessagesSquare,
   BadgeCheck,
+  GitFork,
+  Heart,
+  MessagesSquare,
+  Radar,
+  Rocket,
   Sparkles,
   Users,
-  Rocket,
-  Radar,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PenHighlight } from './ui/PenShadowLine';
@@ -136,7 +136,7 @@ export const ContinuousAutoplayVideo: FC<ContinuousAutoplayVideoProps> = ({
 };
 
 /* ────────────────────────────────────────────────────────────────
- * Community feed section — single showcase block
+ * Community feed section — one showcase block: copy left, feed right
  * ──────────────────────────────────────────────────────────────── */
 
 export interface ShareDesignFeedSectionProps {
@@ -315,13 +315,15 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
 
             {/* App chrome row */}
             <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-2 px-3 py-2.5">
-              <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-rose-400/80" />
-                <span className="h-2 w-2 rounded-full bg-amber-400/80" />
-                <span className="h-2 w-2 rounded-full bg-emerald-400/80" />
-                <span className="ml-2 font-mono text-[10px] text-white/70">gittoscale.tech/feed</span>
+              <div className="flex min-w-0 items-center gap-1.5">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-rose-400/80" />
+                <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400/80" />
+                <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400/80" />
+                <span className="ml-2 truncate font-mono text-[10px] text-white/70">
+                  gittoscale.tech/feed
+                </span>
               </div>
-              <span className="flex items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2 py-0.5 backdrop-blur-md">
+              <span className="flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2 py-0.5 backdrop-blur-md">
                 <Radar className="h-2.5 w-2.5 text-emerald-400" />
                 <span className="text-[9px] font-semibold uppercase tracking-wider text-white/90">
                   Live sim data
@@ -330,19 +332,19 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
             </div>
           </AlternateImageMockup>
 
-          {/* Metrics strip — sits below the frame so nothing overlaps the recording */}
+          {/* Metrics strip — below the frame so it never covers the recording */}
           <div className="mx-auto mt-4 flex w-full max-w-xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 backdrop-blur-md dark:border-neutral-800/80 dark:bg-neutral-900/50">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-[10px] font-bold text-white">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-[10px] font-bold text-white">
                 AK
               </span>
               <span className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">
                 Aarav
               </span>
-              <span className="font-mono text-[11px] text-slate-500 dark:text-neutral-500">
+              <span className="truncate font-mono text-[11px] text-slate-500 dark:text-neutral-500">
                 payments-v3.gts
               </span>
-              <BadgeCheck className="h-3.5 w-3.5 text-cyan-500" />
+              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-cyan-500" />
             </div>
 
             <div className="flex items-center gap-3 font-mono text-[11px] font-semibold text-slate-600 dark:text-neutral-400">
@@ -361,7 +363,7 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
             </div>
           </div>
 
-          {/* Recent drops — fills the column and hints at feed depth */}
+          {/* Recent drops — hints at feed depth without adding a second section */}
           <div className="mx-auto mt-3 w-full max-w-xl space-y-2">
             {RECENT_DROPS.map((drop) => (
               <button
