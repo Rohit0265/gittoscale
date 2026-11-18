@@ -27,13 +27,12 @@ const FREE_FEATURES = [
 ];
 
 const PRO_FEATURES = [
+  '+ Everything included in Free',
   'Unlimited AI-assisted architecture generation',
   'Unlimited AI Architect interactive chat',
   'Unlimited repository imports & AI architecture scans',
   'Unlimited live collaborative meetings',
   'Unlimited manual diagram editing & canvas designs',
-  'Priority GPU queue with zero token throttling',
-  'Priority support directly from system architects',
 ];
 
 const FeatureRow: React.FC<{ label: string; isDark: boolean; isWhiteCard?: boolean }> = ({
@@ -179,7 +178,6 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
               </span>
               <h3 className="mt-1 flex items-center gap-2 text-xl font-black tracking-tight text-zinc-950">
                 GitToScale Pro
-                <Zap className="h-4 w-4 fill-zinc-900 text-zinc-900" />
               </h3>
             </div>
             <span

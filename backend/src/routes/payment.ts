@@ -74,13 +74,12 @@ router.get('/status', async (req: Request, res: Response) => {
         currency: 'INR',
         description: 'Unlimited AI architecture generation, live collaborative meetings, and enterprise scaling simulator.',
         features: [
+          '+ Everything included in Free',
           'Unlimited AI-assisted architecture generation',
           'Unlimited AI Architect chat usage',
+          'Unlimited repository imports & AI architecture scans',
           'Unlimited live collaborative meetings',
-          'Unlimited architecture designs & exports',
           'Unlimited manual architecture editing',
-          'Priority processing & dedicated support',
-          'Full access to premium GitToScale features',
         ],
       },
     });
