@@ -334,31 +334,59 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
               className="transition-transform duration-500 hover:scale-[1.015]"
             />
 
-            {/* Scrim so overlay chips stay legible */}
+            {/* Scrim so the top chrome row stays legible */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/15"
+              className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/55 to-transparent"
             />
 
-            <FloatChip icon={Heart} label="1.2k" tone="fill-rose-400 text-rose-400" delay="0s" className="right-3 top-3" />
-            <FloatChip icon={GitFork} label="forked 84×" tone="text-cyan-400" delay="1.4s" className="bottom-12 left-3" />
-            <FloatChip icon={MessagesSquare} label="26 reviews" tone="text-violet-400" delay="2.8s" className="bottom-3 right-4" />
-
-            {/* Author badge */}
-            <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 rounded-full border border-white/15 bg-black/60 py-1 pl-1 pr-3 backdrop-blur-md">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-[10px] font-bold text-white">
-                AK
+            {/* App chrome row */}
+            <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-2 px-3 py-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-rose-400/80" />
+                <span className="h-2 w-2 rounded-full bg-amber-400/80" />
+                <span className="h-2 w-2 rounded-full bg-emerald-400/80" />
+                <span className="ml-2 font-mono text-[10px] text-white/70">gittoscale.tech/feed</span>
+              </div>
+              <span className="flex items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2 py-0.5 backdrop-blur-md">
+                <Radar className="h-2.5 w-2.5 text-emerald-400" />
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-white/90">
+                  Live sim data
+                </span>
               </span>
-              <span className="text-[11px] font-semibold text-white">Aarav · payments-v3.gts</span>
-              <BadgeCheck className="h-3.5 w-3.5 text-cyan-400" />
-            </div>
-
-            {/* Live badge */}
-            <div className="absolute right-3 top-12 z-20 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-2.5 py-1 backdrop-blur-md">
-              <Radar className="h-3 w-3 text-emerald-400" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-white">Live sim data</span>
             </div>
           </AlternateImageMockup>
+
+          {/* Metrics strip — sits below the frame so nothing overlaps the recording */}
+          <div className="mx-auto mt-4 flex w-full max-w-xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 backdrop-blur-md dark:border-neutral-800/80 dark:bg-neutral-900/50">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-[10px] font-bold text-white">
+                AK
+              </span>
+              <span className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">
+                Aarav
+              </span>
+              <span className="font-mono text-[11px] text-slate-500 dark:text-neutral-500">
+                payments-v3.gts
+              </span>
+              <BadgeCheck className="h-3.5 w-3.5 text-cyan-500" />
+            </div>
+
+            <div className="flex items-center gap-3 font-mono text-[11px] font-semibold text-slate-600 dark:text-neutral-400">
+              <span className="flex items-center gap-1">
+                <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
+                1.2k
+              </span>
+              <span className="flex items-center gap-1">
+                <GitFork className="h-3.5 w-3.5 text-cyan-500" />
+                84
+              </span>
+              <span className="flex items-center gap-1">
+                <MessagesSquare className="h-3.5 w-3.5 text-violet-500" />
+                26
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
