@@ -15,6 +15,8 @@
   --text-muted: #64748b;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
+  --accent-cyan: #0891b2;
+  --accent-violet: #7c3aed;
   --scrollbar-thumb: #cbd5e1;
   --scrollbar-track: #f1f5f9;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
