@@ -12,6 +12,8 @@ import {
   toggleMeetingLock,
   endMeeting,
   getMeetingMessages,
+  getUserMeetings,
+  deleteMeetingForUser,
 } from './meetingService.js';
 
 const router = Router();
@@ -80,6 +82,24 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
   } catch (err: any) {
     console.error('[Meeting Route] Create error:', err);
     res.status(500).json({ success: false, error: err?.message || 'Failed to create meeting' });
+  }
+});
+
+/**
+ * GET /api/meetings/user/history
+ * Retrieves collaborative meetings for the authenticated user.
+ */
+router.get('/user/history', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!;
+    const meetings = await getUserMeetings(user.id);
+    res.json({
+      success: true,
+      meetings,
+    });
+  } catch (err: any) {
+    console.error('[Meeting Route] User history error:', err);
+    res.status(500).json({ success: false, error: err?.message || 'Failed to fetch user meetings' });
   }
 });
 
