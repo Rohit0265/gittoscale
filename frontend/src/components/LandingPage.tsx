@@ -2,20 +2,12 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
-  Sun,
-  Moon,
   Cpu,
   Layers,
   ShieldCheck,
   Compass,
   ChevronLeft,
   ChevronRight,
-  LogOut,
-  User,
-  LogIn,
-  UserPlus,
-  History,
-  ExternalLink,
 } from 'lucide-react';
 import { Fotter } from './Fotter';
 import { FloatingFeedbackButton } from './FloatingFeedbackButton';
