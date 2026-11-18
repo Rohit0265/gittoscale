@@ -3,6 +3,8 @@ User-agent: *
 Allow: /
 Allow: /feed
 Allow: /architect
+Allow: /collab
+Allow: /pricing
 Allow: /signup
 Allow: /terms
 Allow: /privacy

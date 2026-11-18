@@ -11,6 +11,7 @@ import {
   RecommenderInput,
 } from './types';
 import { LandingPage } from './components/LandingPage';
+import { usePageMeta } from './utils/usePageMeta';
 import { FloatingFeedbackButton } from './components/FloatingFeedbackButton';
 import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
 import { useAuth } from './contexts/AuthContext';
@@ -326,6 +327,7 @@ export const App: React.FC = () => {
 
   // Navigation mode
   const [currentView, setCurrentView] = useState<AppView>(() => getInitialView());
+  usePageMeta(currentView);
 
   // Modern login/signup modal state
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(() => isAuthUrl());
