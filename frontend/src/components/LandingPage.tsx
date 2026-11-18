@@ -329,7 +329,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
   isDark = true,
   onToggleTheme,
   isAppDomain: isAppDomainProp,
-  user,
+  user: _user,
   onSignOut,
   onNavigate,
   onOpenHistory,
@@ -337,8 +337,6 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
   const isApp = isAppDomainProp !== undefined ? isAppDomainProp : checkIsAppDomain();
   const [active, setActive] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Inertia-damped smooth scrolling for landing page container (GSAP/Lenis feel)
   useSmoothScroll({
@@ -346,25 +344,6 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
     lerp: 0.085,
     enabled: true,
   });
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    };
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsProfileOpen(false);
-    };
-    if (isProfileOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isProfileOpen]);
 
   // Programmatic smooth scroll to align target section below sticky header
   const scrollToSection = useCallback((id: string) => {
