@@ -8,6 +8,7 @@ import {
   Radar,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { PenHighlight } from './ui/PenShadowLine';
 
 /* ────────────────────────────────────────────────────────────────
  * Shared primitives (exported for reuse / backwards compatibility)
@@ -183,9 +184,13 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
         <div className="max-w-xl">
 
 
-          <h2 className="mt-5 text-3xl font-black leading-[1.05] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[44px]">
-            Share your design <br />
-            with the community.
+          <h2 className="mt-5 text-3xl font-black leading-[0.97] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[44px]">
+            <PenHighlight className="block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
+              Share your design
+            </PenHighlight>
+            <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
+              with the community.
+            </PenHighlight>
           </h2>
 
           <p className="mt-5 text-base leading-relaxed text-slate-600 dark:text-neutral-400 sm:text-lg">
@@ -243,17 +248,6 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/55 to-transparent"
             />
-
-            {/* App chrome row (clean header without macOS dots) */}
-            <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-2 px-3 py-2.5">
-              <span className="font-mono text-[10px] text-white/70">gittoscale.tech/feed</span>
-              <span className="flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2 py-0.5 backdrop-blur-md">
-                <Radar className="h-2.5 w-2.5 text-emerald-400" />
-                <span className="text-[9px] font-semibold uppercase tracking-wider text-white/90">
-                  Live sim data
-                </span>
-              </span>
-            </div>
           </AlternateImageMockup>
         </div>
       </div>
