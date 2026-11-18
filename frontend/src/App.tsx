@@ -2392,6 +2392,7 @@ export const App: React.FC = () => {
           }}
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
+          onNavigate={handleNavigate}
         />
       </Suspense>
     );
