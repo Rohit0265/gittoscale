@@ -177,6 +177,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
           onUpgrade={handleUpgrade}
         />
       </main>
+
+      <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
     </div>
   );
 };
