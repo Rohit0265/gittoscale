@@ -238,18 +238,18 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
 
           <h2 className="mt-5 text-3xl font-black leading-[0.98] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[46px]">
             <span className="sm:hidden flex flex-col items-start">
-              <PenHighlight className="block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
+              <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
                 Design the system
               </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
+              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
                 together, live.
               </PenHighlight>
             </span>
             <span className="hidden sm:block">
-              <PenHighlight className="block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
+              <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
                 Design the system
               </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
+              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
                 together, live.
               </PenHighlight>
             </span>
