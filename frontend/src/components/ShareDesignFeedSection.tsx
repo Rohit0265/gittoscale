@@ -210,22 +210,12 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
           </span>
 
           <h2 className="mt-5 text-3xl font-black leading-[0.97] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[44px]">
-            <span className="flex flex-col items-start sm:hidden">
-              <PenHighlight className="block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
-                Share your design
-              </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
-                with the community.
-              </PenHighlight>
-            </span>
-            <span className="hidden sm:block">
-              <PenHighlight className="block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
-                Share your design
-              </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
-                with the community.
-              </PenHighlight>
-            </span>
+            <PenHighlight className="block w-fit" highlightClassName="bg-violet-200/80 dark:bg-violet-500/25">
+              Share your design
+            </PenHighlight>
+            <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-cyan-200/80 dark:bg-cyan-500/25">
+              with the community.
+            </PenHighlight>
           </h2>
 
           <p className="mt-5 text-base leading-relaxed text-slate-600 dark:text-neutral-400 sm:text-lg">
