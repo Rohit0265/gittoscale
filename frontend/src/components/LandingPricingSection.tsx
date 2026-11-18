@@ -78,19 +78,9 @@ export const LandingPricingSection: React.FC<LandingPricingSectionProps> = ({
       <div className="relative mx-auto w-full max-w-5xl">
         <div className="mx-auto mb-12 flex max-w-2xl flex-col items-center text-center">
           <h2 className="text-3xl font-black leading-[0.96] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[46px]">
-            <span className="sm:hidden flex flex-col items-center">
-              <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-                Start free.
-              </PenHighlight>
-              <PenHighlight className="mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-                Scale when you do.
-              </PenHighlight>
-            </span>
-            <span className="hidden sm:block">
-              <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
-                Start free. Scale when you do.
-              </PenHighlight>
-            </span>
+            <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+              Start free. Scale when you do.
+            </PenHighlight>
           </h2>
 
           <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-neutral-400 sm:text-lg">
