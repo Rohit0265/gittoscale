@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api, SubscriptionStatusResponse } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { PricingCards } from './PricingCards';
@@ -154,39 +154,6 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
             <p className="flex-1 text-sm font-medium">{feedbackMessage.text}</p>
           </div>
         )}
-
-        {/* Pricing Header & Details */}
-        <div className="mx-auto mb-14 flex max-w-3xl flex-col items-center text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3.5 py-1 text-xs font-semibold text-violet-400 backdrop-blur-md shadow-2xs">
-            <Sparkles className="h-3.5 w-3.5 text-violet-400" />
-            <span>Developer-First Subscriptions</span>
-          </div>
-
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
-            Predictable pricing for engineering teams
-          </h1>
-
-          <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-neutral-400 sm:text-lg">
-            Design, simulate, and scale cloud architectures. Enjoy unlimited manual editing forever, or unlock unlimited AI intelligence and collaborative design rooms with Pro.
-          </p>
-
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500 dark:text-neutral-400">
-            <div className="flex items-center gap-1.5">
-              <span className="text-emerald-500 font-bold">✓</span>
-              <span>100% Free manual editing forever</span>
-            </div>
-            <span className="hidden sm:inline text-neutral-600">•</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-emerald-500 font-bold">✓</span>
-              <span>Instant Polar checkout activation</span>
-            </div>
-            <span className="hidden sm:inline text-neutral-600">•</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-emerald-500 font-bold">✓</span>
-              <span>Cancel anytime with 1 click</span>
-            </div>
-          </div>
-        </div>
 
         <PricingCards
           isDark={isDark}
