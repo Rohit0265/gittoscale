@@ -17,9 +17,6 @@ import {
   Plus,
   Sparkles,
   GitBranch,
-  ExternalLink,
-  Users,
-  Radio,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioFixture, ArchitectureNode, ArchitectureEdge, SimulationResult } from '../types';
@@ -230,7 +227,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="h-14 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#020202] px-2.5 sm:px-4 flex items-center justify-between z-40 shrink-0 transition-colors w-full">
-      {/* Brand & Collab Navigation */}
+      {/* Brand Navigation */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
           onClick={onGoHome}
@@ -243,19 +240,6 @@ export const Header: React.FC<HeaderProps> = ({
             className="h-6 sm:h-7 md:h-8 w-auto object-contain transition-transform group-hover:scale-105"
           />
         </button>
-
-        {/* Collab Navigation Link */}
-        <a
-          href="/collab"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-neutral-800 bg-slate-100/80 dark:bg-[#141414] text-slate-800 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white transition-all shadow-2xs group cursor-pointer"
-          title="Open GitToScale Collab in new tab"
-        >
-          <Users className="w-3.5 h-3.5 text-slate-700 dark:text-neutral-300" />
-          <span>Collab</span>
-          <ExternalLink className="w-3 h-3 text-slate-400 dark:text-neutral-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-        </a>
       </div>
 
       {/* Main Operational Controls (Play/Pause, Reset, AI Architect, Stars, and User Button) */}
