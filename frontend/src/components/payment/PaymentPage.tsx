@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { api, SubscriptionStatusResponse } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { PricingCards } from './PricingCards';
@@ -27,10 +27,20 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   const [_loading, setLoading] = useState(Boolean(user));
   const [status, setStatus] = useState<SubscriptionStatusResponse | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{
     type: 'success' | 'error' | 'info';
     text: string;
   } | null>(null);
+
+  // Auto-hide the success popup after 5 seconds
+  useEffect(() => {
+    if (!showSuccessPopup) return;
+    const timer = setTimeout(() => {
+      setShowSuccessPopup(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [showSuccessPopup]);
 
   const fetchStatus = useCallback(async () => {
     if (!getAuthToken()) {
@@ -61,35 +71,25 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
 
     if (checkoutStatus === 'success' || checkoutStatus === 'mock_checkout') {
       const sessionId = search.get('session_id');
+      setShowSuccessPopup(true);
 
       if (checkoutStatus === 'mock_checkout' && user) {
-        setFeedbackMessage({
-          type: 'success',
-          text: 'Payment received — your account is now on GitToScale Pro.',
-        });
         api.completeMockCheckout(user.id, getAuthToken()).then(() => fetchStatus());
-      } else if (checkoutStatus === 'success') {
-        setFeedbackMessage({
-          type: 'success',
-          text: 'Payment received — activating your GitToScale Pro account…',
-        });
-        if (sessionId) {
-          api
-            .confirmCheckoutSession(sessionId, getAuthToken())
-            .then((res) => {
-              if (res.success) {
-                setFeedbackMessage({
-                  type: 'success',
-                  text: 'Payment verified! Your account is now on GitToScale Pro.',
-                });
-                fetchStatus();
-              }
-            })
-            .catch((err) => {
-              console.warn('[PaymentPage] confirmCheckoutSession warning:', err);
-            });
-        }
+      } else if (checkoutStatus === 'success' && sessionId) {
+        api
+          .confirmCheckoutSession(sessionId, getAuthToken())
+          .then((res) => {
+            if (res.success) {
+              fetchStatus();
+            }
+          })
+          .catch((err) => {
+            console.warn('[PaymentPage] confirmCheckoutSession warning:', err);
+          });
       }
+
+      // Clean query params from URL so refreshing doesn't re-trigger
+      window.history.replaceState({}, '', '/payment');
 
       const interval = setInterval(() => fetchStatus(), 1500);
       const timer = setTimeout(() => clearInterval(interval), 10000);
@@ -163,23 +163,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-28 pb-16 sm:px-6 sm:pt-32 sm:pb-20">
-        {feedbackMessage && (
+        {feedbackMessage && feedbackMessage.type === 'error' && (
           <div
             className={`mb-8 flex items-start gap-3 rounded-xl border p-4 ${
-              feedbackMessage.type === 'success'
-                ? isDark
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-                  : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : isDark
+              isDark
                 ? 'border-red-500/30 bg-red-500/10 text-red-300'
                 : 'border-red-200 bg-red-50 text-red-700'
             }`}
           >
-            {feedbackMessage.type === 'success' ? (
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            ) : (
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            )}
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <p className="flex-1 text-sm font-medium">{feedbackMessage.text}</p>
           </div>
         )}
@@ -203,6 +195,70 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
           onUpgrade={handleUpgrade}
         />
       </main>
+
+      {/* ── Centered Payment Success Pop-up Modal (5s auto-hide, Seen, Close button) ── */}
+      {showSuccessPopup && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowSuccessPopup(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`relative w-full max-w-md overflow-hidden rounded-3xl border p-6 sm:p-8 text-center shadow-2xl transition-all animate-in zoom-in-95 duration-200 ${
+              isDark
+                ? 'border-neutral-800 bg-[#0c0c0e] text-white shadow-black/80'
+                : 'border-slate-200 bg-white text-slate-900 shadow-slate-300/60'
+            }`}
+          >
+            {/* Close 'X' cross button */}
+            <button
+              type="button"
+              onClick={() => setShowSuccessPopup(false)}
+              aria-label="Close"
+              className={`absolute top-4 right-4 rounded-xl p-1.5 transition-colors cursor-pointer ${
+                isDark
+                  ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
+                  : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
+              }`}
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Success Icon Badge */}
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+              <CheckCircle2 className="h-7 w-7" />
+            </div>
+
+            {/* Title & Description */}
+            <h3 className="text-xl sm:text-2xl font-black tracking-tight">
+              Payment done, you are now Pro!
+            </h3>
+            <p className={`mt-2 text-sm leading-relaxed ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+              Your account has been upgraded to GitToScale Pro. Unlimited AI generations, live collaborative rooms, and scaling simulations are now unlocked.
+            </p>
+
+            {/* Dismiss CTA & Auto-hide indicator */}
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => setShowSuccessPopup(false)}
+                className={`w-full cursor-pointer rounded-xl py-3 text-sm font-bold shadow-md transition-all ${
+                  isDark
+                    ? 'bg-white text-neutral-950 hover:bg-neutral-200'
+                    : 'bg-slate-900 text-white hover:bg-slate-800'
+                }`}
+              >
+                Start Using Pro
+              </button>
+              <p className={`mt-2.5 text-[11px] font-mono ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>
+                Auto-closing in 5 seconds
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
     </div>
