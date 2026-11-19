@@ -279,18 +279,6 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">Reset</span>
         </button>
 
-        {/* Start Collaborative Meeting Button */}
-        {onStartMeeting && (
-          <button
-            onClick={onStartMeeting}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-neutral-800 bg-slate-100/80 dark:bg-[#141414] text-slate-800 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white transition-all shadow-2xs cursor-pointer shrink-0"
-            title="Start real-time collaborative meeting with teammates"
-          >
-            <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
-            <span className="hidden md:inline">Start Meeting</span>
-          </button>
-        )}
-
         {/* Start New Project (Dropdown: Blank Project, Describe Idea, or Import GitHub Repo) */}
         {onOpenNewProject && (
           <div ref={newProjectRef} className="relative shrink-0">
@@ -468,22 +456,6 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </AnimatePresence>
         </div>
-
-        {/* GitHub Star Button */}
-
-        {/* Pricing / Upgrade Button */}
-        <button
-          type="button"
-          onClick={() => {
-            window.history.pushState({}, '', '/payment');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }}
-          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-600/10 hover:bg-violet-600/20 text-violet-400 border border-violet-500/20 transition-all cursor-pointer shrink-0"
-          title="View Pricing & Plans"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-          <span className="hidden sm:inline">Pricing</span>
-        </button>
 
         {/* User Button: Container for User Profile, Theme, Import Repo, History, and Scenario */}
         <div ref={menuRef} className="relative shrink-0">
