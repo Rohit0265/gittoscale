@@ -145,19 +145,16 @@ const HIGHLIGHTS = [
     icon: Rocket,
     title: 'Publish in one click',
     body: 'Push any canvas — prompt-generated, repo-scanned or hand-built — to the feed with its full node graph intact.',
-    hoverColor: 'group-hover:text-cyan-400',
   },
   {
     icon: GitFork,
     title: 'Fork real architectures',
     body: 'Open a verified post from another engineer, fork it into your canvas, then re-run the simulation with your own capacity numbers.',
-    hoverColor: 'group-hover:text-violet-400',
   },
   {
     icon: MessagesSquare,
     title: 'Critique that sticks',
     body: 'Threads stay attached to the exact design they discuss, so reviews and trade-offs never vanish into chat history.',
-    hoverColor: 'group-hover:text-amber-400',
   },
 ];
 
@@ -205,8 +202,8 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
                   key={item.title}
                   className="group relative flex gap-3.5 rounded-2xl border border-slate-200/90 bg-white/70 p-4 dark:border-neutral-800/80 dark:bg-neutral-900/40"
                 >
-                  <span className="relative mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-                    <Icon className={cn('h-4 w-4 text-slate-800 dark:text-white transition-colors duration-200', item.hoverColor)} />
+                  <span className="relative mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white transition-colors duration-200 group-hover:border-slate-300 dark:border-neutral-800 dark:bg-neutral-950 dark:group-hover:border-neutral-700">
+                    <Icon className="h-4 w-4 text-slate-500 transition-colors duration-200 group-hover:text-slate-900 dark:text-neutral-400 dark:group-hover:text-white" />
                   </span>
                   <div className="relative">
                     <h3 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
@@ -239,12 +236,6 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
             <ContinuousAutoplayVideo
               src="/feed-share-design.mp4"
               poster="/feed-share-design.png"
-            />
-
-            {/* Scrim so the top chrome row stays legible */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/55 to-transparent"
             />
           </AlternateImageMockup>
         </div>

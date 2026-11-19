@@ -23,19 +23,16 @@ const CAPABILITIES = [
     icon: MousePointer2,
     title: 'Live cursors & shared canvas',
     body: 'Every teammate gets a named cursor on the same architecture canvas. Drag a node and it moves for everyone — no refresh, no merge conflicts.',
-    hoverColor: 'group-hover:text-cyan-400',
   },
   {
     icon: MessagesSquare,
     title: 'Threaded design chat',
     body: 'Talk through trade-offs beside the diagram. Decisions stay attached to the room instead of scattering across Slack and docs.',
-    hoverColor: 'group-hover:text-violet-400',
   },
   {
     icon: Radio,
     title: 'Shared simulation runs',
     body: 'Trigger a 10x traffic spike once and the whole room watches the same bottleneck light up — the same evidence, at the same second.',
-    hoverColor: 'group-hover:text-amber-400',
   },
 ];
 
@@ -269,8 +266,8 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
                   key={cap.title}
                   className="group flex gap-3.5 rounded-2xl border border-slate-200/90 bg-white/70 p-4 dark:border-neutral-800/80 dark:bg-neutral-900/40"
                 >
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900">
-                    <Icon className={`h-4 w-4 text-slate-800 dark:text-white transition-colors duration-200 ${cap.hoverColor}`} />
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 transition-colors duration-200 group-hover:border-slate-300 dark:border-neutral-800 dark:bg-neutral-900 dark:group-hover:border-neutral-700">
+                    <Icon className="h-4 w-4 text-slate-500 transition-colors duration-200 group-hover:text-slate-900 dark:text-neutral-400 dark:group-hover:text-white" />
                   </span>
                   <div>
                     <h3 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
