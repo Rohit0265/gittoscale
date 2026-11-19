@@ -62,72 +62,44 @@ export async function createPolarCheckoutSession(user: {
 
   const baseUrl = getPolarBaseUrl();
 
-  try {
-    const response = await fetch(`${baseUrl}/checkouts/custom/`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+  // Call official Polar v1 Checkouts endpoint
+  const response = await fetch(`${baseUrl}/checkouts/`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      products: [productId],
+      success_url: successUrl,
+      customer_email: user.email,
+      metadata: {
+        userId: user.id,
+        userEmail: user.email,
+        fullName: user.fullName || '',
       },
-      body: JSON.stringify({
-        product_id: productId,
-        success_url: successUrl,
-        customer_email: user.email,
-        metadata: {
-          userId: user.id,
-          userEmail: user.email,
-          fullName: user.fullName || '',
-        },
-      }),
-    });
+    }),
+  });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.warn('[Polar Checkout] Custom checkout failed, trying standard checkouts:', errText);
-      // Fallback to standard checkouts endpoint
-      const fallbackRes = await fetch(`${baseUrl}/checkouts/`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          products: [productId],
-          success_url: successUrl,
-          customer_email: user.email,
-          metadata: {
-            userId: user.id,
-            userEmail: user.email,
-          },
-        }),
-      });
-
-      if (!fallbackRes.ok) {
-        throw new Error(`Polar checkout creation failed: ${fallbackRes.statusText}`);
-      }
-
-      const fallbackData = await fallbackRes.json() as any;
-      return {
-        url: fallbackData.url || fallbackData.client_secret || `${frontendUrl}/payment`,
-        id: fallbackData.id,
-      };
-    }
-
-    const data = await response.json() as any;
-    return {
-      url: data.url,
-      id: data.id,
-    };
-  } catch (err: any) {
-    console.error('[Polar Checkout Error]', err);
-    // Graceful fallback for local development or when Polar network is unavailable
-    const fallbackId = `chk_offline_${Date.now()}`;
-    return {
-      url: `${frontendUrl}/payment?status=mock_checkout&session_id=${fallbackId}&userId=${encodeURIComponent(user.id)}`,
-      id: fallbackId,
-      isMock: true,
-    };
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error(`[Polar Checkout API Error] HTTP ${response.status}:`, errText);
+    throw new Error(`Polar checkout creation failed (${response.status}): ${errText}`);
   }
+
+  const data = (await response.json()) as any;
+  const checkoutUrl = data.url || data.client_secret;
+
+  if (!checkoutUrl) {
+    console.error('[Polar Checkout] No url in checkout response:', data);
+    throw new Error('Polar did not return a valid checkout URL.');
+  }
+
+  return {
+    url: checkoutUrl,
+    id: data.id,
+    isMock: false,
+  };
 }
 
 /**

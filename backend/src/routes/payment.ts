@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'node:crypto';
-import { resolveUserFromRequest, requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { resolveUserFromRequest } from '../middleware/auth.js';
 import {
   getUserSubscription,
   getUserUsage,
