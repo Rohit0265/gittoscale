@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
   onForceSync: _onForceSync,
   onShareToFeed,
   simulationResult,
-  onStartMeeting,
+  onStartMeeting: _onStartMeeting,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
