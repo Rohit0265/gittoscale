@@ -103,6 +103,82 @@ export async function createPolarCheckoutSession(user: {
 }
 
 /**
+ * Directly verifies a checkout session with Polar's API
+ * and immediately activates the user's Pro subscription.
+ * Provides instant sync upon return to success_url without relying solely on webhooks.
+ */
+export async function verifyAndActivateCheckoutSession(
+  sessionId: string,
+  fallbackUserId?: string
+): Promise<{ success: boolean; plan: string; message: string }> {
+  const token = getPolarAccessToken();
+  const baseUrl = getPolarBaseUrl();
+
+  if (!token || token === 'mock') {
+    if (fallbackUserId) {
+      await activateSubscription({
+        userId: fallbackUserId,
+        polarCustomerId: `cust_mock_${Date.now()}`,
+        polarSubscriptionId: `sub_mock_${Date.now()}`,
+        expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+        plan: 'pro',
+      });
+      return { success: true, plan: 'pro', message: 'Mock subscription activated.' };
+    }
+    throw new Error('No user or token provided.');
+  }
+
+  const response = await fetch(`${baseUrl}/checkouts/${encodeURIComponent(sessionId)}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error(`[Polar Verify Checkout Error ${response.status}]`, errText);
+    throw new Error(`Failed to verify checkout session with Polar (${response.status}): ${errText}`);
+  }
+
+  const checkout = (await response.json()) as any;
+  const status = checkout.status; // 'succeeded' | 'confirmed' | 'open'
+  console.log(`[Polar Checkout Verification] Session ${sessionId} status: ${status}`);
+
+  if (status === 'succeeded' || status === 'confirmed') {
+    const userId = checkout.metadata?.userId || checkout.metadata?.user_id || fallbackUserId;
+    if (!userId) {
+      throw new Error('Unable to identify user for this checkout session.');
+    }
+
+    const expiresAt =
+      checkout.current_period_end ||
+      checkout.expires_at ||
+      new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+
+    await activateSubscription({
+      userId,
+      polarCustomerId: checkout.customer_id || null,
+      polarSubscriptionId: checkout.subscription_id || checkout.id,
+      expiresAt,
+      plan: 'pro',
+    });
+
+    return {
+      success: true,
+      plan: 'pro',
+      message: 'Subscription successfully verified and activated.',
+    };
+  }
+
+  return {
+    success: false,
+    plan: 'free',
+    message: `Checkout session status is '${status}'. Not yet completed.`,
+  };
+}
+
+/**
  * Verify Polar webhook cryptographic signature.
  * Supports Standard Webhooks (Svix) specification headers:
  * - webhook-id
@@ -226,6 +302,22 @@ export async function handlePolarWebhookEvent(event: any): Promise<{
     (data.current_period_end_timestamp ? new Date(data.current_period_end_timestamp * 1000).toISOString() : null);
 
   switch (eventType) {
+    case 'checkout.updated': {
+      if (data.status === 'succeeded' || data.status === 'confirmed') {
+        if (userId) {
+          await activateSubscription({
+            userId,
+            polarCustomerId,
+            polarSubscriptionId: data.subscription_id || data.id,
+            expiresAt,
+            plan: 'pro',
+          });
+          return { processed: true, event: eventType, userId, message: 'Subscription activated via checkout' };
+        }
+      }
+      break;
+    }
+
     case 'order.created': {
       // One-time or first order for a subscription
       if (userId) {

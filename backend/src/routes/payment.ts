@@ -9,6 +9,7 @@ import {
 } from '../services/subscriptionService.js';
 import {
   createPolarCheckoutSession,
+  verifyAndActivateCheckoutSession,
   verifyPolarWebhookSignature,
   handlePolarWebhookEvent,
   getPolarProductId,
@@ -124,6 +125,31 @@ router.post('/create-checkout', async (req: Request, res: Response) => {
       success: false,
       error: 'Checkout Failed',
       message: err.message || 'Unable to initialize checkout session with Polar.',
+    });
+  }
+});
+
+/**
+ * POST /api/payment/confirm-checkout
+ * Directly verifies a checkout session with Polar when customer returns to success_url.
+ * Ensures instant plan activation without delay.
+ */
+router.post('/confirm-checkout', async (req: Request, res: Response) => {
+  try {
+    const user = await resolveUserFromRequest(req);
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      return res.status(400).json({ success: false, error: 'Session ID is required' });
+    }
+
+    const result = await verifyAndActivateCheckoutSession(sessionId, user?.id);
+    return res.json(result);
+  } catch (err: any) {
+    console.error('[Payment Confirm Checkout Error]', err);
+    return res.status(500).json({
+      success: false,
+      error: 'Checkout Confirmation Failed',
+      message: err.message || 'Unable to verify checkout session with Polar.',
     });
   }
 });

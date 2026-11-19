@@ -60,17 +60,43 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
     const action = search.get('action');
 
     if (checkoutStatus === 'success' || checkoutStatus === 'mock_checkout') {
-      setFeedbackMessage({
-        type: 'success',
-        text: 'Payment received — your account is now on GitToScale Pro.',
-      });
+      const sessionId = search.get('session_id');
 
       if (checkoutStatus === 'mock_checkout' && user) {
+        setFeedbackMessage({
+          type: 'success',
+          text: 'Payment received — your account is now on GitToScale Pro.',
+        });
         api.completeMockCheckout(user.id, getAuthToken()).then(() => fetchStatus());
-      } else {
-        const interval = setInterval(() => fetchStatus(), 2000);
-        setTimeout(() => clearInterval(interval), 10000);
+      } else if (checkoutStatus === 'success') {
+        setFeedbackMessage({
+          type: 'success',
+          text: 'Payment received — activating your GitToScale Pro account…',
+        });
+        if (sessionId) {
+          api
+            .confirmCheckoutSession(sessionId, getAuthToken())
+            .then((res) => {
+              if (res.success) {
+                setFeedbackMessage({
+                  type: 'success',
+                  text: 'Payment verified! Your account is now on GitToScale Pro.',
+                });
+                fetchStatus();
+              }
+            })
+            .catch((err) => {
+              console.warn('[PaymentPage] confirmCheckoutSession warning:', err);
+            });
+        }
       }
+
+      const interval = setInterval(() => fetchStatus(), 1500);
+      const timer = setTimeout(() => clearInterval(interval), 10000);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timer);
+      };
     }
 
     if (action === 'checkout' && user && !checkoutLoading) {

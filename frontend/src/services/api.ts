@@ -799,6 +799,13 @@ export const api = {
     const res = await axios.post(`${API_BASE}/payment/mock-complete`, { userId }, { headers });
     return res.data;
   },
+
+  async confirmCheckoutSession(sessionId: string, token?: string | null): Promise<{ success: boolean; plan?: string; message?: string }> {
+    const authToken = token || getStoredAuthToken();
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+    const res = await axios.post(`${API_BASE}/payment/confirm-checkout`, { sessionId }, { headers });
+    return res.data;
+  },
 };
 
 export interface SubscriptionStatusResponse {
