@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
+import { ensureProfileExists } from '../feed/feedService.js';
 
 export interface AuthenticatedUser {
   id: string;
@@ -118,5 +119,6 @@ export async function requireAuth(
   }
 
   req.user = user;
+  ensureProfileExists(user.id, user.fullName, user.email, user.avatarUrl).catch(() => {});
   next();
 }

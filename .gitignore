@@ -10,3 +10,7 @@ coverage
 test-results/
 perf-results/
 perf-audit-report.json
+uploads/*
+!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep

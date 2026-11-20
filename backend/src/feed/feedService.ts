@@ -135,6 +135,21 @@ export async function ensureFeedSchema(): Promise<void> {
         UNIQUE(follower_id, following_id)
       );
     `;
+    // Seed default developer profile for local dev and testing
+    await db`
+      INSERT INTO public.profiles (id, full_name, username, email, avatar_url, bio, created_at, updated_at)
+      VALUES (
+        'usr_dev_default',
+        'Local Developer',
+        'dev_default',
+        'developer@gittoscale.tech',
+        NULL,
+        'GitToScale Developer',
+        timezone('utc'::text, now()),
+        timezone('utc'::text, now())
+      )
+      ON CONFLICT (id) DO NOTHING;
+    `;
     hasEnsuredColumns = true;
   } catch (err: any) {
     if (!isDbConnectionError(err)) {
@@ -145,6 +160,75 @@ export async function ensureFeedSchema(): Promise<void> {
 
 // Ensure schema columns are available asynchronously on boot
 ensureFeedSchema().catch(() => {});
+
+/**
+ * Ensures a user profile exists in public.profiles to satisfy foreign key constraints.
+ */
+export async function ensureProfileExists(
+  userId: string,
+  fullName?: string | null,
+  email?: string | null,
+  avatarUrl?: string | null
+): Promise<void> {
+  if (!userId) return;
+  try {
+    const db = getSql();
+    const existing = await db`SELECT id FROM public.profiles WHERE id::text = ${userId}::text LIMIT 1;`;
+    if (existing.length === 0) {
+      const resolvedEmail = email && email.trim() ? email.trim() : `${userId}@gittoscale.tech`;
+      const resolvedName = fullName && fullName.trim() ? fullName.trim() : (resolvedEmail.includes('@') ? resolvedEmail.split('@')[0] : userId);
+      let baseUsername = deriveUsername(resolvedName, resolvedEmail) || 'user';
+      if (baseUsername.length < 3) baseUsername = `${baseUsername}dev`;
+      let candidateUsername = baseUsername.slice(0, 20);
+
+      const usernameExists = await db`SELECT id FROM public.profiles WHERE LOWER(username) = LOWER(${candidateUsername}) LIMIT 1;`;
+      if (usernameExists.length > 0) {
+        const suffix = crypto.randomBytes(3).toString('hex');
+        candidateUsername = `${candidateUsername.slice(0, 15)}_${suffix}`;
+      }
+
+      try {
+        await db`
+          INSERT INTO public.profiles (id, full_name, username, email, avatar_url, bio, created_at, updated_at)
+          VALUES (
+            ${userId},
+            ${resolvedName},
+            ${candidateUsername},
+            ${resolvedEmail},
+            ${avatarUrl || null},
+            '',
+            timezone('utc'::text, now()),
+            timezone('utc'::text, now())
+          )
+          ON CONFLICT (id) DO NOTHING;
+        `;
+      } catch (insertErr: any) {
+        if (insertErr.code === '23505') {
+          await db`
+            INSERT INTO public.profiles (id, full_name, username, email, avatar_url, bio, created_at, updated_at)
+            VALUES (
+              ${userId},
+              ${resolvedName},
+              NULL,
+              ${resolvedEmail},
+              ${avatarUrl || null},
+              '',
+              timezone('utc'::text, now()),
+              timezone('utc'::text, now())
+            )
+            ON CONFLICT (id) DO NOTHING;
+          `;
+        } else {
+          throw insertErr;
+        }
+      }
+    }
+  } catch (err: any) {
+    if (!isDbConnectionError(err)) {
+      console.warn('[Feed Profile] ensureProfileExists warning:', err?.message || err);
+    }
+  }
+}
 
 /**
  * Fetch feed posts with author profiles, like counts, comment counts, and like status.
@@ -489,6 +573,9 @@ export async function createFeedPost(data: {
   authorName?: string;
   authorEmail?: string;
 }): Promise<FeedPost> {
+  // Ensure author profile exists to satisfy foreign key constraint
+  await ensureProfileExists(data.userId, data.authorName, data.authorEmail);
+
   try {
     const db = getSql();
 
@@ -740,6 +827,7 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
  * Toggle like for a post. Returns whether it is currently liked and updated count.
  */
 export async function toggleFeedLike(postId: string, userId: string): Promise<{ liked: boolean; count: number }> {
+  await ensureProfileExists(userId);
   try {
     const db = getSql();
 
@@ -805,6 +893,7 @@ export async function toggleFeedLike(postId: string, userId: string): Promise<{ 
  * Toggle dislike for a post. Returns whether it is currently disliked.
  */
 export async function toggleFeedDislike(postId: string, userId: string): Promise<{ disliked: boolean }> {
+  await ensureProfileExists(userId);
   try {
     const db = getSql();
 
@@ -863,6 +952,7 @@ export async function toggleFeedDislike(postId: string, userId: string): Promise
  * Toggle bookmark/save for a post. Returns whether it is currently bookmarked.
  */
 export async function toggleFeedBookmark(postId: string, userId: string): Promise<{ bookmarked: boolean }> {
+  await ensureProfileExists(userId);
   try {
     const db = getSql();
 
@@ -1019,6 +1109,7 @@ export async function addPostComment(data: {
   authorName?: string;
   authorEmail?: string;
 }): Promise<FeedComment> {
+  await ensureProfileExists(data.userId, data.authorName, data.authorEmail);
   try {
     const db = getSql();
 
@@ -1839,6 +1930,8 @@ export async function toggleFollowUser(
   if (followerId === followingId) {
     throw new Error('CANNOT_FOLLOW_SELF');
   }
+
+  await ensureProfileExists(followerId);
 
   try {
     const db = getSql();
