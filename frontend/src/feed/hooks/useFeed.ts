@@ -5,9 +5,10 @@ import { feedApi } from '../services/feedApi';
 interface UseFeedOptions {
   token?: string | null;
   userId?: string | null;
+  user?: any;
 }
 
-export function useFeed({ token, userId }: UseFeedOptions) {
+export function useFeed({ token, userId, user }: UseFeedOptions) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +120,17 @@ export function useFeed({ token, userId }: UseFeedOptions) {
     mediaItems?: import('../types').MediaItem[]
   ) => {
     if (!token) throw new Error('You must be signed in to post.');
-    const newPost = await feedApi.createPost({ content, mediaUrl, mediaType, mediaItems }, token);
+    const authorName =
+      user?.user_metadata?.full_name ||
+      user?.user_metadata?.name ||
+      user?.fullName ||
+      (user?.email ? user.email.split('@')[0] : undefined);
+    const authorEmail = user?.email;
+
+    const newPost = await feedApi.createPost(
+      { content, mediaUrl, mediaType, mediaItems, authorName, authorEmail },
+      token
+    );
     setPosts((prev) => [newPost, ...prev]);
     return newPost;
   };

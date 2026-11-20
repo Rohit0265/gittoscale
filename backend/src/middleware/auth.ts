@@ -30,15 +30,30 @@ export async function resolveUserFromRequest(req: Request): Promise<Authenticate
   const allowMockAuth =
     process.env.NODE_ENV !== 'production' || process.env.ENABLE_MOCK_AUTH === 'true';
 
+  const customHeaderName =
+    typeof req.headers['x-user-name'] === 'string' && req.headers['x-user-name'].trim()
+      ? req.headers['x-user-name'].trim()
+      : (req.body && typeof req.body.authorName === 'string' && req.body.authorName.trim()
+          ? req.body.authorName.trim()
+          : null);
+
+  const customHeaderEmail =
+    typeof req.headers['x-user-email'] === 'string' && req.headers['x-user-email'].trim()
+      ? req.headers['x-user-email'].trim()
+      : (req.body && typeof req.body.authorEmail === 'string' && req.body.authorEmail.trim()
+          ? req.body.authorEmail.trim()
+          : null);
+
   if (token.startsWith('mock_jwt_')) {
     if (!allowMockAuth) return null;
     try {
       const payloadBase64 = token.replace('mock_jwt_', '');
       const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+      const resolvedName = customHeaderName || payload.name || payload.email?.split('@')[0] || 'GitToScale User';
       return {
         id: payload.id || 'usr_mock',
-        email: payload.email || 'mock@gittoscale.tech',
-        fullName: payload.name || payload.email?.split('@')[0] || 'GitToScale User',
+        email: payload.email || customHeaderEmail || 'mock@gittoscale.tech',
+        fullName: resolvedName,
         avatarUrl: payload.avatar_url || payload.picture || payload.avatar || undefined,
       };
     } catch {
@@ -46,44 +61,64 @@ export async function resolveUserFromRequest(req: Request): Promise<Authenticate
     }
   }
 
-  if (!isServerSupabaseConfigured) {
-    if (allowMockAuth) {
-      return {
-        id: 'usr_dev_default',
-        email: 'developer@gittoscale.tech',
-        fullName: 'Local Developer',
-        avatarUrl: undefined,
-      };
+  if (isServerSupabaseConfigured) {
+    try {
+      const { data: { user }, error } = await supabaseServer.auth.getUser(token);
+      if (!error && user) {
+        const meta = user.user_metadata || {};
+        const identities = (user.identities && user.identities[0]?.identity_data) || {};
+        const resolvedAvatar =
+          meta.avatar_url ||
+          meta.picture ||
+          meta.avatar ||
+          identities.avatar_url ||
+          identities.picture ||
+          '';
+
+        return {
+          id: user.id,
+          email: user.email || customHeaderEmail || '',
+          fullName: customHeaderName || meta.full_name || meta.name || user.email?.split('@')[0] || '',
+          avatarUrl: resolvedAvatar,
+        };
+      }
+    } catch (err: any) {
+      console.warn('[Auth Middleware] supabase.getUser error:', err.message);
     }
-    return null;
   }
 
-  try {
-    const { data: { user }, error } = await supabaseServer.auth.getUser(token);
-    if (error || !user) {
-      return null;
-    }
+  // Fallback: If token is a JWT (has 3 parts), decode payload directly
+  if (token.includes('.')) {
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+        const meta = payload.user_metadata || {};
+        const resolvedName =
+          customHeaderName || meta.full_name || meta.name || payload.name || payload.email?.split('@')[0];
+        const resolvedId = payload.sub || payload.id;
+        if (resolvedId) {
+          return {
+            id: resolvedId,
+            email: payload.email || customHeaderEmail || 'user@gittoscale.tech',
+            fullName: resolvedName || 'GitToScale User',
+            avatarUrl: meta.avatar_url || meta.picture || undefined,
+          };
+        }
+      }
+    } catch {}
+  }
 
-    const meta = user.user_metadata || {};
-    const identities = (user.identities && user.identities[0]?.identity_data) || {};
-    const resolvedAvatar =
-      meta.avatar_url ||
-      meta.picture ||
-      meta.avatar ||
-      identities.avatar_url ||
-      identities.picture ||
-      '';
-
+  if (allowMockAuth) {
     return {
-      id: user.id,
-      email: user.email || '',
-      fullName: meta.full_name || meta.name || user.email?.split('@')[0] || '',
-      avatarUrl: resolvedAvatar,
+      id: 'usr_dev_default',
+      email: customHeaderEmail || 'developer@gittoscale.tech',
+      fullName: customHeaderName || 'GitToScale Developer',
+      avatarUrl: undefined,
     };
-  } catch (err: any) {
-    console.warn('[Auth Middleware] resolveUserFromRequest error:', err.message);
-    return null;
   }
+
+  return null;
 }
 
 /**

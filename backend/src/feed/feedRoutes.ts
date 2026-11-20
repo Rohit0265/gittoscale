@@ -215,14 +215,17 @@ router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Respon
       sanitizedMediaType = mediaType;
     }
 
+    const resolvedAuthorName = req.body?.authorName || req.user?.fullName;
+    const resolvedAuthorEmail = req.body?.authorEmail || req.user?.email;
+
     const post = await createFeedPost({
       userId,
       content: content.trim(),
       mediaUrl: mediaUrl || null,
       mediaType: sanitizedMediaType,
       mediaItems: Array.isArray(mediaItems) ? mediaItems : undefined,
-      authorName: req.user?.fullName,
-      authorEmail: req.user?.email,
+      authorName: resolvedAuthorName,
+      authorEmail: resolvedAuthorEmail,
     });
 
     res.status(201).json({

@@ -56,7 +56,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     openComments,
     closeComments,
     notifyCommentChange,
-  } = useFeed({ token, userId: user?.id });
+  } = useFeed({ token, userId: user?.id, user });
 
   // Enable silky smooth momentum scroll across the feed
   useSmoothScroll({ lerp: 0.085, enabled: true });

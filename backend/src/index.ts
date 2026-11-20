@@ -1,3 +1,6 @@
+import { loadEnvFiles } from './utils/env.js';
+loadEnvFiles();
+
 import { createApp } from './app.js';
 import { initMeetingSocketServer } from './meeting/yjsServer.js';
 

@@ -173,7 +173,7 @@ export async function ensureProfileExists(
   if (!userId) return;
   try {
     const db = getSql();
-    const existing = await db`SELECT id FROM public.profiles WHERE id::text = ${userId}::text LIMIT 1;`;
+    const existing = await db`SELECT id, full_name, email, username FROM public.profiles WHERE id::text = ${userId}::text LIMIT 1;`;
     if (existing.length === 0) {
       const resolvedEmail = email && email.trim() ? email.trim() : `${userId}@gittoscale.tech`;
       const resolvedName = fullName && fullName.trim() ? fullName.trim() : (resolvedEmail.includes('@') ? resolvedEmail.split('@')[0] : userId);
@@ -221,6 +221,18 @@ export async function ensureProfileExists(
         } else {
           throw insertErr;
         }
+      }
+    } else {
+      // Profile exists: update full_name if user provided a specific non-generic name
+      const current = existing[0];
+      const validName = fullName && fullName.trim() && fullName.trim() !== 'Local Developer' && fullName.trim() !== 'GitToScale Developer' ? fullName.trim() : null;
+      if (validName && (current.full_name === 'Local Developer' || current.full_name === 'GitToScale Developer' || !current.full_name || current.full_name !== validName)) {
+        await db`
+          UPDATE public.profiles
+          SET full_name = ${validName},
+              updated_at = timezone('utc'::text, now())
+          WHERE id::text = ${userId}::text;
+        `;
       }
     }
   } catch (err: any) {

@@ -50,6 +50,8 @@ export const feedApi = {
       mediaUrl?: string | null;
       mediaType?: 'image' | 'video' | null;
       mediaItems?: MediaItem[];
+      authorName?: string;
+      authorEmail?: string;
     },
     token: string
   ): Promise<FeedPost> {
@@ -57,6 +59,8 @@ export const feedApi = {
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeader(token),
+        ...(post.authorName ? { 'X-User-Name': post.authorName } : {}),
+        ...(post.authorEmail ? { 'X-User-Email': post.authorEmail } : {}),
       },
     });
     return res.data?.data;

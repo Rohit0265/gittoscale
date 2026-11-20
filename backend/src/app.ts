@@ -27,6 +27,7 @@ import paymentRoute from './routes/payment.js';
 import { telemetryMiddleware } from './middleware/telemetry.js';
 
 import { loadEnvFiles } from './utils/env.js';
+loadEnvFiles();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
