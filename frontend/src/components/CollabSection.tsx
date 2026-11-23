@@ -192,14 +192,14 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
               <span>Start a collab room</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </button>
-            <button
+            {/* <button
               type="button"
               onClick={openCollab}
               className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-800"
             >
               <span>Join with a link</span>
               <ExternalLink className="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
-            </button>
+            </button> */}
           </div>
         </div>
 
