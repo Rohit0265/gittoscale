@@ -9,6 +9,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import { PenHighlight } from './ui/PenShadowLine';
+import { ContinuousAutoplayVideo } from './ShareDesignFeedSection';
 
 export interface CollabSectionProps {
   /** Navigates to the full collaborative rooms landing page (/collab). */
@@ -52,9 +53,6 @@ const Avatar: React.FC<{ initials: string; tone: string; className?: string }> =
 const RoomMockup: React.FC<{ isDark: boolean }> = ({ isDark }) => {
   const panel = isDark ? 'bg-[#0b0b0f] border-neutral-800/90' : 'bg-white border-slate-200/90';
   const hairline = isDark ? 'border-neutral-800/80' : 'border-slate-200/80';
-  const nodeBase = isDark
-    ? 'bg-[#131318] border-neutral-700/70 text-neutral-200'
-    : 'bg-white border-slate-200 text-slate-700';
 
   return (
     <div className="relative w-full">
@@ -96,111 +94,13 @@ const RoomMockup: React.FC<{ isDark: boolean }> = ({ isDark }) => {
           </div>
         </div>
 
-        {/* Canvas — everything positioned in percentages so nothing clips */}
-        <div className="relative aspect-[16/11] w-full sm:aspect-[16/10]">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0"
-            style={{
-              backgroundImage: isDark
-                ? 'linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px)'
-                : 'linear-gradient(to right, rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.06) 1px, transparent 1px)',
-              backgroundSize: '26px 26px',
-            }}
+        {/* Real-time collaborative canvas video */}
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-black">
+          <ContinuousAutoplayVideo
+            src="/collab-feature.mp4"
+            poster="/collab-feature.png"
+            className="h-full w-full object-cover"
           />
-
-          {/* Connectors in a 100x100 viewBox so they scale with the panel */}
-          <svg
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M 30 23 C 31.5 23, 32.5 15, 34 15"
-              className="stroke-slate-400/50 dark:stroke-neutral-500/50"
-              fill="none"
-              strokeWidth="1.2"
-              strokeDasharray="4 5"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M 30 23 C 31.2 23, 32 63, 34 63"
-              className="stroke-slate-400/50 dark:stroke-neutral-500/50"
-              fill="none"
-              strokeWidth="1.2"
-              strokeDasharray="4 5"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M 60 15 C 66 15, 66 37, 72 37"
-              className="stroke-violet-400/60"
-              fill="none"
-              strokeWidth="1.2"
-              strokeDasharray="4 5"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M 60 63 C 66 63, 66 37, 72 37"
-              className="stroke-violet-400/60"
-              fill="none"
-              strokeWidth="1.2"
-              strokeDasharray="4 5"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-
-          {/* Nodes */}
-          <div
-            className={`absolute left-[4%] top-[18%] w-[26%] min-w-[88px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${nodeBase}`}
-          >
-            <p className="truncate text-[10px] font-bold tracking-tight">API Gateway</p>
-            <p className="font-mono text-[9px] opacity-60">14.2k rps</p>
-          </div>
-
-          <div
-            className={`absolute left-[34%] top-[10%] w-[26%] min-w-[88px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${nodeBase}`}
-          >
-            <p className="truncate text-[10px] font-bold tracking-tight">Orders</p>
-            <p className="font-mono text-[9px] opacity-60">48ms p99</p>
-          </div>
-
-          <div
-            className={`absolute left-[34%] top-[58%] w-[26%] min-w-[88px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${
-              isDark
-                ? 'border-amber-600/60 bg-amber-500/10 text-amber-200'
-                : 'border-amber-300 bg-amber-50 text-amber-800'
-            }`}
-          >
-            <p className="truncate text-[10px] font-bold tracking-tight">Payments</p>
-            <p className="font-mono text-[9px] opacity-70">queue 92%</p>
-          </div>
-
-          <div
-            className={`absolute left-[72%] top-[32%] w-[24%] min-w-[84px] rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 ${
-              isDark
-                ? 'border-violet-600/50 bg-violet-500/10 text-violet-200'
-                : 'border-violet-300 bg-violet-50 text-violet-800'
-            }`}
-          >
-            <p className="truncate text-[10px] font-bold tracking-tight">Postgres</p>
-            <p className="font-mono text-[9px] opacity-70">pool 61%</p>
-          </div>
-
-          {/* Live cursors */}
-          <div className="absolute left-[46%] top-[31%] z-10">
-            <MousePointer2 className="h-4 w-4 rotate-[-15deg] fill-cyan-500 text-cyan-600" />
-            <span className="ml-3 -mt-1 block w-fit rounded-md bg-cyan-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
-              Aarav
-            </span>
-          </div>
-
-          <div className="absolute left-[24%] top-[84%] z-10">
-            <MousePointer2 className="h-4 w-4 rotate-[-15deg] fill-violet-500 text-violet-600" />
-            <span className="ml-3 -mt-1 block w-fit rounded-md bg-violet-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
-              Sara
-            </span>
-          </div>
         </div>
       </div>
     </div>
