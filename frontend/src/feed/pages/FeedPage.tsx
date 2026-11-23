@@ -103,6 +103,7 @@ export const FeedPage: React.FC<FeedPageProps> = ({
         onOpenHistory={onOpenHistory}
         onSignOut={onSignOut}
         onNavigate={onNavigate}
+        activeTab="feed"
       />
 
       {/* 2. Responsive 3-Column Layout */}

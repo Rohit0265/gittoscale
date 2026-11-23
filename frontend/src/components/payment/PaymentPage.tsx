@@ -160,6 +160,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
           window.history.pushState({}, '', '/history');
           onGoHome();
         }}
+        onNavigate={onNavigate}
+        activeTab="pricing"
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-28 pb-16 sm:px-6 sm:pt-32 sm:pb-20">

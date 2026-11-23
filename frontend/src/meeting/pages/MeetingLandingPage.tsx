@@ -111,7 +111,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#040404] text-slate-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-neutral-800 selection:text-white">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-neutral-800 selection:text-white transition-colors duration-200">
       {/* Landing Page Navbar Header */}
       <LandingHeader
         isDark={isDark}
@@ -122,6 +122,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
         onOpenHistory={onOpenHistory}
         onSignOut={onSignOut}
         onNavigate={onNavigate}
+        activeTab="collab"
       />
 
       {/* Hero Content */}

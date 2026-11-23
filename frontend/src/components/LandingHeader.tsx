@@ -21,6 +21,7 @@ export interface LandingHeaderProps {
   onSignOut?: () => void;
   onNavigate?: (view: any) => void;
   isApp?: boolean;
+  activeTab?: 'home' | 'collab' | 'feed' | 'pricing';
 }
 
 export const LandingHeader: React.FC<LandingHeaderProps> = ({
@@ -33,6 +34,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   onSignOut,
   onNavigate,
   isApp = false,
+  activeTab,
 }) => {
   const { user, signOut } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -58,10 +60,10 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
     };
   }, []);
 
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-  const isCollabActive = currentPath === '/collab' || currentPath.startsWith('/collab') || currentPath.startsWith('/meeting');
-  const isFeedActive = currentPath === '/feed' || currentPath.startsWith('/feed') || currentPath.startsWith('/profile');
-  const isPricingActive = currentPath === '/pricing' || currentPath === '/payment' || currentPath.startsWith('/payment');
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
+  const isCollabActive = activeTab ? activeTab === 'collab' : (currentPath === '/collab' || currentPath.startsWith('/collab') || currentPath.startsWith('/meeting'));
+  const isFeedActive = activeTab ? activeTab === 'feed' : (currentPath === '/feed' || currentPath.startsWith('/feed') || currentPath.startsWith('/profile'));
+  const isPricingActive = activeTab ? activeTab === 'pricing' : (currentPath === '/pricing' || currentPath === '/payment' || currentPath.startsWith('/payment'));
 
   const handleLinkClick = (path: string, e: React.MouseEvent) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -137,7 +139,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <a
             href="/collab"
             onClick={(e) => handleLinkClick('/collab', e)}
-            className={`group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ease-out flex items-center gap-1.5 cursor-pointer ${
               isCollabActive
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
                 : 'text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/80'
@@ -149,7 +151,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <a
             href="/feed"
             onClick={(e) => handleLinkClick('/feed', e)}
-            className={`group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ease-out flex items-center gap-1.5 cursor-pointer ${
               isFeedActive
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
                 : 'text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/80'
@@ -161,7 +163,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <a
             href="/pricing"
             onClick={(e) => handleLinkClick('/pricing', e)}
-            className={`group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`group min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ease-out flex items-center gap-1.5 cursor-pointer ${
               isPricingActive
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-950 shadow-xs'
                 : 'text-slate-700 dark:text-neutral-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800/80'

@@ -205,6 +205,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         onOpenHistory={onOpenHistory}
         onSignOut={onSignOut}
         onNavigate={onNavigate}
+        activeTab="feed"
       />
 
       <div className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-20 sm:pt-24 pb-6 flex flex-col items-center">

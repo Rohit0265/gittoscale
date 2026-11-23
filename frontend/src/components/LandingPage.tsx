@@ -437,6 +437,7 @@ const LandingPageComponent: React.FC<LandingPageProps> = ({
         onSignOut={onSignOut}
         onNavigate={onNavigate}
         isApp={isApp}
+        activeTab="home"
       />
 
         {/* Main Landmark for Accessibility and SEO */}

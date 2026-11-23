@@ -211,44 +211,49 @@ export type AppView =
   | 'payment'
   | 'admin';
 
+const SeamlessPageFallback: React.FC<{ isDark?: boolean }> = ({ isDark = true }) => (
+  <div className={`min-h-screen w-full ${isDark ? 'bg-[#020202]' : 'bg-slate-50'} transition-opacity duration-150`} />
+);
+
 const isValidAppPath = (path: string): boolean => {
-  if (path === '/' || path === '') return true;
-  if (path === '/app' || path.startsWith('/app/')) return true;
-  if (path === '/collab' || path.startsWith('/collab')) return true;
-  if (path === '/meeting' || path.startsWith('/meeting')) return true;
-  if (path === '/feed' || path.startsWith('/feed')) return true;
-  if (path === '/profile' || path.startsWith('/profile')) return true;
-  if (path === '/admin' || path.startsWith('/admin')) return true;
-  if (path === '/payment' || path.startsWith('/payment') || path === '/pricing') return true;
-  if (path === '/signup' || path === '/signin' || path === '/forgot-password') return true;
-  if (path.startsWith('/auth')) return true;
-  if (path === '/history') return true;
-  if (path === '/architect' || path === '/recommender') return true;
-  if (path.startsWith('/project/') || path.startsWith('/product/')) return true;
+  const normalized = path.toLowerCase().replace(/\/+$/, '') || '/';
+  if (normalized === '/' || normalized === '') return true;
+  if (normalized === '/app' || normalized.startsWith('/app/')) return true;
+  if (normalized === '/collab' || normalized.startsWith('/collab')) return true;
+  if (normalized === '/meeting' || normalized.startsWith('/meeting')) return true;
+  if (normalized === '/feed' || normalized.startsWith('/feed')) return true;
+  if (normalized === '/profile' || normalized.startsWith('/profile')) return true;
+  if (normalized === '/admin' || normalized.startsWith('/admin')) return true;
+  if (normalized === '/payment' || normalized.startsWith('/payment') || normalized === '/pricing') return true;
+  if (normalized === '/signup' || normalized === '/signin' || normalized === '/forgot-password') return true;
+  if (normalized.startsWith('/auth')) return true;
+  if (normalized === '/history') return true;
+  if (normalized === '/architect' || normalized === '/recommender') return true;
+  if (normalized.startsWith('/project/') || normalized.startsWith('/product/')) return true;
   if (
-    path === '/cookie' ||
-    path === '/cookies' ||
-    path === '/cookie-policy' ||
-    path === '/cokkie' ||
-    path.startsWith('/cookie') ||
-    path.startsWith('/cokkie')
+    normalized === '/cookie' ||
+    normalized === '/cookies' ||
+    normalized === '/cookie-policy' ||
+    normalized === '/cokkie' ||
+    normalized.startsWith('/cookie') ||
+    normalized.startsWith('/cokkie')
   ) {
     return true;
   }
   if (
-    path === '/privacy' ||
-    path === '/privacy-policy' ||
-    path === '/provacy' ||
-    path.startsWith('/privacy') ||
-    path.startsWith('/provacy')
+    normalized === '/privacy' ||
+    normalized === '/privacy-policy' ||
+    normalized === '/provacy' ||
+    normalized.startsWith('/privacy') ||
+    normalized.startsWith('/provacy')
   ) {
     return true;
   }
   if (
-    path === '/terms' ||
-    path === '/terms-and-conditions' ||
-    path === '/terms-of-service' ||
-    path.startsWith('/terms')
+    normalized === '/terms' ||
+    normalized === '/terms-and-conditions' ||
+    normalized === '/terms-of-service' ||
+    normalized.startsWith('/terms')
   ) {
     return true;
   }
@@ -258,7 +263,8 @@ const isValidAppPath = (path: string): boolean => {
 const getInitialView = (): AppView => {
   if (typeof window === 'undefined') return 'landing';
   if (isOAuthPopup()) return 'auth-callback';
-  const path = window.location.pathname.toLowerCase();
+  const rawPath = window.location.pathname.toLowerCase();
+  const path = rawPath.replace(/\/+$/, '') || '/';
   if (path === '/admin' || path.startsWith('/admin')) return 'admin';
   if (path === '/payment' || path.startsWith('/payment') || path === '/pricing') return 'payment';
   if (path === '/collab' || path === '/meeting') return 'collab-landing';
@@ -423,7 +429,9 @@ export const App: React.FC = () => {
   }, []);
 
   const handleNavigate = useCallback((viewName: string) => {
-    const cleanName = viewName.toLowerCase();
+    const rawName = viewName.trim();
+    const cleanName = rawName.toLowerCase().replace(/\/+$/, '') || '/';
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     if (cleanName === 'signup' || cleanName === '/signup') {
       window.history.pushState({}, '', '/signup');
       setCurrentView('signup');
@@ -442,8 +450,16 @@ export const App: React.FC = () => {
     } else if (cleanName === 'collab' || cleanName === '/collab' || cleanName === 'meeting' || cleanName === '/meeting') {
       window.history.pushState({}, '', '/collab');
       setCurrentView('collab-landing');
+    } else if (cleanName.startsWith('/collab/') || cleanName.startsWith('/meeting/')) {
+      window.history.pushState({}, '', cleanName);
+      const mId = getCollabMeetingId();
+      if (mId) {
+        setCurrentView('collab-meeting');
+      } else {
+        setCurrentView('collab-landing');
+      }
     } else if (cleanName === 'payment' || cleanName === '/payment' || cleanName === 'pricing' || cleanName === '/pricing') {
-      window.history.pushState({}, '', '/payment');
+      window.history.pushState({}, '', cleanName.includes('pricing') ? '/pricing' : '/payment');
       setCurrentView('payment');
     } else if (cleanName === 'admin' || cleanName === '/admin') {
       window.history.pushState({}, '', '/admin');
@@ -503,7 +519,7 @@ export const App: React.FC = () => {
       setActiveProject(null);
       setCurrentView('not-found');
     }
-  }, []);
+  }, [activePromptText, activeProject]);
 
   // Route Protection: Unauthenticated visitors to /app, /history, /project, or app.gittoscale.tech are redirected to /signup
   useEffect(() => {
@@ -538,11 +554,19 @@ export const App: React.FC = () => {
         setCurrentView('auth-callback');
         return;
       }
-      const path = window.location.pathname.toLowerCase();
+      const rawPath = window.location.pathname.toLowerCase();
+      const path = rawPath.replace(/\/+$/, '') || '/';
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       if (path === '/admin' || path.startsWith('/admin')) {
         setCurrentView('admin');
       } else if (path === '/payment' || path.startsWith('/payment') || path === '/pricing') {
         setCurrentView('payment');
+      } else if (path === '/collab' || path === '/meeting') {
+        setCurrentView('collab-landing');
+      } else if (path.startsWith('/collab/') || path.startsWith('/meeting/')) {
+        const mId = getCollabMeetingId();
+        if (mId) setCurrentView('collab-meeting');
+        else setCurrentView('collab-landing');
       } else if (path === '/feed') {
         setCurrentView('feed');
       } else if (path === '/profile' || path.startsWith('/profile') || path.startsWith('/feed/profile/')) {
@@ -2307,7 +2331,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'feed') {
     return (
-      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+      <Suspense fallback={<SeamlessPageFallback isDark={isDark} />}>
         <FeedPage
           user={user}
           token={authToken}
@@ -2346,7 +2370,7 @@ export const App: React.FC = () => {
       ? (user?.id || '')
       : (rawPath.replace(/^\/feed\/profile\/?/, '').split('/')[0] || user?.id || '');
     return (
-      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+      <Suspense fallback={<SeamlessPageFallback isDark={isDark} />}>
         <ProfilePage
           profileId={profileIdFromUrl}
           user={user}
@@ -2384,7 +2408,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'admin') {
     return (
-      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+      <Suspense fallback={<SeamlessPageFallback isDark={isDark} />}>
         <AdminPage user={user} token={authToken} onNavigate={handleNavigate} isDark={isDark} />
       </Suspense>
     );
@@ -2392,7 +2416,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'payment') {
     return (
-      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+      <Suspense fallback={<SeamlessPageFallback isDark={isDark} />}>
         <PaymentPage
           onGoHome={handleGoHome}
           onOpenAuth={() => {
@@ -2413,7 +2437,7 @@ export const App: React.FC = () => {
 
   if (currentView === 'collab-landing') {
     return (
-      <Suspense fallback={<HistoryPageSkeleton isDark={isDark} />}>
+      <Suspense fallback={<SeamlessPageFallback isDark={isDark} />}>
         <MeetingLandingPage
           onJoinMeeting={(meetingId) => {
             window.history.pushState({}, '', `/meeting/${meetingId}`);
