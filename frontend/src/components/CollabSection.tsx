@@ -5,7 +5,6 @@ import {
   Radio,
   MessagesSquare,
   ArrowRight,
-  ExternalLink,
 } from 'lucide-react';
 import { PenHighlight } from './ui/PenShadowLine';
 import { AlternateImageMockup, ContinuousAutoplayVideo } from './ShareDesignFeedSection';
@@ -39,7 +38,7 @@ const CAPABILITIES = [
 export const CollabSection: React.FC<CollabSectionProps> = ({
   onOpenCollab,
   onNavigate,
-  isDark = true,
+  isDark: _isDark = true,
 }) => {
   const openCollab = () => {
     if (onOpenCollab) {
@@ -132,9 +131,17 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
           </div>
         </div>
 
-        {/* Mockup column */}
+        {/* Video showcase column */}
         <div className="relative w-full">
-          <RoomMockup isDark={isDark} />
+          <AlternateImageMockup
+            aspectRatioClass="aspect-[16/9]"
+            className="mx-auto w-full max-w-none lg:max-w-2xl xl:max-w-3xl"
+          >
+            <ContinuousAutoplayVideo
+              src="/collab-feature.mp4"
+              poster="/collab-feature.png"
+            />
+          </AlternateImageMockup>
         </div>
       </div>
     </section>
