@@ -57,10 +57,22 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
       style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 900px' }}
       className="relative w-full overflow-hidden border-t border-slate-200/80 bg-white px-4 py-20 transition-colors dark:border-neutral-900 dark:bg-[#050506] sm:px-6 sm:py-24 lg:px-10"
     >
-      <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[1fr_1.15fr] xl:grid-cols-[1fr_1.25fr] lg:gap-16">
-        {/* Copy column */}
-        <div className="max-w-xl">
+      <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[1.15fr_1fr] xl:grid-cols-[1.25fr_1fr] lg:gap-16">
+        {/* Video showcase column (Left on desktop) */}
+        <div className="relative w-full order-2 lg:order-1">
+          <AlternateImageMockup
+            aspectRatioClass="aspect-[16/9]"
+            className="mx-auto w-full max-w-none lg:max-w-2xl xl:max-w-3xl"
+          >
+            <ContinuousAutoplayVideo
+              src="/collab-feature.mp4"
+              poster="/collab-feature.png"
+            />
+          </AlternateImageMockup>
+        </div>
 
+        {/* Copy column (Right on desktop) */}
+        <div className="max-w-xl order-1 lg:order-2 lg:ml-auto">
           <h2 className="mt-5 text-3xl font-black leading-[0.98] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-4xl md:text-[46px]">
             <span className="sm:hidden flex flex-col items-start">
               <PenHighlight className="block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
@@ -120,28 +132,7 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
               <span>Start a collab room</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </button>
-            {/* <button
-              type="button"
-              onClick={openCollab}
-              className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-800"
-            >
-              <span>Join with a link</span>
-              <ExternalLink className="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
-            </button> */}
           </div>
-        </div>
-
-        {/* Video showcase column */}
-        <div className="relative w-full">
-          <AlternateImageMockup
-            aspectRatioClass="aspect-[16/9]"
-            className="mx-auto w-full max-w-none lg:max-w-2xl xl:max-w-3xl"
-          >
-            <ContinuousAutoplayVideo
-              src="/collab-feature.mp4"
-              poster="/collab-feature.png"
-            />
-          </AlternateImageMockup>
         </div>
       </div>
     </section>
