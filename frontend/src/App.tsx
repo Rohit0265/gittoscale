@@ -439,6 +439,9 @@ export const App: React.FC = () => {
     } else if (cleanName === 'feed' || cleanName === '/feed') {
       window.history.pushState({}, '', '/feed');
       setCurrentView('feed');
+    } else if (cleanName === 'collab' || cleanName === '/collab' || cleanName === 'meeting' || cleanName === '/meeting') {
+      window.history.pushState({}, '', '/collab');
+      setCurrentView('collab-landing');
     } else if (cleanName === 'payment' || cleanName === '/payment' || cleanName === 'pricing' || cleanName === '/pricing') {
       window.history.pushState({}, '', '/payment');
       setCurrentView('payment');
@@ -2322,6 +2325,11 @@ export const App: React.FC = () => {
             setCurrentView('signup');
           }}
           onSignOut={signOut}
+          onOpenHistory={() => {
+            window.history.pushState({}, '', '/history');
+            setCurrentView('history');
+          }}
+          onNavigate={handleNavigate}
           onNavigateToProfile={(profileUserId) => {
             const targetUrl = user?.id && profileUserId === user.id ? '/profile' : `/feed/profile/${profileUserId}`;
             window.history.pushState({}, '', targetUrl);
@@ -2358,7 +2366,12 @@ export const App: React.FC = () => {
             window.history.pushState({}, '', '/signup');
             setCurrentView('signup');
           }}
+          onOpenHistory={() => {
+            window.history.pushState({}, '', '/history');
+            setCurrentView('history');
+          }}
           onSignOut={signOut}
+          onNavigate={handleNavigate}
           onNavigateToProfile={(nextUserId) => {
             const targetUrl = user?.id && nextUserId === user.id ? '/profile' : `/feed/profile/${nextUserId}`;
             window.history.pushState({}, '', targetUrl);
@@ -2411,7 +2424,18 @@ export const App: React.FC = () => {
             window.history.pushState({}, '', '/signin');
             setCurrentView('signin');
           }}
+          onOpenSignUp={() => {
+            window.history.pushState({}, '', '/signup');
+            setCurrentView('signup');
+          }}
+          onOpenHistory={() => {
+            window.history.pushState({}, '', '/history');
+            setCurrentView('history');
+          }}
+          onSignOut={signOut}
+          onNavigate={handleNavigate}
           isDark={isDark}
+          onToggleTheme={handleToggleTheme}
         />
       </Suspense>
     );

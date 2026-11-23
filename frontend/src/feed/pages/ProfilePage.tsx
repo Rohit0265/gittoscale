@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useProfile } from '../hooks/useProfile';
-import { FeedHeader } from '../components/FeedHeader';
+import { LandingHeader } from '../../components/LandingHeader';
 import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { ShareModal } from '../components/ShareModal';
@@ -36,7 +36,9 @@ interface ProfilePageProps {
   onNavigateToFeed: () => void;
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
+  onOpenHistory?: () => void;
   onSignOut?: () => void;
+  onNavigate?: (view: any) => void;
   onNavigateToProfile: (userId: string) => void;
 }
 
@@ -50,7 +52,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onNavigateToFeed,
   onOpenAuth,
   onOpenSignUp,
+  onOpenHistory,
   onSignOut,
+  onNavigate,
   onNavigateToProfile,
 }) => {
   const { profile, setProfile, posts, loading, error, toggleFollow, setPosts } = useProfile({
@@ -192,24 +196,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
-      <FeedHeader
-        user={user}
-        token={token}
+      <LandingHeader
         isDark={isDark}
         onToggleTheme={onToggleTheme}
         onGoHome={onGoHome}
         onOpenAuth={onOpenAuth}
         onOpenSignUp={onOpenSignUp}
+        onOpenHistory={onOpenHistory}
         onSignOut={onSignOut}
-        onNavigateToProfile={onNavigateToProfile}
-        onViewLikes={onNavigateToFeed}
-        onViewSaved={() => {
-          window.history.pushState({}, '', '/feed?filter=saved');
-          onNavigateToFeed();
-        }}
+        onNavigate={onNavigate}
       />
 
-      <div className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 py-6 flex flex-col items-center">
+      <div className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-20 sm:pt-24 pb-6 flex flex-col items-center">
         {/* Top Navigation */}
         <div className="w-full flex items-center justify-between mb-4">
           <button

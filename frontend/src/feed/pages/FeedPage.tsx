@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFeed } from '../hooks/useFeed';
-import { FeedHeader } from '../components/FeedHeader';
+import { LandingHeader } from '../../components/LandingHeader';
 import { FeedSidebar } from '../components/FeedSidebar';
 import { CreatePost } from '../components/CreatePost';
 import { PostCard } from '../components/PostCard';
@@ -17,7 +17,9 @@ interface FeedPageProps {
   onGoHome: () => void;
   onOpenAuth?: () => void;
   onOpenSignUp?: () => void;
+  onOpenHistory?: () => void;
   onSignOut?: () => void;
+  onNavigate?: (view: any) => void;
   onNavigateToProfile: (userId: string) => void;
   pendingPost?: {
     content?: string;
@@ -34,7 +36,9 @@ export const FeedPage: React.FC<FeedPageProps> = ({
   onGoHome,
   onOpenAuth,
   onOpenSignUp,
+  onOpenHistory,
   onSignOut,
+  onNavigate,
   onNavigateToProfile,
   pendingPost,
   onClearPendingPost,
@@ -70,14 +74,6 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     setFilter((prev) => (prev === 'liked' ? 'all' : 'liked'));
   };
 
-  const handleViewSaved = () => {
-    if (!user) {
-      if (onOpenAuth) onOpenAuth();
-      return;
-    }
-    setFilter('saved');
-  };
-
   React.useEffect(() => {
     if (pendingPost) {
       setFilter('all');
@@ -97,25 +93,22 @@ export const FeedPage: React.FC<FeedPageProps> = ({
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
-      {/* 1. Feed Header */}
-      <FeedHeader
-        user={user}
-        token={token}
+      {/* 1. Landing Header */}
+      <LandingHeader
         isDark={isDark}
         onToggleTheme={onToggleTheme}
         onGoHome={onGoHome}
         onOpenAuth={onOpenAuth}
         onOpenSignUp={onOpenSignUp}
+        onOpenHistory={onOpenHistory}
         onSignOut={onSignOut}
-        onNavigateToProfile={onNavigateToProfile}
-        onViewLikes={handleToggleFilter}
-        onViewSaved={handleViewSaved}
+        onNavigate={onNavigate}
       />
 
       {/* 2. Responsive 3-Column Layout */}
-      <div className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-3.5 sm:py-6 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 pt-20 sm:pt-24 pb-3.5 sm:pb-6 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
         {/* Left Column: User Profile Info (3 cols on desktop) */}
-        <div className="hidden md:block md:col-span-4 lg:col-span-3 sticky top-20 self-start">
+        <div className="hidden md:block md:col-span-4 lg:col-span-3 sticky top-24 sm:top-28 self-start">
           <FeedSidebar
             user={user}
             token={token}
