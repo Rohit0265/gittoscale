@@ -36,76 +36,6 @@ const CAPABILITIES = [
   },
 ];
 
-/** Small anonymous-looking avatar stack used in the room mockup. */
-const Avatar: React.FC<{ initials: string; tone: string; className?: string }> = ({
-  initials,
-  tone,
-  className = '',
-}) => (
-  <span
-    className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-bold text-white dark:border-[#0b0b0f] ${tone} ${className}`}
-  >
-    {initials}
-  </span>
-);
-
-const RoomMockup: React.FC<{ isDark: boolean }> = ({ isDark }) => {
-  const panel = isDark ? 'bg-[#0b0b0f] border-neutral-800/90' : 'bg-white border-slate-200/90';
-  const hairline = isDark ? 'border-neutral-800/80' : 'border-slate-200/80';
-
-  return (
-    <div className="relative w-full">
-      <div
-        className={`relative w-full overflow-hidden rounded-2xl border shadow-2xl ${panel} ${
-          isDark ? 'shadow-black/60' : 'shadow-slate-300/40'
-        }`}
-      >
-        {/* Window chrome (clean header without macOS dots) */}
-        <div className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${hairline}`}>
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className={`truncate font-mono text-[10px] sm:text-[11px] ${
-                isDark ? 'text-neutral-400' : 'text-slate-500'
-              }`}
-            >
-              payments-platform.gts
-            </span>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
-              <Wifi className="h-2.5 w-2.5" />
-              live
-            </span>
-            <div className="flex -space-x-1.5">
-              <Avatar initials="RM" tone="bg-cyan-600" />
-              <Avatar initials="AK" tone="bg-violet-600" />
-              <Avatar initials="SD" tone="bg-amber-600" />
-              <span
-                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-[10px] font-bold ${
-                  isDark
-                    ? 'border-[#0b0b0f] bg-neutral-800 text-neutral-300'
-                    : 'border-white bg-slate-200 text-slate-600'
-                }`}
-              >
-                +3
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Real-time collaborative canvas video */}
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-black">
-          <ContinuousAutoplayVideo
-            src="/collab-feature.mp4"
-            poster="/collab-feature.png"
-            className="h-full w-full object-cover"
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export const CollabSection: React.FC<CollabSectionProps> = ({
   onOpenCollab,
   onNavigate,
@@ -128,7 +58,7 @@ export const CollabSection: React.FC<CollabSectionProps> = ({
       style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 900px' }}
       className="relative w-full overflow-hidden border-t border-slate-200/80 bg-white px-4 py-20 transition-colors dark:border-neutral-900 dark:bg-[#050506] sm:px-6 sm:py-24 lg:px-10"
     >
-      <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[1fr_1.15fr] xl:grid-cols-[1fr_1.25fr] lg:gap-16">
         {/* Copy column */}
         <div className="max-w-xl">
 
