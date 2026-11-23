@@ -10,6 +10,7 @@ import {
   endMeeting,
   saveMeetingMessage,
   getMeetingMessages,
+  transferHostToNextParticipant,
 } from '../meetingService.js';
 
 describe('Meeting Service', () => {
@@ -101,6 +102,26 @@ describe('Meeting Service', () => {
     await expect(
       setParticipantRole(meetingId, 'fake-intruder-id', participantUser.id, 'editor')
     ).rejects.toThrow('Only the meeting host can change participant roles.');
+  });
+
+  it('automatically transfers host to the first joined participant when host leaves', async () => {
+    const testMeeting = await createMeeting(hostUser, null, 'Host Transfer Test');
+    const peer1 = { id: 'peer-1', fullName: 'First Peer', avatarUrl: undefined };
+    const peer2 = { id: 'peer-2', fullName: 'Second Peer', avatarUrl: undefined };
+    await joinMeeting(testMeeting.id, peer1);
+    await joinMeeting(testMeeting.id, peer2);
+
+    const { newHost, meeting } = await transferHostToNextParticipant(testMeeting.id, hostUser.id, [
+      peer1.id,
+      peer2.id,
+    ]);
+
+    expect(newHost).not.toBeNull();
+    // peer1 joined before peer2, so peer1 must become the new host
+    expect(newHost?.user_id).toBe(peer1.id);
+    expect(newHost?.role).toBe('host');
+    expect(meeting?.host_id).toBe(peer1.id);
+    expect(meeting?.host_name).toBe(peer1.fullName);
   });
 
   it('allows the host to lock and unlock the architecture canvas', async () => {

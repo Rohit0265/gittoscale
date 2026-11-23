@@ -386,6 +386,82 @@ export async function removeParticipant(
 }
 
 /**
+ * Automatically transfers host role to the earliest joined participant
+ * when the current host leaves or disconnects from the room.
+ */
+export async function transferHostToNextParticipant(
+  meetingId: string,
+  currentHostUserId: string,
+  candidateUserIds?: string[]
+): Promise<{ newHost: MeetingParticipant | null; meeting: Meeting | null }> {
+  const meeting = await getMeetingById(meetingId);
+  if (!meeting || meeting.status === 'ended') {
+    return { newHost: null, meeting: null };
+  }
+
+  const participants = inMemMeetingParticipants.get(meetingId) || [];
+  // Filter eligible participants (exclude the leaving host, and match online candidateUserIds if provided)
+  const eligible = participants.filter((p) => {
+    if (p.user_id === currentHostUserId) return false;
+    if (candidateUserIds && candidateUserIds.length > 0) {
+      return candidateUserIds.includes(p.user_id);
+    }
+    return true;
+  });
+
+  if (eligible.length === 0) {
+    return { newHost: null, meeting };
+  }
+
+  // Sort by joined_at ascending (first one who joined the room)
+  eligible.sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime());
+
+  const newHost = eligible[0];
+  newHost.role = 'host';
+
+  // Demote previous host in participant list if present
+  const prevHost = participants.find((p) => p.user_id === currentHostUserId);
+  if (prevHost) {
+    prevHost.role = 'editor';
+  }
+
+  // Update meeting host
+  const now = new Date().toISOString();
+  meeting.host_id = newHost.user_id;
+  meeting.host_name = newHost.user_name;
+  meeting.updated_at = now;
+
+  if (isNeonConfigured()) {
+    try {
+      const db = getSql();
+      await db`
+        UPDATE public.meetings
+        SET host_id = ${newHost.user_id},
+            host_name = ${newHost.user_name},
+            updated_at = ${now}
+        WHERE id = ${meetingId};
+      `;
+      await db`
+        UPDATE public.meeting_participants
+        SET role = 'host', last_seen_at = ${now}
+        WHERE meeting_id = ${meetingId} AND user_id = ${newHost.user_id};
+      `;
+      if (prevHost) {
+        await db`
+          UPDATE public.meeting_participants
+          SET role = 'editor'
+          WHERE meeting_id = ${meetingId} AND user_id = ${currentHostUserId};
+        `;
+      }
+    } catch (err: any) {
+      console.warn('[Meeting] DB host transfer warning:', err?.message || err);
+    }
+  }
+
+  return { newHost, meeting };
+}
+
+/**
  * Host locks or unlocks the architecture.
  */
 export async function toggleMeetingLock(

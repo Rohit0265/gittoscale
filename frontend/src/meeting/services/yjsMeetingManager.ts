@@ -14,6 +14,7 @@ export interface YjsMeetingCallbacks {
   onArchitectureChange?: (nodes: any[], edges: any[]) => void;
   onSyncStatusChange?: (status: YjsSyncStatus) => void;
   onMeetingStateLoaded?: (meeting: Meeting, role: MeetingRole, isLocked: boolean) => void;
+  onMeetingUpdated?: (meeting: Meeting) => void;
   onParticipantsChange?: (participants: MeetingParticipant[]) => void;
   onPresencesChange?: (presences: ParticipantPresence[]) => void;
   onRemoteCursorsChange?: (cursors: RemoteCursor[]) => void;
@@ -287,6 +288,33 @@ export class YjsMeetingManager {
       }
     });
 
+    // 5b. Host transferred (previous host left, earliest participant becomes host)
+    this.socket.on(
+      'host-transferred',
+      (payload: {
+        newHostId: string;
+        newHostName: string;
+        previousHostId: string;
+        meeting?: Meeting;
+        participants?: MeetingParticipant[];
+        presences?: ParticipantPresence[];
+      }) => {
+        if (payload.newHostId === this.user?.id) {
+          this.currentRole = 'host';
+          this.callbacks.onRoleChanged?.('host');
+        }
+        if (Array.isArray(payload.participants)) {
+          this.callbacks.onParticipantsChange?.(payload.participants);
+        }
+        if (Array.isArray(payload.presences)) {
+          this.callbacks.onPresencesChange?.(payload.presences);
+        }
+        if (payload.meeting) {
+          this.callbacks.onMeetingUpdated?.(payload.meeting);
+        }
+      }
+    );
+
     // 6. Lock state updated
     this.socket.on('lock-updated', (payload: { isLocked: boolean }) => {
       this.isLocked = payload.isLocked;
@@ -436,6 +464,13 @@ export class YjsMeetingManager {
   }
 
   // --- Clean Up ---
+  public leaveMeeting() {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('leave-meeting');
+    }
+    this.disconnect();
+  }
+
   public disconnect() {
     this.isDestroyed = true;
     if (this.cursorThrottleTimer) {

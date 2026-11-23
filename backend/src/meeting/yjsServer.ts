@@ -13,6 +13,7 @@ import {
   saveMeetingMessage,
   getMeetingMessages,
   assignColor,
+  transferHostToNextParticipant,
 } from './meetingService.js';
 import { supabaseServer, isServerSupabaseConfigured } from '../services/supabase.js';
 import { MeetingRole, ParticipantPresence, MeetingChatMessage } from './types.js';
@@ -638,23 +639,114 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
       }
     });
 
-    // 10. Disconnect
-    socket.on('disconnect', () => {
-      const session = clientSessions.get(socket.id);
-      if (session) {
-        clientSessions.delete(socket.id);
-        const presences = roomPresences.get(session.meetingId);
-        if (presences) {
-          presences.delete(session.userId);
-          socket.to(`meeting:${session.meetingId}`).emit('presence-updated', {
-            presences: Array.from(presences.values()),
-          });
+    // Helper to handle participant leaving/disconnecting with automatic host transfer
+    const handleUserLeave = async (socketId: string) => {
+      const session = clientSessions.get(socketId);
+      if (!session) return;
+
+      const { meetingId, userId, userName, role } = session;
+      const roomKey = `meeting:${meetingId}`;
+      clientSessions.delete(socketId);
+
+      // Check if user still has other active sockets in this meeting (multi-tab)
+      let stillConnected = false;
+      for (const sess of clientSessions.values()) {
+        if (sess.meetingId === meetingId && sess.userId === userId) {
+          stillConnected = true;
+          break;
         }
-        socket.to(`meeting:${session.meetingId}`).emit('participant-left', {
-          userId: session.userId,
-          userName: session.userName,
+      }
+
+      const presences = roomPresences.get(meetingId);
+      if (!stillConnected && presences) {
+        presences.delete(userId);
+        io.to(roomKey).emit('presence-updated', {
+          presences: Array.from(presences.values()),
         });
       }
+
+      io.to(roomKey).emit('participant-left', {
+        userId,
+        userName,
+        participants: await getParticipants(meetingId),
+        presences: presences ? Array.from(presences.values()) : [],
+      });
+
+      // Check if the user who left was the host
+      const currentMeeting = await getMeetingById(meetingId);
+      const isHostLeaving = (currentMeeting && currentMeeting.host_id === userId) || role === 'host';
+
+      if (isHostLeaving && !stillConnected && currentMeeting && currentMeeting.status !== 'ended') {
+        // Collect remaining online participants in the room
+        const onlineUserIds = presences ? Array.from(presences.keys()) : [];
+        if (onlineUserIds.length > 0) {
+          const { newHost, meeting: updatedMeeting } = await transferHostToNextParticipant(
+            meetingId,
+            userId,
+            onlineUserIds
+          );
+
+          if (newHost) {
+            // Update clientSessions for the new host
+            for (const sess of clientSessions.values()) {
+              if (sess.meetingId === meetingId && sess.userId === newHost.user_id) {
+                sess.role = 'host';
+              }
+            }
+
+            // Update presence role for the new host
+            if (presences && presences.has(newHost.user_id)) {
+              const p = presences.get(newHost.user_id)!;
+              p.role = 'host';
+            }
+
+            const updatedParticipants = await getParticipants(meetingId);
+
+            // Broadcast host transfer to everyone in the room
+            io.to(roomKey).emit('host-transferred', {
+              newHostId: newHost.user_id,
+              newHostName: newHost.user_name,
+              previousHostId: userId,
+              meeting: updatedMeeting,
+              participants: updatedParticipants,
+              presences: presences ? Array.from(presences.values()) : [],
+            });
+
+            // Target individual sockets of the new host to update their role
+            for (const [sId, sess] of clientSessions.entries()) {
+              if (sess.meetingId === meetingId && sess.userId === newHost.user_id) {
+                const targetSocket = io.sockets.sockets.get(sId);
+                targetSocket?.emit('role-updated', {
+                  userId: newHost.user_id,
+                  role: 'host',
+                  participants: updatedParticipants,
+                });
+              }
+            }
+
+            void pushSystemMessage(
+              io,
+              roomKey,
+              meetingId,
+              `${newHost.user_name} is now the host of this meeting.`
+            );
+          }
+        }
+      }
+    };
+
+    // 10. Participant explicitly leaves the meeting
+    socket.on('leave-meeting', async () => {
+      const session = clientSessions.get(socket.id);
+      if (session) {
+        socket.leave(`meeting:${session.meetingId}`);
+        await handleUserLeave(socket.id);
+      }
+    });
+
+    // 11. Disconnect
+    socket.on('disconnect', async () => {
+      await handleUserLeave(socket.id);
     });
   });
 

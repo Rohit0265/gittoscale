@@ -52,6 +52,9 @@ export function useMeetingYjs({ meetingId, user, token }: UseMeetingYjsProps) {
         setRole(loadedRole);
         setIsLocked(loadedIsLocked);
       },
+      onMeetingUpdated: (updatedMeeting) => {
+        setMeeting(updatedMeeting);
+      },
       onParticipantsChange: (updatedParticipants) => {
         setParticipants(updatedParticipants);
       },
@@ -127,6 +130,10 @@ export function useMeetingYjs({ meetingId, user, token }: UseMeetingYjsProps) {
     managerRef.current?.endMeeting();
   }, []);
 
+  const leaveMeeting = useCallback(() => {
+    managerRef.current?.leaveMeeting();
+  }, []);
+
   const canEdit = managerRef.current ? managerRef.current.canEdit() : role === 'host' || (role === 'editor' && !isLocked);
 
   return {
@@ -153,5 +160,6 @@ export function useMeetingYjs({ meetingId, user, token }: UseMeetingYjsProps) {
     toggleLock,
     kickParticipant,
     endMeeting,
+    leaveMeeting,
   };
 }

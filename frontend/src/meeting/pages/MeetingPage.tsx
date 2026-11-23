@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import {
   Users,
@@ -12,6 +12,9 @@ import {
   PanelLeftOpen,
   PanelRightOpen,
   Info,
+  X,
+  PhoneOff,
+  LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArchitectureCanvas } from '../../components/Canvas/ArchitectureCanvas';
@@ -188,6 +191,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   const [activeLeftTab, setActiveLeftTab] = useState<'ai' | 'chats' | 'participants'>('ai');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightCollapsed, setIsRightCollapsed] = useState(true);
+  const [isExitPromptOpen, setIsExitPromptOpen] = useState(false);
 
   // Resizable sidebar widths (up to 50% max of screen width)
   const [leftWidth, setLeftWidth] = useState(320);
@@ -268,6 +272,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
     toggleLock,
     kickParticipant,
     endMeeting,
+    leaveMeeting,
   } = useMeetingYjs({
     meetingId,
     user: userPayload,
@@ -605,6 +610,7 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
         onViewLikes={onViewLikes}
         onViewSaved={onViewSaved}
         onGoHome={onGoHome}
+        onTapLogo={() => setIsExitPromptOpen(true)}
       />
 
       {/* Error Toast if permission denied or error */}
@@ -916,6 +922,142 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
           style={!isRightCollapsed ? { right: `${rightWidth + 24}px` } : undefined}
         />
       </div>
+
+      {/* Exit Meeting Confirmation Dialog when tapping GitToScale logo */}
+      <AnimatePresence>
+        {isExitPromptOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsExitPromptOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="relative w-full max-w-md rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0c0c0e] p-6 shadow-2xl shadow-black/40 text-slate-900 dark:text-neutral-100 z-10"
+            >
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsExitPromptOpen(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                title="Cancel"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Icon & Title */}
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className={`p-2.5 rounded-xl ${
+                    role === 'host'
+                      ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                      : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                  }`}
+                >
+                  {role === 'host' ? <PhoneOff className="w-5 h-5" /> : <LogOut className="w-5 h-5" />}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                    {role === 'host' ? 'End or Leave Meeting?' : 'Leave Meeting?'}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                    {role === 'host' ? 'Choose how you want to exit' : 'Confirm your exit'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Main Question Body */}
+              <p className="text-sm text-slate-600 dark:text-neutral-300 leading-relaxed mb-6">
+                {role === 'host'
+                  ? 'Do you really want to end this meeting for everyone, or leave the meeting? If you leave, the first member who joined will automatically become the new host.'
+                  : 'Do you really want to leave this collaborative meeting? You can rejoin anytime using the meeting code.'}
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row-reverse gap-2 sm:gap-2.5">
+                {role === 'host' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setIsExitPromptOpen(false);
+                        const token = await getAuthToken();
+                        if (token && meeting?.id) {
+                          try {
+                            await meetingApi.endMeeting(meeting.id, token);
+                          } catch {}
+                        }
+                        endMeeting();
+                        if (onGoHome) onGoHome();
+                        else onLeaveMeeting();
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                    >
+                      <PhoneOff className="w-3.5 h-3.5" />
+                      <span>End for Everyone</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsExitPromptOpen(false);
+                        leaveMeeting();
+                        if (onGoHome) onGoHome();
+                        else onLeaveMeeting();
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-800 dark:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Leave Room</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsExitPromptOpen(false)}
+                      className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white text-xs font-medium hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsExitPromptOpen(false);
+                        leaveMeeting();
+                        if (onGoHome) onGoHome();
+                        else onLeaveMeeting();
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Leave Meeting</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsExitPromptOpen(false)}
+                      className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white text-xs font-medium hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

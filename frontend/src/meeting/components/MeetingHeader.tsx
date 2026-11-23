@@ -38,6 +38,7 @@ interface MeetingHeaderProps {
   onViewLikes?: () => void;
   onViewSaved?: () => void;
   onGoHome?: () => void;
+  onTapLogo?: () => void;
 }
 
 export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
@@ -60,6 +61,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   onViewLikes,
   onViewSaved,
   onGoHome,
+  onTapLogo,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -105,7 +107,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
       {/* Left: GitToScale Logo */}
       <div className="flex items-center gap-3">
         <button
-          onClick={onGoHome}
+          onClick={onTapLogo || onGoHome}
           className="flex items-center text-left group hover:opacity-85 transition-opacity cursor-pointer"
           title="Return to GitToScale"
         >
