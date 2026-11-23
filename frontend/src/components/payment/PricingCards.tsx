@@ -180,7 +180,7 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
                 GitToScale Pro
               </h3>
             </div>
-            <span
+            {/* <span
               className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
                 isPro
                   ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
@@ -188,7 +188,7 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
               }`}
             >
               {isPro ? 'Active' : 'Recommended'}
-            </span>
+            </span> */}
           </div>
 
           <div className="mb-6 flex flex-wrap items-baseline gap-2.5">
