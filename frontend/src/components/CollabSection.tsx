@@ -6,10 +6,9 @@ import {
   MessagesSquare,
   ArrowRight,
   ExternalLink,
-  Wifi,
 } from 'lucide-react';
 import { PenHighlight } from './ui/PenShadowLine';
-import { ContinuousAutoplayVideo } from './ShareDesignFeedSection';
+import { AlternateImageMockup, ContinuousAutoplayVideo } from './ShareDesignFeedSection';
 
 export interface CollabSectionProps {
   /** Navigates to the full collaborative rooms landing page (/collab). */
