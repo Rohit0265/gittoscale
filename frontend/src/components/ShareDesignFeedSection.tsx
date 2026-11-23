@@ -232,7 +232,7 @@ export const ShareDesignFeedSection: FC<ShareDesignFeedSectionProps> = ({ onNavi
 
         {/* ── Video showcase column ────────────────────────────── */}
         <div className="relative w-full">
-          <AlternateImageMockup aspectRatioClass="aspect-[931/850]">
+          <AlternateImageMockup aspectRatioClass="aspect-[930/850]">
             <ContinuousAutoplayVideo
               src="/feed-share-design.mp4"
               poster="/feed-share-design.png"
