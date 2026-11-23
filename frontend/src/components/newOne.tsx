@@ -252,7 +252,7 @@ export const NewOne: React.FC<NewOneProps> = ({
                     }}
                     className="w-full bg-transparent py-3 px-2 text-sm sm:text-base text-slate-900 dark:text-neutral-100 placeholder-slate-400 dark:placeholder-neutral-400 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent focus-visible:outline-none shadow-none"
                     style={{ outline: 'none', boxShadow: 'none' }}
-                    placeholder={placeholder || 'Describe your system idea (e.g. "Design Uber ride-matching at scale")...'}
+                    placeholder={placeholder}
                     autoComplete="off"
                     aria-label="Describe your system idea for architecture generation"
                   />
