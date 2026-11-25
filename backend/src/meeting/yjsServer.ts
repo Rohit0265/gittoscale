@@ -684,61 +684,73 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
       const isHostLeaving = (currentMeeting && currentMeeting.host_id === userId) || role === 'host';
 
       if (isHostLeaving && !stillConnected && currentMeeting && currentMeeting.status !== 'ended') {
-        // Collect remaining online participants in the room
-        const onlineUserIds = presences ? Array.from(presences.keys()) : [];
-        if (onlineUserIds.length > 0) {
-          const { newHost, meeting: updatedMeeting } = await transferHostToNextParticipant(
-            meetingId,
-            userId,
-            onlineUserIds
-          );
-
-          if (newHost) {
-            // Update clientSessions for the new host
-            for (const sess of clientSessions.values()) {
-              if (sess.meetingId === meetingId && sess.userId === newHost.user_id) {
-                sess.role = 'host';
-              }
-            }
-
-            // Update presence role for the new host
-            if (presences && presences.has(newHost.user_id)) {
-              const p = presences.get(newHost.user_id)!;
-              p.role = 'host';
-            }
-
-            const updatedParticipants = await getParticipants(meetingId);
-
-            // Broadcast host transfer to everyone in the room
-            io.to(roomKey).emit('host-transferred', {
-              newHostId: newHost.user_id,
-              newHostName: newHost.user_name,
-              previousHostId: userId,
-              meeting: updatedMeeting,
-              participants: updatedParticipants,
-              presences: presences ? Array.from(presences.values()) : [],
-            });
-
-            // Target individual sockets of the new host to update their role
-            for (const [sId, sess] of clientSessions.entries()) {
-              if (sess.meetingId === meetingId && sess.userId === newHost.user_id) {
-                const targetSocket = io.sockets.sockets.get(sId);
-                targetSocket?.emit('role-updated', {
-                  userId: newHost.user_id,
-                  role: 'host',
-                  participants: updatedParticipants,
-                });
-              }
-            }
-
-            void pushSystemMessage(
-              io,
-              roomKey,
-              meetingId,
-              `${newHost.user_name} is now the host of this meeting.`
-            );
-          }
+        // Clear any previous timer
+        if (pendingHostTransferTimers.has(meetingId)) {
+          clearTimeout(pendingHostTransferTimers.get(meetingId)!);
         }
+
+        // Apply a 15-second grace period for temporary network blips / page refresh before transferring host
+        const timer = setTimeout(async () => {
+          pendingHostTransferTimers.delete(meetingId);
+          const latestPresences = roomPresences.get(meetingId);
+          // Check if original host reconnected in the meantime
+          if (latestPresences && latestPresences.has(userId)) {
+            return;
+          }
+
+          const onlineUserIds = latestPresences ? Array.from(latestPresences.keys()) : [];
+          if (onlineUserIds.length > 0) {
+            const { newHost, meeting: updatedMeeting } = await transferHostToNextParticipant(
+              meetingId,
+              userId,
+              onlineUserIds
+            );
+
+            if (newHost) {
+              for (const sess of clientSessions.values()) {
+                if (sess.meetingId === meetingId && sess.userId === newHost.user_id) {
+                  sess.role = 'host';
+                }
+              }
+
+              if (latestPresences && latestPresences.has(newHost.user_id)) {
+                const p = latestPresences.get(newHost.user_id)!;
+                p.role = 'host';
+              }
+
+              const updatedParticipants = await getParticipants(meetingId);
+
+              io.to(roomKey).emit('host-transferred', {
+                newHostId: newHost.user_id,
+                newHostName: newHost.user_name,
+                previousHostId: userId,
+                meeting: updatedMeeting,
+                participants: updatedParticipants,
+                presences: latestPresences ? Array.from(latestPresences.values()) : [],
+              });
+
+              for (const [sId, sess] of clientSessions.entries()) {
+                if (sess.meetingId === meetingId && sess.userId === newHost.user_id) {
+                  const targetSocket = io.sockets.sockets.get(sId);
+                  targetSocket?.emit('role-updated', {
+                    userId: newHost.user_id,
+                    role: 'host',
+                    participants: updatedParticipants,
+                  });
+                }
+              }
+
+              void pushSystemMessage(
+                io,
+                roomKey,
+                meetingId,
+                `${newHost.user_name} is now the host of this meeting.`
+              );
+            }
+          }
+        }, 15000);
+
+        pendingHostTransferTimers.set(meetingId, timer);
       }
     };
 
