@@ -14,6 +14,7 @@ import { LandingPage } from './components/LandingPage';
 import { usePageMeta } from './utils/usePageMeta';
 import { FloatingFeedbackButton } from './components/FloatingFeedbackButton';
 import { SkeletonCanvas } from './components/ProjectWorkspace/SkeletonCanvas';
+import { WanderingEyes } from './components/loading-ui/wandering-eyes';
 import { useAuth } from './contexts/AuthContext';
 import { isOAuthPopup } from './utils/oauthHelper';
 import { toVerticalTree } from './utils/treeLayout';
@@ -216,7 +217,11 @@ export type AppView =
   | 'admin';
 
 const SeamlessPageFallback: React.FC<{ isDark?: boolean }> = ({ isDark = true }) => (
-  <div className={`min-h-screen w-full ${isDark ? 'bg-[#020202]' : 'bg-slate-50'} transition-opacity duration-150`} />
+  <div className={`min-h-screen w-full ${isDark ? 'bg-[#020202]' : 'bg-slate-50'} flex flex-col items-center justify-center transition-opacity duration-150 gap-4`}>
+    <div className="w-16 h-8 text-indigo-500">
+      <WanderingEyes className="w-full h-full" />
+    </div>
+  </div>
 );
 
 const isValidAppPath = (path: string): boolean => {

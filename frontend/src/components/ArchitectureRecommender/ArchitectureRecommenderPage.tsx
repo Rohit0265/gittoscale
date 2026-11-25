@@ -8,7 +8,8 @@ import {
 } from '../../types';
 import { RequirementsForm } from './RequirementsForm';
 import { RecommendationResults } from './RecommendationResults';
-import { AlertCircle, RefreshCw, Sun, Moon, ArrowLeft, Loader2 } from 'lucide-react';
+import { AlertCircle, RefreshCw, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { WanderingEyes } from '../loading-ui/wandering-eyes';
 
 interface ArchitectureRecommenderPageProps {
   onSimulate: (nodes: ArchitectureNode[], edges: ArchitectureEdge[]) => void;
@@ -153,8 +154,10 @@ export const ArchitectureRecommenderPage: React.FC<ArchitectureRecommenderPagePr
               <div className="space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-neutral-800/70">
                   <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 text-slate-500 animate-spin" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-4 text-indigo-500 inline-flex items-center">
+                        <WanderingEyes className="w-full h-full" />
+                      </div>
                       <span className="text-sm font-semibold text-slate-800 dark:text-neutral-200">
                         Synthesizing Architecture Recommendation...
                       </span>

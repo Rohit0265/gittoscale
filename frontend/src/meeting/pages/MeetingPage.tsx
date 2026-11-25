@@ -4,7 +4,6 @@ import { ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import {
   Users,
   MessageSquare,
-  Loader2,
   AlertTriangle,
   ArrowLeft,
   Bot,
