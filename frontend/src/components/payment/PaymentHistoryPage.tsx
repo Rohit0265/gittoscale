@@ -107,60 +107,18 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
     <div className={`min-h-screen w-full flex flex-col transition-colors ${
       isDark ? 'bg-[#060709] text-white' : 'bg-slate-50 text-slate-900'
     }`}>
-      {/* Top Header Navbar */}
-      <header className={`sticky top-0 z-30 w-full border-b backdrop-blur-md transition-colors ${
-        isDark ? 'border-neutral-800/80 bg-[#060709]/80' : 'border-slate-200/80 bg-white/80'
-      }`}>
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
-              className={`group flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
-                isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-800/80' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-              <span>Back to Plans</span>
-            </button>
-            <div className="h-4 w-[1px] bg-neutral-300 dark:bg-neutral-800" />
-            <div onClick={onGoHome} className="flex items-center gap-2 cursor-pointer select-none">
-              <img
-                src={isDark ? '/logo.png' : '/logo-light.png'}
-                alt="GitToScale"
-                className="h-6 sm:h-7 w-auto object-contain"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            {onToggleTheme && (
-              <button
-                onClick={onToggleTheme}
-                className={`p-2 rounded-lg border transition-colors cursor-pointer ${
-                  isDark
-                    ? 'border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900'
-                    : 'border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
-                }`}
-                aria-label="Toggle theme"
-              >
-                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-            )}
-
-            {!user && (
-              <button
-                onClick={onOpenAuth}
-                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-white bg-slate-900 dark:bg-white dark:text-neutral-950 hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                Sign In
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* Floating Pill Landing Header */}
+      <LandingHeader
+        isDark={isDark}
+        onToggleTheme={onToggleTheme}
+        onGoHome={onGoHome}
+        onOpenAuth={onOpenAuth}
+        onNavigate={onNavigate}
+        isApp={false}
+      />
 
       {/* Main Content Area */}
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-20 pb-12 sm:pt-24 sm:px-6">
         {/* Page Title */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
