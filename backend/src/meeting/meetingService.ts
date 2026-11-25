@@ -192,6 +192,32 @@ export async function getMeetingById(meetingId: string): Promise<Meeting | null>
           ended_at: row.ended_at,
         };
         inMemMeetings.set(meetingId, meeting);
+
+        // Also hydrate inMemMeetingParticipants from Neon DB if not present
+        if (!inMemMeetingParticipants.has(meetingId)) {
+          const partRows = await db`
+            SELECT * FROM public.meeting_participants
+            WHERE meeting_id = ${meetingId}
+            ORDER BY joined_at ASC;
+          `;
+          if (partRows && partRows.length > 0) {
+            inMemMeetingParticipants.set(
+              meetingId,
+              partRows.map((p: any) => ({
+                id: p.id,
+                meeting_id: p.meeting_id,
+                user_id: p.user_id,
+                user_name: p.user_name,
+                user_avatar: p.user_avatar || null,
+                role: p.role,
+                color: p.color || '#6366F1',
+                joined_at: p.joined_at,
+                last_seen_at: p.last_seen_at,
+              }))
+            );
+          }
+        }
+
         return meeting;
       }
     } catch (err: any) {

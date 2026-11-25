@@ -381,13 +381,15 @@ export const App: React.FC = () => {
     return true;
   });
 
-  // When an authenticated user is present, ensure they always see dark mode by default
+  // When an authenticated user is present, respect their saved theme preference (default to dark if not set)
   useEffect(() => {
-    if (user) {
-      setIsDark(true);
-      if (typeof window !== 'undefined') {
+    if (user && typeof window !== 'undefined') {
+      const saved = localStorage.getItem('gitoscale-theme');
+      if (saved === 'light') {
+        setIsDark(false);
+      } else if (!saved) {
+        setIsDark(true);
         localStorage.setItem('gitoscale-theme', 'dark');
-        document.documentElement.classList.add('dark');
       }
     }
   }, [user]);
