@@ -8,6 +8,9 @@ import {
   UserPlus,
   Sun,
   Moon,
+  Settings,
+  CreditCard,
+  ChevronDown,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,6 +40,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 }) => {
   const { user, signOut } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(true);
   const profileRef = useRef<HTMLDivElement>(null);
 
   // Close profile dropdown on outside click or escape
@@ -67,6 +71,15 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
     }
   };
 
+  const handleProfileClick = () => {
+    setIsProfileOpen(false);
+    if (onNavigate) {
+      onNavigate('profile');
+    } else {
+      window.location.href = '/profile';
+    }
+  };
+
   const handleHistoryClick = () => {
     setIsProfileOpen(false);
     if (onOpenHistory) {
@@ -75,6 +88,15 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
       onNavigate('history');
     } else {
       window.location.href = '/history';
+    }
+  };
+
+  const handlePaymentHistoryClick = () => {
+    setIsProfileOpen(false);
+    if (onNavigate) {
+      onNavigate('payment');
+    } else {
+      window.location.href = '/payment';
     }
   };
 
