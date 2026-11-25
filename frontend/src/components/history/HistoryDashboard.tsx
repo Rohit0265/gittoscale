@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
+import { LandingHeader } from '../LandingHeader';
 import {
   Search,
   ExternalLink,
@@ -186,6 +187,9 @@ interface HistoryDashboardProps {
   onNavigateToSimulator: () => void;
   isDark?: boolean;
   onToggleTheme?: () => void;
+  onOpenAuth?: () => void;
+  onOpenSignUp?: () => void;
+  onNavigate?: (route: string) => void;
 }
 
 const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
@@ -195,6 +199,9 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
   onNavigateToSimulator,
   isDark = true,
   onToggleTheme,
+  onOpenAuth,
+  onOpenSignUp,
+  onNavigate,
 }) => {
   const { profile, signOut, getAuthToken } = useAuth();
   const [activeTab, setActiveTab] = useState<'architectures' | 'collab'>('architectures');
@@ -384,70 +391,20 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-neutral-100 flex flex-col font-sans transition-colors scroll-smooth">
-      {/* Top Navigation Bar */}
-      <header className="h-14 border-b border-slate-200 dark:border-neutral-800/80 bg-white dark:bg-[#0A0A0E] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onGoHome}
-            className="flex items-center text-left group hover:opacity-85 transition-opacity cursor-pointer"
-            title="Return to Landing Page"
-          >
-            <img
-              src={isDark ? '/logo.png' : '/logo-light.png'}
-              alt="GitToScale"
-              className="h-7 w-auto object-contain transition-transform group-hover:scale-105"
-            />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Launch Simulator button */}
-          <button
-            onClick={onNavigateToSimulator}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden xs:inline">New Simulation</span>
-          </button>
-
-          {/* Theme Toggle */}
-          {onToggleTheme && (
-            <button
-              onClick={onToggleTheme}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0E] text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
-              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDark ? (
-                <Sun className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-amber-400 transition-colors" />
-              ) : (
-                <Moon className="w-4 h-4 text-slate-700 dark:text-neutral-300 hover:text-blue-400 transition-colors" />
-              )}
-            </button>
-          )}
-
-          {/* User Profile Badge & Logout */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-neutral-800">
-            <div className="flex flex-col text-right hidden sm:flex">
-              <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200 leading-tight">
-                {profile?.fullName || 'Engineer'}
-              </span>
-              <span className="text-[10px] text-slate-500 dark:text-neutral-400 leading-tight truncate max-w-[140px]">
-                {profile?.email}
-              </span>
-            </div>
-            <button
-              onClick={signOut}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4 hover:text-red-500 transition-colors" />
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Floating Pill Landing Header */}
+      <LandingHeader
+        isDark={isDark}
+        onToggleTheme={onToggleTheme}
+        onGoHome={onGoHome}
+        onOpenAuth={onOpenAuth}
+        onOpenSignUp={onOpenSignUp}
+        onSignOut={signOut}
+        onNavigate={onNavigate}
+        isApp={false}
+      />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col scroll-smooth">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-24 pb-12 flex flex-col scroll-smooth">
         {/* Title & Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
