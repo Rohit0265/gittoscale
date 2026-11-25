@@ -5,6 +5,7 @@ import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { ShareModal } from '../components/ShareModal';
 import { EditProfileModal } from '../components/EditProfileModal';
+import { FollowersListModal } from '../components/FollowersListModal';
 import { FloatingFeedbackButton } from '../../components/FloatingFeedbackButton';
 import {
   ArrowLeft,
@@ -64,6 +65,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [followModalConfig, setFollowModalConfig] = useState<{
+    isOpen: boolean;
+    initialTab: 'followers' | 'following';
+  }>({
+    isOpen: false,
+    initialTab: 'followers',
+  });
 
   const profileShareUrl = `${window.location.origin}/feed/profile/${profileId}`;
 
