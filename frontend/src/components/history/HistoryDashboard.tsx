@@ -9,9 +9,6 @@ import {
   Calendar,
   Layers,
   RefreshCw,
-  LogOut,
-  Sun,
-  Moon,
   AlertCircle,
   Plus,
   Github,
@@ -203,7 +200,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
   onOpenSignUp,
   onNavigate,
 }) => {
-  const { profile, signOut, getAuthToken } = useAuth();
+  const { signOut, getAuthToken } = useAuth();
   const [activeTab, setActiveTab] = useState<'architectures' | 'collab'>('architectures');
 
   // Search & Filter state
