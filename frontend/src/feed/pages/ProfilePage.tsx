@@ -369,7 +369,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     className="group cursor-pointer hover:opacity-80 transition-opacity text-left flex items-center"
                     title="View followers"
                   >
-                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mr-1.5">
+                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-neutral-300 transition-colors mr-1.5">
                       {profile.followers_count}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-neutral-400 group-hover:underline">Followers</span>
@@ -380,7 +380,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     className="group cursor-pointer hover:opacity-80 transition-opacity text-left flex items-center"
                     title="View following"
                   >
-                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mr-1.5">
+                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-neutral-300 transition-colors mr-1.5">
                       {profile.following_count}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-neutral-400 group-hover:underline">Following</span>
