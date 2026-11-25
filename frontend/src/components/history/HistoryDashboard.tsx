@@ -416,31 +416,42 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
             </p>
           </div>
 
-          {/* Tabs: Architectures (Merged with Repos) & Collab Meetings */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-200/70 dark:bg-neutral-900/90 border border-slate-300 dark:border-neutral-800 rounded-xl self-start sm:self-auto">
+          <div className="flex items-center gap-3">
+            {/* Launch Simulator button */}
             <button
-              onClick={() => setActiveTab('architectures')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'architectures'
-                  ? 'bg-white dark:bg-[#14151F] text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
+              onClick={onNavigateToSimulator}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Architectures ({totalArch})</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">New Simulation</span>
             </button>
 
-            <button
-              onClick={() => setActiveTab('collab')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === 'collab'
-                  ? 'bg-white dark:bg-[#14151F] text-indigo-600 dark:text-indigo-400 shadow-xs'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Collab ({totalCollab})</span>
-            </button>
+            {/* Tabs: Architectures (Merged with Repos) & Collab Meetings */}
+            <div className="flex items-center gap-1.5 p-1 bg-slate-200/70 dark:bg-neutral-900/90 border border-slate-300 dark:border-neutral-800 rounded-xl self-start sm:self-auto">
+              <button
+                onClick={() => setActiveTab('architectures')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'architectures'
+                    ? 'bg-white dark:bg-[#14151F] text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Architectures ({totalArch})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('collab')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'collab'
+                    ? 'bg-white dark:bg-[#14151F] text-indigo-600 dark:text-indigo-400 shadow-xs'
+                    : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Collab ({totalCollab})</span>
+              </button>
+            </div>
           </div>
         </div>
 

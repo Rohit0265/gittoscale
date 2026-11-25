@@ -2350,6 +2350,15 @@ export const App: React.FC = () => {
           }}
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          onOpenSignUp={() => {
+            window.history.pushState({}, '', '/signup');
+            setCurrentView('signup');
+          }}
+          onNavigate={handleNavigate}
         />
       </Suspense>
     );
