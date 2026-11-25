@@ -5,6 +5,8 @@ import {
   getUserSubscription,
   getUserUsage,
   activateSubscription,
+  getUserTransactions,
+  cancelUserSubscription,
   FREE_LIMITS,
 } from '../services/subscriptionService.js';
 import {
@@ -227,6 +229,85 @@ router.post('/mock-complete', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Payment Mock Complete Error]', err);
     return res.status(500).json({ error: 'Failed to complete mock payment' });
+  }
+});
+
+/**
+ * GET /api/payment/history
+ * Returns the current user's transaction history and subscription status.
+ */
+router.get('/history', async (req: Request, res: Response) => {
+  try {
+    const user = await resolveUserFromRequest(req);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Please sign in to view your payment history.',
+      });
+    }
+
+    const subscription = await getUserSubscription(user.id);
+    const transactions = await getUserTransactions(user.id);
+
+    // If subscription is pro/active but no transactions exist yet, synthesize current active transaction
+    let allTransactions = [...transactions];
+    if (allTransactions.length === 0 && subscription.plan === 'pro') {
+      allTransactions = [
+        {
+          id: `tx_current_${user.id.substring(0, 8)}`,
+          user_id: user.id,
+          plan: 'pro',
+          amount: 299,
+          currency: 'INR',
+          status: subscription.subscription_status === 'canceled' ? 'canceled' : 'paid',
+          payment_method: 'Card / UPI',
+          session_id: null,
+          subscription_id: subscription.polar_subscription_id || null,
+          start_date: subscription.subscription_start_date || new Date().toISOString(),
+          expires_at: subscription.subscription_expiration_date || new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+          created_at: subscription.subscription_start_date || new Date().toISOString(),
+        },
+      ];
+    }
+
+    return res.json({
+      success: true,
+      subscription: {
+        plan: subscription.plan,
+        status: subscription.subscription_status,
+        startDate: subscription.subscription_start_date,
+        expirationDate: subscription.subscription_expiration_date,
+        isPro: subscription.plan === 'pro' && subscription.subscription_status === 'active',
+      },
+      transactions: allTransactions,
+    });
+  } catch (err: any) {
+    console.error('[Payment History API Error]', err);
+    return res.status(500).json({ success: false, error: 'Failed to retrieve payment history' });
+  }
+});
+
+/**
+ * POST /api/payment/cancel-subscription
+ * Cancels the user's active recurring subscription.
+ */
+router.post('/cancel-subscription', async (req: Request, res: Response) => {
+  try {
+    const user = await resolveUserFromRequest(req);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Please sign in to manage your subscription.',
+      });
+    }
+
+    const result = await cancelUserSubscription(user.id);
+    return res.json(result);
+  } catch (err: any) {
+    console.error('[Payment Cancel API Error]', err);
+    return res.status(500).json({ success: false, error: 'Failed to cancel subscription' });
   }
 });
 

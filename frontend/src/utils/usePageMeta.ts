@@ -87,6 +87,10 @@ const META: Record<AppView, PageMeta> = {
     title: 'Pricing — GitToScale',
     description: 'GitToScale plans and pricing for system design, simulation, and collaboration.',
   },
+  'payment-history': {
+    title: 'Payment History & Subscriptions — GitToScale',
+    description: 'Manage your GitToScale billing, review transaction history, and view active plan status.',
+  },
   admin: {
     title: 'Admin — GitToScale',
     description: 'GitToScale administration.',

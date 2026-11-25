@@ -94,9 +94,9 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   const handlePaymentHistoryClick = () => {
     setIsProfileOpen(false);
     if (onNavigate) {
-      onNavigate('payment');
+      onNavigate('payment/history');
     } else {
-      window.location.href = '/payment';
+      window.location.href = '/payment/history';
     }
   };
 

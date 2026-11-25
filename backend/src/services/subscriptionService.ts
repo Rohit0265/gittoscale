@@ -21,6 +21,21 @@ export interface UserUsage {
   updated_at?: string;
 }
 
+export interface UserTransaction {
+  id: string;
+  user_id: string;
+  plan: 'pro' | 'free';
+  amount: number;
+  currency: string;
+  status: 'paid' | 'activated' | 'canceled' | 'refunded' | 'expired';
+  payment_method?: string;
+  session_id?: string | null;
+  subscription_id?: string | null;
+  start_date: string;
+  expires_at: string | null;
+  created_at: string;
+}
+
 export const FREE_LIMITS = {
   AI_GENERATIONS: 3,
   MEETINGS: 3,
@@ -28,6 +43,7 @@ export const FREE_LIMITS = {
 
 export const inMemSubscriptions = new Map<string, UserSubscription>();
 export const inMemUsage = new Map<string, UserUsage>();
+export const inMemTransactions: UserTransaction[] = [];
 
 let hasEnsuredSchema = false;
 
@@ -60,8 +76,26 @@ export async function ensureSubscriptionSchema(): Promise<void> {
       );
     `;
 
+    await db`
+      CREATE TABLE IF NOT EXISTS public.user_transactions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        plan TEXT NOT NULL DEFAULT 'pro',
+        amount NUMERIC NOT NULL DEFAULT 299,
+        currency TEXT NOT NULL DEFAULT 'INR',
+        status TEXT NOT NULL DEFAULT 'paid',
+        payment_method TEXT DEFAULT 'Card / UPI',
+        session_id TEXT,
+        subscription_id TEXT,
+        start_date TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+        expires_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+      );
+    `;
+
     await db`CREATE INDEX IF NOT EXISTS idx_user_subscriptions_polar_sub ON public.user_subscriptions(polar_subscription_id);`;
     await db`CREATE INDEX IF NOT EXISTS idx_user_subscriptions_polar_cust ON public.user_subscriptions(polar_customer_id);`;
+    await db`CREATE INDEX IF NOT EXISTS idx_user_transactions_user_id ON public.user_transactions(user_id);`;
     hasEnsuredSchema = true;
   } catch (err: any) {
     console.warn('[Subscription Schema] Migration warning (fallback to memory if offline):', err.message);
@@ -404,6 +438,17 @@ export async function activateSubscription(params: {
         RETURNING *;
       `;
       if (rows.length > 0) {
+        // Record transaction in database
+        await recordUserTransaction({
+          userId,
+          plan: 'pro',
+          amount: 299,
+          currency: 'INR',
+          status: 'paid',
+          subscriptionId: polarSubscriptionId,
+          expiresAt,
+        }).catch((e) => console.warn('[Subscription] Failed to record transaction log:', e.message));
+
         return rows[0] as UserSubscription;
       }
     } catch (err: any) {
@@ -423,6 +468,17 @@ export async function activateSubscription(params: {
     updated_at: now,
   };
   inMemSubscriptions.set(userId, sub);
+
+  recordUserTransaction({
+    userId,
+    plan: 'pro',
+    amount: 299,
+    currency: 'INR',
+    status: 'paid',
+    subscriptionId: polarSubscriptionId,
+    expiresAt,
+  }).catch((e) => console.warn('[Subscription] Failed to record in-memory transaction log:', e.message));
+
   return sub;
 }
 
@@ -546,4 +602,144 @@ export async function findUserIdByPolarId(params: {
   }
 
   return null;
+}
+
+/**
+ * Record a transaction for a user payment
+ */
+export async function recordUserTransaction(params: {
+  userId: string;
+  plan?: 'pro' | 'free';
+  amount?: number;
+  currency?: string;
+  status?: 'paid' | 'activated' | 'canceled' | 'refunded' | 'expired';
+  paymentMethod?: string;
+  sessionId?: string | null;
+  subscriptionId?: string | null;
+  startDate?: string;
+  expiresAt?: string | null;
+}): Promise<UserTransaction> {
+  const {
+    userId,
+    plan = 'pro',
+    amount = 299,
+    currency = 'INR',
+    status = 'paid',
+    paymentMethod = 'Card / UPI',
+    sessionId = null,
+    subscriptionId = null,
+    startDate = new Date().toISOString(),
+    expiresAt = null,
+  } = params;
+
+  const id = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const now = new Date().toISOString();
+
+  await ensureSubscriptionSchema();
+
+  if (isNeonConfigured()) {
+    try {
+      const db = getSql();
+      const rows = await db`
+        INSERT INTO public.user_transactions (
+          id, user_id, plan, amount, currency, status, payment_method, session_id,
+          subscription_id, start_date, expires_at, created_at
+        ) VALUES (
+          ${id}, ${userId}, ${plan}, ${amount}, ${currency}, ${status}, ${paymentMethod},
+          ${sessionId}, ${subscriptionId}, ${startDate}, ${expiresAt}, ${now}
+        )
+        RETURNING *;
+      `;
+      if (rows.length > 0) {
+        return rows[0] as UserTransaction;
+      }
+    } catch (err: any) {
+      console.warn('[Transaction] Neon insert failed, using memory store:', err.message);
+    }
+  }
+
+  const tx: UserTransaction = {
+    id,
+    user_id: userId,
+    plan,
+    amount,
+    currency,
+    status,
+    payment_method: paymentMethod,
+    session_id: sessionId,
+    subscription_id: subscriptionId,
+    start_date: startDate,
+    expires_at: expiresAt,
+    created_at: now,
+  };
+  inMemTransactions.unshift(tx);
+  return tx;
+}
+
+/**
+ * Get all transactions for a user
+ */
+export async function getUserTransactions(userId: string): Promise<UserTransaction[]> {
+  await ensureSubscriptionSchema();
+
+  if (isNeonConfigured()) {
+    try {
+      const db = getSql();
+      const rows = await db`
+        SELECT * FROM public.user_transactions
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC;
+      `;
+      return rows as UserTransaction[];
+    } catch (err: any) {
+      console.warn('[Transaction] Neon fetch failed, falling back to memory store:', err.message);
+    }
+  }
+
+  return inMemTransactions.filter((tx) => tx.user_id === userId);
+}
+
+/**
+ * Cancel a user's active subscription
+ */
+export async function cancelUserSubscription(userId: string): Promise<{
+  success: boolean;
+  message: string;
+  subscription: UserSubscription;
+}> {
+  await ensureSubscriptionSchema();
+
+  // 1. Update subscription status to 'canceled'
+  await updateSubscriptionStatus({
+    userId,
+    status: 'canceled',
+  });
+
+  const updatedSub = await getUserSubscription(userId);
+
+  // 2. Mark any active transaction as canceled
+  if (isNeonConfigured()) {
+    try {
+      const db = getSql();
+      await db`
+        UPDATE public.user_transactions
+        SET status = 'canceled'
+        WHERE user_id = ${userId} AND status = 'paid';
+      `;
+    } catch (err: any) {
+      console.warn('[Transaction] Neon cancel update failed:', err.message);
+    }
+  }
+
+  inMemTransactions.forEach((tx) => {
+    if (tx.user_id === userId && tx.status === 'paid') {
+      tx.status = 'canceled';
+    }
+  });
+
+  return {
+    success: true,
+    message: 'Subscription has been canceled successfully. You will retain access until the end of the billing period.',
+    subscription: updatedSub,
+  };
 }

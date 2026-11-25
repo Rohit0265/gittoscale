@@ -806,7 +806,48 @@ export const api = {
     const res = await axios.post(`${API_BASE}/payment/confirm-checkout`, { sessionId }, { headers });
     return res.data;
   },
+
+  async getPaymentHistory(token?: string | null): Promise<PaymentHistoryResponse> {
+    const authToken = token || getStoredAuthToken();
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+    const res = await axios.get(`${API_BASE}/payment/history`, { headers });
+    return res.data;
+  },
+
+  async cancelSubscription(token?: string | null): Promise<{ success: boolean; message: string }> {
+    const authToken = token || getStoredAuthToken();
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+    const res = await axios.post(`${API_BASE}/payment/cancel-subscription`, {}, { headers });
+    return res.data;
+  },
 };
+
+export interface UserTransactionItem {
+  id: string;
+  user_id: string;
+  plan: 'pro' | 'free';
+  amount: number;
+  currency: string;
+  status: 'paid' | 'activated' | 'canceled' | 'refunded' | 'expired';
+  payment_method?: string;
+  session_id?: string | null;
+  subscription_id?: string | null;
+  start_date: string;
+  expires_at: string | null;
+  created_at: string;
+}
+
+export interface PaymentHistoryResponse {
+  success: boolean;
+  subscription: {
+    plan: 'free' | 'pro';
+    status: 'free' | 'active' | 'canceled' | 'past_due' | 'revoked';
+    startDate: string | null;
+    expirationDate: string | null;
+    isPro: boolean;
+  };
+  transactions: UserTransactionItem[];
+}
 
 export interface SubscriptionStatusResponse {
   success: boolean;

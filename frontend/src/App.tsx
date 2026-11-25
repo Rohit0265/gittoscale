@@ -96,6 +96,9 @@ const MeetingPage = React.lazy(() =>
 const PaymentPage = React.lazy(() =>
   import('./components/payment/PaymentPage').then((m) => ({ default: m.PaymentPage }))
 );
+const PaymentHistoryPage = React.lazy(() =>
+  import('./components/payment/PaymentHistoryPage').then((m) => ({ default: m.PaymentHistoryPage }))
+);
 import { PlanLimitModal } from './components/payment/PlanLimitModal';
 import { StartMeetingModal } from './meeting';
 
@@ -209,6 +212,7 @@ export type AppView =
   | 'collab-landing'
   | 'collab-meeting'
   | 'payment'
+  | 'payment-history'
   | 'admin';
 
 const SeamlessPageFallback: React.FC<{ isDark?: boolean }> = ({ isDark = true }) => (
@@ -266,6 +270,7 @@ const getInitialView = (): AppView => {
   const rawPath = window.location.pathname.toLowerCase();
   const path = rawPath.replace(/\/+$/, '') || '/';
   if (path === '/admin' || path.startsWith('/admin')) return 'admin';
+  if (path === '/payment/history' || path === '/payment-history' || path === '/billing' || path === '/subscription') return 'payment-history';
   if (path === '/payment' || path.startsWith('/payment') || path === '/pricing') return 'payment';
   if (path === '/collab' || path === '/meeting') return 'collab-landing';
   if (path.startsWith('/collab/') || path.startsWith('/meeting/')) {
@@ -458,6 +463,18 @@ export const App: React.FC = () => {
       } else {
         setCurrentView('collab-landing');
       }
+    } else if (
+      cleanName === 'payment-history' ||
+      cleanName === '/payment-history' ||
+      cleanName === 'payment/history' ||
+      cleanName === '/payment/history' ||
+      cleanName === 'billing' ||
+      cleanName === '/billing' ||
+      cleanName === 'subscription' ||
+      cleanName === '/subscription'
+    ) {
+      window.history.pushState({}, '', '/payment/history');
+      setCurrentView('payment-history');
     } else if (cleanName === 'payment' || cleanName === '/payment' || cleanName === 'pricing' || cleanName === '/pricing') {
       window.history.pushState({}, '', cleanName.includes('pricing') ? '/pricing' : '/payment');
       setCurrentView('payment');
@@ -559,6 +576,8 @@ export const App: React.FC = () => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       if (path === '/admin' || path.startsWith('/admin')) {
         setCurrentView('admin');
+      } else if (path === '/payment/history' || path === '/payment-history' || path === '/billing' || path === '/subscription') {
+        setCurrentView('payment-history');
       } else if (path === '/payment' || path.startsWith('/payment') || path === '/pricing') {
         setCurrentView('payment');
       } else if (path === '/collab' || path === '/meeting') {
@@ -2419,6 +2438,24 @@ export const App: React.FC = () => {
           }}
           isDark={isDark}
           onToggleTheme={handleToggleTheme}
+          onNavigate={handleNavigate}
+        />
+      </Suspense>
+    );
+  }
+
+  if (currentView === 'payment-history') {
+    return (
+      <Suspense fallback={<SeamlessPageFallback isDark={isDark} />}>
+        <PaymentHistoryPage
+          onGoHome={handleGoHome}
+          onOpenAuth={() => {
+            window.history.pushState({}, '', '/signin');
+            setCurrentView('signin');
+          }}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onNavigate={handleNavigate}
         />
       </Suspense>
     );
