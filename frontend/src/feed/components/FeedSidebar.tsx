@@ -4,6 +4,7 @@ import { UserProfileFeed } from '../types';
 import { feedApi } from '../services/feedApi';
 import { extractAccountAvatar, getRandomBannerColor } from '../utils/avatarUtils';
 import { UserAvatar } from './UserAvatar';
+import { FollowersListModal } from './FollowersListModal';
 
 interface FeedSidebarProps {
   user?: any;
@@ -36,6 +37,13 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
     }
   });
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const [followModalConfig, setFollowModalConfig] = useState<{
+    isOpen: boolean;
+    initialTab: 'followers' | 'following';
+  }>({
+    isOpen: false,
+    initialTab: 'followers',
+  });
 
   useEffect(() => {
     if (!user?.id) {
@@ -234,22 +242,32 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
               Posts
             </span>
           </button>
-          <div className="flex flex-col items-center p-1.5">
-            <span className="text-base font-bold text-slate-900 dark:text-white">
+          <button
+            type="button"
+            onClick={() => setFollowModalConfig({ isOpen: true, initialTab: 'followers' })}
+            className="flex flex-col items-center p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer group"
+            title="View your followers"
+          >
+            <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               {loading ? '—' : profile?.followers_count ?? 0}
             </span>
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
+            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 group-hover:underline">
               Followers
             </span>
-          </div>
-          <div className="flex flex-col items-center p-1.5">
-            <span className="text-base font-bold text-slate-900 dark:text-white">
+          </button>
+          <button
+            type="button"
+            onClick={() => setFollowModalConfig({ isOpen: true, initialTab: 'following' })}
+            className="flex flex-col items-center p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer group"
+            title="View who you are following"
+          >
+            <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               {loading ? '—' : profile?.following_count ?? 0}
             </span>
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
+            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 group-hover:underline">
               Following
             </span>
-          </div>
+          </button>
         </div>
 
         {/* 4. Redesigned Profile Action */}
@@ -279,6 +297,29 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
           </button>
         </div> */}
       </div>
+
+      {/* Followers / Following List Modal */}
+      {user && (
+        <FollowersListModal
+          isOpen={followModalConfig.isOpen}
+          onClose={() => setFollowModalConfig((prev) => ({ ...prev, isOpen: false }))}
+          userId={user.id}
+          initialTab={followModalConfig.initialTab}
+          currentUserId={user.id}
+          token={token || undefined}
+          onNavigateToProfile={onNavigateToProfile}
+          onFollowChange={(_targetId, isFollowing) => {
+            setProfile((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    following_count: isFollowing ? prev.following_count + 1 : Math.max(0, prev.following_count - 1),
+                  }
+                : prev
+            );
+          }}
+        />
+      )}
     </aside>
   );
 };

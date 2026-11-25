@@ -284,22 +284,38 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
 
       {/* 3. Followers / Following Stats */}
       <div className="grid grid-cols-2 text-center py-2.5 px-3">
-        <div className="flex flex-col items-center">
-          <span className="text-base font-bold text-slate-900 dark:text-white block leading-none">
+        <button
+          type="button"
+          onClick={() => {
+            onClose?.();
+            if (onNavigateToProfile) onNavigateToProfile(user.id);
+          }}
+          className="flex flex-col items-center hover:opacity-80 transition-opacity cursor-pointer group"
+          title="View followers on your profile"
+        >
+          <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors block leading-none">
             {loading ? '0' : followersCount}
           </span>
-          <span className="text-xs text-slate-500 dark:text-neutral-400 mt-1 block">
+          <span className="text-xs text-slate-500 dark:text-neutral-400 mt-1 block group-hover:underline">
             Followers
           </span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-base font-bold text-slate-900 dark:text-white block leading-none">
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onClose?.();
+            if (onNavigateToProfile) onNavigateToProfile(user.id);
+          }}
+          className="flex flex-col items-center hover:opacity-80 transition-opacity cursor-pointer group"
+          title="View following on your profile"
+        >
+          <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors block leading-none">
             {loading ? '0' : followingCount}
           </span>
-          <span className="text-xs text-slate-500 dark:text-neutral-400 mt-1 block">
+          <span className="text-xs text-slate-500 dark:text-neutral-400 mt-1 block group-hover:underline">
             Following
           </span>
-        </div>
+        </button>
       </div>
 
       {/* 4. Divider */}
