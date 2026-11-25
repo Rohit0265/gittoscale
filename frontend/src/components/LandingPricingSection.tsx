@@ -108,21 +108,6 @@ export const LandingPricingSection: React.FC<LandingPricingSectionProps> = ({
           }}
           onUpgrade={goToPayment}
         />
-
-        <div className="mt-8 flex flex-col items-center justify-center gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={goToPayment}
-            className="group inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-slate-700 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-900 dark:text-neutral-300 dark:decoration-neutral-700 dark:hover:text-white"
-          >
-            <span>View full plan details</span>
-            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </button>
-          <span className="hidden text-slate-300 dark:text-neutral-700 sm:inline">·</span>
-          <span className="text-xs text-slate-500 dark:text-neutral-500">
-            Secure checkout via Polar · cancel anytime
-          </span>
-        </div>
       </div>
     </section>
   );

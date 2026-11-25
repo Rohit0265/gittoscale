@@ -2014,3 +2014,116 @@ export async function toggleFollowUser(
     throw err;
   }
 }
+
+export interface FollowUserItem {
+  id: string;
+  full_name: string;
+  username: string;
+  avatar_url: string | null;
+  bio: string;
+  is_following?: boolean;
+}
+
+/**
+ * Get list of followers for a user
+ */
+export async function getUserFollowers(targetUserId: string, viewerUserId?: string): Promise<FollowUserItem[]> {
+  try {
+    const db = getSql();
+    const rows = await db`
+      SELECT 
+        p.id,
+        p.full_name,
+        p.username,
+        p.avatar_url,
+        p.bio,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_follow.id IS NOT NULL THEN true 
+          ELSE false 
+        END as is_following
+      FROM public.feed_follows f
+      JOIN public.profiles p ON p.id = f.follower_id
+      LEFT JOIN public.feed_follows user_follow 
+        ON user_follow.following_id = p.id AND user_follow.follower_id = ${viewerUserId || null}::text
+      WHERE f.following_id::text = ${targetUserId}::text
+      ORDER BY f.created_at DESC;
+    `;
+    return (rows || []).map((r: any) => ({
+      id: r.id,
+      full_name: r.full_name || r.username || 'GitToScale User',
+      username: r.username || deriveUsername(r.full_name, ''),
+      avatar_url: r.avatar_url || null,
+      bio: r.bio || '',
+      is_following: Boolean(r.is_following),
+    }));
+  } catch (err: any) {
+    if (isDbConnectionError(err)) {
+      const followers = inMemFollows.filter((f) => f.following_id === targetUserId);
+      return followers.map((f) => {
+        const p = inMemProfiles[f.follower_id] || {};
+        const isFollowing = viewerUserId ? inMemFollows.some((mf) => mf.follower_id === viewerUserId && mf.following_id === f.follower_id) : false;
+        return {
+          id: f.follower_id,
+          full_name: p.full_name || p.username || 'Mock Architect',
+          username: p.username || f.follower_id,
+          avatar_url: p.avatar_url || null,
+          bio: p.bio || '',
+          is_following: isFollowing,
+        };
+      });
+    }
+    throw err;
+  }
+}
+
+/**
+ * Get list of users that a user is following
+ */
+export async function getUserFollowing(targetUserId: string, viewerUserId?: string): Promise<FollowUserItem[]> {
+  try {
+    const db = getSql();
+    const rows = await db`
+      SELECT 
+        p.id,
+        p.full_name,
+        p.username,
+        p.avatar_url,
+        p.bio,
+        CASE 
+          WHEN ${viewerUserId || null}::text IS NOT NULL AND user_follow.id IS NOT NULL THEN true 
+          ELSE false 
+        END as is_following
+      FROM public.feed_follows f
+      JOIN public.profiles p ON p.id = f.following_id
+      LEFT JOIN public.feed_follows user_follow 
+        ON user_follow.following_id = p.id AND user_follow.follower_id = ${viewerUserId || null}::text
+      WHERE f.follower_id::text = ${targetUserId}::text
+      ORDER BY f.created_at DESC;
+    `;
+    return (rows || []).map((r: any) => ({
+      id: r.id,
+      full_name: r.full_name || r.username || 'GitToScale User',
+      username: r.username || deriveUsername(r.full_name, ''),
+      avatar_url: r.avatar_url || null,
+      bio: r.bio || '',
+      is_following: Boolean(r.is_following),
+    }));
+  } catch (err: any) {
+    if (isDbConnectionError(err)) {
+      const following = inMemFollows.filter((f) => f.follower_id === targetUserId);
+      return following.map((f) => {
+        const p = inMemProfiles[f.following_id] || {};
+        const isFollowing = viewerUserId ? inMemFollows.some((mf) => mf.follower_id === viewerUserId && mf.following_id === f.following_id) : false;
+        return {
+          id: f.following_id,
+          full_name: p.full_name || p.username || 'Mock Architect',
+          username: p.username || f.following_id,
+          avatar_url: p.avatar_url || null,
+          bio: p.bio || '',
+          is_following: isFollowing,
+        };
+      });
+    }
+    throw err;
+  }
+}

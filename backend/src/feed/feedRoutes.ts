@@ -847,6 +847,32 @@ const handleFollowToggle = async (req: AuthenticatedRequest, res: Response): Pro
 router.post('/profile/:id/follow', requireAuth, handleFollowToggle);
 router.post('/users/:id/follow', requireAuth, handleFollowToggle);
 
+// 12b. GET /api/feed/profile/:id/followers - Get user followers list
+router.get('/profile/:id/followers', optionalAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const targetUserId = req.params.id;
+    const viewerUserId = req.user?.id;
+    const followers = await getUserFollowers(targetUserId, viewerUserId);
+    res.json({ success: true, followers });
+  } catch (error: any) {
+    console.error('[Feed API] Failed to get followers:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch followers list.' });
+  }
+});
+
+// 12c. GET /api/feed/profile/:id/following - Get user following list
+router.get('/profile/:id/following', optionalAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const targetUserId = req.params.id;
+    const viewerUserId = req.user?.id;
+    const following = await getUserFollowing(targetUserId, viewerUserId);
+    res.json({ success: true, following });
+  } catch (error: any) {
+    console.error('[Feed API] Failed to get following:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch following list.' });
+  }
+});
+
 // ============================================================================
 // 13. POST /api/feed/upload - Media Upload with strict 1MB video restriction & magic byte validation
 // ============================================================================
