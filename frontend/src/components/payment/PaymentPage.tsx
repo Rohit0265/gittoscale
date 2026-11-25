@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AlertCircle, CheckCircle2, X, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { api, SubscriptionStatusResponse } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { PricingCards } from './PricingCards';
 import { Fotter } from '../Fotter';
+import { LandingHeader } from '../LandingHeader';
 
 interface PaymentPageProps {
   onGoHome: () => void;
