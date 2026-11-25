@@ -367,18 +367,28 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     </span>
                     <span className="text-xs text-slate-500 dark:text-neutral-400">Posts</span>
                   </div>
-                  <div>
-                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mr-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setFollowModalConfig({ isOpen: true, initialTab: 'followers' })}
+                    className="group cursor-pointer hover:opacity-80 transition-opacity text-left flex items-center"
+                    title="View followers"
+                  >
+                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mr-1.5">
                       {profile.followers_count}
                     </span>
-                    <span className="text-xs text-slate-500 dark:text-neutral-400">Followers</span>
-                  </div>
-                  <div>
-                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mr-1.5">
+                    <span className="text-xs text-slate-500 dark:text-neutral-400 group-hover:underline">Followers</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFollowModalConfig({ isOpen: true, initialTab: 'following' })}
+                    className="group cursor-pointer hover:opacity-80 transition-opacity text-left flex items-center"
+                    title="View following"
+                  >
+                    <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mr-1.5">
                       {profile.following_count}
                     </span>
-                    <span className="text-xs text-slate-500 dark:text-neutral-400">Following</span>
-                  </div>
+                    <span className="text-xs text-slate-500 dark:text-neutral-400 group-hover:underline">Following</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -488,6 +498,34 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           }}
         />
       )}
+
+      {/* Followers / Following List Modal */}
+      <FollowersListModal
+        isOpen={followModalConfig.isOpen}
+        onClose={() => setFollowModalConfig((prev) => ({ ...prev, isOpen: false }))}
+        userId={profileId}
+        initialTab={followModalConfig.initialTab}
+        currentUserId={user?.id}
+        token={token || undefined}
+        onNavigateToProfile={onNavigateToProfile}
+        onFollowChange={(targetUserId, isFollowing) => {
+          if (profileId === user?.id) {
+            setProfile((prev) =>
+              prev ? { ...prev, following_count: isFollowing ? prev.following_count + 1 : Math.max(0, prev.following_count - 1) } : prev
+            );
+          } else if (profileId === targetUserId) {
+            setProfile((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    is_following: isFollowing,
+                    followers_count: isFollowing ? prev.followers_count + 1 : Math.max(0, prev.followers_count - 1),
+                  }
+                : prev
+            );
+          }
+        }}
+      />
 
       {/* Floating Feedback and Recommendations Button */}
       <FloatingFeedbackButton />
