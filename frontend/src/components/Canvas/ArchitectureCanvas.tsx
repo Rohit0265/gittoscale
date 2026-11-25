@@ -472,18 +472,29 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
     [onRfNodesChange, onDeleteNode]
   );
 
-  // Sync state when props change
+  // Track dragging state to prevent simulation/awareness updates from snapping nodes back mid-drag
+  const isDraggingNodeRef = useRef(false);
+
+  // Sync state when props change (only if user is not actively dragging)
   React.useEffect(() => {
-    setRfNodes(flowNodes);
+    if (!isDraggingNodeRef.current) {
+      setRfNodes(flowNodes);
+    }
   }, [flowNodes, setRfNodes]);
 
   React.useEffect(() => {
     setRfEdges(flowEdges);
   }, [flowEdges, setRfEdges]);
 
+  // Handle node drag start
+  const handleNodeDragStart = useCallback(() => {
+    isDraggingNodeRef.current = true;
+  }, []);
+
   // Handle node drag stop: persist position
   const handleNodeDragStop = useCallback(
     (_: unknown, node: Node) => {
+      isDraggingNodeRef.current = false;
       const updated = nodes.map((n) =>
         n.id === node.id ? { ...n, position: node.position } : n
       );
@@ -571,6 +582,7 @@ const ArchitectureCanvasComponent: React.FC<ArchitectureCanvasProps> = ({
           stroke: isDark ? '#ffffff' : '#000000',
           strokeWidth: 2,
         }}
+        onNodeDragStart={handleNodeDragStart}
         onNodeDragStop={handleNodeDragStop}
         onNodeClick={(_, node) => {
           onSelectNode(node.id);

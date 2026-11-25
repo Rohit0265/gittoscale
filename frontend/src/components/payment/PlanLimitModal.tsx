@@ -116,8 +116,8 @@ export const PlanLimitModal: React.FC<PlanLimitModalProps> = ({
               : 'bg-neutral-50 border-neutral-200 text-neutral-700'
           }`}
         >
-          <p className="font-medium text-base mb-1 text-white">{displayMessage}</p>
-          <p className="text-xs text-neutral-400">
+          <p className={`font-semibold text-base mb-1 ${isDark ? 'text-white' : 'text-neutral-900'}`}>{displayMessage}</p>
+          <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
             Free accounts include 3 AI architecture generations and 3 live collaborative meetings.
           </p>
         </div>
@@ -125,18 +125,18 @@ export const PlanLimitModal: React.FC<PlanLimitModalProps> = ({
         {/* Feature Highlights */}
         <div className="space-y-2 mb-6 text-sm">
           <div className="flex items-center gap-2.5">
-            <Zap className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-neutral-300">
-              <strong>Unlimited AI generation & AI Architect chat</strong>
+            <Zap className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span className={isDark ? 'text-neutral-300' : 'text-neutral-700'}>
+              <strong>Unlimited AI generation &amp; AI Architect chat</strong>
             </span>
           </div>
           <div className="flex items-center gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-neutral-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span className={isDark ? 'text-neutral-300' : 'text-neutral-700'}>
               <strong>Unlimited live collaborative meetings</strong>
             </span>
           </div>
-          <div className="flex items-center gap-2.5 text-xs text-neutral-400 pl-6.5">
+          <div className={`flex items-center gap-2.5 text-xs pl-6 ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
             <span>✨ Note: Manual architecture diagram editing is always 100% unlimited.</span>
           </div>
         </div>

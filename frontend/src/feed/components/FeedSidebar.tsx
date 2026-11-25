@@ -44,6 +44,11 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
     isOpen: false,
     initialTab: 'followers',
   });
+  const [bannerFailed, setBannerFailed] = useState(false);
+
+  useEffect(() => {
+    setBannerFailed(false);
+  }, [coverImage, profile?.banner_url]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -159,11 +164,6 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
   const username = profile?.username || user.email?.split('@')[0]?.toLowerCase() || 'user';
   const avatarUrl = profile?.avatar_url || extractAccountAvatar(user);
   const defaultBannerBg = getRandomBannerColor(profile?.id || user.id || username);
-  const [bannerFailed, setBannerFailed] = useState(false);
-
-  useEffect(() => {
-    setBannerFailed(false);
-  }, [coverImage, profile?.banner_url]);
 
   return (
     <aside className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#0A0A0A] overflow-hidden shadow-xs">
