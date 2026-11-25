@@ -4,6 +4,7 @@ import { FeedPost, FeedComment } from '../types';
 import { formatRelativeTime } from '../utils/formatTime';
 import { feedApi } from '../services/feedApi';
 import { UserAvatar } from './UserAvatar';
+import { WanderingEyes } from '../../components/loading-ui/wandering-eyes';
 
 interface CommentPanelProps {
   post: FeedPost | null;
@@ -307,8 +308,10 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
       {/* Comments Conversation Tree */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin text-slate-400 mb-2" />
+          <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-3">
+            <div className="w-14 h-7 text-slate-400">
+              <WanderingEyes className="w-full h-full" />
+            </div>
             <span className="text-xs">Loading conversation...</span>
           </div>
         ) : error ? (
