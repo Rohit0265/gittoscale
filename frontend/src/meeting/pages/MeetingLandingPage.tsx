@@ -7,12 +7,15 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { meetingApi } from '../services/meetingApi';
+import { LandingHeader } from '../../components/LandingHeader';
 
 interface MeetingLandingPageProps {
   onJoinMeeting: (meetingId: string) => void;
   onOpenAuth: () => void;
   onGoHome: () => void;
   isDark?: boolean;
+  onToggleTheme?: () => void;
+  onNavigate?: (route: string) => void;
 }
 
 export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
@@ -20,6 +23,8 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
   onOpenAuth,
   onGoHome,
   isDark = true,
+  onToggleTheme,
+  onNavigate,
 }) => {
   const { user, getAuthToken } = useAuth();
   const [meetingInput, setMeetingInput] = useState('');
@@ -101,29 +106,19 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-[#040404] text-slate-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-neutral-800 selection:text-white">
-      {/* Top Bar */}
-      <header className="h-16 border-b border-slate-200 dark:border-neutral-900 px-6 sm:px-12 flex items-center justify-between">
-        <button
-          onClick={onGoHome}
-          className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer"
-        >
-          <img
-            src={isDark ? '/logo.png' : '/logo-light.png'}
-            alt="GitToScale"
-            className="h-7 w-auto object-contain"
-          />
-        </button>
-
-        <button
-          onClick={onGoHome}
-          className="text-xs font-semibold text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-        >
-          Back to Playground
-        </button>
-      </header>
+      {/* Floating Pill Landing Header (Collab Variant: Home instead of Collab) */}
+      <LandingHeader
+        isDark={isDark}
+        onToggleTheme={onToggleTheme}
+        onGoHome={onGoHome}
+        onOpenAuth={onOpenAuth}
+        onNavigate={onNavigate}
+        isApp={false}
+        variant="collab"
+      />
 
       {/* Hero Content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-12 md:py-20 flex flex-col items-center text-center">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 pt-24 pb-12 md:pt-28 md:pb-20 flex flex-col items-center text-center">
         <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white max-w-2xl leading-tight">
           Design and scale architectures together in real time.
         </h1>

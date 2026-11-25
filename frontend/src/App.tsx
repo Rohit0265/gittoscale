@@ -2482,6 +2482,8 @@ export const App: React.FC = () => {
             setCurrentView('signin');
           }}
           isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+          onNavigate={handleNavigate}
         />
       </Suspense>
     );
