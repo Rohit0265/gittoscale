@@ -100,12 +100,6 @@ export async function resolveUserFromRequest(req: Request): Promise<Authenticate
   }
 
   return null;
-      fullName: customHeaderName || 'GitToScale Developer',
-      avatarUrl: undefined,
-    };
-  }
-
-  return null;
 }
 
 /**
