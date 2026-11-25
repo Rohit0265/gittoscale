@@ -226,9 +226,9 @@ export const FollowersListModal: React.FC<FollowersListModalProps> = ({
                       {/* Avatar & User Details */}
                       <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
                         <UserAvatar
-                          avatarUrl={userItem.avatar_url}
+                          src={userItem.avatar_url}
                           name={userItem.full_name}
-                          size="md"
+                          className="w-10 h-10 rounded-full shrink-0"
                         />
                         <div className="flex flex-col min-w-0 flex-1">
                           <span className="text-xs font-semibold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
