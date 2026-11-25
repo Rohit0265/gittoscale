@@ -125,7 +125,7 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
         </h1>
 
         <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-neutral-400 max-w-xl">
-          Bring your engineering team into a live synchronized canvas. Connect nodes, analyze bottlenecks, and brainstorm architectures with zero latency.
+          Bring your engineering team into a live synchronized canvas. Connect nodes, analyze bottlenecks, and brainstorm architectures.
         </p>
 
         {/* Action Cards Grid */}
