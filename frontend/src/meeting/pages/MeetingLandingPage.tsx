@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { meetingApi } from '../services/meetingApi';
 import { LandingHeader } from '../../components/LandingHeader';
+import { Fotter } from '../../components/Fotter';
 
 interface MeetingLandingPageProps {
   onJoinMeeting: (meetingId: string) => void;
@@ -242,10 +243,8 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="h-12 border-t border-slate-200 dark:border-neutral-900 px-6 flex items-center justify-center text-xs text-slate-400 dark:text-neutral-500">
-        <span>© {new Date().getFullYear()} GitToScale. Real-Time Collaborative Architecture Meetings.</span>
-      </footer>
+      {/* Global Application Footer */}
+      <Fotter brandName="GitToScale" isDark={isDark} onNavigate={onNavigate} />
     </div>
   );
 };
