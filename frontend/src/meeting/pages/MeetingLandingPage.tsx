@@ -9,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { meetingApi } from '../services/meetingApi';
 import { LandingHeader } from '../../components/LandingHeader';
 import { Fotter } from '../../components/Fotter';
+import { PenHighlight } from '../../components/ui/PenShadowLine';
 
 interface MeetingLandingPageProps {
   onJoinMeeting: (meetingId: string) => void;
