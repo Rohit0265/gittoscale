@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { isOAuthPopup, broadcastOAuthMessage } from '../../utils/oauthHelper';
 import { api } from '../../services/api';
 import { Loader2, CheckCircle2, AlertCircle, Lock, ArrowRight } from 'lucide-react';
+import { WanderingEyes } from '../loading-ui/wandering-eyes';
 
 interface AuthCallbackProps {
   onNavigate: (view: string) => void;
@@ -235,7 +236,9 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
       <div className="w-full max-w-md bg-[#0D0E15]/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl z-10 text-center">
         {status === 'verifying' && (
           <div className="py-6 flex flex-col items-center">
-            <Loader2 className="w-10 h-10 text-slate-400 animate-spin mb-4" />
+            <div className="w-16 h-8 text-indigo-400 mb-4">
+              <WanderingEyes className="w-full h-full" />
+            </div>
             <h2 className="text-lg font-semibold text-white mb-1">
               Verifying credentials...
             </h2>

@@ -349,8 +349,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // Auth checking loader
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-300">
-        <RefreshCw className="w-8 h-8 animate-spin text-indigo-500 mb-4" />
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-300 gap-4">
+        <div className="w-16 h-8 text-indigo-500">
+          <WanderingEyes className="w-full h-full" />
+        </div>
         <p className="text-sm font-medium">Verifying superuser privileges...</p>
       </div>
     );
