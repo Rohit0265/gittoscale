@@ -149,77 +149,18 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
         isDark ? 'bg-[#050506] text-neutral-100' : 'bg-neutral-50 text-neutral-900'
       }`}
     >
-      {/* Top Navbar */}
-      <header
-        className={`sticky top-0 z-40 border-b backdrop-blur-md ${
-          isDark ? 'bg-neutral-950/80 border-neutral-800' : 'bg-white/80 border-neutral-200'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onGoHome}
-              className={`p-2 rounded-lg border transition-colors flex items-center gap-2 text-sm font-medium cursor-pointer ${
-                isDark
-                  ? 'border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900'
-                  : 'border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
-              }`}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to App</span>
-            </button>
-            <div
-              onClick={onGoHome}
-              className="flex items-center gap-2 cursor-pointer select-none"
-            >
-              <img
-                src={isDark ? '/logo.png' : '/logo-light.png'}
-                alt="GitToScale"
-                className="h-7 w-auto object-contain"
-              />
-            </div>
-          </div>
+      {/* Floating Pill Landing Header */}
+      <LandingHeader
+        isDark={isDark}
+        onToggleTheme={onToggleTheme}
+        onGoHome={onGoHome}
+        onOpenAuth={onOpenAuth}
+        onOpenSignUp={onOpenSignUp}
+        onNavigate={onNavigate}
+        isApp={false}
+      />
 
-          <div className="flex items-center gap-3">
-            {onToggleTheme && (
-              <button
-                onClick={onToggleTheme}
-                className={`p-2 rounded-lg border transition-colors cursor-pointer ${
-                  isDark
-                    ? 'border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900'
-                    : 'border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
-                }`}
-                aria-label="Toggle theme"
-              >
-                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-            )}
-
-            {!user ? (
-              <button
-                onClick={onOpenAuth}
-                className="px-4 py-2 text-sm font-medium rounded-lg text-white bg-slate-900 dark:bg-white dark:text-neutral-950 hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
-              >
-                Sign In
-              </button>
-            ) : (
-              <div className="flex items-center gap-2 text-sm">
-                <span
-                  className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                    status?.plan === 'pro'
-                      ? 'bg-violet-500/10 text-violet-400 border border-violet-500/30'
-                      : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
-                  }`}
-                >
-                  {status?.plan === 'pro' ? 'Pro Member' : 'Free Plan'}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-12 sm:px-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-20 pb-12 sm:pt-24 sm:px-6">
         {feedbackMessage && feedbackMessage.type === 'error' && (
           <div
             className={`mb-8 flex items-start gap-3 rounded-xl border p-4 ${

@@ -5,9 +5,6 @@ import {
   AlertCircle,
   XCircle,
   Calendar,
-  ArrowLeft,
-  Sun,
-  Moon,
   Clock,
   RefreshCw,
   Sparkles,
@@ -17,6 +14,7 @@ import {
 import { api, PaymentHistoryResponse, UserTransactionItem } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { Fotter } from '../Fotter';
+import { LandingHeader } from '../LandingHeader';
 
 interface PaymentHistoryPageProps {
   onGoHome: () => void;
