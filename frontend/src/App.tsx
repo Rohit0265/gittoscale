@@ -2417,6 +2417,7 @@ export const App: React.FC = () => {
             window.history.pushState({}, '', targetUrl);
             setCurrentView('feed-profile');
           }}
+          onNavigate={handleNavigate}
         />
       </Suspense>
     );
