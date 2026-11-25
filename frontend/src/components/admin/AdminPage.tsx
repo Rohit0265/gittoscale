@@ -114,14 +114,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       ''
     ).toLowerCase();
 
-    // Known admin accounts (including testvulntest and rohitmathur00981)
-    const isKnownAdmin =
-      Boolean(ap?.is_admin) ||
-      ap?.role === 'admin' ||
-      email.includes('testvulntest') ||
-      metaUsername.includes('testvulntest') ||
-      email.includes('rohitmathur00981') ||
-      metaUsername.includes('rohitmathur00981');
+    // Verify admin through profile flags or server check
+    const isKnownAdmin = Boolean(ap?.is_admin) || ap?.role === 'admin';
 
     if (isKnownAdmin) {
       setIsAdmin(true);

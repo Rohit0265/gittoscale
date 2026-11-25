@@ -784,15 +784,20 @@ export async function deleteFeedPost(postId: string, userId: string): Promise<bo
     const directKey = extractR2KeyFromUrl(mediaUrl);
     if (directKey) keysToDelete.add(directKey);
 
-    for (const key of keysToDelete) {
-      deleteFromR2(key).catch((err) => {
-        console.warn(`[Feed Delete] Failed to delete object from R2 (${key}):`, err?.message || err);
+    for (const rawKey of keysToDelete) {
+      if (!rawKey || typeof rawKey !== 'string') continue;
+      // Strip directory traversal patterns
+      const safeKey = path.basename(rawKey);
+
+      deleteFromR2(rawKey).catch((err) => {
+        console.warn(`[Feed Delete] Failed to delete object from R2 (${rawKey}):`, err?.message || err);
       });
 
-      // Also remove local file if present on disk
+      // Also remove local file if present on disk within uploads folder strictly
       try {
-        const localPath = path.join(process.cwd(), 'uploads', key);
-        if (fs.existsSync(localPath)) {
+        const uploadsDir = path.resolve(process.cwd(), 'uploads');
+        const localPath = path.resolve(uploadsDir, safeKey);
+        if (localPath.startsWith(uploadsDir) && fs.existsSync(localPath)) {
           await fs.promises.unlink(localPath).catch(() => {});
         }
       } catch {}

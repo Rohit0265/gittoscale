@@ -85,34 +85,21 @@ export async function resolveUserFromRequest(req: Request): Promise<Authenticate
     } catch (err: any) {
       console.warn('[Auth Middleware] supabase.getUser error:', err.message);
     }
+    // Cryptographic validation failed with Supabase, do NOT decode unsigned payload in production!
+    return null;
   }
 
-  // Fallback: If token is a JWT (has 3 parts), decode payload directly
-  if (token.includes('.')) {
-    try {
-      const parts = token.split('.');
-      if (parts.length === 3) {
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-        const meta = payload.user_metadata || {};
-        const resolvedName =
-          customHeaderName || meta.full_name || meta.name || payload.name || payload.email?.split('@')[0];
-        const resolvedId = payload.sub || payload.id;
-        if (resolvedId) {
-          return {
-            id: resolvedId,
-            email: payload.email || customHeaderEmail || 'user@gittoscale.tech',
-            fullName: resolvedName || 'GitToScale User',
-            avatarUrl: meta.avatar_url || meta.picture || undefined,
-          };
-        }
-      }
-    } catch {}
-  }
-
-  if (allowMockAuth) {
+  // Development/Mock auth fallback (only allowed when Supabase is explicitly not configured and mock mode is active)
+  if (allowMockAuth && token.startsWith('mock_')) {
     return {
       id: 'usr_dev_default',
       email: customHeaderEmail || 'developer@gittoscale.tech',
+      fullName: customHeaderName || 'Local Developer',
+      avatarUrl: undefined,
+    };
+  }
+
+  return null;
       fullName: customHeaderName || 'GitToScale Developer',
       avatarUrl: undefined,
     };

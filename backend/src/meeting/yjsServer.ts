@@ -41,6 +41,7 @@ interface SocketUser {
 const activeRooms = new Map<string, MeetingRoomSession>();
 const clientSessions = new Map<string, SocketParticipantSession>();
 const roomPresences = new Map<string, Map<string, ParticipantPresence>>();
+const pendingHostTransferTimers = new Map<string, NodeJS.Timeout>();
 
 let ioInstance: SocketIOServer | null = null;
 

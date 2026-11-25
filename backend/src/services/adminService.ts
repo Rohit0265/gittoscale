@@ -116,14 +116,9 @@ export async function isUserAdmin(userId?: string, email?: string): Promise<bool
       }
       const userEmail = String(r.email || '').trim().toLowerCase();
       const userName = String(r.username || '').trim().toLowerCase();
-      const userPrefix = userEmail.split('@')[0];
       if (
         adminEmails.includes(userEmail) ||
-        adminEmails.includes(userName) ||
-        adminEmails.includes(userPrefix) ||
-        userEmail.includes('testvulntest') ||
-        userName.includes('testvulntest') ||
-        userEmail.includes('rohitmathur00981')
+        adminEmails.includes(userName)
       ) {
         return true;
       }
@@ -138,10 +133,7 @@ export async function isUserAdmin(userId?: string, email?: string): Promise<bool
           mem.is_admin ||
           mem.role === 'admin' ||
           adminEmails.includes(memEmail) ||
-          adminEmails.includes(memUser) ||
-          memEmail.includes('testvulntest') ||
-          memUser.includes('testvulntest') ||
-          memEmail.includes('rohitmathur00981')
+          adminEmails.includes(memUser)
         ) {
           return true;
         }
