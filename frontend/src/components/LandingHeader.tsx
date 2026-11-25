@@ -205,20 +205,66 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                     </div>
                   </div>
 
-                  {/* History Option */}
-                  <button
-                    type="button"
-                    onClick={handleHistoryClick}
-                    className="group flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer text-left"
-                  >
-                    <History className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="truncate">History</span>
-                      <span className="text-[10px] font-normal text-slate-500 dark:text-neutral-400 truncate">
-                        Saved systems &amp; snapshots
-                      </span>
-                    </div>
-                  </button>
+                  {/* Settings Expandable Accordion Menu */}
+                  <div className="flex flex-col rounded-xl border border-slate-200/60 dark:border-neutral-800/60 bg-slate-50/50 dark:bg-neutral-900/40 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setIsSettingsOpen((prev) => !prev)}
+                      className="group flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer text-left"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Settings className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors" />
+                        <span className="truncate">Settings</span>
+                      </div>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-slate-400 dark:text-neutral-400 transition-transform duration-200 ${
+                          isSettingsOpen ? 'rotate-180 text-indigo-500' : ''
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isSettingsOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                          className="flex flex-col border-t border-slate-200/50 dark:border-neutral-800/50 bg-slate-100/40 dark:bg-black/20"
+                        >
+                          {/* 1. Your Profile */}
+                          <button
+                            type="button"
+                            onClick={handleProfileClick}
+                            className="group flex items-center gap-2.5 w-full pl-6 pr-3 py-2 text-xs font-medium text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-neutral-800/80 transition-colors cursor-pointer text-left"
+                          >
+                            <User className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                            <span className="truncate">Your Profile</span>
+                          </button>
+
+                          {/* 2. History */}
+                          <button
+                            type="button"
+                            onClick={handleHistoryClick}
+                            className="group flex items-center gap-2.5 w-full pl-6 pr-3 py-2 text-xs font-medium text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-neutral-800/80 transition-colors cursor-pointer text-left"
+                          >
+                            <History className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                            <span className="truncate">History</span>
+                          </button>
+
+                          {/* 3. Payment History */}
+                          <button
+                            type="button"
+                            onClick={handlePaymentHistoryClick}
+                            className="group flex items-center gap-2.5 w-full pl-6 pr-3 py-2 text-xs font-medium text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-neutral-800/80 transition-colors cursor-pointer text-left"
+                          >
+                            <CreditCard className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                            <span className="truncate">Payment History</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
                   <button
                     type="button"
