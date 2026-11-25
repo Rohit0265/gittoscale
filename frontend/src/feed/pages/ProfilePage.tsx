@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useProfile } from '../hooks/useProfile';
-import { FeedHeader } from '../components/FeedHeader';
+import { LandingHeader } from '../../components/LandingHeader';
 import { PostCard } from '../components/PostCard';
 import { CommentPanel } from '../components/CommentPanel';
 import { ShareModal } from '../components/ShareModal';
@@ -39,6 +39,7 @@ interface ProfilePageProps {
   onOpenSignUp?: () => void;
   onSignOut?: () => void;
   onNavigateToProfile: (userId: string) => void;
+  onNavigate?: (route: string) => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -53,6 +54,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onOpenSignUp,
   onSignOut,
   onNavigateToProfile,
+  onNavigate,
 }) => {
   const { profile, setProfile, posts, loading, error, toggleFollow, setPosts } = useProfile({
     userId: profileId,
@@ -200,24 +202,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
-      <FeedHeader
-        user={user}
-        token={token}
+      <LandingHeader
         isDark={isDark}
         onToggleTheme={onToggleTheme}
         onGoHome={onGoHome}
         onOpenAuth={onOpenAuth}
         onOpenSignUp={onOpenSignUp}
         onSignOut={onSignOut}
-        onNavigateToProfile={onNavigateToProfile}
-        onViewLikes={onNavigateToFeed}
-        onViewSaved={() => {
-          window.history.pushState({}, '', '/feed?filter=saved');
-          onNavigateToFeed();
-        }}
+        onNavigate={onNavigate}
+        isApp={false}
       />
 
-      <div className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 py-6 flex flex-col items-center">
+      <div className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-24 pb-8 flex flex-col items-center">
         {/* Top Navigation */}
         <div className="w-full flex items-center justify-between mb-4">
           <button
@@ -315,7 +311,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-700 text-slate-800 dark:text-white shadow-xs transition-colors cursor-pointer"
                         title="Edit profile name, username, avatar, cover and bio"
                       >
-                        <Edit3 className="w-3.5 h-3.5 text-indigo-500" />
+                        <Edit3 className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
                         <span>Edit Profile</span>
                       </button>
                     ) : (
@@ -325,7 +321,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                         className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer ${
                           profile.is_following
                             ? 'border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                            : 'bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950'
                         }`}
                       >
                         {isFollowLoading ? (
