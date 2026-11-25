@@ -14,7 +14,10 @@ export function useProfile({ userId, token }: UseProfileOptions) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchProfileAndPosts = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
