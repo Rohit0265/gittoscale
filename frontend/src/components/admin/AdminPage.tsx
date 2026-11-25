@@ -101,18 +101,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     }
 
     const ap = authProfile as any;
-    const email = String(effectiveUser.email || '').toLowerCase();
-    const metaUsername = String(
-      effectiveUser.user_metadata?.user_name ||
-      effectiveUser.user_metadata?.username ||
-      effectiveUser.user_metadata?.preferred_username ||
-      effectiveUser.user_metadata?.full_name ||
-      ap?.username ||
-      ap?.full_name ||
-      ap?.fullName ||
-      email.split('@')[0] ||
-      ''
-    ).toLowerCase();
 
     // Verify admin through profile flags or server check
     const isKnownAdmin = Boolean(ap?.is_admin) || ap?.role === 'admin';
