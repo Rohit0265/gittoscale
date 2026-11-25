@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, UserPlus, UserCheck, Users, Search, Loader2 } from 'lucide-react';
 import { feedApi } from '../services/feedApi';
 import { UserAvatar } from './UserAvatar';
+import { WanderingEyes } from '../../components/loading-ui/wandering-eyes';
 
 export interface FollowUser {
   id: string;
@@ -196,8 +197,10 @@ export const FollowersListModal: React.FC<FollowersListModalProps> = ({
             {/* List Body */}
             <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-neutral-800/60 p-2 min-h-[220px]">
               {loading ? (
-                <div className="flex flex-col items-center justify-center h-48 gap-2 text-slate-400 dark:text-neutral-500">
-                  <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+                <div className="flex flex-col items-center justify-center h-48 gap-3 text-slate-400 dark:text-neutral-500">
+                  <div className="w-14 h-7 text-indigo-500">
+                    <WanderingEyes className="w-full h-full" />
+                  </div>
                   <span className="text-xs">Loading {activeTab}...</span>
                 </div>
               ) : filteredList.length === 0 ? (
