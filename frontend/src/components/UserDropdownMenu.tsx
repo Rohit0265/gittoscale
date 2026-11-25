@@ -423,9 +423,9 @@ export const UserDropdownMenu: React.FC<UserDropdownMenuProps> = ({
           }}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group text-left"
         >
-          <Sparkles className="w-4 h-4 text-violet-500 group-hover:text-violet-400 transition-colors" />
+          <Sparkles className="w-4 h-4 text-slate-500 dark:text-neutral-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
           <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-            Pricing & Pro
+            Pricing &amp; Pro
           </span>
         </button>
 
