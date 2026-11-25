@@ -254,6 +254,42 @@ export const feedApi = {
   },
 
   /**
+   * Get user followers list
+   */
+  async getFollowers(targetUserId: string, token?: string): Promise<Array<{
+    id: string;
+    full_name: string;
+    username: string;
+    avatar_url: string | null;
+    bio: string;
+    is_following?: boolean;
+  }>> {
+    const res = await axios.get(
+      `${API_BASE}/feed/profile/${targetUserId}/followers`,
+      { headers: getAuthHeader(token) }
+    );
+    return res.data?.followers || [];
+  },
+
+  /**
+   * Get user following list
+   */
+  async getFollowing(targetUserId: string, token?: string): Promise<Array<{
+    id: string;
+    full_name: string;
+    username: string;
+    avatar_url: string | null;
+    bio: string;
+    is_following?: boolean;
+  }>> {
+    const res = await axios.get(
+      `${API_BASE}/feed/profile/${targetUserId}/following`,
+      { headers: getAuthHeader(token) }
+    );
+    return res.data?.following || [];
+  },
+
+  /**
    * Upload media file (image / video <= 1MB)
    */
   async uploadMedia(base64Data: string, token: string): Promise<{ url: string; mediaType: 'image' | 'video'; r2Key?: string | null }> {
