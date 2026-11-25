@@ -26,6 +26,8 @@ import {
   getUserLikedPosts,
   getUserSavedPosts,
   toggleFollowUser,
+  getUserFollowers,
+  getUserFollowing,
   updateUserProfile,
 } from './feedService.js';
 
