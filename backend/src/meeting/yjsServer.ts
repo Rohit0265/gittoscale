@@ -274,6 +274,12 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
           const roomKey = `meeting:${meetingId}`;
           socket.join(roomKey);
 
+          // If this returning user was the host and a pending transfer was scheduled, cancel it!
+          if (currentMeeting.host_id === identity.id && pendingHostTransferTimers.has(meetingId)) {
+            clearTimeout(pendingHostTransferTimers.get(meetingId)!);
+            pendingHostTransferTimers.delete(meetingId);
+          }
+
           const currentParticipant = participants.find((p) => p.user_id === identity.id);
           const role: MeetingRole =
             currentMeeting.host_id === identity.id
