@@ -20,6 +20,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ArchitectureCanvas } from '../../components/Canvas/ArchitectureCanvas';
 import { RightSidebar } from '../../components/RightSidebar';
 import { FloatingFeedbackButton } from '../../components/FloatingFeedbackButton';
+import { WanderingEyes } from '../../components/loading-ui/wandering-eyes';
 import { ArchitectureNode, ArchitectureEdge, ComponentType } from '../../types';
 import { useMeetingYjs } from '../hooks/useMeetingYjs';
 import { MeetingHeader } from '../components/MeetingHeader';
@@ -388,8 +389,10 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
   // Handle initial loading
   if (initialLoading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#050505] text-slate-700 dark:text-neutral-300 gap-3">
-        <Loader2 className="w-8 h-8 text-neutral-400 dark:text-neutral-200 animate-spin" />
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#050505] text-slate-700 dark:text-neutral-300 gap-4">
+        <div className="w-16 h-8 text-indigo-500">
+          <WanderingEyes className="w-full h-full" />
+        </div>
         <span className="text-xs font-medium">Entering collaborative meeting...</span>
       </div>
     );

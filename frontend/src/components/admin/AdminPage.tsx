@@ -26,6 +26,7 @@ import { FeedPost } from '../../feed/types';
 import { UserAvatar } from '../../feed/components/UserAvatar';
 import { formatRelativeTime } from '../../feed/utils/formatTime';
 import { useAuth } from '../../contexts/AuthContext';
+import { WanderingEyes } from '../loading-ui/wandering-eyes';
 
 export interface AdminPageProps {
   user?: any;
