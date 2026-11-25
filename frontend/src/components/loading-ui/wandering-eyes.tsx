@@ -29,6 +29,7 @@ function WanderingEyes({
   const safeTravelScale = clamp(travelScale, 0.08, 0.5);
   const eyesStyle = {
     ...style,
+    containerType: "size",
     "--loading-ui-wandering-eyes-eye": `${(safeEyeScale * 100).toFixed(2)}cqmin`,
     "--loading-ui-wandering-eyes-gap": `${(safeGapScale * 100).toFixed(2)}cqmin`,
     "--loading-ui-wandering-eyes-pupil-scale": `${safePupilScale}`,
@@ -107,7 +108,8 @@ function WanderingEyes({
       >
         <span
           aria-hidden="true"
-          className="inline-flex items-center justify-center gap-(--loading-ui-wandering-eyes-gap)"
+          className="inline-flex items-center justify-center"
+          style={{ gap: "var(--loading-ui-wandering-eyes-gap)" }}
         >
           {Array.from({ length: 2 }, (_, index) => (
             <span

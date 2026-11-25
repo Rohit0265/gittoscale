@@ -15,6 +15,7 @@ import { api, PaymentHistoryResponse, UserTransactionItem } from '../../services
 import { useAuth } from '../../contexts/AuthContext';
 import { Fotter } from '../Fotter';
 import { LandingHeader } from '../LandingHeader';
+import { WanderingEyes } from '../loading-ui/wandering-eyes';
 
 interface PaymentHistoryPageProps {
   onGoHome: () => void;
@@ -189,8 +190,10 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
             </button>
           </div>
         ) : loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <RefreshCw className="w-7 h-7 animate-spin text-indigo-500" />
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="w-16 h-8 text-indigo-500">
+              <WanderingEyes className="w-full h-full" />
+            </div>
             <span className="text-xs text-slate-500 dark:text-neutral-400">Loading your payment records...</span>
           </div>
         ) : (
