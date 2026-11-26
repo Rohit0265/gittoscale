@@ -67,7 +67,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
   return (
     <div
       onClick={onOpen}
-      className="group relative bg-white dark:bg-[#0c0d14] border border-slate-200/90 dark:border-neutral-800/90 hover:border-slate-300 dark:hover:border-neutral-700 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-4 overflow-hidden"
+      className="group relative bg-transparent border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-4 overflow-hidden"
     >
       {/* Subtle ambient hairline highlight */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-neutral-700/60 to-transparent pointer-events-none" />
@@ -75,7 +75,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
       <div>
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
+            <h3 className="text-sm sm:text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
               {title}
             </h3>
           </div>
@@ -119,8 +119,8 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
 
       {/* Footer & Meta */}
       <div>
-        <div className="flex items-center justify-end text-[11px] mb-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800/80">
-          <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 font-mono text-[11px]">
+        <div className="flex items-center justify-end text-[11px] mb-3.5 pt-3 border-t border-neutral-200 dark:border-neutral-800">
+          <div className="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">
             <Calendar className="w-3.5 h-3.5 opacity-70" />
             <span>{formatCardDate(createdAt)}</span>
           </div>
