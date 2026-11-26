@@ -96,12 +96,12 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {/* Role Pill */}
                       <span
-                        className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-medium ${
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
                           p.role === 'host'
-                            ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40'
+                            ? 'text-neutral-900 dark:text-white bg-neutral-200 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700'
                             : p.role === 'editor'
-                            ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
-                            : 'text-slate-500 dark:text-neutral-400 bg-slate-100 dark:bg-neutral-800'
+                            ? 'text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
+                            : 'text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800'
                         }`}
                       >
                         {p.role === 'host' && <Shield className="w-2.5 h-2.5" />}
@@ -130,12 +130,12 @@ export const MeetingParticipantsPanel: React.FC<MeetingParticipantsPanelProps> =
                       onChange={(e) =>
                         onSetRole?.(p.user_id, e.target.value as MeetingRole)
                       }
-                      className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 hover:border-slate-300 dark:hover:border-neutral-600 focus:outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer shadow-2xs"
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-medium border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:border-neutral-400 dark:hover:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer"
                       title="Change participant role"
                     >
-                      <option value="host">👑 Host</option>
-                      <option value="editor">✏️ Editor</option>
-                      <option value="viewer">👁️ Viewer</option>
+                      <option value="host">Host</option>
+                      <option value="editor">Editor</option>
+                      <option value="viewer">Viewer</option>
                     </select>
 
                     {/* Kick Participant */}
