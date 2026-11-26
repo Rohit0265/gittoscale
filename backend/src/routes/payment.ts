@@ -163,7 +163,10 @@ router.post('/confirm-checkout', async (req: Request, res: Response) => {
  */
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
-    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    const rawBody = (req as any).rawBody;
+    if (!rawBody) {
+      return res.status(500).json({ error: 'Raw request body unavailable for signature verification' });
+    }
     const headers = req.headers;
 
     // Check if signature is valid

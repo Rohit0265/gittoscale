@@ -81,8 +81,8 @@ router.get('/users', requireAuth, requireSuperUser, async (req: AuthenticatedReq
   try {
     const search = req.query.search ? String(req.query.search) : undefined;
     const status = req.query.status as 'all' | 'active' | 'warned' | 'suspended' | undefined;
-    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 50;
-    const offset = req.query.offset ? parseInt(String(req.query.offset), 10) : 0;
+    const limit = Math.min(Math.max(req.query.limit ? parseInt(String(req.query.limit), 10) || 50 : 50, 1), 100);
+    const offset = Math.max(req.query.offset ? parseInt(String(req.query.offset), 10) || 0 : 0, 0);
 
     const result = await getAdminUsers({
       search,

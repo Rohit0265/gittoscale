@@ -94,8 +94,8 @@ router.get('/architectures', requireAuth, async (req: AuthenticatedRequest, res:
 
   const query = typeof req.query.q === 'string' ? req.query.q : '';
   const status = typeof req.query.status === 'string' ? req.query.status : '';
-  const limit = parseInt(req.query.limit as string, 10) || 50;
-  const offset = parseInt(req.query.offset as string, 10) || 0;
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string, 10) || 50, 1), 100);
+  const offset = Math.max(parseInt(req.query.offset as string, 10) || 0, 0);
 
   // 1. Neon PostgreSQL
   if (isNeonConfigured() && useRemoteDb()) {
@@ -519,8 +519,8 @@ router.get('/repositories', requireAuth, async (req: AuthenticatedRequest, res: 
 
   const query = typeof req.query.q === 'string' ? req.query.q : '';
   const status = typeof req.query.status === 'string' ? req.query.status : '';
-  const limit = parseInt(req.query.limit as string, 10) || 50;
-  const offset = parseInt(req.query.offset as string, 10) || 0;
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string, 10) || 50, 1), 100);
+  const offset = Math.max(parseInt(req.query.offset as string, 10) || 0, 0);
 
   // 1. Neon PostgreSQL
   if (isNeonConfigured() && useRemoteDb()) {
