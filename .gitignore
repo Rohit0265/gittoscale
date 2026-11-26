@@ -14,3 +14,5 @@ uploads/*
 !uploads/.gitkeep
 backend/uploads/*
 !backend/uploads/.gitkeep
+auditfile.txt
+fixauditfile.txt
