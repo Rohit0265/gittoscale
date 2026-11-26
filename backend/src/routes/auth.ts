@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireAuth, isUserAdmin } from '../middleware/auth.js';
 import { sendSignupTelegramNotification } from '../services/telegramService.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 import {
@@ -247,17 +248,23 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
  * Saves or updates authenticated user profile in PostgreSQL (Neon).
  * Automatically delivers pending welcome email and telegram alerts if not yet fulfilled.
  */
-router.post('/sync-profile', async (req: Request, res: Response) => {
+router.post('/sync-profile', requireAuth, async (req: Request, res: Response) => {
   const { id, email, fullName, avatarUrl, provider } = req.body || {};
+  const authUser = req.user!;
 
-  if (!id || !email) {
-    return res.status(400).json({ success: false, error: 'id and email are required' });
+  if (id && String(id).trim() !== authUser.id) {
+    return res.status(403).json({ success: false, error: 'Cannot sync profile for another user' });
+  }
+
+  const effectiveEmail = email || authUser.email;
+  if (!effectiveEmail) {
+    return res.status(400).json({ success: false, error: 'email is required' });
   }
 
   if (isNeonConfigured()) {
     try {
-      const cleanEmail = String(email).trim().toLowerCase();
-      const effectiveId = String(id).trim();
+      const cleanEmail = String(effectiveEmail).trim().toLowerCase();
+      const effectiveId = authUser.id;
       const existing = (await getUserProfile(effectiveId)) || (await getUserProfileByEmail(cleanEmail));
 
       const profile = await upsertUserProfile({
@@ -316,7 +323,7 @@ router.post('/sync-profile', async (req: Request, res: Response) => {
  * GET /api/auth/profile/:id
  * Fetches user profile from database
  */
-router.get('/profile/:id', async (req: Request, res: Response) => {
+router.get('/profile/:id', requireAuth, async (req: Request, res: Response) => {
   const userId = req.params.id;
   if (!userId) {
     return res.status(400).json({ success: false, error: 'userId is required' });
@@ -326,7 +333,17 @@ router.get('/profile/:id', async (req: Request, res: Response) => {
     try {
       const profile = await getUserProfile(userId);
       if (profile) {
-        return res.json({ success: true, profile });
+        if (req.user?.id === userId) {
+          return res.json({ success: true, profile });
+        }
+        return res.json({
+          success: true,
+          profile: {
+            id: profile.id,
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url,
+          },
+        });
       }
       return res.status(404).json({ success: false, error: 'Profile not found' });
     } catch (err: any) {
@@ -369,7 +386,10 @@ router.get('/me', (_req: Request, res: Response) => {
  * POST /api/auth/test-welcome-email
  * Sends or previews a test custom welcome email (for verification or admin testing)
  */
-router.post('/test-welcome-email', async (req: Request, res: Response) => {
+router.post('/test-welcome-email', requireAuth, async (req: Request, res: Response) => {
+  if (!isUserAdmin(req.user)) {
+    return res.status(403).json({ success: false, error: 'Admin access required' });
+  }
   const { email, name } = req.body || {};
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
