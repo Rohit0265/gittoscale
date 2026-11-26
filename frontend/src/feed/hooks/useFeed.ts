@@ -11,6 +11,8 @@ interface UseFeedOptions {
 export function useFeed({ token, userId, user }: UseFeedOptions) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'following' | 'liked' | 'saved'>(() => {
     if (typeof window !== 'undefined') {
@@ -30,19 +32,24 @@ export function useFeed({ token, userId, user }: UseFeedOptions) {
       if (filter === 'liked' && userId) {
         const data = await feedApi.getUserLikedPosts(userId, token);
         setPosts(data);
+        setHasMore(false);
       } else if (filter === 'saved' && userId) {
         const data = await feedApi.getUserSavedPosts(userId, token);
         setPosts(data);
+        setHasMore(false);
       } else if (filter === 'following') {
         if (!userId || !token) {
           setPosts([]);
+          setHasMore(false);
         } else {
           const data = await feedApi.getPosts(token, 20, 0, 'following');
           setPosts(data);
+          setHasMore(data.length === 20);
         }
       } else {
         const data = await feedApi.getPosts(token, 20, 0, 'all');
         setPosts(data);
+        setHasMore(data.length === 20);
       }
     } catch (err: any) {
       console.error('[useFeed] Error loading feed posts:', err);
@@ -55,6 +62,32 @@ export function useFeed({ token, userId, user }: UseFeedOptions) {
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
+  const loadMore = useCallback(async () => {
+    if (loading || loadingMore || !hasMore) return;
+    if (filter === 'liked' || filter === 'saved') return;
+    if (filter === 'following' && (!userId || !token)) return;
+
+    try {
+      setLoadingMore(true);
+      const nextOffset = posts.length;
+      const data = await feedApi.getPosts(token, 20, nextOffset, filter === 'following' ? 'following' : 'all');
+      if (data.length < 20) {
+        setHasMore(false);
+      }
+      if (data.length > 0) {
+        setPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const unique = data.filter((p) => !existingIds.has(p.id));
+          return [...prev, ...unique];
+        });
+      }
+    } catch (err) {
+      console.error('[useFeed] Error loading more posts:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loading, loadingMore, hasMore, filter, userId, token, posts.length]);
 
   // Synchronize post author details when user updates their profile anywhere
   useEffect(() => {
@@ -320,6 +353,9 @@ export function useFeed({ token, userId, user }: UseFeedOptions) {
   return {
     posts,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     filter,
     setFilter,

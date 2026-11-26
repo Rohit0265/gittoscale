@@ -42,6 +42,9 @@ export const FeedPage: React.FC<FeedPageProps> = ({
   const {
     posts,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     filter,
     setFilter,
@@ -94,6 +97,25 @@ export const FeedPage: React.FC<FeedPageProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPostForComments, closeComments]);
+
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: '250px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadMore]);
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#020202] text-slate-900 dark:text-[#ededed] font-sans transition-colors">
@@ -260,6 +282,13 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                   <div className="h-36 bg-slate-100 dark:bg-neutral-900 rounded-xl w-full" />
                 </div>
               ))}
+              {hasMore && (
+                <div ref={loadMoreRef} className="py-6 flex justify-center">
+                  {loadingMore && (
+                    <span className="text-xs text-neutral-400">Loading more posts...</span>
+                  )}
+                </div>
+              )}
             </div>
           ) : error ? (
             <div className="w-full rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/20 p-6 text-center shadow-xs">
@@ -323,6 +352,13 @@ export const FeedPage: React.FC<FeedPageProps> = ({
                   onOpenSignIn={onOpenAuth}
                 />
               ))}
+              {hasMore && (
+                <div ref={loadMoreRef} className="py-6 flex justify-center">
+                  {loadingMore && (
+                    <span className="text-xs text-neutral-400">Loading more posts...</span>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </main>
