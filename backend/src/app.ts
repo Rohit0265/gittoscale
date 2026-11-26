@@ -35,6 +35,8 @@ const __dirname = path.dirname(__filename);
 export function createApp() {
   loadEnvFiles();
   const app = express();
+  app.set('trust proxy', 1);
+  app.disable('x-powered-by');
 
   // Security Headers Middleware
   app.use((_req: Request, res: Response, next: NextFunction) => {
@@ -63,8 +65,8 @@ export function createApp() {
         if (!origin) return callback(null, true);
 
         const isAllowedVercelDeployment =
-          origin.endsWith('.vercel.app') &&
-          (origin.includes('gitoscale') || process.env.NODE_ENV !== 'production');
+          /^https:\/\/gitoscale(-[a-z0-9-]+)?\.vercel\.app$/i.test(origin) ||
+          (origin.endsWith('.vercel.app') && process.env.NODE_ENV !== 'production');
 
         if (
           process.env.NODE_ENV !== 'production' ||
