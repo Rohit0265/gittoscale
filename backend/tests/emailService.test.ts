@@ -90,8 +90,11 @@ describe('Email Service & Welcome Email Pipeline', () => {
     });
 
     it('POST /api/auth/test-welcome-email allows manual verification of welcome email', async () => {
+      process.env.ADMIN_EMAILS = 'admin@gittoscale.tech';
+      const adminToken = `mock_jwt_${Buffer.from(JSON.stringify({ id: 'usr_admin', email: 'admin@gittoscale.tech' })).toString('base64')}`;
       const res = await request(app)
         .post('/api/auth/test-welcome-email')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Alan Turing',
           email: 'alan@bletchley.ac.uk',
@@ -103,8 +106,11 @@ describe('Email Service & Welcome Email Pipeline', () => {
     });
 
     it('POST /api/auth/test-welcome-email rejects invalid email with 400', async () => {
+      process.env.ADMIN_EMAILS = 'admin@gittoscale.tech';
+      const adminToken = `mock_jwt_${Buffer.from(JSON.stringify({ id: 'usr_admin', email: 'admin@gittoscale.tech' })).toString('base64')}`;
       const res = await request(app)
         .post('/api/auth/test-welcome-email')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           email: 'bad-email',
         });

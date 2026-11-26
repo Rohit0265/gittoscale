@@ -186,18 +186,6 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
                 Cancel Subscription
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => fetchHistory()}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
-                isDark
-                  ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300'
-                  : 'border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`}
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh</span>
-            </button>
           </div>
         </div>
 
