@@ -38,7 +38,6 @@ interface HistoryCardProps {
 
 const HistoryCard: React.FC<HistoryCardProps> = ({
   title,
-  nodeCount,
   createdAt,
   isDeleting,
   deleteTitle,
