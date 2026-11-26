@@ -250,7 +250,7 @@ router.post('/notify-signup', async (req: Request, res: Response) => {
  */
 router.post('/sync-profile', requireAuth, async (req: Request, res: Response) => {
   const { id, email, fullName, avatarUrl, provider } = req.body || {};
-  const authUser = req.user!;
+  const authUser = (req as any).user!;
 
   if (id && String(id).trim() !== authUser.id) {
     return res.status(403).json({ success: false, error: 'Cannot sync profile for another user' });
@@ -333,7 +333,7 @@ router.get('/profile/:id', requireAuth, async (req: Request, res: Response) => {
     try {
       const profile = await getUserProfile(userId);
       if (profile) {
-        if (req.user?.id === userId) {
+        if ((req as any).user?.id === userId) {
           return res.json({ success: true, profile });
         }
         return res.json({
