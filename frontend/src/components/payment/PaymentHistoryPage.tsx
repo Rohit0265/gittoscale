@@ -451,7 +451,7 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
                 )}
               </div>
             </div>
-          </div>
+          )
         )}
       </main>
 
