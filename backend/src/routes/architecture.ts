@@ -18,7 +18,7 @@ router.post('/design-report', async (req: Request, res: Response, next: NextFunc
     if (!usageCheck.allowed) {
       return res.status(403).json({
         success: false,
-        error: usageCheck.error || 'Free plan AI generation limit reached.',
+        error: usageCheck.message || 'Free plan AI generation limit reached.',
         requiresUpgrade: true,
       });
     }

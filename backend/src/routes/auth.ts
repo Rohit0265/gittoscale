@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { requireAuth, isUserAdmin } from '../middleware/auth.js';
+import { requireAuth } from '../middleware/auth.js';
 import { sendSignupTelegramNotification } from '../services/telegramService.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 import {

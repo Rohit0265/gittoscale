@@ -237,7 +237,7 @@ router.post('/test-llm', async (req: Request, res: Response) => {
       }
       const ssrfCheck = validateSafeLlmBaseUrl(String(baseUrl));
       if (!ssrfCheck.safe) {
-        return res.status(400).json({ success: false, message: ssrfCheck.reason || 'Unsafe base URL.' });
+        return res.status(400).json({ success: false, message: ssrfCheck.error || 'Unsafe base URL.' });
       }
       const cleanBase = baseUrl.replace(/\/+$/, '');
       const testUrl = cleanBase.endsWith('/models') || cleanBase.endsWith('/chat/completions')
