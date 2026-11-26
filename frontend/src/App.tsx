@@ -2251,6 +2251,7 @@ export const App: React.FC = () => {
       <Suspense fallback={<AuthModalSkeleton />}>
         <ModernLoginSignup
           onClose={handleGoHome}
+          isDark={isDark}
           onSuccess={() => {
             setIsAuthOpen(false);
 
@@ -2653,10 +2654,11 @@ export const App: React.FC = () => {
           </Suspense>
         )}
         {isAuthOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
+          <div className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xs ${isDark ? 'bg-black/85' : 'bg-slate-900/30'}`}>
             <Suspense fallback={<AuthModalSkeleton />}>
               <ModernLoginSignup
                 onClose={() => setIsAuthOpen(false)}
+                isDark={isDark}
                 onSuccess={(_user) => {
                   setIsAuthOpen(false);
                 }}
@@ -3105,10 +3107,11 @@ export const App: React.FC = () => {
 
       {/* Modern Login / Signup Modal */}
       {isAuthOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xs ${isDark ? 'bg-black/85' : 'bg-slate-900/30'}`}>
           <Suspense fallback={<AuthModalSkeleton />}>
             <ModernLoginSignup
               onClose={() => setIsAuthOpen(false)}
+              isDark={isDark}
               onSuccess={(_user) => {
                 setIsAuthOpen(false);
               }}

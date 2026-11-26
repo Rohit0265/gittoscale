@@ -53,7 +53,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
             Check for typos, try again?
           </p>
           {currentPath && currentPath !== '/' && (
-            <p className="pt-2 text-xs font-mono text-neutral-400 dark:text-neutral-500">
+            <p className="pt-2 text-xs font-mono text-neutral-600 dark:text-neutral-500">
               Path: <span className="underline decoration-dotted">{currentPath}</span>
             </p>
           )}

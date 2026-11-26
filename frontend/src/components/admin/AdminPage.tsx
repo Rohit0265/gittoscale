@@ -39,7 +39,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   user: propUser,
   token: propToken,
   onNavigate,
-  isDark = true,
+  // Theme is now driven by the `dark` class on <html>, so this prop is
+  // accepted for backwards compatibility but no longer read.
+  isDark: _isDark = true,
 }) => {
   const { user: authUser, profile: authProfile, isLoading: isAuthLoading, getAuthToken } = useAuth();
   const effectiveUser = propUser || authUser;
@@ -349,7 +351,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // Auth checking loader
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-300 gap-4">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center text-slate-600 dark:text-slate-300 gap-4">
         <div className="w-16 h-8 text-indigo-500">
           <WanderingEyes className="w-full h-full" />
         </div>
@@ -361,12 +363,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // Not logged in state
   if (!effectiveUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
           <Shield className="w-8 h-8" />
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Superuser Portal</h1>
-        <p className="text-sm text-slate-400 max-w-md mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Superuser Portal</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6">
           Please sign in with your administrator account to access the moderation console.
         </p>
         <button
@@ -382,21 +384,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // Access denied state
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-4">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Superuser Access Restricted</h1>
-        <p className="text-sm text-slate-400 max-w-md mb-2">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Superuser Access Restricted</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-2">
           This portal is reserved strictly for GitToScale system administrators and content moderators.
         </p>
         <p className="text-xs text-slate-500 mb-6">
-          Signed in as: <span className="text-slate-300 font-semibold">{effectiveUser.email || effectiveUser.id}</span>
+          Signed in as: <span className="text-slate-600 dark:text-slate-300 font-semibold">{effectiveUser.email || effectiveUser.id}</span>
         </p>
         <div className="flex gap-3">
           <button
             onClick={() => onNavigate('feed')}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-semibold text-white transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-semibold text-slate-900 dark:text-white transition-colors cursor-pointer"
           >
             Go to Community Feed
           </button>
@@ -412,7 +414,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   }
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#0B0F17] text-slate-100' : 'bg-slate-50 text-slate-900'} transition-colors`}>
+    <div className="min-h-screen bg-white dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 transition-colors">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -434,7 +436,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           <span>{toastMessage.text}</span>
           <button
             onClick={() => setToastMessage(null)}
-            className="ml-2 text-slate-400 hover:text-white transition-colors"
+            className="ml-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -446,7 +448,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => onNavigate('feed')}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             title="Return to Feed"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -457,12 +459,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-tight text-white">Superuser Control Panel</span>
+                <span className="font-bold text-sm tracking-tight text-slate-900 dark:text-white">Superuser Control Panel</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                   Moderator
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Account warnings, adult content moderation & suspension desk</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Account warnings, adult content moderation & suspension desk</p>
             </div>
           </div>
         </div>
@@ -471,7 +473,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           <button
             onClick={fetchUsers}
             disabled={isLoadingUsers}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoadingUsers ? 'animate-spin text-indigo-400' : ''}`} />
             <span>Refresh</span>
@@ -490,15 +492,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         {/* Metric Statistics Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs mb-1">
               <span>Total Users</span>
               <Users className="w-4 h-4 text-indigo-400" />
             </div>
-            <div className="text-2xl font-black text-white">{stats.totalUsers}</div>
+            <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.totalUsers}</div>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs mb-1">
               <span>Active Accounts</span>
               <CheckCircle className="w-4 h-4 text-emerald-400" />
             </div>
@@ -506,7 +508,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs mb-1">
               <span>Warned (1-2)</span>
               <AlertTriangle className="w-4 h-4 text-amber-400" />
             </div>
@@ -514,7 +516,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs mb-1">
               <span>Suspended (3+)</span>
               <Ban className="w-4 h-4 text-rose-400" />
             </div>
@@ -522,7 +524,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs col-span-2 sm:col-span-1">
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs mb-1">
               <span>Platform Posts</span>
               <FileText className="w-4 h-4 text-purple-400" />
             </div>
@@ -540,12 +542,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search user by @username, full name, or email..."
-              className="w-full pl-10 pr-9 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors"
+              className="w-full pl-10 pr-9 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 dark:hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -568,7 +570,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                   statusFilter === tab.id
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-slate-950/80 text-slate-400 hover:text-white hover:bg-slate-800'
+                    : 'bg-slate-950/80 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 {tab.label}
@@ -581,7 +583,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-950/80 text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-800/80">
+              <thead className="bg-slate-950/80 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-800/80">
                 <tr>
                   <th className="px-5 py-3.5">User</th>
                   <th className="px-4 py-3.5">Role</th>
@@ -595,14 +597,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <tbody className="divide-y divide-slate-800/60">
                 {isLoadingUsers ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-slate-400">
+                    <td colSpan={7} className="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
                       <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
                       Loading users...
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-slate-400">
+                    <td colSpan={7} className="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
                       No users found matching your search and filter criteria.
                     </td>
                   </tr>
@@ -628,11 +630,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 src={user.avatar_url}
                                 name={user.full_name || user.username}
                                 seed={user.id || user.full_name}
-                                className="w-9 h-9 rounded-full border border-slate-700"
-                                fallbackClassName="w-9 h-9 rounded-full text-white font-bold text-xs flex items-center justify-center uppercase shadow-xs"
+                                className="w-9 h-9 rounded-full border border-slate-300 dark:border-slate-700"
+                                fallbackClassName="w-9 h-9 rounded-full text-slate-900 dark:text-white font-bold text-xs flex items-center justify-center uppercase shadow-xs"
                               />
                               {isBanned && (
-                                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-rose-600 border border-slate-900 flex items-center justify-center text-white text-[9px]">
+                                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-rose-600 border border-slate-200 dark:border-slate-900 flex items-center justify-center text-white text-[9px]">
                                   &times;
                                 </span>
                               )}
@@ -641,11 +643,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             <div className="min-w-0">
                               <button
                                 onClick={() => handleInspectUser(user)}
-                                className="font-semibold text-white hover:text-indigo-400 transition-colors truncate block text-left cursor-pointer"
+                                className="font-semibold text-slate-900 dark:text-white hover:text-indigo-400 transition-colors truncate block text-left cursor-pointer"
                               >
                                 {user.full_name}
                               </button>
-                              <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                                 <span>@{user.username}</span>
                                 {user.email && (
                                   <>
@@ -666,7 +668,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               Superuser
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                               User
                             </span>
                           )}
@@ -707,20 +709,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                         : step === 2
                                         ? 'bg-orange-500'
                                         : 'bg-amber-400'
-                                      : 'bg-slate-800'
+                                      : 'bg-slate-200 dark:bg-slate-800'
                                   }`}
                                   title={`Warning tier ${step}`}
                                 />
                               );
                             })}
-                            <span className="text-[11px] font-semibold text-slate-400 ml-1">
+                            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 ml-1">
                               {user.warning_count}/3
                             </span>
                           </div>
                         </td>
 
                         {/* Post count */}
-                        <td className="px-4 py-3.5 text-slate-300 font-medium">
+                        <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300 font-medium">
                           <button
                             onClick={() => handleInspectUser(user)}
                             className="hover:text-indigo-400 underline underline-offset-2 cursor-pointer"
@@ -730,7 +732,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         </td>
 
                         {/* Joined Date */}
-                        <td className="px-4 py-3.5 text-slate-400 text-xs">
+                        <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 text-xs">
                           {formatRelativeTime(user.created_at)}
                         </td>
 
@@ -740,7 +742,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             {/* Inspect posts */}
                             <button
                               onClick={() => handleInspectUser(user)}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                               title="Inspect posts & activity"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -788,33 +790,33 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       {/* User Inspection & Posts Modal Drawer ("after tapping on the username i can see the post it makes") */}
       {selectedUser && (
         <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-2xl bg-slate-900 border-l border-slate-800 h-full overflow-y-auto flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+          <div className="w-full max-w-2xl bg-slate-50 dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 h-full overflow-y-auto flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
-            <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-5 flex items-center justify-between">
+            <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <UserAvatar
                   src={selectedUser.avatar_url}
                   name={selectedUser.full_name || selectedUser.username}
                   seed={selectedUser.id || selectedUser.full_name}
-                  className="w-11 h-11 rounded-full border border-slate-700"
-                  fallbackClassName="w-11 h-11 rounded-full text-white font-bold text-sm flex items-center justify-center uppercase shadow-xs"
+                  className="w-11 h-11 rounded-full border border-slate-300 dark:border-slate-700"
+                  fallbackClassName="w-11 h-11 rounded-full text-slate-900 dark:text-white font-bold text-sm flex items-center justify-center uppercase shadow-xs"
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-white">{selectedUser.full_name}</h2>
+                    <h2 className="text-base font-bold text-slate-900 dark:text-white">{selectedUser.full_name}</h2>
                     {selectedUser.is_admin && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
                         Admin
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400">@{selectedUser.username} &bull; {selectedUser.email}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">@{selectedUser.username} &bull; {selectedUser.email}</p>
                 </div>
               </div>
 
               <button
                 onClick={handleCloseInspector}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -829,13 +831,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     ? 'bg-rose-950/30 border-rose-800/60'
                     : selectedUser.warning_count > 0
                     ? 'bg-amber-950/30 border-amber-800/60'
-                    : 'bg-slate-950/60 border-slate-800'
+                    : 'bg-slate-950/60 border-slate-200 dark:border-slate-800'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <ShieldAlert className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                       Moderation Standing
                     </span>
                   </div>
@@ -865,15 +867,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 {/* Warnings history if any */}
                 {selectedUser.warnings && selectedUser.warnings.length > 0 && (
                   <div className="space-y-1.5 mb-3">
-                    <p className="text-[11px] font-semibold text-slate-400 uppercase">Warning History:</p>
+                    <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Warning History:</p>
                     {selectedUser.warnings.map((w, idx) => (
                       <div
                         key={w.id || idx}
-                        className="text-xs bg-slate-900/80 p-2 rounded-lg border border-slate-800 flex items-start justify-between gap-2"
+                        className="text-xs bg-slate-900/80 p-2 rounded-lg border border-slate-200 dark:border-slate-800 flex items-start justify-between gap-2"
                       >
                         <div>
                           <span className="font-bold text-amber-400 mr-1.5">Strike {idx + 1}:</span>
-                          <span className="text-slate-300">{w.reason}</span>
+                          <span className="text-slate-600 dark:text-slate-300">{w.reason}</span>
                         </div>
                         <span className="text-[10px] text-slate-500 shrink-0">
                           {formatRelativeTime(w.created_at)}
@@ -914,7 +916,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   {selectedUser.warning_count > 0 && (
                     <button
                       onClick={() => handleResetWarnings(selectedUser)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Reset Warnings (0)</span>
@@ -934,20 +936,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               {/* User's Posts Section ("after tapping on the username i can see the post it makes") */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <FileText className="w-4 h-4 text-indigo-400" />
                     <span>Published Posts ({userPosts.length})</span>
                   </h3>
-                  <span className="text-xs text-slate-400">Review content for adult/policy violations</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Review content for adult/policy violations</span>
                 </div>
 
                 {isLoadingPosts ? (
-                  <div className="p-8 text-center text-slate-400">
+                  <div className="p-8 text-center text-slate-500 dark:text-slate-400">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
                     Loading user posts...
                   </div>
                 ) : userPosts.length === 0 ? (
-                  <div className="p-8 rounded-2xl bg-slate-950/50 border border-slate-800 text-center text-slate-400 text-xs">
+                  <div className="p-8 rounded-2xl bg-slate-950/50 border border-slate-200 dark:border-slate-800 text-center text-slate-500 dark:text-slate-400 text-xs">
                     This user has not published any posts yet.
                   </div>
                 ) : (
@@ -958,7 +960,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-3 group"
                       >
                         {/* Post Header */}
-                        <div className="flex items-center justify-between text-xs text-slate-400">
+                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
                             {formatRelativeTime(post.created_at)}
@@ -973,8 +975,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
                               {post.comment_count}
                             </span>
-                            <span className="flex items-center gap-1 text-slate-400" title={`${post.views_count ?? 0} views`}>
-                              <Eye className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400" title={`${post.views_count ?? 0} views`}>
+                              <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                               {post.views_count ?? 0}
                             </span>
 
@@ -991,7 +993,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         </div>
 
                         {/* Post Content */}
-                        <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">
+                        <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
                           {post.content}
                         </p>
 
@@ -999,7 +1001,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         {post.media_items && post.media_items.length > 0 ? (
                           <div className="grid grid-cols-2 gap-2 rounded-xl overflow-hidden mt-2">
                             {post.media_items.map((m, idx) => (
-                              <div key={idx} className="relative aspect-video bg-black rounded-lg overflow-hidden border border-slate-800">
+                              <div key={idx} className="relative aspect-video bg-black rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
                                 {m.type === 'video' ? (
                                   <video
                                     src={m.url}
@@ -1017,7 +1019,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             ))}
                           </div>
                         ) : post.media_url ? (
-                          <div className="rounded-xl overflow-hidden mt-2 border border-slate-800 max-h-72 bg-black">
+                          <div className="rounded-xl overflow-hidden mt-2 border border-slate-200 dark:border-slate-800 max-h-72 bg-black">
                             {post.media_type === 'video' ? (
                               <video
                                 src={post.media_url}
@@ -1046,20 +1048,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       {/* Issue Warning Modal (Rules: 3 warnings = Auto-Suspension) */}
       {warnModalUser && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-base">Issue Strike Warning</h3>
-                  <p className="text-xs text-slate-400">Target: @{warnModalUser.username}</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Issue Strike Warning</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Target: @{warnModalUser.username}</p>
                 </div>
               </div>
               <button
                 onClick={() => setWarnModalUser(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1080,11 +1082,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 block">Select Violation Category:</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block">Select Violation Category:</label>
               <select
                 value={warnReason}
                 onChange={(e) => setWarnReason(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-hidden focus:border-amber-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-hidden focus:border-amber-500"
               >
                 {presetReasons.map((r) => (
                   <option key={r} value={r}>
@@ -1096,21 +1098,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
             {warnReason === 'Custom' && (
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300 block">Custom Reason Description:</label>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block">Custom Reason Description:</label>
                 <textarea
                   value={customWarnReason}
                   onChange={(e) => setCustomWarnReason(e.target.value)}
                   placeholder="Detail the exact community guideline breach..."
                   rows={3}
-                  className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500"
+                  className="w-full p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:border-amber-500"
                 />
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setWarnModalUser(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer"
               >
                 Cancel
               </button>
@@ -1129,20 +1131,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       {/* Direct Suspend Modal ("if there is an gadbadi there i can ban hin") */}
       {suspendModalUser && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-slate-900 border border-rose-800/60 rounded-3xl p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md bg-slate-50 dark:bg-slate-900 border border-rose-800/60 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
                   <Ban className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-base">Direct Account Suspension</h3>
-                  <p className="text-xs text-slate-400">Suspend: @{suspendModalUser.username}</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Direct Account Suspension</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Suspend: @{suspendModalUser.username}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSuspendModalUser(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1153,20 +1155,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </p>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 block">Suspension Reason / Ground:</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block">Suspension Reason / Ground:</label>
               <textarea
                 value={suspendReason}
                 onChange={(e) => setSuspendReason(e.target.value)}
                 placeholder="Specify the policy violation (e.g. Adult/NSFW content distribution)..."
                 rows={3}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-rose-500"
+                className="w-full p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:border-rose-500"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setSuspendModalUser(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer"
               >
                 Cancel
               </button>

@@ -9,6 +9,7 @@ export interface ModernLoginSignupProps {
   onSuccess?: (user: { id: string; email: string; name: string }) => void;
   logoText?: string;
   brandName?: string;
+  isDark?: boolean;
 }
 
 export default function Component({
@@ -16,9 +17,33 @@ export default function Component({
   onSuccess,
   logoText = "GS",
   brandName = "GitToScale",
+  isDark: isDarkProp,
 }: ModernLoginSignupProps = {}) {
   const { signInWithOAuth } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Fall back to the document class when the prop is not supplied, so the
+  // modal still themes correctly wherever it is mounted.
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof isDarkProp === 'boolean') return isDarkProp;
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (typeof isDarkProp === 'boolean') {
+      setIsDark(isDarkProp);
+      return;
+    }
+    const root = document.documentElement;
+    const sync = () => setIsDark(root.classList.contains('dark'));
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [isDarkProp]);
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -43,18 +68,22 @@ export default function Component({
       scene = new THREE.Scene();
       camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
+      const dotColor = isDark
+        ? new THREE.Vector3(1, 1, 1)
+        : new THREE.Vector3(0.09, 0.11, 0.16);
+
       const uniforms = {
         u_time: { value: 0 },
         u_resolution: { value: new THREE.Vector2(window.innerWidth * 2, window.innerHeight * 2) },
         u_opacities: { value: [0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.8, 0.8, 0.8, 1.0] },
         u_colors: {
           value: [
-            new THREE.Vector3(1, 1, 1),
-            new THREE.Vector3(1, 1, 1),
-            new THREE.Vector3(1, 1, 1),
-            new THREE.Vector3(1, 1, 1),
-            new THREE.Vector3(1, 1, 1),
-            new THREE.Vector3(1, 1, 1),
+            dotColor.clone(),
+            dotColor.clone(),
+            dotColor.clone(),
+            dotColor.clone(),
+            dotColor.clone(),
+            dotColor.clone(),
           ],
         },
         u_total_size: { value: 20.0 },
@@ -126,7 +155,9 @@ export default function Component({
         `,
         uniforms: uniforms,
         glslVersion: THREE.GLSL3,
-        blending: THREE.CustomBlending,
+        // Additive blending only works for light dots on a dark canvas.
+        // On light backgrounds the dots are dark, so use normal alpha blending.
+        blending: isDark ? THREE.CustomBlending : THREE.NormalBlending,
         blendSrc: THREE.SrcAlphaFactor,
         blendDst: THREE.OneFactor,
         transparent: true,
@@ -195,7 +226,7 @@ export default function Component({
       if (geometry) geometry.dispose();
       if (material) material.dispose();
     };
-  }, []);
+  }, [isDark]);
 
   const handleSocialClick = async (providerName: string) => {
     const provider = providerName.toLowerCase() as 'google' | 'github';
@@ -226,14 +257,65 @@ export default function Component({
     }
   };
 
+  /* ─── theme tokens (mirror the app's CSS variables) ─── */
+  const t = isDark
+    ? {
+        pageBg: '#000',
+        pageFg: '#fff',
+        cardBg: '#121212',
+        cardBorder: '#222',
+        cardShadow: '0 10px 40px rgba(0,0,0,0.8)',
+        vignette: 'radial-gradient(circle at center,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0) 100%)',
+        btnBorder: '#333',
+        btnFg: '#fff',
+        btnHover: 'rgba(255,255,255,0.06)',
+        logoBg: '#111',
+        logoBorder: '#333',
+        textSecondary: '#888',
+        textFaint: '#666',
+        linkFg: '#888',
+        strongFg: '#fff',
+        successBg: 'rgba(34,197,94,0.1)',
+        successFg: '#4ade80',
+        successBorder: 'rgba(34,197,94,0.2)',
+        errorBg: 'rgba(239,68,68,0.1)',
+        errorFg: '#f87171',
+        errorBorder: 'rgba(239,68,68,0.2)',
+        iconFg: '#e2e8f0',
+      }
+    : {
+        pageBg: '#f8fafc',
+        pageFg: '#0f172a',
+        cardBg: '#ffffff',
+        cardBorder: '#e2e8f0',
+        cardShadow: '0 10px 40px rgba(15,23,42,0.12)',
+        vignette: 'radial-gradient(circle at center,rgba(248,250,252,0) 0%,rgba(248,250,252,0.85) 100%)',
+        btnBorder: '#cbd5e1',
+        btnFg: '#0f172a',
+        btnHover: 'rgba(15,23,42,0.04)',
+        logoBg: '#f1f5f9',
+        logoBorder: '#e2e8f0',
+        textSecondary: '#475569',
+        textFaint: '#64748b',
+        linkFg: '#475569',
+        strongFg: '#0f172a',
+        successBg: 'rgba(22,163,74,0.08)',
+        successFg: '#15803d',
+        successBorder: 'rgba(22,163,74,0.25)',
+        errorBg: 'rgba(220,38,38,0.08)',
+        errorFg: '#b91c1c',
+        errorBorder: 'rgba(220,38,38,0.25)',
+        iconFg: '#475569',
+      };
+
   /* ─── shared button styles ─── */
   const socialBtn: React.CSSProperties = {
     width: '100%',
     padding: '0.65rem',
     borderRadius: 6,
-    border: '1px solid #333',
+    border: `1px solid ${t.btnBorder}`,
     background: 'transparent',
-    color: '#fff',
+    color: t.btnFg,
     fontWeight: 500,
     fontSize: '0.875rem',
     cursor: 'pointer',
@@ -297,7 +379,7 @@ export default function Component({
   const Logo = (
     <div
       style={{
-        background: '#111',
+        background: t.logoBg,
         width: 44,
         height: 44,
         borderRadius: '50%',
@@ -307,11 +389,11 @@ export default function Component({
         fontWeight: 700,
         fontSize: '1.15rem',
         marginBottom: '0.75rem',
-        border: '1px solid #333',
+        border: `1px solid ${t.logoBorder}`,
       }}
     >
       <img
-        src="/logo-mark.png"
+        src={isDark ? '/logo-mark.png' : '/logo-mark-light.png'}
         alt={logoText || brandName}
         style={{ width: 26, height: 26, objectFit: 'contain' }}
       />
@@ -319,15 +401,15 @@ export default function Component({
   );
 
   const Footer = (
-    <div style={{ marginTop: '0.85rem', fontSize: '0.75rem', color: '#666', lineHeight: 1.5, textAlign: 'center' }}>
+    <div style={{ marginTop: '0.85rem', fontSize: '0.75rem', color: t.textFaint, lineHeight: 1.5, textAlign: 'center' }}>
       By proceeding, you agree to creating a {brandName} account
       <br />
       subject to our{' '}
-      <a href="#" style={{ color: '#888', textDecoration: 'underline' }}>
+      <a href="#" style={{ color: t.linkFg, textDecoration: 'underline' }}>
         Terms of Service
       </a>{' '}
       and{' '}
-      <a href="#" style={{ color: '#888', textDecoration: 'underline' }}>
+      <a href="#" style={{ color: t.linkFg, textDecoration: 'underline' }}>
         Privacy Policy
       </a>
       .
@@ -344,9 +426,10 @@ export default function Component({
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        background: '#000',
-        color: '#fff',
+        background: t.pageBg,
+        color: t.pageFg,
         fontFamily: "'Inter',-apple-system,sans-serif",
+        transition: 'background-color 0.25s ease, color 0.25s ease',
       }}
     >
       {/* WebGL Dot canvas */}
@@ -358,7 +441,7 @@ export default function Component({
           position: 'absolute',
           inset: 0,
           zIndex: 1,
-          background: 'radial-gradient(circle at center,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0) 100%)',
+          background: t.vignette,
           pointerEvents: 'none',
         }}
       />
@@ -368,17 +451,18 @@ export default function Component({
         style={{
           position: 'relative',
           zIndex: 2,
-          background: '#121212',
+          background: t.cardBg,
           borderRadius: 12,
           padding: '2rem',
           width: '100%',
           maxWidth: 400,
-          boxShadow: '0 10px 40px rgba(0,0,0,0.8)',
+          boxShadow: t.cardShadow,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          border: '1px solid #222',
+          border: `1px solid ${t.cardBorder}`,
           margin: '1rem',
+          transition: 'background-color 0.25s ease, border-color 0.25s ease',
         }}
       >
         {/* Optional close button */}
@@ -392,7 +476,7 @@ export default function Component({
               right: '1rem',
               background: 'transparent',
               border: 'none',
-              color: '#888',
+              color: t.textSecondary,
               cursor: 'pointer',
               padding: '0.25rem',
             }}
@@ -416,7 +500,7 @@ export default function Component({
             <h1 style={{ fontSize: '1.35rem', fontWeight: 600, marginBottom: '0.25rem', letterSpacing: '-0.025em' }}>
               Sign in to Account
             </h1>
-            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.85rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.85rem', color: t.textSecondary, marginBottom: '0.85rem', lineHeight: 1.5 }}>
               Sign in to your {brandName} Account.
             </p>
 
@@ -431,15 +515,15 @@ export default function Component({
                   alignItems: 'center',
                   gap: '0.5rem',
                   marginBottom: '0.65rem',
-                  background: message.type === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                  color: message.type === 'success' ? '#4ade80' : '#f87171',
-                  border: `1px solid ${message.type === 'success' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                  background: message.type === 'success' ? t.successBg : t.errorBg,
+                  color: message.type === 'success' ? t.successFg : t.errorFg,
+                  border: `1px solid ${message.type === 'success' ? t.successBorder : t.errorBorder}`,
                 }}
               >
                 {message.type === 'success' ? (
-                  <CheckCircle2 className="hover:text-emerald-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <CheckCircle2 className="transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: t.iconFg }} />
                 ) : (
-                  <AlertCircle className="hover:text-rose-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <AlertCircle className="transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: t.iconFg }} />
                 )}
                 <span>{message.text}</span>
               </div>
@@ -486,7 +570,7 @@ export default function Component({
               {AppleIcon}Continue with Apple
             </button> */}
 
-            <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: '#888' }}>
+            <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: t.textSecondary }}>
               Don't have an account?{' '}
               <button
                 onClick={() => {
@@ -494,7 +578,7 @@ export default function Component({
                   setMessage(null);
                 }}
                 style={{
-                  color: '#fff',
+                  color: t.strongFg,
                   fontWeight: 500,
                   background: 'none',
                   border: 'none',
@@ -524,7 +608,7 @@ export default function Component({
             <h1 style={{ fontSize: '1.35rem', fontWeight: 600, marginBottom: '0.25rem', letterSpacing: '-0.025em' }}>
               Sign up for Account
             </h1>
-            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.85rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.85rem', color: t.textSecondary, marginBottom: '0.85rem', lineHeight: 1.5 }}>
               Create a new account to get started with {brandName}.
             </p>
 
@@ -539,15 +623,15 @@ export default function Component({
                   alignItems: 'center',
                   gap: '0.5rem',
                   marginBottom: '0.65rem',
-                  background: message.type === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                  color: message.type === 'success' ? '#4ade80' : '#f87171',
-                  border: `1px solid ${message.type === 'success' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                  background: message.type === 'success' ? t.successBg : t.errorBg,
+                  color: message.type === 'success' ? t.successFg : t.errorFg,
+                  border: `1px solid ${message.type === 'success' ? t.successBorder : t.errorBorder}`,
                 }}
               >
                 {message.type === 'success' ? (
-                  <CheckCircle2 className="hover:text-emerald-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <CheckCircle2 className="transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: t.iconFg }} />
                 ) : (
-                  <AlertCircle className="hover:text-rose-400 transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: '#e2e8f0' }} />
+                  <AlertCircle className="transition-colors" style={{ width: 14, height: 14, flexShrink: 0, color: t.iconFg }} />
                 )}
                 <span>{message.text}</span>
               </div>
@@ -602,7 +686,7 @@ export default function Component({
               {AppleIcon}Sign up with Apple
             </button> */}
 
-            <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: '#888' }}>
+            <div style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: t.textSecondary }}>
               Already have an account?{' '}
               <button
                 onClick={() => {
@@ -610,7 +694,7 @@ export default function Component({
                   setMessage(null);
                 }}
                 style={{
-                  color: '#fff',
+                  color: t.strongFg,
                   fontWeight: 500,
                   background: 'none',
                   border: 'none',

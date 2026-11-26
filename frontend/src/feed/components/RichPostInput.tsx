@@ -277,7 +277,7 @@ export const RichPostInput: React.FC<RichPostInputProps> = ({
                     />
                   ),
                   pre: ({ node, ...props }: any) => (
-                    <pre className="p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto my-2 border border-slate-800" {...props} />
+                    <pre className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-mono text-xs overflow-x-auto my-2 border border-slate-200 dark:border-slate-800" {...props} />
                   ),
                   code: ({ node, className, children, ...props }: any) => {
                     return (
