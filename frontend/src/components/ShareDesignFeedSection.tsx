@@ -66,64 +66,99 @@ export interface ContinuousAutoplayVideoProps {
   className?: string;
 }
 
-/** Silent, looped background video that keeps playing through scroll/visibility changes. */
+/**
+ * Lazy-loaded, scroll-triggered autoplay video:
+ * - Only loads the media when scrolling near/into view.
+ * - Starts playing when scrolled into viewport.
+ * - Pauses automatically when scrolled out of view to save CPU/battery.
+ */
 export const ContinuousAutoplayVideo: FC<ContinuousAutoplayVideoProps> = ({
   src,
   poster,
   className,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    const container = containerRef.current;
     const video = videoRef.current;
-    if (!video) return;
+    if (!container || !video) return;
 
     video.muted = true;
     video.defaultMuted = true;
     video.volume = 0;
 
-    const play = () => {
+    let isIntersecting = false;
+
+    const playVideo = () => {
+      if (!isIntersecting) return;
       if (video.paused) {
         const p = video.play();
-        if (p !== undefined) p.catch(() => {});
+        if (p !== undefined) {
+          p.catch(() => {});
+        }
       }
     };
 
-    play();
-
-    window.addEventListener('scroll', play, { passive: true });
-    window.addEventListener('touchstart', play, { passive: true });
-    document.addEventListener('visibilitychange', play);
+    const pauseVideo = () => {
+      if (!video.paused) {
+        video.pause();
+      }
+    };
 
     const observer = new IntersectionObserver(
-      (entries) => entries.forEach((entry) => entry.isIntersecting && play()),
-      { threshold: 0.05 },
+      (entries) => {
+        entries.forEach((entry) => {
+          isIntersecting = entry.isIntersecting;
+          if (entry.isIntersecting) {
+            playVideo();
+          } else {
+            pauseVideo();
+          }
+        });
+      },
+      {
+        threshold: 0.15,
+        rootMargin: '100px 0px 100px 0px',
+      },
     );
-    observer.observe(video);
+
+    observer.observe(container);
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        pauseVideo();
+      } else if (isIntersecting) {
+        playVideo();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
-      window.removeEventListener('scroll', play);
-      window.removeEventListener('touchstart', play);
-      document.removeEventListener('visibilitychange', play);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       observer.disconnect();
     };
   }, []);
 
   return (
-    <div className="pointer-events-none relative h-full w-full select-none overflow-hidden">
+    <div
+      ref={containerRef}
+      className="pointer-events-none relative h-full w-full select-none overflow-hidden"
+    >
       <video
         ref={videoRef}
         src={src}
         poster={poster}
-        autoPlay
         muted
         loop
         playsInline
+        preload="metadata"
         controls={false}
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-        onPause={(e) => e.currentTarget.play().catch(() => {})}
         className={cn('pointer-events-none h-full w-full select-none object-cover object-top', className)}
       />
     </div>
