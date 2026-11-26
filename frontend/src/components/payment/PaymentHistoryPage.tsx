@@ -176,18 +176,29 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
               List of all recorded payments, active plans, and billing receipts.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => fetchHistory()}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
-              isDark
-                ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300'
-                : 'border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {isPro && !isCanceled && (
+              <button
+                type="button"
+                onClick={() => setCancelModalOpen(true)}
+                className="px-3 py-1.5 rounded-lg border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Cancel Subscription
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => fetchHistory()}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                isDark
+                  ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300'
+                  : 'border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700'
+              }`}
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
 
         {/* Feedback Alert */}
@@ -333,65 +344,53 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
                             {tx.amount}
                           </td>
 
-                          {/* Status + Cancel button */}
+                          {/* Status */}
                           <td className="py-3.5 px-4">
-                            <div className="flex flex-col gap-1">
-                              {isCurrentActive ? (
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold border w-fit ${
-                                  isDark
-                                    ? 'border-gray-700 bg-gray-900 text-white'
-                                    : 'border-gray-300 bg-gray-200 text-gray-950'
-                                }`}>
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  <span>Activated</span>
-                                </span>
-                              ) : tx.status === 'canceled' ? (
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
-                                  isDark
-                                    ? 'border-gray-800 bg-gray-950 text-gray-400'
-                                    : 'border-gray-300 bg-gray-100 text-gray-700'
-                                }`}>
-                                  <Clock className="w-3 h-3" />
-                                  <span>Canceled</span>
-                                </span>
-                              ) : tx.status === 'refunded' ? (
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
-                                  isDark
-                                    ? 'border-gray-800 bg-gray-950 text-gray-400'
-                                    : 'border-gray-300 bg-gray-100 text-gray-700'
-                                }`}>
-                                  <XCircle className="w-3 h-3" />
-                                  <span>Refunded</span>
-                                </span>
-                              ) : tx.status === 'expired' ? (
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
-                                  isDark
-                                    ? 'border-gray-800 bg-gray-950 text-gray-400'
-                                    : 'border-gray-300 bg-gray-100 text-gray-700'
-                                }`}>
-                                  <Clock className="w-3 h-3" />
-                                  <span>Expired</span>
-                                </span>
-                              ) : (
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
-                                  isDark
-                                    ? 'border-gray-800 bg-gray-900 text-gray-300'
-                                    : 'border-gray-200 bg-gray-100 text-gray-800'
-                                }`}>
-                                  <span>{tx.status}</span>
-                                </span>
-                              )}
-                              {/* Small red cancel button beneath Activated status */}
-                              {isCurrentActive && !isCanceled && (
-                                <button
-                                  type="button"
-                                  onClick={() => setCancelModalOpen(true)}
-                                  className="text-[10px] text-red-500 hover:text-red-400 font-medium cursor-pointer transition-colors w-fit"
-                                >
-                                  cancel
-                                </button>
-                              )}
-                            </div>
+                            {isCurrentActive ? (
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold border w-fit ${
+                                isDark
+                                  ? 'border-gray-700 bg-gray-900 text-white'
+                                  : 'border-gray-300 bg-gray-200 text-gray-950'
+                              }`}>
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Activated</span>
+                              </span>
+                            ) : tx.status === 'canceled' ? (
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                isDark
+                                  ? 'border-gray-800 bg-gray-950 text-gray-400'
+                                  : 'border-gray-300 bg-gray-100 text-gray-700'
+                              }`}>
+                                <Clock className="w-3 h-3" />
+                                <span>Canceled</span>
+                              </span>
+                            ) : tx.status === 'refunded' ? (
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                isDark
+                                  ? 'border-gray-800 bg-gray-950 text-gray-400'
+                                  : 'border-gray-300 bg-gray-100 text-gray-700'
+                              }`}>
+                                <XCircle className="w-3 h-3" />
+                                <span>Refunded</span>
+                              </span>
+                            ) : tx.status === 'expired' ? (
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                isDark
+                                  ? 'border-gray-800 bg-gray-950 text-gray-400'
+                                  : 'border-gray-300 bg-gray-100 text-gray-700'
+                              }`}>
+                                <Clock className="w-3 h-3" />
+                                <span>Expired</span>
+                              </span>
+                            ) : (
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                isDark
+                                  ? 'border-gray-800 bg-gray-900 text-gray-300'
+                                  : 'border-gray-200 bg-gray-100 text-gray-800'
+                              }`}>
+                                <span>{tx.status}</span>
+                              </span>
+                            )}
                           </td>
 
                           {/* Start Date */}
