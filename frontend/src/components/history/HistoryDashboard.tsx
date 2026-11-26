@@ -3,11 +3,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import { LandingHeader } from '../LandingHeader';
 import {
-  Search,
   ExternalLink,
   Trash2,
   Layers,
-  RefreshCw,
   AlertCircle,
   Plus,
   Github,
@@ -167,9 +165,9 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<'architectures' | 'collab'>('architectures');
 
   // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [searchQuery] = useState('');
+  const [statusFilter] = useState<string>('all');
+  const [sortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Data states
   const [architectures, setArchitectures] = useState<any[]>([]);
@@ -412,58 +410,6 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                 <span>Collab ({totalCollab})</span>
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Search, Filter & Sort Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 rounded-xl shadow-2xs mb-6">
-          {/* Search bar */}
-          <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-neutral-500" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                activeTab === 'architectures'
-                  ? 'Search by prompt, title, or GitHub repo...'
-                  : 'Search by meeting title or host...'
-              }
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-[#14151F] border border-slate-200 dark:border-neutral-800 rounded-lg text-xs text-slate-800 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-neutral-500 transition-colors"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-50 dark:bg-[#14151F] border border-slate-200 dark:border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
-            >
-              <option value="all">All Statuses</option>
-              <option value="completed">Completed</option>
-              <option value="processing">Processing</option>
-              <option value="failed">Failed</option>
-            </select>
-
-            {/* Sort Order */}
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc')}
-              className="bg-slate-50 dark:bg-[#14151F] border border-slate-200 dark:border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
-            >
-              <option value="desc">Newest First</option>
-              <option value="asc">Oldest First</option>
-            </select>
-
-            {/* Refresh */}
-            <button
-              onClick={fetchHistories}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#14151F] text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-              title="Refresh History"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
 
