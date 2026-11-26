@@ -714,6 +714,20 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
           }
 
           const onlineUserIds = latestPresences ? Array.from(latestPresences.keys()) : [];
+          if (onlineUserIds.length === 0) {
+            // No participants remaining after grace period — mark meeting as ended
+            const room = activeRooms.get(meetingId);
+            if (room) {
+              const nodes = Array.from(room.doc.getMap('nodes').values());
+              const edges = Array.from(room.doc.getMap('edges').values());
+              await saveArchitectureState(meetingId, { nodes, edges });
+              room.doc.destroy();
+              activeRooms.delete(meetingId);
+            }
+            roomPresences.delete(meetingId);
+            await endMeeting(meetingId, currentMeeting.host_id);
+            return;
+          }
           if (onlineUserIds.length > 0) {
             const { newHost, meeting: updatedMeeting } = await transferHostToNextParticipant(
               meetingId,
