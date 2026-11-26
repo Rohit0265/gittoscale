@@ -195,7 +195,7 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
             </button>
           </div>
         ) : loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <div className="flex flex-col items-center justify-center py-28 gap-4">
             <div className={`w-16 h-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               <WanderingEyes className="w-full h-full" />
             </div>
@@ -203,7 +203,31 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
               Loading your transaction records...
             </span>
           </div>
+        ) : !hasPurchased ? (
+          /* Condition 1: No Plan Purchased -> Directly on the black screen without outer container/box */
+          <div className="py-24 px-6 text-center flex flex-col items-center justify-center max-w-lg mx-auto">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border ${
+              isDark ? 'border-gray-800 bg-gray-900/80 text-gray-300' : 'border-gray-200 bg-gray-100 text-gray-700'
+            }`}>
+              <CreditCard className="w-7 h-7 stroke-[1.5]" />
+            </div>
+            <h3 className="text-lg font-bold mb-2">No Active Plan</h3>
+            <p className={`text-xs sm:text-sm mb-6 leading-relaxed max-w-md ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              You do not have an active subscription yet. Purchase GitToScale Pro or Premium to unlock unlimited AI system design architectures, high-load simulations, and collaborative meeting rooms.
+            </p>
+            <button
+              type="button"
+              onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
+              className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all cursor-pointer flex items-center gap-2 ${
+                isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
+              }`}
+            >
+              <span>Purchase GitToScale Pro</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         ) : (
+          /* Condition 2: Plan Purchased / Has Transactions -> Show Table & Plan Status */
           <div className={`rounded-xl border overflow-hidden ${
             isDark ? 'border-gray-800 bg-gray-950 text-white' : 'border-gray-200 bg-white text-gray-900'
           }`}>
@@ -254,96 +278,72 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
               </div>
             </div>
 
-            {/* Condition 1: No Plan Purchased -> Show Purchase Pro / Premium */}
-            {!hasPurchased ? (
-              <div className="py-16 px-6 text-center flex flex-col items-center justify-center max-w-md mx-auto">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 border ${
-                  isDark ? 'border-gray-800 bg-gray-900 text-gray-300' : 'border-gray-200 bg-gray-100 text-gray-700'
+            {/* Plan Purchased / Has Transactions -> Show Table & Renew if expired */}
+            <div>
+              {/* Active or Expired Plan Banner */}
+              {isExpired ? (
+                <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                  isDark ? 'border-gray-800 bg-gray-900/60' : 'border-gray-200 bg-gray-100/70'
                 }`}>
-                  <CreditCard className="w-6 h-6 stroke-[1.5]" />
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="w-4 h-4 text-gray-400 shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold">Your plan has expired</p>
+                      <p className={`text-[11px] ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Expired on {formatDate(expirationDate)}. Renew now to restore full Pro access.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
+                    className={`px-4 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-all cursor-pointer ${
+                      isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    Renew your plans
+                  </button>
                 </div>
-                <h3 className="text-base font-bold mb-1.5">No Active Plan</h3>
-                <p className={`text-xs mb-6 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  You do not have an active subscription yet. Purchase GitToScale Pro or Premium to unlock unlimited AI system design architectures, high-load simulations, and collaborative meeting rooms.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
-                  className={`px-5 py-2.5 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer flex items-center gap-2 ${
-                    isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
-                  }`}
-                >
-                  <span>Purchase GitToScale Pro</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              /* Condition 2: Plan Purchased / Has Transactions -> Show Table & Renew if expired */
-              <div>
-                {/* Active or Expired Plan Banner */}
-                {isExpired ? (
-                  <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                    isDark ? 'border-gray-800 bg-gray-900/60' : 'border-gray-200 bg-gray-100/70'
-                  }`}>
-                    <div className="flex items-center gap-2.5">
-                      <Clock className="w-4 h-4 text-gray-400 shrink-0" />
-                      <div>
-                        <p className="text-xs font-semibold">Your plan has expired</p>
-                        <p className={`text-[11px] ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Expired on {formatDate(expirationDate)}. Renew now to restore full Pro access.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
-                      className={`px-4 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-all cursor-pointer ${
-                        isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
-                      }`}
-                    >
-                      Renew your plans
-                    </button>
-                  </div>
-                ) : isPro ? (
-                  <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                    isDark ? 'border-gray-800 bg-gray-900/30' : 'border-gray-200 bg-gray-50'
-                  }`}>
-                    <div className="flex items-center gap-2.5">
-                      <CheckCircle2 className={`w-4 h-4 shrink-0 ${isDark ? 'text-white' : 'text-black'}`} />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold">GitToScale Pro</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                            isDark
-                              ? 'border-gray-700 bg-gray-900 text-white'
-                              : 'border-gray-300 bg-gray-200 text-gray-900'
-                          }`}>
-                            {isCanceled ? 'Canceled' : 'Activated'}
-                          </span>
-                        </div>
-                        <p className={`text-[11px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {isCanceled
-                            ? `Terminates on ${formatDate(expirationDate)}. You retain Pro benefits until then.`
-                            : `Active subscription • Next renewal on ${formatDate(expirationDate)}`}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs">
-                      {expirationDate && (
-                        <div className={`flex items-center gap-1 font-mono text-[11px] ${
-                          isDark ? 'text-gray-400' : 'text-gray-600'
+              ) : isPro ? (
+                <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                  isDark ? 'border-gray-800 bg-gray-900/30' : 'border-gray-200 bg-gray-50'
+                }`}>
+                  <div className="flex items-center gap-2.5">
+                    <CheckCircle2 className={`w-4 h-4 shrink-0 ${isDark ? 'text-white' : 'text-black'}`} />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold">GitToScale Pro</span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                          isDark
+                            ? 'border-gray-700 bg-gray-900 text-white'
+                            : 'border-gray-300 bg-gray-200 text-gray-900'
                         }`}>
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>Expiry: <strong>{formatDate(expirationDate)}</strong></span>
-                        </div>
-                      )}
+                          {isCanceled ? 'Canceled' : 'Activated'}
+                        </span>
+                      </div>
+                      <p className={`text-[11px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {isCanceled
+                          ? `Terminates on ${formatDate(expirationDate)}. You retain Pro benefits until then.`
+                          : `Active subscription • Next renewal on ${formatDate(expirationDate)}`}
+                      </p>
                     </div>
                   </div>
-                ) : null}
 
-                {/* Transactions Table */}
-                {data?.transactions && data.transactions.length > 0 ? (
+                  <div className="flex items-center gap-2 text-xs">
+                    {expirationDate && (
+                      <div className={`flex items-center gap-1 font-mono text-[11px] ${
+                        isDark ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>Expiry: <strong>{formatDate(expirationDate)}</strong></span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Transactions Table */}
+              {data?.transactions && data.transactions.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
@@ -450,8 +450,8 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )
         )}
       </main>
 
