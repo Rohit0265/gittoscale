@@ -387,7 +387,9 @@ router.get('/me', (_req: Request, res: Response) => {
  * Sends or previews a test custom welcome email (for verification or admin testing)
  */
 router.post('/test-welcome-email', requireAuth, async (req: Request, res: Response) => {
-  if (!isUserAdmin(req.user)) {
+  const authUser = (req as any).user;
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (!authUser?.email || !adminEmails.includes(authUser.email.toLowerCase())) {
     return res.status(403).json({ success: false, error: 'Admin access required' });
   }
   const { email, name } = req.body || {};
