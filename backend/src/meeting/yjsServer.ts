@@ -644,6 +644,18 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
           meeting: ended,
           endedBy: session.userName,
         });
+
+        // Tear down room state to prevent memory leaks
+        if (room) {
+          room.doc.destroy();
+          activeRooms.delete(session.meetingId);
+        }
+        roomPresences.delete(session.meetingId);
+        const pendingTimer = pendingHostTransferTimers.get(session.meetingId);
+        if (pendingTimer) {
+          clearTimeout(pendingTimer);
+          pendingHostTransferTimers.delete(session.meetingId);
+        }
       } catch (err: any) {
         console.error('[YjsServer] end-meeting error:', err);
       }
