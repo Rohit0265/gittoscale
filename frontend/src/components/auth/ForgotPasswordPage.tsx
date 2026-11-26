@@ -40,9 +40,9 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNaviga
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#070709] text-white px-4 py-12 relative overflow-hidden font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-white px-4 py-12 relative overflow-hidden font-sans selection:bg-blue-500/30 transition-colors">
       {/* Background glow */}
-      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-blue-600/10 blur-[120px] rounded-full" />
+      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-blue-500/10 dark:bg-blue-600/10 blur-[120px] rounded-full" />
 
       {/* Header Logo */}
       <div className="mb-8 z-10">
@@ -62,44 +62,44 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNaviga
       </div>
 
       {/* Main Card */}
-      <div className="w-full max-w-md bg-[#0D0E15]/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl z-10">
+      <div className="w-full max-w-md bg-white/90 dark:bg-[#0D0E15]/90 border border-slate-200/80 dark:border-neutral-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-slate-900/5 dark:shadow-black/50 backdrop-blur-xl z-10 transition-colors">
         <div className="text-center mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-1.5">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-1.5">
             Reset your password
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-400">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400">
             Enter the email associated with your GitToScale account and we will send a recovery link.
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-800/50 text-red-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-slate-300 hover:text-rose-400 transition-colors" />
+          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500 dark:text-rose-400 transition-colors" />
             <span>{error}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-white hover:text-emerald-400 transition-colors" />
+          <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400 transition-colors" />
             <span>{successMessage}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-neutral-500" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex@company.com"
-                className="w-full bg-[#14151f] border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#14151f] border border-slate-300 dark:border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 transition-colors"
               />
             </div>
           </div>
@@ -123,13 +123,13 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNaviga
           </button>
         </form>
 
-        <div className="mt-6 pt-5 border-t border-neutral-800/80 text-center">
+        <div className="mt-6 pt-5 border-t border-slate-200 dark:border-neutral-800/80 text-center">
           <button
             onClick={() => {
               window.history.pushState({}, '', '/signin');
               onNavigate('signin');
             }}
-            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to sign in</span>
@@ -139,4 +139,3 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNaviga
     </div>
   );
 };
-

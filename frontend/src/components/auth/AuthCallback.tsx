@@ -213,7 +213,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#070709] text-white px-4 py-12 relative overflow-hidden font-sans">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-white px-4 py-12 relative overflow-hidden font-sans transition-colors">
       <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-blue-600/10 blur-[120px] rounded-full" />
 
       {/* Header Logo */}
@@ -233,16 +233,16 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
         </button>
       </div>
 
-      <div className="w-full max-w-md bg-[#0D0E15]/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl z-10 text-center">
+      <div className="w-full max-w-md bg-white/90 dark:bg-[#0D0E15]/90 border border-slate-200/80 dark:border-neutral-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-slate-900/5 dark:shadow-black/50 backdrop-blur-xl z-10 text-center transition-colors">
         {status === 'verifying' && (
           <div className="py-6 flex flex-col items-center">
             <div className="w-16 h-8 text-indigo-400 mb-4">
               <WanderingEyes className="w-full h-full" />
             </div>
-            <h2 className="text-lg font-semibold text-white mb-1">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
               Verifying credentials...
             </h2>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-slate-500 dark:text-neutral-400">
               Securing session and synchronizing your workspace.
             </p>
           </div>
@@ -250,11 +250,11 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
         {status === 'success' && (
           <div className="py-6 flex flex-col items-center">
-            <CheckCircle2 className="w-10 h-10 text-white hover:text-emerald-400 transition-colors mb-4" />
-            <h2 className="text-lg font-semibold text-white mb-1">
+            <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 transition-colors mb-4" />
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
               Authentication Verified
             </h2>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-slate-500 dark:text-neutral-400">
               Launching GitToScale simulation canvas...
             </p>
           </div>
@@ -263,7 +263,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
         {status === 'error' && (
           <div className="py-6 flex flex-col items-center">
             <AlertCircle className="w-10 h-10 text-slate-300 hover:text-rose-400 transition-colors mb-4" />
-            <h2 className="text-lg font-semibold text-white mb-1">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
               Authentication Failed
             </h2>
             <p className="text-xs text-red-300 mb-6 max-w-xs">
@@ -283,10 +283,10 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
         {status === 'recovery' && (
           <div>
-            <h2 className="text-lg font-semibold text-white mb-1.5">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-1.5">
               Set New Password
             </h2>
-            <p className="text-xs text-neutral-400 mb-5">
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mb-5">
               Please enter your new password to regain access.
             </p>
 
@@ -299,11 +299,11 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
 
             <form onSubmit={handlePasswordResetSubmit} className="space-y-4 text-left">
               <div>
-                <label className="block text-xs font-medium text-neutral-300 mb-1.5">
+                <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
                   New Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-neutral-500" />
                   <input
                     type="password"
                     required
@@ -311,17 +311,17 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full bg-[#14151f] border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-[#14151f] border border-slate-300 dark:border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-300 mb-1.5">
+                <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1.5">
                   Confirm New Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-neutral-500" />
                   <input
                     type="password"
                     required
@@ -329,7 +329,7 @@ export const AuthCallback: React.FC<AuthCallbackProps> = ({ onNavigate, isDark =
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full bg-[#14151f] border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-[#14151f] border border-slate-300 dark:border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-600 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
