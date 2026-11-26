@@ -6,7 +6,6 @@ import {
   Search,
   ExternalLink,
   Trash2,
-  Calendar,
   Layers,
   RefreshCw,
   AlertCircle,
@@ -14,7 +13,6 @@ import {
   Github,
   Users,
   Radio,
-  UserCheck,
 } from 'lucide-react';
 
 interface HistoryCardProps {
@@ -44,7 +42,6 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
   isGithub = false,
   isCollab = false,
   meetingStatus,
-  hostName,
   actionLabel = 'Continue',
   secondaryAction,
   onOpen,
@@ -67,104 +64,77 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
   return (
     <div
       onClick={onOpen}
-      className="group relative bg-transparent border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-4 overflow-hidden"
+      className="group relative bg-transparent border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 rounded-xl px-5 py-3.5 transition-all duration-200 cursor-pointer flex items-center justify-between gap-4"
     >
-      {/* Subtle ambient hairline highlight */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-neutral-700/60 to-transparent pointer-events-none" />
+      {/* Left: Project Name & Badges */}
+      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+        <h3 className="text-sm sm:text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 truncate group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
+          {title}
+        </h3>
 
-      <div>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <h3 className="text-sm sm:text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors tracking-tight">
-              {title}
-            </h3>
+        {isGithub && (
+          <div
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-[10px] font-medium text-neutral-700 dark:text-neutral-300 shrink-0"
+            title="Scanned from GitHub Repository"
+          >
+            <Github className="w-3 h-3" />
+            <span className="uppercase font-mono tracking-wider font-semibold">GitHub</span>
           </div>
+        )}
 
-          {/* GitHub Repository small icon & badge */}
-          {isGithub && (
-            <div
-              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-700/80 text-[11px] font-medium text-slate-700 dark:text-neutral-300 shrink-0 shadow-2xs"
-              title="Scanned from GitHub Repository"
-            >
-              <Github className="w-3.5 h-3.5 text-slate-800 dark:text-neutral-200" />
-              <span className="text-[10px] uppercase font-mono tracking-wider font-semibold">GitHub</span>
-            </div>
-          )}
-
-          {/* Collab Live / Ended status badge */}
-          {isCollab && (
-            <div className="shrink-0">
-              {meetingStatus === 'active' ? (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  <span>Live</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-slate-500 dark:text-neutral-400 bg-slate-100 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700">
-                  <span>Ended</span>
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Collab Host Info */}
-        {isCollab && hostName && (
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-neutral-400 mt-1">
-            <UserCheck className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="truncate">Host: {hostName}</span>
-          </div>
+        {isCollab && meetingStatus === 'active' && (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-neutral-700 shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 dark:bg-white animate-ping" />
+            <span>Live</span>
+          </span>
         )}
       </div>
 
-      {/* Footer & Meta */}
-      <div>
-        <div className="flex items-center justify-end text-[11px] mb-3.5 pt-3 border-t border-neutral-200 dark:border-neutral-800">
-          <div className="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">
-            <Calendar className="w-3.5 h-3.5 opacity-70" />
-            <span>{formatCardDate(createdAt)}</span>
-          </div>
-        </div>
+      {/* Middle: Date */}
+      <div className="hidden sm:flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 font-mono text-xs shrink-0">
+        <span>{formatCardDate(createdAt)}</span>
+      </div>
 
-        <div className="flex items-center justify-between gap-2.5">
+      {/* Right: Open & Delete Icons */}
+      <div className="flex items-center gap-2 shrink-0">
+        {secondaryAction && (
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onOpen();
+              secondaryAction.onClick();
             }}
-            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-neutral-100 dark:bg-neutral-900 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-200 text-xs font-semibold transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
-            title={actionLabel}
+            className="inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-900 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-semibold transition-all cursor-pointer"
+            title={secondaryAction.label}
           >
-            <span>{actionLabel}</span>
-            <ExternalLink className="w-3.5 h-3.5 opacity-80 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+            <Radio className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">{secondaryAction.label}</span>
           </button>
+        )}
 
-          {secondaryAction && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                secondaryAction.onClick();
-              }}
-              className="inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 text-xs font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
-              title={secondaryAction.label}
-            >
-              <Radio className="w-3.5 h-3.5" />
-              <span>{secondaryAction.label}</span>
-            </button>
-          )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+          className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-transparent text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:border-neutral-400 dark:hover:border-neutral-600 transition-all cursor-pointer"
+          title={actionLabel}
+          aria-label={actionLabel}
+        >
+          <ExternalLink className="w-4 h-4" />
+        </button>
 
-          <button
-            type="button"
-            onClick={onDelete}
-            disabled={isDeleting}
-            className="p-2 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 text-slate-400 dark:text-neutral-500 hover:text-red-500 hover:border-red-300 dark:hover:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer"
-            title={deleteTitle}
-          >
-            <Trash2 className="w-3.5 h-3.5 hover:text-red-500 transition-colors" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={isDeleting}
+          className="p-2 rounded-lg border border-red-500/40 bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:border-red-500 transition-all cursor-pointer"
+          title={deleteTitle}
+          aria-label={deleteTitle}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
@@ -570,7 +540,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {architectures.map((arch) => {
                   const nodeCount =
                     arch.architecture_data?.nodes?.length ||
@@ -643,7 +613,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                 </a>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {collabMeetings.map((meeting) => {
                   const nodeCount =
                     meeting.architecture_state?.nodes?.length ||
