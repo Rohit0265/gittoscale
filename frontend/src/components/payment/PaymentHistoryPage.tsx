@@ -4,12 +4,12 @@ import {
   CheckCircle2,
   AlertCircle,
   XCircle,
-  Calendar,
   Clock,
   RefreshCw,
   Receipt,
   X,
   ArrowRight,
+  Download,
 } from 'lucide-react';
 import { api, PaymentHistoryResponse, UserTransactionItem } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -101,6 +101,49 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
     }
   };
 
+  const handleDownloadInvoice = (tx: UserTransactionItem) => {
+    const currency = tx.currency === 'INR' ? '₹' : '$';
+    const invoiceContent = [
+      '═══════════════════════════════════════════',
+      '              GITOSCALE INVOICE             ',
+      '═══════════════════════════════════════════',
+      '',
+      `  Invoice Date    : ${formatDate(tx.created_at)}`,
+      `  Transaction ID  : ${tx.id}`,
+      '',
+      '───────────────────────────────────────────',
+      '',
+      `  Plan            : GitToScale ${tx.plan.charAt(0).toUpperCase() + tx.plan.slice(1)}`,
+      `  Amount          : ${currency}${tx.amount}`,
+      `  Status          : ${tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}`,
+      `  Payment Method  : ${tx.payment_method || 'N/A'}`,
+      '',
+      '───────────────────────────────────────────',
+      '',
+      `  Start Date      : ${formatDate(tx.start_date)}`,
+      `  Expiry Date     : ${formatDate(tx.expires_at)}`,
+      '',
+      '───────────────────────────────────────────',
+      '',
+      `  Customer        : ${user?.email || 'N/A'}`,
+      `  Email           : ${user?.email || 'N/A'}`,
+      '',
+      '═══════════════════════════════════════════',
+      '  Thank you for choosing GitToScale!       ',
+      '═══════════════════════════════════════════',
+    ].join('\n');
+
+    const blob = new Blob([invoiceContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `GitToScale_Invoice_${tx.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const isPro = Boolean(data?.subscription?.isPro);
   const isCanceled = data?.subscription?.status === 'canceled';
   const hasPurchased = isPro || (data?.transactions && data.transactions.length > 0);
@@ -133,6 +176,18 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
               List of all recorded payments, active plans, and billing receipts.
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => fetchHistory()}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+              isDark
+                ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300'
+                : 'border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh</span>
+          </button>
         </div>
 
         {/* Feedback Alert */}
@@ -214,230 +269,172 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
             </button>
           </div>
         ) : (
-          /* Condition 2: Plan Purchased / Has Transactions -> Show Table & Plan Status */
-          <div className={`rounded-xl border overflow-hidden ${
-            isDark ? 'border-gray-800 bg-gray-950 text-white' : 'border-gray-200 bg-white text-gray-900'
-          }`}>
-            {/* Top Bar inside Transaction History Card */}
-            <div className={`p-4 sm:p-5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-              isDark ? 'border-gray-800 bg-gray-900/40' : 'border-gray-200 bg-gray-50/70'
-            }`}>
-              <div>
-                <h2 className="text-sm sm:text-base font-bold">Transaction History</h2>
-                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Overview of your plan status, payment records, and subscriptions.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {isPro && !isCanceled && (
-                  <button
-                    type="button"
-                    onClick={() => setCancelModalOpen(true)}
-                    className={`px-2.5 py-1 rounded-md border text-xs font-semibold transition-colors cursor-pointer ${
-                      isDark
-                        ? 'border-gray-700 bg-transparent hover:bg-gray-800 text-gray-300'
-                        : 'border-gray-300 bg-transparent hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Cancel Subscription
-                  </button>
-                )}
-                {isExpired && (
-                  <button
-                    type="button"
-                    onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
-                    className={`px-3 py-1 rounded-md text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1.5 ${
-                      isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
-                    }`}
-                  >
-                    <span>Renew your plans</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                )}
-                <span className={`text-xs font-mono px-2.5 py-1 rounded-md border ${
-                  isDark
-                    ? 'border-gray-800 bg-black text-gray-400'
-                    : 'border-gray-200 bg-gray-100 text-gray-600'
-                }`}>
-                  {data?.transactions?.length || 0} Transactions
-                </span>
-              </div>
-            </div>
-
-            {/* Plan Purchased / Has Transactions -> Show Table & Renew if expired */}
-            <div>
-              {/* Active or Expired Plan Banner */}
-              {isExpired ? (
-                <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                  isDark ? 'border-gray-800 bg-gray-900/60' : 'border-gray-200 bg-gray-100/70'
-                }`}>
-                  <div className="flex items-center gap-2.5">
-                    <Clock className="w-4 h-4 text-gray-400 shrink-0" />
-                    <div>
-                      <p className="text-xs font-semibold">Your plan has expired</p>
-                      <p className={`text-[11px] ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Expired on {formatDate(expirationDate)}. Renew now to restore full Pro access.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
-                    className={`px-4 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-all cursor-pointer ${
-                      isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
-                    }`}
-                  >
-                    Renew your plans
-                  </button>
-                </div>
-              ) : isPro ? (
-                <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                  isDark ? 'border-gray-800 bg-gray-900/30' : 'border-gray-200 bg-gray-50'
-                }`}>
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className={`w-4 h-4 shrink-0 ${isDark ? 'text-white' : 'text-black'}`} />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold">GitToScale Pro</span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                          isDark
-                            ? 'border-gray-700 bg-gray-900 text-white'
-                            : 'border-gray-300 bg-gray-200 text-gray-900'
-                        }`}>
-                          {isCanceled ? 'Canceled' : 'Activated'}
-                        </span>
-                      </div>
-                      <p className={`text-[11px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {isCanceled
-                          ? `Terminates on ${formatDate(expirationDate)}. You retain Pro benefits until then.`
-                          : `Active subscription • Next renewal on ${formatDate(expirationDate)}`}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs">
-                    {expirationDate && (
-                      <div className={`flex items-center gap-1 font-mono text-[11px] ${
-                        isDark ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Expiry: <strong>{formatDate(expirationDate)}</strong></span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Transactions Table */}
-              {data?.transactions && data.transactions.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className={`border-b ${
-                          isDark ? 'border-gray-800 bg-gray-900/50 text-gray-400' : 'border-gray-200 bg-gray-100/70 text-gray-600'
-                        }`}>
-                          <th className="py-3 px-4 font-semibold">Transaction ID</th>
-                          <th className="py-3 px-4 font-semibold">Plan</th>
-                          <th className="py-3 px-4 font-semibold">Amount</th>
-                          <th className="py-3 px-4 font-semibold">Status</th>
-                          <th className="py-3 px-4 font-semibold">Start Date</th>
-                          <th className="py-3 px-4 font-semibold">Expiry Date</th>
-                        </tr>
-                      </thead>
-                      <tbody className={`divide-y ${isDark ? 'divide-gray-800/80' : 'divide-gray-200'}`}>
-                        {data.transactions.map((tx: UserTransactionItem) => {
-                          const isCurrentActive = isPro && (tx.status === 'paid' || tx.status === 'activated');
-                          return (
-                            <tr
-                              key={tx.id}
-                              className={`transition-colors ${
-                                isDark ? 'hover:bg-gray-900/40' : 'hover:bg-gray-100/60'
-                              }`}
-                            >
-                              {/* Transaction ID */}
-                              <td className={`py-3.5 px-4 font-mono text-[11px] font-medium ${
-                                isDark ? 'text-gray-300' : 'text-gray-700'
-                              }`}>
-                                {tx.id}
-                              </td>
-
-                              {/* Plan */}
-                              <td className="py-3.5 px-4 font-semibold">
-                                {tx.plan.toUpperCase()}
-                              </td>
-
-                              {/* Amount */}
-                              <td className="py-3.5 px-4 font-semibold">
-                                {tx.currency === 'INR' ? '₹' : '$'}
-                                {tx.amount}
-                              </td>
-
-                              {/* Status */}
-                              <td className="py-3.5 px-4">
-                                {isCurrentActive ? (
-                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold border ${
-                                    isDark
-                                      ? 'border-gray-700 bg-gray-900 text-white'
-                                      : 'border-gray-300 bg-gray-200 text-gray-950'
-                                  }`}>
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    <span>Activated</span>
-                                  </span>
-                                ) : tx.status === 'canceled' ? (
-                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border ${
-                                    isDark
-                                      ? 'border-gray-800 bg-gray-950 text-gray-400'
-                                      : 'border-gray-300 bg-gray-100 text-gray-700'
-                                  }`}>
-                                    <Clock className="w-3 h-3" />
-                                    <span>Canceled</span>
-                                  </span>
-                                ) : tx.status === 'refunded' ? (
-                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border ${
-                                    isDark
-                                      ? 'border-gray-800 bg-gray-950 text-gray-400'
-                                      : 'border-gray-300 bg-gray-100 text-gray-700'
-                                  }`}>
-                                    <XCircle className="w-3 h-3" />
-                                    <span>Refunded</span>
-                                  </span>
-                                ) : (
-                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border ${
-                                    isDark
-                                      ? 'border-gray-800 bg-gray-900 text-gray-300'
-                                      : 'border-gray-200 bg-gray-100 text-gray-800'
-                                  }`}>
-                                    <span>{tx.status}</span>
-                                  </span>
-                                )}
-                              </td>
-
-                              {/* Start Date */}
-                              <td className={`py-3.5 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {formatDate(tx.start_date)}
-                              </td>
-
-                              {/* Expiry Date */}
-                              <td className={`py-3.5 px-4 font-mono ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {formatDate(tx.expires_at)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="py-12 px-4 text-center">
-                    <CreditCard className="w-10 h-10 mx-auto mb-2 text-gray-500 stroke-1" />
-                    <p className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      No transactions recorded yet.
+          /* Condition 2: Plan Purchased / Has Transactions -> Clean Table */
+          <div>
+            {/* Expired Plan Banner */}
+            {isExpired && (
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 text-gray-400 shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold">Your plan has expired</p>
+                    <p className={`text-[11px] ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Expired on {formatDate(expirationDate)}. Renew now to restore full Pro access.
                     </p>
                   </div>
-                )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => (onNavigate ? onNavigate('payment') : onGoHome())}
+                  className={`px-4 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <span>Renew your plans</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
               </div>
-            </div>
+            )}
+
+            {/* Transactions Table */}
+            {data?.transactions && data.transactions.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className={`${
+                      isDark ? 'bg-gray-800/60 text-gray-300' : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      <th className="py-3 px-4 font-semibold">Plan</th>
+                      <th className="py-3 px-4 font-semibold">Amount</th>
+                      <th className="py-3 px-4 font-semibold">Status</th>
+                      <th className="py-3 px-4 font-semibold">Start Date</th>
+                      <th className="py-3 px-4 font-semibold">Expiry Date</th>
+                      <th className="py-3 px-4 font-semibold">Invoice</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${isDark ? 'divide-gray-800/50' : 'divide-gray-200'}`}>
+                    {data.transactions.map((tx: UserTransactionItem) => {
+                      const isCurrentActive = isPro && (tx.status === 'paid' || tx.status === 'activated');
+                      return (
+                        <tr
+                          key={tx.id}
+                          className={`transition-colors ${
+                            isDark ? 'hover:bg-gray-900/40' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          {/* Plan */}
+                          <td className="py-3.5 px-4 font-semibold">
+                            {tx.plan.charAt(0).toUpperCase() + tx.plan.slice(1)}
+                          </td>
+
+                          {/* Amount */}
+                          <td className="py-3.5 px-4 font-semibold">
+                            {tx.currency === 'INR' ? '₹' : '$'}
+                            {tx.amount}
+                          </td>
+
+                          {/* Status + Cancel button */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex flex-col gap-1">
+                              {isCurrentActive ? (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold border w-fit ${
+                                  isDark
+                                    ? 'border-gray-700 bg-gray-900 text-white'
+                                    : 'border-gray-300 bg-gray-200 text-gray-950'
+                                }`}>
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>Activated</span>
+                                </span>
+                              ) : tx.status === 'canceled' ? (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                  isDark
+                                    ? 'border-gray-800 bg-gray-950 text-gray-400'
+                                    : 'border-gray-300 bg-gray-100 text-gray-700'
+                                }`}>
+                                  <Clock className="w-3 h-3" />
+                                  <span>Canceled</span>
+                                </span>
+                              ) : tx.status === 'refunded' ? (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                  isDark
+                                    ? 'border-gray-800 bg-gray-950 text-gray-400'
+                                    : 'border-gray-300 bg-gray-100 text-gray-700'
+                                }`}>
+                                  <XCircle className="w-3 h-3" />
+                                  <span>Refunded</span>
+                                </span>
+                              ) : tx.status === 'expired' ? (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                  isDark
+                                    ? 'border-gray-800 bg-gray-950 text-gray-400'
+                                    : 'border-gray-300 bg-gray-100 text-gray-700'
+                                }`}>
+                                  <Clock className="w-3 h-3" />
+                                  <span>Expired</span>
+                                </span>
+                              ) : (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold border w-fit ${
+                                  isDark
+                                    ? 'border-gray-800 bg-gray-900 text-gray-300'
+                                    : 'border-gray-200 bg-gray-100 text-gray-800'
+                                }`}>
+                                  <span>{tx.status}</span>
+                                </span>
+                              )}
+                              {/* Small red cancel button beneath Activated status */}
+                              {isCurrentActive && !isCanceled && (
+                                <button
+                                  type="button"
+                                  onClick={() => setCancelModalOpen(true)}
+                                  className="text-[10px] text-red-500 hover:text-red-400 font-medium cursor-pointer transition-colors w-fit"
+                                >
+                                  cancel
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Start Date */}
+                          <td className={`py-3.5 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {formatDate(tx.start_date)}
+                          </td>
+
+                          {/* Expiry Date */}
+                          <td className={`py-3.5 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {formatDate(tx.expires_at)}
+                          </td>
+
+                          {/* Invoice Download */}
+                          <td className="py-3.5 px-4">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadInvoice(tx)}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold border transition-colors cursor-pointer ${
+                                isDark
+                                  ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300'
+                                  : 'border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700'
+                              }`}
+                              title="Download Invoice"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Download</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-12 px-4 text-center">
+                <CreditCard className="w-10 h-10 mx-auto mb-2 text-gray-500 stroke-1" />
+                <p className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  No transactions recorded yet.
+                </p>
+              </div>
+            )}
+          </div>
           )
         }
       </main>

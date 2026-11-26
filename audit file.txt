@@ -1,0 +1,951 @@
+================================================================================
+ GITTOSCALE — FULL PROJECT AUDIT
+ Security · Bugs · UI Glitches · Backend Bottlenecks · Code Quality
+================================================================================
+Audit date : 2026-11-26
+Scope      : /home/my/Desktop/gitoscale  (backend/ + frontend/ + supabase/ + deploy)
+Method     : manual source review of every route/service, real build + test runs,
+             dependency audit, compiled-CSS inspection. No code was modified.
+Verified   : backend `tsc` PASSES, `npm run build` PASSES
+             frontend `npm run build` FAILS  (TS6133)
+             backend `vitest run` = 120 passed / 21 FAILED (6 files)
+             backend `npm audit --omit=dev` = 1 high (zod)
+             frontend `npm audit --omit=dev` = 0 vulnerabilities
+
+Severity legend:  CRITICAL / HIGH / MEDIUM / LOW / INFO
+Every item below was confirmed in source. Nothing is speculative unless marked
+"(suspected)". Secrets are never reproduced here — locations only, [REDACTED].
+
+================================================================================
+ PART 1 — SECURITY
+================================================================================
+
+--------------------------------------------------------------------------------
+[S-01] CRITICAL — Unauthenticated profile write: full account takeover of profile
+--------------------------------------------------------------------------------
+File: backend/src/routes/auth.ts:250-310  (POST /api/auth/sync-profile)
+      backend/src/services/neon.ts:297-322 (upsertUserProfile)
+
+The route has NO requireAuth and trusts a client-supplied `id`:
+
+    const { id, email, fullName, avatarUrl, provider } = req.body || {};
+    ...
+    await upsertUserProfile({ id: effectiveId, full_name: ..., email: cleanEmail });
+
+`upsertUserProfile` does `INSERT ... ON CONFLICT (id) DO UPDATE SET
+full_name = EXCLUDED.full_name, email = EXCLUDED.email`. Any anonymous caller
+who knows (or guesses) a user UUID can overwrite that user's name and email.
+The same route also triggers the welcome-email and Telegram paths, so it doubles
+as a notification-spam primitive.
+
+Fix: require `requireAuth`, ignore `req.body.id` entirely and use `req.user.id`.
+Reject any mismatch between the body id and the token subject.
+
+--------------------------------------------------------------------------------
+[S-02] CRITICAL — Open email relay: /api/auth/test-welcome-email is unauthenticated
+--------------------------------------------------------------------------------
+File: backend/src/routes/auth.ts:372-390
+
+No auth, no rate limit, arbitrary `email` accepted, then handed to
+`sendWelcomeEmail()` which posts to Resend / SendGrid using the project's
+verified sending domain. This is an open relay: anyone can send branded
+"GitToScale" phishing or spam to arbitrary victims, from your domain, burning
+your sending reputation and quota.
+
+Fix: delete in production, or gate behind requireAuth + isUserAdmin.
+
+--------------------------------------------------------------------------------
+[S-03] HIGH — Unauthenticated PII disclosure: GET /api/auth/profile/:id
+--------------------------------------------------------------------------------
+File: backend/src/routes/auth.ts:319-341
+      backend/src/services/neon.ts:324-330  (getUserProfile -> SELECT *)
+
+No auth check. Returns the entire `profiles` row (id, email, full_name,
+avatar_url, timestamps) for any id supplied. Classic IDOR / email-harvesting
+endpoint.
+
+Fix: requireAuth; return only public fields for other users, full row only when
+`req.user.id === req.params.id`.
+
+--------------------------------------------------------------------------------
+[S-04] HIGH — SSRF in POST /api/repository/test-llm
+--------------------------------------------------------------------------------
+File: backend/src/routes/repository.ts:216-273
+
+`req.body.baseUrl` is fetched server-side with no `validateSafeLlmBaseUrl()`
+call — the guard exists (backend/src/utils/ssrfGuard.ts) and IS used in
+/analyze (repository.ts:79) but was omitted here. Attacker controls the full
+URL, so this reaches 127.0.0.1, 169.254.169.254 (cloud metadata), RFC1918 hosts
+and internal Docker/Caddy services. The response leaks status codes, giving a
+port/host scanning oracle; a 404/405 falls through to a second POST to
+`/chat/completions`, so POST-capable internal endpoints can also be hit.
+
+Fix: call validateSafeLlmBaseUrl(baseUrl) before fetch, reject if !safe.
+Better: drop the endpoint, or allow only the fixed provider hosts.
+
+--------------------------------------------------------------------------------
+[S-05] HIGH — Free Pro subscription bypass: mock payment paths fail open
+--------------------------------------------------------------------------------
+File: backend/src/routes/payment.ts:203-233   (POST /api/payment/mock-complete)
+      backend/src/services/polarService.ts:110-129 (verifyAndActivateCheckoutSession)
+
+Two fail-open paths grant `plan: 'pro'` without payment:
+
+ a) /mock-complete is enabled whenever `NODE_ENV !== 'production'` OR
+    `ENABLE_MOCK_AUTH === 'true'`, and activates Pro for `req.body.userId`
+    with no auth required. A single env flag in production turns this into a
+    free-subscription endpoint for any user id.
+
+ b) verifyAndActivateCheckoutSession(): if `POLAR_ACCESS_TOKEN` is unset or
+    equal to 'mock', it activates a 30-day Pro subscription for
+    `fallbackUserId` and returns success — no Polar call, no verification.
+    A missing/blanked env var silently grants Pro to anyone who calls
+    /api/payment/confirm-checkout with a sessionId.
+
+Fix: hard-gate both behind `process.env.NODE_ENV === 'production'` returning
+403; never activate a paid plan from a code path that did not receive a
+verified upstream response. Throw (do not activate) when the token is absent.
+
+--------------------------------------------------------------------------------
+[S-06] HIGH — No rate limiting anywhere in the backend
+--------------------------------------------------------------------------------
+File: backend/src/app.ts (whole file) — verified: zero occurrences of
+      express-rate-limit / slowDown / any limiter in backend/src.
+
+Consequences, all reachable today:
+  • Credential stuffing / brute force on /api/auth/login, /signup.
+  • AI cost abuse: /api/chat/message, /api/recommend, /api/recommend/design-report,
+    /api/architecture/design-report, /api/repository/analyze each fan out to a
+    paid LLM provider with no per-IP throttle.
+  • Email + Telegram bombing via /notify-signup and /test-welcome-email (S-02).
+  • Upload abuse via /api/feed/upload (base64 decode + sharp/ffmpeg per request).
+  • Feedback spam via POST /api/feedback.
+
+Fix: add express-rate-limit with a strict bucket on auth + email endpoints
+(e.g. 5/min/IP) and a generous one on AI endpoints (e.g. 20/min/IP),
+plus a global 300/min/IP ceiling. Set `app.set('trust proxy', 1)` so limits
+key off the real client IP (see S-07).
+
+--------------------------------------------------------------------------------
+[S-07] HIGH — Anonymous quota bypass via spoofable x-forwarded-for
+--------------------------------------------------------------------------------
+Files: backend/src/routes/chat.ts:354-361   (getChatClientIdentifier)
+       backend/src/routes/payment.ts:22-26  (getClientIdentifier)
+       backend/src/routes/recommend.ts:11-18
+       backend/src/routes/repository.ts (same helper)
+
+All anonymous usage keys are derived from a manually parsed header:
+
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded.split(',')[0].trim();
+
+`trust proxy` is NOT set (verified: no `trust proxy` in backend/src). Express
+therefore ignores X-Forwarded-For for req.ip, but these helpers read the raw
+header — which the client fully controls. Rotating the header yields a fresh
+`anon_<md5>` identity per request, so the 3-generation free limit is
+trivially infinite, and each new identity also allocates new in-memory rows.
+
+Fix: `app.set('trust proxy', 1)` behind Caddy/Fly, then use `req.ip`
+everywhere. Do not read x-forwarded-for directly.
+
+--------------------------------------------------------------------------------
+[S-08] HIGH — CORS wildcard on *.vercel.app (both HTTP and WebSocket)
+--------------------------------------------------------------------------------
+Files: backend/src/app.ts:65-78
+       backend/src/meeting/yjsServer.ts:205-217
+
+HTTP:
+    const isAllowedVercelDeployment =
+      origin.endsWith('.vercel.app') &&
+      (origin.includes('gitoscale') || process.env.NODE_ENV !== 'production');
+
+`origin.includes('gitoscale')` is a substring test on an attacker-chosen
+hostname — `https://xgitoscale.vercel.app` or `https://gitoscale-evil.vercel.app`
+both pass, and anyone can register a Vercel project with such a name. Combined
+with `credentials: true`, that is a cross-origin credentialed-read primitive.
+
+WebSocket (worse): `origin.endsWith('.vercel.app')` with NO gitoscale check at
+all — every Vercel-hosted page on the internet may open a Socket.IO connection
+with credentials to the meeting server.
+
+Fix: replace with an explicit allowlist (the array already exists at
+app.ts:49-57). For Vercel previews use a regex anchored on your team slug,
+e.g. /^https:\/\/gitoscale-[a-z0-9]+-<team>\.vercel\.app$/. Apply the same
+allowlist to the Socket.IO `cors.origin` callback.
+
+--------------------------------------------------------------------------------
+[S-09] HIGH — Free AI generation: /api/architecture/design-report is ungated
+--------------------------------------------------------------------------------
+File: backend/src/routes/architecture.ts:7-14
+
+No auth, no `checkAndIncrementAiUsage()`, no validation — straight into
+`generateSystemDesignReport(req.body)` which fans out to Gemini/Groq/OpenAI.
+The sibling endpoint /api/recommend/design-report (recommend.ts:21-47) DOES
+gate usage; this one was missed. Unlimited anonymous LLM spend.
+
+Fix: mirror recommend.ts — resolve user, checkAndIncrementAiUsage, then
+generate. Add a zod schema for req.body.
+
+--------------------------------------------------------------------------------
+[S-10] MEDIUM — Forgeable identity fields (x-user-name / x-user-email / authorName)
+--------------------------------------------------------------------------------
+File: backend/src/middleware/auth.ts:33-44
+      backend/src/feed/feedRoutes.ts:220-221
+
+After successful JWT verification the resolved identity is still overridden by
+client-controlled values:
+
+    fullName: customHeaderName || meta.full_name || ...
+    email:    user.email || customHeaderEmail || ''
+
+and feed posts take `req.body.authorName || req.user?.fullName`. A logged-in
+attacker can therefore impersonate any display name and attach any email to
+posts. Impersonation / attribution forgery.
+
+Fix: when a Supabase token verifies, use ONLY token claims. Delete the
+x-user-* fallbacks (they belong in dev-only mock mode, and even then should be
+scoped behind ENABLE_MOCK_AUTH).
+
+--------------------------------------------------------------------------------
+[S-11] MEDIUM — Webhook replay: no idempotency store
+--------------------------------------------------------------------------------
+Files: backend/src/routes/payment.ts:164-196
+       backend/src/services/polarService.ts:189-264, 270+
+
+Signature and a 300 s timestamp window are checked (good), but `webhook-id`
+is never recorded, so any captured event can be replayed within 5 minutes.
+Activation is idempotent today, so impact is limited to duplicate side effects
+(log spam, repeated DB writes). Still a correctness hole for future handlers
+(e.g. refunds, cancellations).
+
+Fix: persist processed `webhook-id`s (unique index, INSERT ... ON CONFLICT DO
+NOTHING) and 200-ignore duplicates.
+
+--------------------------------------------------------------------------------
+[S-12] MEDIUM — Webhook signature silently falls back to re-serialized body
+--------------------------------------------------------------------------------
+File: backend/src/routes/payment.ts:166
+
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+
+If the rawBody capture ever fails (route mounted before express.json, or a
+different body parser), the HMAC is computed over a re-serialized JSON string
+whose whitespace/key order differs from what Polar signed. Result: valid
+webhooks rejected (fails closed) — but it is a silent, hard-to-debug failure
+mode. The `verify` hook in app.ts:87-89 does populate rawBody, so this is a
+latent trap rather than an active bug.
+
+Fix: reject the request with 500 if rawBody is missing instead of substituting.
+
+--------------------------------------------------------------------------------
+[S-13] MEDIUM — Upload limits are unreachable / inconsistent
+--------------------------------------------------------------------------------
+Files: backend/src/app.ts:84-92          (express.json limit: '15mb')
+       backend/src/feed/feedRoutes.ts:932-954 (MAX_RAW_VIDEO_BYTES = 100 MB)
+
+Videos are sent as base64 inside a JSON body capped at 15 MB. Base64 inflates
+by ~33 %, so the effective max upload is ~11 MB — the advertised 100 MB video
+limit can never be reached; the request is rejected by body-parser with a 413
+before the handler's own check runs. The user-facing "Video up to 100 MB" copy
+is therefore false, and the large-upload path is dead code.
+
+Fix: either raise express.json limit for /api/feed/upload only (router-level
+`express.json({ limit: '140mb' })`), or switch to multipart (multer/busboy) and
+drop base64 entirely. Align the documented limit with reality.
+
+--------------------------------------------------------------------------------
+[S-14] MEDIUM — User-uploaded files served same-origin without hardening
+--------------------------------------------------------------------------------
+File: backend/src/app.ts:135-140
+
+    app.use('/uploads', express.static(localUploadsPath));
+
+Feed uploads validate magic bytes (good — feedRoutes.ts:99-148), but this static
+mount serves anything that lands in the directory with a guessed Content-Type
+and no `Content-Disposition` / `X-Content-Type-Options` override. Any future
+path that writes a file there (or a stray .svg/.html) becomes stored XSS on the
+app origin.
+
+Fix: serve with `setHeaders` forcing `Content-Disposition: attachment` and
+`X-Content-Type-Options: nosniff`; prefer serving media from R2 only.
+
+--------------------------------------------------------------------------------
+[S-15] LOW — Unauthenticated meeting reads
+--------------------------------------------------------------------------------
+File: backend/src/meeting/meetingRoutes.ts:110-127, 162-169, 273-288
+
+GET /api/meetings/:id, /:id/participants and /:id/snapshot have no auth.
+Anyone holding a meeting UUID (shared in links, screenshots, browser history)
+reads the architecture state, title and participant names.
+
+Fix: requireAuth + participant check (join code) for snapshot/participants.
+
+--------------------------------------------------------------------------------
+[S-16] LOW — Ownership check leaks existence (403 vs 404 oracle)
+--------------------------------------------------------------------------------
+File: backend/src/routes/history.ts:380-430
+
+When a project belongs to another user the API returns 403
+("Project ownership unverified"); when it does not exist it returns 404.
+The distinction lets an attacker enumerate valid project ids.
+
+Fix: return 404 for both cases.
+
+--------------------------------------------------------------------------------
+[S-17] LOW — Stored external URLs in feed posts (no allowlist)
+--------------------------------------------------------------------------------
+Files: backend/src/feed/feedRoutes.ts:193, 223-231
+       backend/src/feed/feedService.ts:20-58
+
+`mediaUrl` and every entry of `mediaItems[].url` are accepted verbatim from the
+client and rendered in <img>/<video>. No host allowlist, no scheme check. This
+enables (a) off-platform content injection, (b) IP/tracking beacons aimed at
+every viewer, (c) javascript:/data: URLs if a renderer ever bypasses React's
+attribute sanitisation.
+
+Fix: require media URLs to be on the R2 public host (or /uploads); reject
+everything else with 400.
+
+--------------------------------------------------------------------------------
+[S-18] LOW — No security headers middleware (helmet absent)
+--------------------------------------------------------------------------------
+Files: backend/src/app.ts:39-47  (hand-rolled 5 headers)
+       backend/package.json      (helmet NOT a dependency)
+
+Present: X-Frame-Options, X-Content-Type-Options, Referrer-Policy,
+X-XSS-Protection, Permissions-Policy.
+Missing: Content-Security-Policy, HSTS (Strict-Transport-Security),
+Cross-Origin-Opener-Policy, Cross-Origin-Resource-Policy.
+`X-Powered-By: Express` is also never disabled, and `X-XSS-Protection` is a
+deprecated header that modern browsers ignore.
+
+Fix: `npm i helmet`, `app.use(helmet())`, `app.disable('x-powered-by')`, and add
+HSTS once HTTPS-only is guaranteed (Fly force_https is already true).
+
+--------------------------------------------------------------------------------
+[S-19] LOW — Auth endpoint always reports authenticated:true
+--------------------------------------------------------------------------------
+File: backend/src/routes/auth.ts:360-366
+
+GET /api/auth/me returns a hardcoded in-memory demo user with
+`authenticated: true`, regardless of token. Any client trusting this endpoint
+believes it is logged in. (Frontend currently uses Supabase directly, so impact
+is confusion-level, but the endpoint is a trap.)
+
+Fix: remove, or make it mirror resolveUserFromRequest().
+
+--------------------------------------------------------------------------------
+[S-20] LOW — Production auto-kills whatever holds the port
+--------------------------------------------------------------------------------
+File: backend/src/index.ts:12-48
+
+On EADDRINUSE the server runs `execSync('fuser -k -n tcp <port>')` then
+`lsof -t -i :<port> | xargs -r kill -9`, then restarts itself in a loop.
+In a container this can kill a sibling process; the retry loop has no backoff
+and no attempt cap. Port comes from env (low injection risk) but the behaviour
+is destructive by design.
+
+Fix: only enable when NODE_ENV !== 'production' (it is a dev-convenience
+feature), and cap retries.
+
+--------------------------------------------------------------------------------
+[S-21] INFO — Secrets hygiene
+--------------------------------------------------------------------------------
+Verified: `git ls-files | grep .env` returns only `.env.example`.
+`.env`, `backend/.env`, `frontend/.env` are all git-ignored and untracked.
+No live key material found in tracked source. Names present in local env files
+(values [REDACTED], never read into this report):
+  backend/.env — DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY, LLM_API_KEY,
+  MERCURY_API_KEY, POLAR_ACCESS_TOKEN, POLAR_WEBHOOK_SECRET, R2_ACCESS_KEY_ID,
+  R2_SECRET_ACCESS_KEY, RESEND_API_KEY, SUPABASE_SERVICE_ROLE_KEY,
+  TELEGRAM_BOT_TOKEN, ADMIN_EMAILS.
+Note: `loadEnvFiles()` (backend/src/utils/env.ts) hand-parses .env and walks up
+to `../.env`; it does not support multi-line values or `export ` prefixes and
+silently swallows all errors. Prefer dotenv or the platform's env injection.
+
+================================================================================
+ PART 2 — BUILD / TEST / DEPENDENCY HEALTH  (verified by execution)
+================================================================================
+
+--------------------------------------------------------------------------------
+[B-01] CRITICAL — The frontend does not build
+--------------------------------------------------------------------------------
+Command: cd frontend && npm run build
+Output :
+    src/components/payment/PaymentHistoryPage.tsx(9,3):
+      error TS6133: 'RefreshCw' is declared but its value is never read.
+    npm error code 2
+
+`tsconfig.json` sets `noUnusedLocals: true`, so a single stale import in the
+icon import list (line 9) breaks `tsc` and therefore the whole
+`tsc && vite build` pipeline. The Dockerfile runs `npm run build` at the root,
+so container builds fail too — the currently shipped dist/ is stale.
+
+Fix: delete the `RefreshCw,` line from the lucide-react import
+(PaymentHistoryPage.tsx:2-13). Verified that this is the ONLY remaining TS error.
+
+--------------------------------------------------------------------------------
+[B-02] HIGH — 21 of 141 backend tests fail
+--------------------------------------------------------------------------------
+Command: cd backend && npx vitest run
+Result : Test Files 6 failed | 11 passed (17)
+         Tests 21 failed | 120 passed (141)
+
+Failing suites:
+  tests/meeting.test.ts        — 12 failures (create/join/roles/lock/end/history/delete)
+  tests/payment.test.ts        — 4 failures (free-plan limits, 3-meeting cap,
+                                  AI-generation cap, webhook activation)
+  tests/chatMessage.test.ts    — 3 failures (gibberish handling, technical
+                                  insight, Gemini->Groq 429 fallback)
+  tests/recommender.test.ts    — 4 failures (valid description, IoT event-driven,
+                                  serverless preference, refinement)
+  tests/systemDesignArchitect.test.ts — 3 failures (service + 2 endpoints)
+  tests/feed.test.ts           — 1 failure (valid image upload, magic bytes)
+
+Sample assertion (payment.test.ts:103): expected 201, received 403 —
+the 3-meeting free limit rejects the first meeting, i.e. the quota counter is
+shared/leaking between tests or across anon identities.
+
+A red suite of this size means CI cannot gate regressions. Several of these
+failures sit on money paths (payment) and core paths (meeting) — treat as a
+release blocker.
+
+--------------------------------------------------------------------------------
+[B-03] HIGH — Vulnerable dependency: zod (high severity)
+--------------------------------------------------------------------------------
+Command: cd backend && npm audit --omit=dev
+Result : zod <4.6.6 — Severity: high
+         "Zod can exhaust memory while validating oversized constrained
+          collections"  GHSA-mrhx-c7xc-m3w5
+         fix available via `npm audit fix --force` (installs zod@4.6.7,
+         a breaking change)
+
+Installed: zod ^3.23.8 (backend/package.json). Every user-facing route uses
+zod schemas (simulation, feedback, recommend, repository). The advisory is
+about unbounded `.min()/.max()` constrained collections consuming memory —
+relevant because /api/simulate accepts up to 100 nodes / 200 edges and
+/api/feedback accepts 2000-char strings from anonymous callers.
+
+Fix: upgrade to zod 4.x and re-run the suite; or, if the 3->4 migration is too
+large right now, add explicit `.max()` caps on every array and string and put a
+rate limit in front of the validators (S-06).
+
+Frontend: `npm audit --omit=dev` = 0 vulnerabilities. Good.
+
+--------------------------------------------------------------------------------
+[B-04] MEDIUM — Build artifacts and scratch files committed to git
+--------------------------------------------------------------------------------
+Tracked but should not be:
+  localhost_2026-11-19_21-44-16.report.html   (0 bytes)
+  localhost_2026-11-19_22-13-10.report.html   (906 KB Lighthouse dump)
+  run_cloudflare_perf_audit.py                (15.6 KB one-off script)
+  test-vite-css.js                            (47-byte scratch)
+  neon.ts                                     (stray @neon/config stub at repo root)
+
+Root cause: `.gitignore` line 8 is `.*` (ignore all dotfiles) yet `.env.example`
+is force-tracked; meanwhile the junk files above are not dotfiles and were
+never ignored.
+
+Fix: `git rm --cached` the five files, add `*.report.html` and
+`perf-results/`-style patterns, and delete the stray root `neon.ts`.
+
+--------------------------------------------------------------------------------
+[B-05] MEDIUM — CI/CD is effectively absent
+--------------------------------------------------------------------------------
+Files: .github/workflows/fly-deploy.yml (exists but is NOT tracked by git —
+       `.gitignore:8` (`.*`) ignores the entire .github directory)
+
+So the Fly deploy workflow never reaches GitHub, and there is no
+build/test/lint workflow at all. Nothing prevents B-01/B-02 from shipping.
+
+Fix: un-ignore `.github/` (add `!.github` to .gitignore), add a workflow that
+runs `npm ci && npm run build && npm test`, and make deploy depend on it.
+
+================================================================================
+ PART 3 — UI / UX GLITCHES
+================================================================================
+
+--------------------------------------------------------------------------------
+[U-01] CRITICAL — Tailwind v4 utility classes used on a Tailwind v3.4 project
+--------------------------------------------------------------------------------
+Files: frontend/package.json (tailwindcss ^3.4.4, tailwind.config.js v3 syntax)
+       frontend/tailwind.config.js (plugins: [lightswind/plugin] — does NOT
+       provide these utilities; verified by grepping node_modules/lightswind)
+
+Verified by inspecting the compiled stylesheet
+frontend/dist/assets/index-t661u_jr.css:
+
+    class                uses in src/   present in built CSS
+    ------------------   ------------    -------------------
+    shadow-xs                 130               0     <-- no shadow at all
+    outline-hidden             19               0     <-- default focus ring
+    backdrop-blur-xs           14               0     <-- no blur
+    animate-in                 22               0     <-- no animation
+    fade-in                    17               0     <-- no animation
+    slide-in-from-*             6               0     <-- no animation
+    zoom-in                    10            (1, incidental)
+    shadow-sm             (v3, valid)         1     <-- control, works
+
+Impact: 130 elements that are meant to have a soft shadow render completely
+flat; 19 inputs/buttons keep the browser's default focus outline instead of the
+designed ring; 14 modal backdrops lose their blur; 22+ elements (modals,
+dropdowns, drawers, toasts) appear with no enter animation — they pop in.
+`animate-in fade-in zoom-in` in PaymentHistoryPage.tsx:460 is a concrete example.
+
+Fix (pick one, consistently):
+  a) Upgrade to Tailwind v4 (`npm i tailwindcss@4 @tailwindcss/postcss`, move
+     config to CSS `@theme`, add `tw-animate-css`), or
+  b) Stay on v3.4 and rewrite: shadow-xs -> shadow-sm,
+     backdrop-blur-xs -> backdrop-blur-sm, outline-hidden -> outline-none,
+     and replace animate-in/fade-in/zoom-in/slide-in-from-* with
+     tailwindcss-animate classes.
+Option (b) is the low-risk path for this repo.
+
+--------------------------------------------------------------------------------
+[U-02] HIGH — Payment history page renders the renewal CTA twice
+--------------------------------------------------------------------------------
+File: frontend/src/components/payment/PaymentHistoryPage.tsx
+
+Two independent plan banners are rendered in the same card:
+  • lines 246-257 — "Renew your plans" button in the top bar, shown when isExpired
+  • lines 271-330 — a second full-width banner, also shown when isExpired,
+    again containing "Renew your plans" (line 291) plus the expiry text
+
+When a plan is expired the user sees two renewal buttons and duplicated
+"your plan has expired" messaging stacked vertically. When the plan is active,
+the top bar shows "Cancel Subscription" while the second banner independently
+shows "GitToScale Pro / Activated / Next renewal on ...", so plan state is
+communicated twice with different wording.
+
+Fix: keep exactly one banner. Delete the top-bar branch (246-257) or the
+body banner (271-330) — not both.
+
+--------------------------------------------------------------------------------
+[U-03] HIGH — No error boundary anywhere near the app root
+--------------------------------------------------------------------------------
+Files: frontend/src/App.tsx (Suspense everywhere, no ErrorBoundary)
+       frontend/src/main.tsx
+       Only ErrorBoundary present: frontend/src/meeting/components/MeetingChatPanel.tsx
+
+Every heavy page is React.lazy() (App.tsx:100-101 and neighbours). A render
+throw in any lazy chunk (or in a page component) unmounts the whole tree and
+leaves a blank white screen with no message and no reload affordance. Users
+cannot recover without a manual refresh, and nothing is reported.
+
+Fix: wrap <App/> in a top-level ErrorBoundary, plus one per lazy route with a
+"Reload" action.
+
+--------------------------------------------------------------------------------
+[U-04] MEDIUM — Global `select-none` on <body> blocks all text selection
+--------------------------------------------------------------------------------
+File: frontend/index.html:140
+
+    <body class="bg-slate-50 ... antialiased select-none min-h-screen">
+
+Text is unselectable app-wide, so users cannot copy error messages, stack
+traces, API keys, architecture node labels, commit SHAs, or their own generated
+design text. Inputs still work, but any displayed content is uncopyable — a
+significant usability defect on a developer tool.
+
+Fix: remove `select-none` from <body>; apply it narrowly to draggable/UI chrome
+(react-flow handles, buttons) instead.
+
+--------------------------------------------------------------------------------
+[U-05] MEDIUM — Dark/light theming applied twice, with a flash risk
+--------------------------------------------------------------------------------
+Files: frontend/index.html:9 (class="dark" hardcoded on <html>) + inline
+       theme script (lines 11-24); frontend/src/App.tsx:397, 429
+
+The inline script sets the class before paint (good), but App.tsx also writes
+`localStorage.setItem('gitoscale-theme', ...)` on mount and on toggle. Two
+sources of truth; if the App effect runs with a default `true` before reading
+storage, the class can be flipped on first paint after hydration, producing a
+light/dark flash. `index.html` also hardcodes `class="dark"` as the SSR-less
+default, which contradicts the "defaults to dark mode" comment for users whose
+stored preference is light until the script runs.
+
+Fix: single source of truth — read once in the inline script, and in React read
+the resulting DOM class instead of re-deciding.
+
+--------------------------------------------------------------------------------
+[U-06] MEDIUM — `animate-in` / `backdrop-blur-xs` on modals also breaks stacking
+--------------------------------------------------------------------------------
+Files: frontend/src/components/payment/PaymentHistoryPage.tsx:460
+       (+21 other animate-in sites, +14 backdrop-blur-xs sites)
+
+Beyond U-01 (no animation), the cancel-confirmation modal at line 460 relies on
+`animate-in fade-in` for its entrance and `backdrop-blur-xs` for the scrim. With
+both utilities missing from the compiled CSS, the modal appears instantly over a
+fully transparent backdrop — the page behind stays crisp, so it reads as a
+layout glitch rather than a modal. Same pattern in the other 21 sites.
+
+Fix: resolved by U-01.
+
+--------------------------------------------------------------------------------
+[U-07] LOW — Feedback banner always renders a white icon on light theme
+--------------------------------------------------------------------------------
+File: frontend/src/components/payment/PaymentHistoryPage.tsx:152-155
+
+    <CheckCircle2 className="... text-white" />          (success)
+    <AlertCircle  className="... text-gray-400" />       (error)
+
+`text-white` is unconditional, but the light-theme banner background is
+`bg-gray-100` (line 145). On light mode the success checkmark is white-on-near-
+white — effectively invisible.
+
+Fix: use the isDark conditional like every neighbouring element.
+
+--------------------------------------------------------------------------------
+[U-08] LOW — Duplicated, drifted plan-status wording
+--------------------------------------------------------------------------------
+File: frontend/src/components/payment/PaymentHistoryPage.tsx:312-314 vs 278-280
+
+  "Active subscription • Next renewal on <date>"
+  "Terminates on <date>. You retain Pro benefits until then."
+  "Expired on <date>. Renew now to restore full Pro access."
+
+Three different phrasings for the same `expirationDate`, on one screen
+(direct consequence of U-02). Pick one vocabulary.
+
+--------------------------------------------------------------------------------
+[U-09] LOW — Accessibility gaps
+--------------------------------------------------------------------------------
+Verified counts across frontend/src:
+  • <button> elements: 376 — `aria-label` occurrences: 52. Icon-only buttons
+    (X, ChevronDown, Copy, Trash, MoreHorizontal) are largely unlabelled for
+    screen readers.
+  • <img> tags: 26 — all 26 have an `alt` attribute. Good.
+  • `target="_blank"`: 8 occurrences, 5 with an explicit `rel`. Modern browsers
+    imply noopener for target=_blank, so reverse-tabnabbing risk is low, but
+    consistency is missing (Fotter.tsx uses rel="noreferrer" only).
+
+Fix: add aria-label to icon-only buttons; standardise on
+`rel="noopener noreferrer"`.
+
+--------------------------------------------------------------------------------
+[U-10] LOW — Dead import shipped in the payment page
+--------------------------------------------------------------------------------
+File: frontend/src/components/payment/PaymentHistoryPage.tsx:9
+
+`RefreshCw` is imported but never used — this is the exact cause of B-01 (the
+build failure). The component also carries the comment "remove unused refresh
+button" in its last commit message, so the icon was deleted but the import was
+not.
+
+================================================================================
+ PART 4 — BACKEND BOTTLENECKS / PERFORMANCE
+================================================================================
+
+--------------------------------------------------------------------------------
+[P-01] HIGH — Unbounded in-memory cache: analysisCache (memory leak)
+--------------------------------------------------------------------------------
+File: backend/src/routes/repository.ts:41, 128-130, 179
+
+    const analysisCache = new Map<string, any>();   // no cap, no TTL
+    ...
+    analysisCache.set(cacheKey, result);            // full architecture graph
+
+The cached value is a complete architecture analysis (nodes, edges, per-file
+metadata) for every distinct `localPath|repoUrl + revision + analyzer + provider
++ viewMode + auth` combination. There is no `.size` check, no eviction, no TTL,
+and no `delete()` anywhere in the file. Every unique repo analysed grows the
+heap permanently. On Fly with `memory = '1gb'` and `min_machines_running = 0`
+(cold starts), this is a straightforward OOM path.
+
+Fix: use an LRU with a hard cap (e.g. 50 entries) plus a TTL, or move to Redis.
+
+--------------------------------------------------------------------------------
+[P-02] HIGH — Blocking FFmpeg/FFprobe on the main thread (up to 30 s)
+--------------------------------------------------------------------------------
+File: backend/src/services/mediaCompressionService.ts:37, 49, 198-210, 257-280
+
+    spawnSync('ffmpeg', [...], { timeout: 30000, stdio: 'ignore' })
+
+`spawnSync` blocks the Node event loop for the entire transcode. A single 2-
+minute video upload stalls every other request — including Socket.IO heartbeats
+for live meetings — for up to 30 seconds. The container has 1 shared CPU
+(fly.toml), so FFmpeg and the API compete for the same core.
+
+Compounding it: `isFfmpegAvailable()` / `isFfprobeAvailable()` run
+`spawnSync('ffmpeg', ['-version'])` on EVERY call and are not memoised, adding a
+process spawn per upload (and per probe).
+
+Fix: (a) memoise the availability checks in a module-level variable;
+(b) switch to async `spawn`/`execFile` with a promise, so the loop stays free;
+(c) ideally move transcoding to a worker thread or a queue.
+
+--------------------------------------------------------------------------------
+[P-03] MEDIUM — Unbounded in-memory stores across services
+--------------------------------------------------------------------------------
+Verified `new Map()` / array stores with no eviction:
+
+  backend/src/routes/chat.ts:26              inMemoryChatStore      (200 msgs/session, ∞ sessions)
+  backend/src/routes/history.ts:20-40        inMemoryArchHistory    (∞ records)
+  backend/src/routes/history.ts             inMemoryRepoHistory
+  backend/src/services/subscriptionService.ts:44-45  inMemSubscriptions, inMemUsage
+  backend/src/meeting/meetingService.ts:23-25 inMemMeetings,
+                                              inMemMeetingParticipants,
+                                              inMemMeetingMessages
+  backend/src/meeting/yjsServer.ts:41-44     activeRooms, clientSessions,
+                                              roomPresences, pendingHostTransferTimers
+  backend/src/routes/feedback.ts             feedbackStore (array)
+  backend/src/middleware/telemetry.ts:44     endpointStats
+
+Each is a fallback when the DB is unreachable, which is exactly when the process
+is already stressed. Anonymous chat sessions are the worst offender: keyed by
+`anonymous:<sessionId>` with a client-supplied id, so a single client can mint
+unlimited entries.
+
+Fix: cap each store (LRU / max size), and/or expire entries with a sweep timer.
+
+--------------------------------------------------------------------------------
+[P-04] MEDIUM — Yjs rooms are never torn down when a meeting ends
+--------------------------------------------------------------------------------
+File: backend/src/meeting/yjsServer.ts:622-647 (end-meeting), 41
+
+The `end-meeting` handler saves the final architecture, calls `endMeeting()`,
+and broadcasts `meeting-ended` — but never does:
+
+    activeRooms.delete(session.meetingId)
+    roomPresences.delete(session.meetingId)
+    pendingHostTransferTimers.delete(...)
+
+Each Y.Doc (with its full CRDT history) stays resident forever, and every
+participant's `clientSessions` entry only clears on socket disconnect. Long-
+running servers accumulate one retained document per meeting ever created.
+`_resetMeetingSocketServerForTests()` (line 780-785) also leaves
+`pendingHostTransferTimers` populated.
+
+Fix: on end-meeting, `room.doc.destroy()`, delete from all three maps, clear the
+timer, and broadcast so clients leave the room.
+
+--------------------------------------------------------------------------------
+[P-05] MEDIUM — Pagination parameters are never clamped
+--------------------------------------------------------------------------------
+Files: backend/src/routes/history.ts:97-98, 522-523
+       backend/src/routes/admin.ts:84-85
+
+    const limit = parseInt(req.query.limit as string, 10) || 50;
+    ...
+    limit: Math.max(limit * 2, 50),      // history.ts:106 — doubles it!
+
+`?limit=1000000` becomes `Math.max(2000000, 50)` = 2,000,000 rows, then the
+handler `deduplicateArchitectureRecords()` over the whole set. One request can
+pull the user's entire history and pin a Neon connection. Same pattern in
+/repositories and in the admin user list.
+
+Fix: `Math.min(Math.max(parseInt(limit)||50, 1), 100)` in all four places.
+
+For contrast, the feed already does this correctly
+(feedService.ts:252: `Math.min(Math.max(Number(options.limit) || 20, 1), 50)`).
+
+--------------------------------------------------------------------------------
+[P-06] MEDIUM — No response compression at the app layer
+--------------------------------------------------------------------------------
+Files: backend/src/app.ts (no `compression` middleware; not a dependency)
+       Caddyfile (encode gzip zstd — only present when fronted by Caddy)
+
+Large JSON payloads (architecture graphs, simulation results, feed pages,
+telemetry stats) are shipped uncompressed whenever the app is reached without
+Caddy — notably the Fly deployment, which has no Caddyfile in front. Payloads
+in the hundreds of KB travel at full size.
+
+Fix: `npm i compression; app.use(compression())`. It is safe to run behind
+Caddy too (it respects Content-Encoding).
+
+--------------------------------------------------------------------------------
+[P-07] LOW — Telemetry percentiles re-sort 5,000 samples per request
+--------------------------------------------------------------------------------
+File: backend/src/middleware/telemetry.ts:236-250 (getTelemetryStats)
+
+    const sorted = [...latencySamples].sort((a, b) => a - b);
+
+Every GET /api/telemetry/stats copies and sorts the full 5,000-element array
+(O(n log n)) plus iterates all endpoint stats. Not fatal, but the stats endpoint
+is unauthenticated (S-06) so it is a free CPU amplifier.
+
+Fix: compute a bounded histogram instead of exact percentiles, or cache the
+result for a few seconds.
+
+--------------------------------------------------------------------------------
+[P-08] LOW — Chat history retrieval can be a full table scan
+--------------------------------------------------------------------------------
+File: backend/src/routes/chat.ts:260-266
+
+    WHERE user_id = ${userId}
+      AND generation_config->>'chatSessionId' = ${sessionId}
+
+Filtering on a JSONB expression with no matching expression index. On a large
+architecture_history table this degrades to a sequential scan per request.
+
+Fix: `CREATE INDEX ON public.architecture_history ((generation_config->>'chatSessionId'));`
+or promote chatSessionId to a real column.
+
+--------------------------------------------------------------------------------
+[P-09] LOW — N+1-ish LLM fan-out per analysis request
+--------------------------------------------------------------------------------
+File: backend/src/routes/repository.ts (analyze pipeline), services/aiChatService.ts
+
+A single /api/repository/analyze request performs GitHub tree fetches, a static
+inventory walk, then one or more LLM calls, with a client-visible axios timeout
+of 60 s (frontend/src/services/api.ts:19). No request-level budget, no
+cancellation propagation: if the client disconnects the work continues and is
+still billed.
+
+Fix: pass an AbortSignal through to fetch, and check `req.destroyed` between
+stages.
+
+--------------------------------------------------------------------------------
+[P-10] LOW — Server-side scanners read files synchronously
+--------------------------------------------------------------------------------
+File: backend/src/services/staticScanner.ts:98, 131, 150, 164-188
+
+`fs.readFileSync` / `fs.readdirSync` throughout the inventory walk. For a large
+repo this blocks the loop for the whole traversal. Bounded by the workspace
+restriction, so impact is limited to one request's latency — but it stacks with
+P-02.
+
+Fix: `fs.promises` variants.
+
+================================================================================
+ PART 5 — CORRECTNESS / LOGIC BUGS
+================================================================================
+
+--------------------------------------------------------------------------------
+[C-01] HIGH — Passwordless mock login is a forgeable-token backdoor
+--------------------------------------------------------------------------------
+Files: backend/src/routes/auth.ts:29-74 (login), 77-140 (signup)
+       backend/src/middleware/auth.ts:47-66, 88-95
+
+    const mockToken = `mock_jwt_${Buffer.from(JSON.stringify({
+      id: user.id, email: user.email
+    })).toString('base64')}`;
+
+No password, no secret, no signature — the "JWT" is base64 JSON. The middleware
+accepts any `mock_jwt_` token when `NODE_ENV !== 'production'` OR
+`ENABLE_MOCK_AUTH === 'true'`. Anything running with NODE_ENV unset (including
+a misconfigured container) accepts a token the attacker writes by hand, with any
+`id` they choose — full identity forgery against /api/feed, /api/history,
+/api/meetings, /api/payment.
+
+Fix: make the mock path impossible in production by checking a positive
+allowlist (`process.env.ENABLE_MOCK_AUTH === 'true' && process.env.NODE_ENV !== 'production'`),
+and sign mock tokens with an HMAC so they cannot be minted client-side.
+
+--------------------------------------------------------------------------------
+[C-02] HIGH — Plan limit counters are not atomic
+--------------------------------------------------------------------------------
+File: backend/src/services/subscriptionService.ts:237-300
+
+`checkAndIncrementAiUsage()` reads the usage row, compares against
+`FREE_LIMITS.AI_GENERATIONS`, then issues an `UPDATE ... + 1`. Two concurrent
+requests both read `used = 2` (limit 3) and both increment — the user gets 4+
+generations. There is also no row lock and no transaction.
+
+Fix: do it in one statement:
+    UPDATE user_usage SET ai_generation_count = ai_generation_count + 1
+    WHERE user_id = $1 AND ai_generation_count < $2
+    RETURNING ai_generation_count;
+and treat zero rows as "limit reached".
+
+--------------------------------------------------------------------------------
+[C-03] MEDIUM — Subscription activation is not idempotent across paths
+--------------------------------------------------------------------------------
+Files: backend/src/services/polarService.ts:110-179 (confirm-checkout)
+       backend/src/services/polarService.ts:270+ (webhook)
+       backend/src/routes/payment.ts:203-233 (mock-complete)
+
+Three independent paths call `activateSubscription()`, each generating its own
+`cust_mock_<timestamp>` / `sub_mock_<timestamp>` ids. A real checkout confirmed
+via /confirm-checkout AND the webhook can produce two different
+polar_subscription_id values for the same purchase; the second overwrites the
+first, orphaning the real subscription id. Combined with C-02 this is how the
+payment test suite ends up with wrong plan state.
+
+Fix: key activation on the real `polar_subscription_id`, make it an upsert with
+`ON CONFLICT (polar_subscription_id)`, and never synthesise ids outside the mock
+branch.
+
+--------------------------------------------------------------------------------
+[C-04] MEDIUM — Feed post creation accepts author fields from the body
+--------------------------------------------------------------------------------
+File: backend/src/feed/feedRoutes.ts:220-231
+
+    const resolvedAuthorName  = req.body?.authorName  || req.user?.fullName;
+    const resolvedAuthorEmail = req.body?.authorEmail || req.user?.email;
+
+A body value always wins over the verified token. See S-10.
+
+Fix: always use `req.user` for author identity.
+
+--------------------------------------------------------------------------------
+[C-05] LOW — Comment length limit is enforced but post length is by word count only
+--------------------------------------------------------------------------------
+Files: backend/src/feed/feedRoutes.ts:204-213 (2500 words), 551 (1000 chars)
+
+Posts are capped at 2,500 words but with no byte cap — 2,500 words of
+multi-byte Unicode can exceed 100 KB, and the 15 MB JSON body limit means the
+value is stored and re-served on every feed page. Comments are correctly capped
+by characters.
+
+Fix: add a byte-length cap (e.g. 20 KB) on post content.
+
+--------------------------------------------------------------------------------
+[C-06] LOW — `useRemoteDb()` ignores the configured DB
+--------------------------------------------------------------------------------
+File: backend/src/routes/history.ts:17
+
+    const useRemoteDb = () => process.env.NODE_ENV !== 'test';
+
+The helper is named for DB selection but only checks NODE_ENV. In test mode
+Neon is bypassed even when configured, which is a plausible contributor to the
+payment/history test failures in B-02 (tests exercise in-memory paths that
+diverge from production behaviour).
+
+Fix: `() => isNeonConfigured() && process.env.NODE_ENV !== 'test'` and have the
+tests seed the same store production uses.
+
+--------------------------------------------------------------------------------
+[C-07] LOW — Feedback is stored in memory only
+--------------------------------------------------------------------------------
+File: backend/src/routes/feedback.ts:37, 67-71
+
+`feedbackStore.push(feedback)` — process-local array, lost on restart, never
+read back by any route. The only durable destination is Telegram. If Telegram
+is down or the env vars are unset, the submission is silently dropped while the
+API still returns 201.
+
+Fix: persist to the DB, and only return 201 after a durable write.
+
+================================================================================
+ PART 6 — SUMMARY
+================================================================================
+
+Counts
+  CRITICAL  5   S-01, S-02, B-01, U-01, (plus C-01 at the boundary)
+  HIGH     14   S-03..S-09, B-02, B-03, U-02, U-03, P-01, P-02, C-01, C-02
+  MEDIUM   16
+  LOW/INFO 18
+
+Fix these first — each is small and unblocks a release
+  1. B-01  delete the `RefreshCw` import          (1 line, build goes green)
+  2. S-01  requireAuth on /auth/sync-profile      (2 lines)
+  3. S-02  requireAuth on /auth/test-welcome-email (2 lines)
+  4. S-09  add the usage gate to /architecture/design-report (5 lines)
+  5. S-05  hard-gate mock-complete + fail-closed token check (10 lines)
+  6. U-01  shadow-xs -> shadow-sm, backdrop-blur-xs -> backdrop-blur-sm,
+           outline-hidden -> outline-none  (mechanical, ~165 sites)
+  7. S-06  express-rate-limit on auth + AI routes (20 lines)
+  8. S-08  tighten the two CORS origin checks (10 lines)
+
+Then, in order: S-04 (SSRF), B-02 (red suite), S-07 (trust proxy),
+P-01/P-02 (memory + event loop), U-02/U-04 (the two visible UI defects).
+
+Notes on scope
+  • No application code was changed during this audit.
+  • Backend type-checks and builds clean; frontend does not build (B-01).
+  • Line numbers refer to the working tree as of 2026-11-26; several backend
+    files were edited during the session, so re-verify before patching.
+  • Secret VALUES were never read into this report — only variable names and
+    file locations are listed.
+================================================================================
