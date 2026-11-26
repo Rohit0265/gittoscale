@@ -204,10 +204,13 @@ export function initMeetingSocketServer(httpServer: HttpServer): SocketIOServer 
     cors: {
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);
+        const isAllowedVercelDeployment =
+          /^https:\/\/gitoscale(-[a-z0-9-]+)?\.vercel\.app$/i.test(origin) ||
+          (origin.endsWith('.vercel.app') && process.env.NODE_ENV !== 'production');
         if (
           process.env.NODE_ENV !== 'production' ||
           allowedOrigins.includes(origin) ||
-          origin.endsWith('.vercel.app') ||
+          isAllowedVercelDeployment ||
           origin.startsWith('http://localhost:') ||
           origin.startsWith('http://127.0.0.1:')
         ) {

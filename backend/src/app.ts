@@ -134,11 +134,17 @@ export function createApp() {
     console.warn('[App] Tmp uploads directory not initialized:', err?.message);
   }
 
+  const uploadStaticOptions = {
+    setHeaders: (res: Response) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Content-Disposition', 'attachment');
+    },
+  };
   if (fs.existsSync(localUploadsPath)) {
-    app.use('/uploads', express.static(localUploadsPath));
+    app.use('/uploads', express.static(localUploadsPath, uploadStaticOptions));
   }
   if (fs.existsSync(tmpUploadsPath)) {
-    app.use('/uploads', express.static(tmpUploadsPath));
+    app.use('/uploads', express.static(tmpUploadsPath, uploadStaticOptions));
   }
 
   // Serve static frontend in production if built
