@@ -2,13 +2,16 @@
  GITTOSCALE — DEEP SOURCE AUDIT (rewrite)
  Security · Logic Bugs · UI Glitches · Backend Bottlenecks · Build Health
 ================================================================================
-Audit date : 2026-11-26 (rewrite)
+Audit date : 2026-11-26 (rewrite + OWASP pass)
 Repo       : /home/my/Desktop/gitoscale
 Scope      : backend/src (52 files, 20,206 LOC) + frontend/src (~120 files,
              37,773 LOC) + supabase/migrations (5 files) + Docker/Caddy/fly
 Method     : full-file reads + pattern sweeps + real command execution.
              Every finding below was read in the actual source. Nothing here
              is inferred from a file name or a failed grep.
+Parts      : 1 Security · 2 Build/deps · 3 UI · 4 Perf · 5 Logic
+             5b OWASP Top 10 mapped pass · 6 Prioritised fix order
+             75 findings total (OW 11 · S 30 · B 6 · U 10 · P 11 · C 7)
 
 VERIFIED COMMANDS RUN THIS SESSION
   backend  npx tsc --noEmit          -> exit 0 (clean)
@@ -806,7 +809,9 @@ Installed: zod ^3.23.8. Every validating route uses it. Directly relevant:
 Fix: upgrade to zod 4 and re-run the suite; or add explicit .max() caps on every
 array/string and put a rate limit in front (S-05).
 
-Frontend: 0 vulnerabilities.
+Frontend: `npm audit --omit=dev` reports 0 — but that hides dev deps. See the
+A06 CORRECTION in PART 5b: the full audit is 2 critical / 2 high (backend) and
+1 high / 2 moderate (frontend), driven by vitest, tinypool, vite and esbuild.
 
 --------------------------------------------------------------------------------
 [B-03] MEDIUM — CI workflow exists on disk but has never been committed
@@ -818,8 +823,16 @@ Verified: `.github/workflows/fly-deploy.yml` exists (510 bytes) but
 The Fly deploy workflow has never been committed and never runs. There is also no
 build/test workflow at all, which is why B-01 ships.
 
-Fix: add `!.github` (and `!.env.example`) to .gitignore, commit the workflow, make
-deploy depend on `npm ci && npm run build && npm test`.
+The same `.*` line also swallows `.dockerignore`. That file DOES exist on disk
+(250 bytes — correcting an earlier claim in this audit that it was missing), but
+`git ls-files` does not track it. On a fresh clone the Docker build therefore has
+no ignore file, and `COPY . .` at Dockerfile:26 pulls `node_modules`, `.env` and
+`tests/` into the build context — baking local secrets into an image layer.
+
+Fix: replace `.*` with explicit entries (`.env*`, `.neon`, `.vercel`, `.DS_Store`,
+`.idea`, `.vscode`), then
+    git add -f .dockerignore .github/workflows/fly-deploy.yml
+commit both, and make deploy depend on `npm ci && npm run build && npm test`.
 
 --------------------------------------------------------------------------------
 [B-04] MEDIUM — Junk committed to the repository
@@ -1642,12 +1655,11 @@ FIX  S-05 first (global limiter), then per-route quotas on feedback/simulate.
 `frontend/index.html` loads no third-party scripts, so SRI is moot today. But:
   • `.github/workflows/fly-deploy.yml` is UNTRACKED — see B-03. The deploy
     pipeline that would enforce `npm ci` + audit does not exist in the repo.
-  • `.dockerignore` is also untracked (correcting an earlier claim in this audit
-    that it was absent — it exists on disk, 250 bytes, but git does not track it).
-    A fresh clone builds with no ignore file, so `COPY . .` at Dockerfile:26
-    pulls in `node_modules`, `.env`, and `tests` from the build context.
-FIX  `git add -f .dockerignore .github/workflows/fly-deploy.yml` and fix the
-`.gitignore` `.*` line that is swallowing every dotfile (see B-03).
+  • `.dockerignore` is also untracked — see B-03. It exists on disk (250 bytes)
+    but git does not track it, so a fresh clone builds with no ignore file and
+    `COPY . .` at Dockerfile:26 pulls in `node_modules`, `.env` and `tests/`.
+FIX  see B-03 — replace the `.gitignore` `.*` line, then
+     `git add -f .dockerignore .github/workflows/fly-deploy.yml`.
 
 --------------------------------------------------------------------------------
 OWASP SUMMARY TABLE

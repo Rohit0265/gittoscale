@@ -35,7 +35,7 @@ function startServer() {
   initMeetingSocketServer(server);
 
   server.on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
+    if (err.code === 'EADDRINUSE' && process.env.NODE_ENV !== 'production') {
       console.warn(`[Backend] Port ${PORT} is occupied! Freeing port ${PORT} and restarting...`);
       killPortProcess(PORT);
       setTimeout(() => {
