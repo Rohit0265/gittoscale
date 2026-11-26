@@ -1378,32 +1378,362 @@ Fix: register literal sub-paths before the parameterised route and validate
 malformed ids. (See B-01b — same bug, seen from the test side.)
 
 ================================================================================
+ PART 5b — OWASP TOP 10 (2021) MAPPED PASS
+================================================================================
+Second sweep, run after PART 1-5. Each category below was actively probed, not
+assumed. New IDs are prefixed OW- and are NOT duplicates of earlier findings —
+where a category was already covered, the existing ID is cited instead.
+
+--------------------------------------------------------------------------------
+[OW-01] CRITICAL — A01 Broken Access Control: meeting reads are fully public
+--------------------------------------------------------------------------------
+File: backend/src/meeting/meetingRoutes.ts:110, 162, 273
+
+    router.get('/:id',             async (req, res) => { ... })   // NO requireAuth
+    router.get('/:id/participants',async (req, res) => { ... })   // NO requireAuth
+    router.get('/:id/snapshot',    async (req, res) => { ... })   // NO requireAuth
+
+Anyone on the internet, with no account, can enumerate meeting UUIDs and read:
+  • the meeting record — title, host_id, architecture_state, is_locked, status
+  • the full participant roster — every user_id, full_name, avatar_url
+  • the architecture snapshot — the user's private system design
+
+The router applies requireAuth to 9 of its 13 routes; these three were missed.
+`/:id/snapshot` is the worst: it returns `meeting.architecture_state`, which is
+the paid product's output.
+
+Verified by reading the route declarations — `grep -n "^router\." ` shows
+requireAuth present on `/`, `/user/history`, `/:id/join`, `/:id/participants/:userId/role`,
+`/:id/participants/:userId` (delete), `/:id/lock` (x2), `/:id/end`, `/:id/messages`,
+`/:id` (delete) and absent on exactly these three.
+
+FIX  add `requireAuth` as the second argument to all three, then check
+membership before returning (see OW-02).
+
+--------------------------------------------------------------------------------
+[OW-02] HIGH — A01: meeting chat readable by any authenticated user (IDOR)
+--------------------------------------------------------------------------------
+File: backend/src/meeting/meetingRoutes.ts:260  ->  meetingService.ts:646-664
+
+    router.get('/:id/messages', requireAuth, async (req, res) => {
+      const messages = await getMeetingMessages(req.params.id);   // no membership check
+      res.json({ success: true, messages });
+    });
+
+`getMeetingMessages(meetingId, limit)` takes only the id and runs
+`SELECT * FROM public.meeting_messages WHERE meeting_id = ${meetingId}`.
+The caller's identity is never passed in, so any logged-in user who knows or
+guesses a meeting UUID reads its entire private chat history.
+
+Contrast with the write path: the Yjs `join-meeting` handler DOES verify
+(`resolveSocketUser`, yjsServer.ts:258-268). Read and write are inconsistent.
+
+FIX  pass `req.user.id` into the service and require a row in
+meeting_participants (or host_id match) before returning messages; 404 if not.
+
+--------------------------------------------------------------------------------
+[OW-03] HIGH — A01: meeting deletion has no authorization at all
+--------------------------------------------------------------------------------
+File: backend/src/meeting/meetingService.ts:739-757
+
+    export async function deleteMeetingForUser(meetingId, userId) {
+      if (isNeonConfigured()) {
+        await db`DELETE FROM public.meetings
+                 WHERE id = ${meetingId} AND host_id = ${userId};`;   // 0 rows -> ignored
+      }
+      inMemMeetings.delete(meetingId);                                // UNCONDITIONAL
+      inMemMeetingParticipants.delete(meetingId);
+      inMemMeetingMessages.delete(meetingId);
+      return true;                                                    // always
+    }
+
+The SQL is correctly scoped to `host_id = userId`, but the result is discarded
+and the in-memory teardown runs regardless. So:
+  • any authenticated user can DELETE /api/meetings/<any-id> and destroy the
+    in-memory room, participants and messages of a meeting they do not own;
+  • the route (meetingRoutes.ts:294) always answers 200
+    {"success":true,"message":"Meeting deleted successfully"}.
+The caller cannot even tell whether they were allowed.
+
+FIX  check rowCount on the DB branch, and gate the inMem branch on
+`inMemMeetings.get(meetingId)?.host_id === userId`. Return 403/404 otherwise.
+
+--------------------------------------------------------------------------------
+[OW-04] HIGH — A05 Security Misconfiguration: no CSP, no HSTS, no helmet
+--------------------------------------------------------------------------------
+File: backend/src/app.ts:42-48 (the only security-header block in the repo)
+
+Present: X-Frame-Options, X-Content-Type-Options, Referrer-Policy,
+         Permissions-Policy
+Absent : Content-Security-Policy, Strict-Transport-Security,
+         Cross-Origin-Opener-Policy, Cross-Origin-Resource-Policy
+Also absent: `helmet` — `grep -rn helmet src/` exits 1, it is not a dependency.
+Caddyfile: `grep -n "header" Caddyfile` returns nothing, so the reverse proxy
+adds no headers either. Nothing terminates TLS policy.
+
+Worse, the block sets
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+which current OWASP guidance says to send as `0`. `1; mode=block` enables the
+legacy XSS Auditor, whose blocking behaviour is itself exploitable in older
+Chrome and is a documented information-disclosure vector.
+
+No CSP on an app that renders user-supplied `media_url` into `<img src>`
+(see OW-06) means a stored-XSS payload has no second line of defence.
+
+FIX  add helmet with an explicit CSP; drop X-XSS-Protection to `0`; add HSTS at
+Caddy (it is the only component that knows the request arrived over TLS).
+
+--------------------------------------------------------------------------------
+[OW-05] HIGH — A05: CORS trusts any attacker-registrable *.vercel.app origin
+--------------------------------------------------------------------------------
+File: backend/src/app.ts:66-69
+
+    const isAllowedVercelDeployment =
+      /^https:\/\/gitoscale(-[a-z0-9-]+)?\.vercel\.app$/i.test(origin) ||
+      (origin.endsWith('.vercel.app') && process.env.NODE_ENV !== 'production');
+
+with `credentials: true` (line 79).
+
+The regex is the live one in production. It matches any subdomain shaped like
+`gitoscale-<anything>.vercel.app`. Vercel subdomains are first-come-first-served
+across all Vercel users, so an attacker who registers `gitoscale-evil.vercel.app`
+(or any name matching) is sent `Access-Control-Allow-Origin: <their origin>`
+together with `Access-Control-Allow-Credentials: true`. Any cookie- or
+credential-bearing request the app makes cross-origin then succeeds from that
+page.
+
+Second branch: `origin.endsWith('.vercel.app')` is a suffix test, not an equality
+test — `evil.vercel.app` passes. It is gated on NODE_ENV !== 'production', which
+is correct, but if NODE_ENV is ever unset in a deployed container it silently
+opens to the whole vercel.app namespace.
+
+FIX  replace both with an explicit allowlist of exact origins (you already have
+`allowedOrigins`); delete the regex.
+
+--------------------------------------------------------------------------------
+[OW-06] HIGH — A03 Injection: mediaUrl is stored and rendered unvalidated
+--------------------------------------------------------------------------------
+File: backend/src/feed/feedRoutes.ts:193, 226  ->  frontend PostCard.tsx:265
+
+    const { content, mediaUrl, mediaType, mediaItems } = req.body;
+    ...
+    mediaUrl: mediaUrl || null,
+
+No scheme check, no host allowlist, no length cap on the server. The value is
+persisted to `feed_posts.media_url` and rendered directly:
+
+    src={post.media_url}        // PostCard.tsx:265, AdminPage.tsx:1023/1029
+
+`<img src>` will not execute `javascript:`, but it WILL fetch and render
+`data:image/svg+xml;base64,...`, which is a script-execution surface in several
+browsers and a reliable tracking-pixel/SSRF-ish beacon in all of them. With no
+CSP (OW-04) there is nothing to stop the SVG.
+
+Note the asymmetry: the *upload* path does validate magic bytes
+(`validateMediaBinary`, feedRoutes.ts:922). The *URL* path validates nothing.
+
+FIX  server-side: accept only `https:` URLs, or a path under the R2 bucket host;
+reject everything else with 400. Client-side: render through an allowlist helper
+rather than the raw string.
+
+--------------------------------------------------------------------------------
+[OW-07] MEDIUM — A02 Cryptographic Failures: Math.random() mints identities
+--------------------------------------------------------------------------------
+Files: backend/src/routes/auth.ts:52 and 99 (user ids)
+       backend/src/services/subscriptionService.ts:635 (transaction ids)
+
+    id: `usr_${Math.random().toString(36).substring(2, 9)}`
+
+`Math.random()` is not a CSPRNG. V8's xorshift128+ state is recoverable from a
+small number of consecutive outputs, and the ids here are only ~7 base-36 chars
+(~36 bits) drawn from that generator. Two consequences:
+
+  • user ids are guessable/collidable — and `usr_<id>` is the primary key used
+    for ownership checks throughout history/feed/meeting code;
+  • `tx_<ts>_<rand>` transaction ids in subscriptionService are the dedupe key
+    for payment activation (see C-02), so a collision is a billing-integrity bug.
+
+These are mock/dev paths (the real identity comes from Supabase), so severity is
+MEDIUM not HIGH — but the ids are persisted and then trusted as ownership keys.
+
+FIX  `crypto.randomUUID()` everywhere an id is minted.
+
+--------------------------------------------------------------------------------
+[OW-08] MEDIUM — A09 Logging Failures: sanitizeQuery is defeated by originalUrl
+--------------------------------------------------------------------------------
+File: backend/src/middleware/telemetry.ts:160-173 (sanitizer), 181 (the leak)
+
+    const sensitiveKeys = new Set(['token','key','apikey','secret','password',
+                                   'auth','authorization','email','jwt','bearer']);
+    function sanitizeQuery(query) { ... redacts those keys ... }
+
+    const traceRecord = {
+      path: req.originalUrl || req.url,      // <-- raw, unsanitised
+      query: sanitizeQuery(req.query),       // <-- sanitised
+      ...
+    };
+
+`req.originalUrl` is the complete URL *including the query string*. So a request
+to `/api/chat/history?token=abc&email=a@b.c` produces a trace whose `query` field
+says `[REDACTED]` while its `path` field contains `token=abc&email=a@b.c` in
+plaintext. The sanitizer's work is undone one field to the right.
+
+Those traces are then served by `GET /api/telemetry/slow-traces`, which is
+anonymous (S-25). So: unauthenticated attacker -> reads other users' query
+strings, including any token passed as a query param.
+
+Body is also never sanitised — `sanitizeQuery` is the only sanitiser, and
+`req.body` is not in the trace record. That is currently safe only because
+nothing puts body into the trace; if a field is added later it will leak raw.
+
+FIX  `path: req.originalUrl.split('?')[0]` — keep the path, drop the query.
+
+--------------------------------------------------------------------------------
+[OW-09] MEDIUM — A07 Auth Failures: no rate limiting anywhere + spoofable identity
+--------------------------------------------------------------------------------
+Files: backend/src/app.ts (no rate-limit middleware, entire file)
+       backend/src/routes/architecture.ts:13-15 (identity from X-Forwarded-For)
+
+`grep -rn "rateLimit|rate-limit|express-rate" src/ package.json` returns only
+prose inside AI prompt strings — the package is not a dependency and no limiter
+is mounted. Combined with:
+
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : ...;
+    const userId = user?.id || 'anon_' + md5(ip).substring(0,16);
+
+the free-tier AI quota for anonymous users is keyed on a header the caller
+controls. Rotating `X-Forwarded-For` mints a fresh `anon_<hash>` per request and
+resets the counter, so `checkAndIncrementAiUsage` never blocks. Same pattern in
+chat.ts:358, payment.ts:23, recommend.ts:15, repository.ts:20 (S-07).
+
+`app.set('trust proxy', 1)` is set, which makes Express honour the *last* hop's
+XFF — but the code above reads the *first* entry, which is attacker-supplied.
+
+FIX  S-05 (add the limiter) + S-06 (trust proxy) + S-07 (delete the five helpers).
+This finding is the exploit chain that makes those three urgent rather than
+merely untidy: without a limiter there is nothing else bounding the abuse.
+
+--------------------------------------------------------------------------------
+[OW-10] MEDIUM — A04 Insecure Design: unbounded anonymous write endpoints
+--------------------------------------------------------------------------------
+Files: backend/src/routes/feedback.ts:11-16 (schema), :52 (route)
+       backend/src/routes/simulate.ts:10 (body), simulation/validation.ts
+
+`POST /api/feedback` is anonymous and, on success, forwards the payload to
+Telegram via the bot API. Schema caps `message` at 2000 chars and `name` at 100,
+but there is no per-IP limit, no captcha, and no dedupe — so it is a free
+outbound-message amplifier pointed at the operator's own Telegram chat.
+
+`POST /api/simulate` is anonymous, accepts up to 100 nodes / 200 edges, and runs
+`runSimulation` synchronously on the event loop. No auth, no limiter.
+
+`POST /api/repository/analyze` and `/test-llm` are anonymous (S-24) and both
+make outbound HTTP calls.
+
+None of these is a bug in isolation. Together, with no rate limiter (OW-09), they
+are the cheapest way to burn the server's CPU and the operator's Telegram quota.
+
+FIX  S-05 first (global limiter), then per-route quotas on feedback/simulate.
+
+--------------------------------------------------------------------------------
+[OW-11] INFO — A08 Software/Data Integrity: no SRI, no lockfile integrity gate
+--------------------------------------------------------------------------------
+`frontend/index.html` loads no third-party scripts, so SRI is moot today. But:
+  • `.github/workflows/fly-deploy.yml` is UNTRACKED — see B-03. The deploy
+    pipeline that would enforce `npm ci` + audit does not exist in the repo.
+  • `.dockerignore` is also untracked (correcting an earlier claim in this audit
+    that it was absent — it exists on disk, 250 bytes, but git does not track it).
+    A fresh clone builds with no ignore file, so `COPY . .` at Dockerfile:26
+    pulls in `node_modules`, `.env`, and `tests` from the build context.
+FIX  `git add -f .dockerignore .github/workflows/fly-deploy.yml` and fix the
+`.gitignore` `.*` line that is swallowing every dotfile (see B-03).
+
+--------------------------------------------------------------------------------
+OWASP SUMMARY TABLE
+--------------------------------------------------------------------------------
+  A01 Broken Access Control   OW-01, OW-02, OW-03, + S-10, S-11   CRITICAL
+  A02 Cryptographic Failures  OW-07, + S-27                        MEDIUM
+  A03 Injection               OW-06, + S-13, S-13b, S-24          HIGH
+  A04 Insecure Design         OW-10, + S-01, S-19                 MEDIUM
+  A05 Security Misconfig      OW-04, OW-05, + S-08, S-22          HIGH
+  A06 Vulnerable Components   B-02 expanded — see below            HIGH
+  A07 Auth & Session Failures OW-09, + S-01, S-02, S-03, S-04      MEDIUM
+  A08 Integrity Failures      OW-11, + B-03                        MEDIUM
+  A09 Logging Failures        OW-08, + S-25                        MEDIUM
+  A10 SSRF                    S-24 (already documented)            HIGH
+
+--------------------------------------------------------------------------------
+CORRECTION — A06 dependency count was understated
+--------------------------------------------------------------------------------
+Earlier in this audit, B-02 reported "1 high (zod)" from `npm audit --omit=dev`.
+That command excludes devDependencies. The FULL audit is materially worse:
+
+  backend  (npm audit, all deps)   2 critical, 2 high, 2 moderate, 0 low
+      critical  vitest      — Vitest UI server: arbitrary file read + execute
+      critical  tinypool    — prototype-pollution gadget leading to RCE
+      high      vite        — path traversal in optimized-deps .map handling,
+                              cross-origin script execution via custom middleware,
+                              server.fs.allow bypass
+      high      zod         — memory exhaustion (the one previously reported)
+      moderate  esbuild, vite-node
+
+  frontend (npm audit, all deps)   0 critical, 1 high, 2 moderate
+      high      vite        (same advisories)
+      moderate  esbuild, postcss-selector-parser
+
+The two criticals are dev-only (vitest/tinypool are not in the production image,
+which runs `npm ci --omit=dev` at Dockerfile:47). They matter because they are
+RCE gadgets that trigger when a developer runs the test UI — and because CI
+running `npm audit` will fail the build.
+
+The production-relevant one is vite: the built frontend is static files, so the
+dev-server advisories do not ship, but the `vite` version is what `vite build`
+uses, and the fix is a major bump (vite 8).
+
+FIX  `npm audit fix --force` is a major bump; schedule it. Minimum viable:
+upgrade zod to 4.6.7 (B-02), and pin vitest to a patched version before anyone
+runs the UI server on a shared machine.
+
+================================================================================
  PART 6 — PRIORITISED FIX ORDER
 ================================================================================
 
 Ship-blockers, all small:
   0. B-00  PaymentHistoryPage.tsx:8 — delete `RefreshCw,` (frontend build + Docker
            image are both red until this one line goes)
-  1. S-01  payment.ts:170-172 — remove `|| ENABLE_MOCK_AUTH` from the webhook gate
-  2. S-02  auth.ts / middleware/auth.ts / chat.ts / yjsServer.ts / feedRoutes.ts
+  1. OW-01 meetingRoutes.ts:110/162/273 — add requireAuth to the three public
+           reads (no-account access to private architecture state)
+  2. S-01  payment.ts:170-172 — remove `|| ENABLE_MOCK_AUTH` from the webhook gate
+  3. S-02  auth.ts / middleware/auth.ts / chat.ts / yjsServer.ts / feedRoutes.ts
            — invert the mock-auth gate to
            `ENABLE_MOCK_AUTH==='true' && NODE_ENV!=='production'` (5 copies)
-  3. S-03  AuthContext.tsx — strip the mock OAuth popup from production builds
-  4. S-04  auth.ts:147 — requireAuth on /notify-signup
-  5. S-09  five missing RLS migrations
-  6. U-01  mechanical class rename (shadow-xs -> shadow-sm etc., ~218 sites)
-  7. B-01  reset inMem* between tests, mock the LLM, update the R2 URL assertion
+  4. S-03  AuthContext.tsx — strip the mock OAuth popup from production builds
+  5. S-04  auth.ts:147 — requireAuth on /notify-signup
+  6. S-09  five missing RLS migrations
+  7. U-01  mechanical class rename (shadow-xs -> shadow-sm etc., ~218 sites)
+  8. B-01  reset inMem* between tests, mock the LLM, update the R2 URL assertion
 
 Then, in order:
-  8.  S-06 trust proxy -> S-05 rate limiting -> S-07 delete the 5 XFF helpers
-  9.  S-08 tighten both CORS callbacks (HTTP + WebSocket)
-  10. S-10 chat history IDOR, S-11 meeting reads, S-13 path prefix check
-  11. B-01b route order + UUID validation
-  12. P-01 FFmpeg async + memoise, P-02 analysisCache cap, P-03 feed LATERAL join
-  13. P-04 Yjs room teardown, P-06 limit clamps
-  14. C-01 atomic counter, C-02 idempotent activation
-  15. U-02 ErrorBoundary, U-03 remove select-none
-  16. S-14 email escaping, S-15 upload limit alignment
+  9.  OW-03 deleteMeetingForUser — honour rowCount, gate the inMem branch
+  10. OW-02 getMeetingMessages — require membership before returning chat
+  11. OW-05 CORS — delete the *.vercel.app regex, use the exact allowlist
+  12. OW-06 mediaUrl — scheme/host allowlist on write and on render
+  13. S-06 trust proxy -> S-05 rate limiting -> S-07 delete the 5 XFF helpers
+  14. OW-09 (same chain as 13 — closing it fixes the quota bypass)
+  15. S-08 tighten both CORS callbacks (HTTP + WebSocket)
+  16. OW-04 helmet + CSP, drop X-XSS-Protection to 0, HSTS at Caddy
+  17. S-10 chat history IDOR, S-11 meeting reads, S-13 path prefix check
+  18. OW-08 telemetry `path: originalUrl.split('?')[0]`
+  19. B-01b route order + UUID validation
+  20. OW-07 crypto.randomUUID() for all minted ids
+  21. OW-11 `git add -f .dockerignore .github/workflows/fly-deploy.yml`, fix `.*`
+  22. P-01 FFmpeg async + memoise, P-02 analysisCache cap, P-03 feed LATERAL join
+  23. P-04 Yjs room teardown, P-06 limit clamps
+  24. C-01 atomic counter, C-02 idempotent activation
+  25. U-02 ErrorBoundary, U-03 remove select-none
+  26. S-14 email escaping, S-15 upload limit alignment
+  27. B-02/A06 dependency upgrades (zod 4.6.7 now; vite 8 + vitest 5 scheduled)
 
 ================================================================================
  NOTES ON SCOPE
