@@ -59,8 +59,6 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         month: 'short',
         day: 'numeric',
         year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
       });
     } catch {
       return dateString;
@@ -114,7 +112,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         {/* Collab Host Info */}
         {isCollab && hostName && (
           <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-neutral-400 mt-1">
-            <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
+            <UserCheck className="w-3.5 h-3.5 text-neutral-400" />
             <span className="truncate">Host: {hostName}</span>
           </div>
         )}
@@ -122,11 +120,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
 
       {/* Footer & Meta */}
       <div>
-        <div className="flex items-center justify-between text-[11px] mb-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800/80">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 text-[11px] font-medium text-slate-700 dark:text-neutral-300">
-            <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
-            <span>{nodeCount} Components</span>
-          </div>
+        <div className="flex items-center justify-end text-[11px] mb-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800/80">
           <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 font-mono text-[11px]">
             <Calendar className="w-3.5 h-3.5 opacity-70" />
             <span>{formatCardDate(createdAt)}</span>
@@ -140,7 +134,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
               e.stopPropagation();
               onOpen();
             }}
-            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white border border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-300 text-xs font-semibold transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
+            className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl bg-neutral-100 dark:bg-neutral-900 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-200 text-xs font-semibold transition-all shadow-xs group/btn cursor-pointer active:scale-[0.98]"
             title={actionLabel}
           >
             <span>{actionLabel}</span>
@@ -417,7 +411,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
             {/* Launch Simulator button */}
             <button
               onClick={onNavigateToSimulator}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden xs:inline">New Simulation</span>
@@ -429,7 +423,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                 onClick={() => setActiveTab('architectures')}
                 className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'architectures'
-                    ? 'bg-white dark:bg-[#14151F] text-blue-600 dark:text-blue-400 shadow-xs'
+                    ? 'bg-white dark:bg-[#14151F] text-black dark:text-white shadow-xs'
                     : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -441,7 +435,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                 onClick={() => setActiveTab('collab')}
                 className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'collab'
-                    ? 'bg-white dark:bg-[#14151F] text-indigo-600 dark:text-indigo-400 shadow-xs'
+                    ? 'bg-white dark:bg-[#14151F] text-black dark:text-white shadow-xs'
                     : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -466,7 +460,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                   ? 'Search by prompt, title, or GitHub repo...'
                   : 'Search by meeting title or host...'
               }
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-[#14151F] border border-slate-200 dark:border-neutral-800 rounded-lg text-xs text-slate-800 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-[#14151F] border border-slate-200 dark:border-neutral-800 rounded-lg text-xs text-slate-800 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-neutral-500 transition-colors"
             />
           </div>
 
@@ -571,7 +565,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                 </p>
                 <button
                   onClick={onNavigateToSimulator}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-black dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-semibold transition-all shadow-xs cursor-pointer"
                 >
                   Create New Architecture
                 </button>
@@ -631,7 +625,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
             {collabMeetings.length === 0 ? (
               <div className="text-center py-16 px-4 bg-white dark:bg-[#0D0E15] border border-slate-200 dark:border-neutral-800/80 rounded-2xl flex flex-col items-center">
                 <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 flex items-center justify-center text-slate-700 dark:text-neutral-300 mb-3">
-                  <Users className="w-6 h-6 text-indigo-500" />
+                  <Users className="w-6 h-6 text-neutral-400" />
                 </div>
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-neutral-200 mb-1">
                   No collaborative meeting history found
@@ -643,7 +637,7 @@ const HistoryDashboardComponent: React.FC<HistoryDashboardProps> = ({
                   href="/collab"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-black dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-semibold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <span>Start Collab Meeting</span>
                   <ExternalLink className="w-3.5 h-3.5" />
