@@ -133,19 +133,6 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
               List of all recorded payments, active plans, and billing receipts.
             </p>
           </div>
-
-          <button
-            onClick={fetchHistory}
-            disabled={loading}
-            className={`self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-              isDark
-                ? 'border-gray-800 bg-gray-900/80 hover:bg-gray-800 text-gray-200'
-                : 'border-gray-300 bg-white hover:bg-gray-100 text-gray-800'
-            }`}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
         </div>
 
         {/* Feedback Alert */}
@@ -452,7 +439,7 @@ export const PaymentHistoryPage: React.FC<PaymentHistoryPageProps> = ({
               </div>
             </div>
           )
-        )}
+        }
       </main>
 
       {/* Cancellation Confirmation Modal */}
