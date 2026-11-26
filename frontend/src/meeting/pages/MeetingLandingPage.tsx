@@ -121,11 +121,26 @@ export const MeetingLandingPage: React.FC<MeetingLandingPageProps> = ({
 
       {/* Hero Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 pt-24 pb-12 md:pt-28 md:pb-20 flex flex-col items-center text-center">
-        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white max-w-2xl leading-tight">
-          Design and scale architectures together in real time.
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white max-w-3xl leading-[1.08] sm:leading-[1.12]">
+          <span className="sm:hidden flex flex-col items-center">
+            <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+              Design and scale architectures
+            </PenHighlight>
+            <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+              together in real time.
+            </PenHighlight>
+          </span>
+          <span className="hidden sm:block">
+            <PenHighlight className="mx-auto block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+              Design and scale architectures
+            </PenHighlight>
+            <PenHighlight className="mx-auto mt-1 block w-fit" highlightClassName="bg-slate-400/85 dark:bg-neutral-500/85">
+              together in real time.
+            </PenHighlight>
+          </span>
         </h1>
 
-        <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-neutral-400 max-w-xl">
+        <p className="mt-5 text-sm sm:text-base text-slate-600 dark:text-neutral-400 max-w-xl">
           Bring your engineering team into a live synchronized canvas. Connect nodes, analyze bottlenecks, and brainstorm architectures.
         </p>
 
