@@ -124,7 +124,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         className={`pointer-events-auto flex items-center justify-between transition-all duration-300 ${
           isApp
             ? 'h-full flex-1 max-w-none'
-            : 'h-12 sm:h-13 w-full max-w-4xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#020202]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
+            : 'h-12 sm:h-13 w-full max-w-6xl px-3 sm:px-5 rounded-full border border-slate-200/90 dark:border-neutral-800/90 bg-white/85 dark:bg-[#020202]/85 backdrop-blur-md shadow-md shadow-slate-200/40 dark:shadow-black/50'
         }`}
       >
         {/* Left: Brand Logo */}
