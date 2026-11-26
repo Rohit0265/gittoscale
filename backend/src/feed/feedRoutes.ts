@@ -217,8 +217,8 @@ router.post('/posts', requireAuth, async (req: AuthenticatedRequest, res: Respon
       sanitizedMediaType = mediaType;
     }
 
-    const resolvedAuthorName = req.body?.authorName || req.user?.fullName;
-    const resolvedAuthorEmail = req.body?.authorEmail || req.user?.email;
+    const resolvedAuthorName = req.user?.fullName || req.body?.authorName;
+    const resolvedAuthorEmail = req.user?.email || req.body?.authorEmail;
 
     const post = await createFeedPost({
       userId,
