@@ -653,11 +653,16 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
         )}
 
         {/* Left Sidebar (AI Copilot / Chats / Participants) */}
-        {isSidebarOpen && (
-          <aside
-            style={{ width: `${leftWidth}px` }}
-            className="relative h-full border-r border-slate-200/80 dark:border-neutral-800/80 bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0 select-none"
-          >
+        <aside
+          style={{ width: isSidebarOpen ? `${leftWidth}px` : '0px' }}
+          className={`relative h-full bg-white dark:bg-[#080808] flex flex-col z-20 shrink-0 select-none overflow-hidden ${
+            isResizingLeft ? '' : 'transition-all duration-300 ease-in-out'
+          } ${
+            isSidebarOpen
+              ? 'border-r border-slate-200/80 dark:border-neutral-800/80 opacity-100'
+              : 'border-r-0 opacity-0 pointer-events-none'
+          }`}
+        >
             {/* Right-edge Resizer Drag Handle */}
             <div
               onMouseDown={(e) => {
@@ -829,7 +834,6 @@ export const MeetingPage: React.FC<MeetingPageProps> = ({
               )}
             </div>
           </aside>
-        )}
 
         {/* Central Architecture Flow Canvas */}
         <ReactFlowProvider>
