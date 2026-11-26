@@ -201,8 +201,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
  * Allows completing a mock checkout session without live webhooks.
  */
 router.post('/mock-complete', async (req: Request, res: Response) => {
-  const allowMock = process.env.NODE_ENV !== 'production' || process.env.ENABLE_MOCK_AUTH === 'true';
-  if (!allowMock) {
+  if (process.env.NODE_ENV === 'production') {
     return res.status(403).json({ error: 'Forbidden in production' });
   }
 

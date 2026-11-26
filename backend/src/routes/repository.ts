@@ -235,6 +235,10 @@ router.post('/test-llm', async (req: Request, res: Response) => {
       if (!baseUrl) {
         return res.status(400).json({ success: false, message: 'Base URL is required for custom LLM endpoint.' });
       }
+      const ssrfCheck = validateSafeLlmBaseUrl(String(baseUrl));
+      if (!ssrfCheck.safe) {
+        return res.status(400).json({ success: false, message: ssrfCheck.reason || 'Unsafe base URL.' });
+      }
       const cleanBase = baseUrl.replace(/\/+$/, '');
       const testUrl = cleanBase.endsWith('/models') || cleanBase.endsWith('/chat/completions')
         ? cleanBase
